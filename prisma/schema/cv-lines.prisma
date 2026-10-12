@@ -1,0 +1,104 @@
+// prisma/schema/cv-lines.prisma
+// Esquema cv: líneas de una versión (ítems y notas), sus seriales y la sección de leasing (AGENTS.md §2.1–2.2).
+
+enum CvLineKind {
+  ITEM
+  NOTA
+
+  @@schema("cv")
+}
+
+enum SupplyMode {
+  LOCAL
+  IMPORTACION
+  STOCK_DIMA
+  SERVICIO_PROPIO
+
+  @@schema("cv")
+}
+
+enum PricingSource {
+  FACTOR
+  PRECIO
+
+  @@schema("cv")
+}
+
+// REGLA: área obligatoria si ITEM; factor null si costo = 0 (CHECK en prisma/sql/cv.sql, §2.2 y PRECIO-01).
+model CvLine {
+  id            String         @id @default(uuid(7)) @db.Uuid
+  versionId     String         @map("version_id") @db.Uuid
+  groupId       String?        @map("grupo_id") @db.Uuid
+  position      Int            @map("posicion")
+  kind          CvLineKind     @map("tipo_linea")
+  areaId        String?        @map("area_id") @db.Uuid
+  supplierId    String?        @map("proveedor_id") @db.Uuid
+  supplyMode    SupplyMode?    @map("modalidad_suministro")
+  technologyId  String?        @map("tecnologia_id") @db.Uuid
+  itemType      ItemType?      @map("tipo_item")
+  productId     String?        @map("producto_id") @db.Uuid
+  code          String?        @map("codigo")
+  description   String         @map("descripcion")
+  unitId        String?        @map("unidad_id") @db.Uuid
+  quantity      Decimal?       @map("cantidad") @db.Decimal(14, 2)
+  unitCostUsd   Decimal?       @map("costo_unit_usd") @db.Decimal(18, 2)
+  factor        Decimal?       @db.Decimal(8, 2)
+  unitSaleUsd   Decimal?       @map("venta_unit_usd") @db.Decimal(18, 2)
+  pricingSource PricingSource? @map("origen_precio")
+  hourBagSpec   Json?          @map("especificacion_bolsa")
+  coverageStart DateTime?      @map("vigencia_inicio") @db.Date
+  coverageEnd   DateTime?      @map("vigencia_fin") @db.Date
+  poNumber      String?        @map("po_numero")
+  notes         String?        @map("observaciones")
+
+  version      CvVersion      @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  group        CvGroup?       @relation(fields: [groupId], references: [id])
+  area         Area?          @relation(fields: [areaId], references: [id])
+  supplier     Supplier?      @relation(fields: [supplierId], references: [id])
+  technology   Technology?    @relation(fields: [technologyId], references: [id])
+  product      Product?       @relation(fields: [productId], references: [id])
+  unit         Unit?          @relation(fields: [unitId], references: [id])
+  serials      CvLineSerial[]
+  hourBag      HourBag?
+  reservations Reservation[]
+  invMovements InvMovement[]
+
+  @@index([versionId, position])
+  @@map("linea")
+  @@schema("cv")
+}
+
+model CvLineSerial {
+  id     String @id @default(uuid(7)) @db.Uuid
+  lineId String @map("linea_id") @db.Uuid
+  serial String
+
+  line CvLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
+
+  @@unique([lineId, serial])
+  @@map("linea_serial")
+  @@schema("cv")
+}
+
+// POR QUÉ: el leasing no afecta la venta; tiene su propio total de costo y bloque en el Excel (§2.1).
+model CvLeasingLine {
+  id           String  @id @default(uuid(7)) @db.Uuid
+  versionId    String  @map("version_id") @db.Uuid
+  position     Int     @map("posicion")
+  supplierId   String? @map("proveedor_id") @db.Uuid
+  technologyId String? @map("tecnologia_id") @db.Uuid
+  code         String? @map("codigo")
+  description  String  @map("descripcion")
+  quantity     Decimal @map("cantidad") @db.Decimal(14, 2)
+  unitCostUsd  Decimal @map("costo_unit_usd") @db.Decimal(18, 2)
+  notes        String? @map("notas")
+  poNumber     String? @map("po_numero")
+
+  version    CvVersion   @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  supplier   Supplier?   @relation(fields: [supplierId], references: [id])
+  technology Technology? @relation(fields: [technologyId], references: [id])
+
+  @@index([versionId, position])
+  @@map("leasing_linea")
+  @@schema("cv")
+}

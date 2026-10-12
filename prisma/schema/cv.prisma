@@ -1,0 +1,203 @@
+// prisma/schema/cv.prisma
+// Esquema cv: numerador, Control de Venta, versiones, vendedores, grupos, solicitudes de aprobación y adjuntos.
+
+enum CvVersionStatus {
+  BORRADOR
+  EN_APROBACION
+  OBSERVADA
+  APROBADA
+  REEMPLAZADA
+  ANULADA
+
+  @@schema("cv")
+}
+
+enum ApprovalKind {
+  AREA
+  GERENCIA_GENERAL
+
+  @@schema("cv")
+}
+
+enum ApprovalStatus {
+  PENDIENTE
+  APROBADA
+  RECHAZADA
+  CERRADA
+
+  @@schema("cv")
+}
+
+enum CvAttachmentKind {
+  OC_CLIENTE
+  OTRO
+
+  @@schema("cv")
+}
+
+// REGLA: el correlativo se toma con SELECT … FOR UPDATE sobre esta fila, nunca con MAX()+1 (AGENTS.md §2.1).
+model CvCounter {
+  cityId     String @map("ciudad_id") @db.Uuid
+  year       Int    @map("anio")
+  lastNumber Int    @default(0) @map("ultimo_numero")
+
+  city City @relation(fields: [cityId], references: [id])
+
+  @@id([cityId, year])
+  @@map("numerador")
+  @@schema("cv")
+}
+
+model Cv {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  number      Int       @map("correlativo")
+  cityId      String    @map("ciudad_id") @db.Uuid
+  year        Int       @map("anio")
+  code        String    @unique @map("codigo")
+  customerId  String    @map("cliente_id") @db.Uuid
+  createdById String    @map("creado_por_id")
+  createdAt   DateTime  @default(now()) @map("creado_en") @db.Timestamptz
+  voidedAt    DateTime? @map("anulado_en") @db.Timestamptz
+  voidReason  String?   @map("motivo_anulacion")
+
+  city        City           @relation(fields: [cityId], references: [id])
+  customer    Customer       @relation(fields: [customerId], references: [id])
+  createdBy   UserProfile    @relation(fields: [createdById], references: [userId])
+  versions    CvVersion[]
+  attachments CvAttachment[]
+
+  @@unique([cityId, year, number])
+  @@index([customerId])
+  @@map("cv")
+  @@schema("cv")
+}
+
+// REGLA: inmutable fuera de BORRADOR salvo columnas de estado (trigger en prisma/sql/cv.sql, ADR-11).
+model CvVersion {
+  id                   String          @id @default(uuid(7)) @db.Uuid
+  cvId                 String          @map("cv_id") @db.Uuid
+  number               Int             @map("numero")
+  status               CvVersionStatus @default(BORRADOR) @map("estado")
+  reason               String?         @map("motivo")
+  title                String          @map("titulo")
+  issuedOn             DateTime        @map("fecha") @db.Date
+  presalesId           String?         @map("preventa_id")
+  postsalesId          String?         @map("postventa_id")
+  mainTechnologyId     String?         @map("linea_principal_id") @db.Uuid
+  serviceTypeId        String?         @map("tipo_servicio_id") @db.Uuid
+  isNewTechnology      Boolean         @default(false) @map("nueva_tecnologia")
+  endCustomerId        String?         @map("cliente_final_id") @db.Uuid
+  customerSnapshot     Json            @map("datos_cliente")
+  customerPoNumber     String?         @map("oc_numero")
+  customerPoDate       DateTime?       @map("oc_fecha") @db.Date
+  paymentTerms         String?         @map("terminos_pago")
+  deliveryOn           DateTime?       @map("fecha_entrega") @db.Date
+  notes                String?         @map("notas")
+  costFxRate           Decimal         @map("tc_costo") @db.Decimal(12, 4)
+  saleFxRate           Decimal         @map("tc_venta") @db.Decimal(12, 4)
+  officialFxRate       Decimal?        @map("tc_oficial") @db.Decimal(12, 4)
+  approvalThresholdUsd Decimal?        @map("umbral_aprobacion_usd") @db.Decimal(18, 2)
+  totalCostUsd         Decimal         @default(0) @map("total_costo_usd") @db.Decimal(18, 2)
+  totalSaleUsd         Decimal         @default(0) @map("total_venta_usd") @db.Decimal(18, 2)
+  createdById          String          @map("creado_por_id")
+  createdAt            DateTime        @default(now()) @map("creado_en") @db.Timestamptz
+  updatedAt            DateTime        @updatedAt @map("actualizado_en") @db.Timestamptz
+  submittedAt          DateTime?       @map("enviada_en") @db.Timestamptz
+  approvedAt           DateTime?       @map("aprobada_en") @db.Timestamptz
+  observedAt           DateTime?       @map("observada_en") @db.Timestamptz
+  replacedAt           DateTime?       @map("reemplazada_en") @db.Timestamptz
+  voidedAt             DateTime?       @map("anulada_en") @db.Timestamptz
+
+  cv               Cv                  @relation(fields: [cvId], references: [id], onDelete: Cascade)
+  presales         UserProfile?        @relation("CvVersionPresales", fields: [presalesId], references: [userId])
+  postsales        UserProfile?        @relation("CvVersionPostsales", fields: [postsalesId], references: [userId])
+  createdBy        UserProfile         @relation("CvVersionCreator", fields: [createdById], references: [userId])
+  mainTechnology   Technology?         @relation(fields: [mainTechnologyId], references: [id])
+  serviceType      ServiceType?        @relation(fields: [serviceTypeId], references: [id])
+  endCustomer      Customer?           @relation(fields: [endCustomerId], references: [id])
+  sellers          CvVersionSeller[]
+  groups           CvGroup[]
+  lines            CvLine[]
+  leasingLines     CvLeasingLine[]
+  approvalRequests CvApprovalRequest[]
+  attachments      CvAttachment[]
+
+  @@unique([cvId, number])
+  @@unique([cvId], map: "version_aprobada_unica", where: raw("estado = 'APROBADA'"))
+  @@index([status])
+  @@map("version")
+  @@schema("cv")
+}
+
+// POR QUÉ: un CV puede tener más de un vendedor (AGENTS.md §2.1); tabla puente para que el alcance use FK.
+model CvVersionSeller {
+  versionId String @map("version_id") @db.Uuid
+  userId    String @map("usuario_id")
+
+  version CvVersion   @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  user    UserProfile @relation(fields: [userId], references: [userId])
+
+  @@id([versionId, userId])
+  @@index([userId])
+  @@map("version_vendedor")
+  @@schema("cv")
+}
+
+model CvGroup {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  versionId String   @map("version_id") @db.Uuid
+  name      String   @map("nombre")
+  position  Int      @map("posicion")
+  factor    Decimal? @db.Decimal(8, 2)
+
+  version CvVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  lines   CvLine[]
+
+  @@index([versionId])
+  @@map("grupo")
+  @@schema("cv")
+}
+
+// REGLA: una solicitud por área de la versión (+GG si supera el umbral); unicidad en prisma/sql/cv.sql (§2.3).
+model CvApprovalRequest {
+  id          String         @id @default(uuid(7)) @db.Uuid
+  versionId   String         @map("version_id") @db.Uuid
+  kind        ApprovalKind   @map("tipo")
+  areaId      String?        @map("area_id") @db.Uuid
+  status      ApprovalStatus @default(PENDIENTE) @map("estado")
+  comment     String?        @map("comentario")
+  decidedById String?        @map("decidida_por_id")
+  createdAt   DateTime       @default(now()) @map("creado_en") @db.Timestamptz
+  decidedAt   DateTime?      @map("decidida_en") @db.Timestamptz
+
+  version   CvVersion    @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  area      Area?        @relation(fields: [areaId], references: [id])
+  decidedBy UserProfile? @relation(fields: [decidedById], references: [userId])
+
+  @@unique([versionId, kind, areaId], map: "solicitud_aprobacion_unica")
+  @@index([status, createdAt])
+  @@map("solicitud_aprobacion")
+  @@schema("cv")
+}
+
+model CvAttachment {
+  id           String           @id @default(uuid(7)) @db.Uuid
+  cvId         String           @map("cv_id") @db.Uuid
+  versionId    String?          @map("version_id") @db.Uuid
+  kind         CvAttachmentKind @map("tipo")
+  fileName     String           @map("nombre_archivo")
+  storagePath  String           @map("ruta")
+  sha256       String           @map("hash_sha256")
+  sizeBytes    Int              @map("tamano_bytes")
+  mimeType     String           @map("tipo_mime")
+  uploadedById String           @map("subido_por_id")
+  createdAt    DateTime         @default(now()) @map("creado_en") @db.Timestamptz
+
+  cv         Cv          @relation(fields: [cvId], references: [id], onDelete: Cascade)
+  version    CvVersion?  @relation(fields: [versionId], references: [id])
+  uploadedBy UserProfile @relation(fields: [uploadedById], references: [userId])
+
+  @@index([cvId])
+  @@map("adjunto")
+  @@schema("cv")
+}

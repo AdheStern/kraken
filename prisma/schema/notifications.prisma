@@ -1,0 +1,60 @@
+// prisma/schema/notifications.prisma
+// Esquema notif: outbox de correo, bandeja interna y preferencias por usuario y tipo de evento (ADR-08).
+
+enum OutboxStatus {
+  PENDIENTE
+  ENVIADO
+  FALLIDO
+
+  @@schema("notif")
+}
+
+// REGLA: se inserta dentro de la transacción de la action; solo el worker mail.dispatch envía (outbox, ADR-08).
+model OutboxMessage {
+  id             String       @id @default(uuid(7)) @db.Uuid
+  eventType      String       @map("tipo_evento")
+  recipientEmail String       @map("destinatario")
+  subject        String       @map("asunto")
+  bodyHtml       String       @map("cuerpo_html")
+  status         OutboxStatus @default(PENDIENTE) @map("estado")
+  attempts       Int          @default(0) @map("intentos")
+  nextAttemptAt  DateTime     @default(now()) @map("proximo_intento_en") @db.Timestamptz
+  lastError      String?      @map("ultimo_error")
+  sentAt         DateTime?    @map("enviado_en") @db.Timestamptz
+  createdAt      DateTime     @default(now()) @map("creado_en") @db.Timestamptz
+
+  @@index([status, nextAttemptAt])
+  @@map("salida")
+  @@schema("notif")
+}
+
+model InboxItem {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  userId    String    @map("usuario_id")
+  eventType String    @map("tipo_evento")
+  title     String    @map("titulo")
+  body      String?   @map("cuerpo")
+  link      String?   @map("enlace")
+  readAt    DateTime? @map("leida_en") @db.Timestamptz
+  createdAt DateTime  @default(now()) @map("creado_en") @db.Timestamptz
+
+  user UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@map("bandeja")
+  @@schema("notif")
+}
+
+model NotificationPreference {
+  id           String  @id @default(uuid(7)) @db.Uuid
+  userId       String  @map("usuario_id")
+  eventType    String  @map("tipo_evento")
+  emailEnabled Boolean @default(true) @map("correo")
+  inboxEnabled Boolean @default(true) @map("bandeja")
+
+  user UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@unique([userId, eventType])
+  @@map("preferencia")
+  @@schema("notif")
+}

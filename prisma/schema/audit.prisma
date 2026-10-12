@@ -1,0 +1,21 @@
+// prisma/schema/audit.prisma
+// Esquema audit: eventos de auditoría (actor, entidad, acción, antes, después, IP, fecha) (ADR-14).
+
+// POR QUÉ: actorId y entityId sin FK; la auditoría debe sobrevivir a cualquier cambio de las tablas auditadas.
+model AuditEvent {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  actorId   String?  @map("actor_id")
+  entity    String   @map("entidad")
+  entityId  String   @map("entidad_id")
+  action    String   @map("accion")
+  before    Json?    @map("antes")
+  after     Json?    @map("despues")
+  ip        String?
+  requestId String?  @map("request_id")
+  createdAt DateTime @default(now()) @map("creado_en") @db.Timestamptz
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("evento")
+  @@schema("audit")
+}

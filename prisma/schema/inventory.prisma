@@ -1,0 +1,251 @@
+// prisma/schema/inventory.prisma
+// Esquema inv: almacenes, stock, seriales, libro de movimientos, traspasos, ajustes y reservas (AGENTS.md §2.8).
+
+enum WarehouseKind {
+  FISICO
+  TRANSITO
+  DEMOSTRACION
+  REPUESTOS
+
+  @@schema("inv")
+}
+
+enum InvMovementKind {
+  INGRESO
+  SALIDA
+  TRASPASO
+  AJUSTE
+  DEVOLUCION
+
+  @@schema("inv")
+}
+
+enum SerialStatus {
+  EN_STOCK
+  EN_TRANSITO
+  RESERVADO
+  DESPACHADO
+
+  @@schema("inv")
+}
+
+enum TransferStatus {
+  BORRADOR
+  EN_TRANSITO
+  RECIBIDO
+  RECIBIDO_CON_DIFERENCIAS
+  CANCELADO
+
+  @@schema("inv")
+}
+
+enum AdjustmentStatus {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+
+  @@schema("inv")
+}
+
+enum ReservationStatus {
+  ACTIVA
+  CONSUMIDA
+  LIBERADA
+
+  @@schema("inv")
+}
+
+model Warehouse {
+  id       String        @id @default(uuid(7)) @db.Uuid
+  code     String        @unique @map("codigo")
+  name     String        @map("nombre")
+  cityId   String?       @map("ciudad_id") @db.Uuid
+  kind     WarehouseKind @map("tipo")
+  isActive Boolean       @default(true) @map("activo")
+
+  city               City?               @relation(fields: [cityId], references: [id])
+  stocks             Stock[]
+  serialUnits        SerialUnit[]
+  movements          InvMovement[]
+  transfersOut       Transfer[]          @relation("TransferOrigin")
+  transfersIn        Transfer[]          @relation("TransferDestination")
+  adjustmentRequests AdjustmentRequest[]
+  reservations       Reservation[]
+
+  @@map("almacen")
+  @@schema("inv")
+}
+
+// REGLA: cantidad y costo promedio son caché del libro; cambian solo junto a su movimiento (AGENTS.md §0.6).
+model Stock {
+  id               String   @id @default(uuid(7)) @db.Uuid
+  warehouseId      String   @map("almacen_id") @db.Uuid
+  productId        String   @map("producto_id") @db.Uuid
+  quantity         Decimal  @default(0) @map("cantidad") @db.Decimal(14, 2)
+  reservedQuantity Decimal  @default(0) @map("cantidad_reservada") @db.Decimal(14, 2)
+  averageCostUsd   Decimal  @default(0) @map("costo_promedio_usd") @db.Decimal(18, 2)
+  updatedAt        DateTime @updatedAt @map("actualizado_en") @db.Timestamptz
+
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+  product   Product   @relation(fields: [productId], references: [id])
+
+  @@unique([warehouseId, productId])
+  @@map("stock")
+  @@schema("inv")
+}
+
+model SerialUnit {
+  id          String       @id @default(uuid(7)) @db.Uuid
+  productId   String       @map("producto_id") @db.Uuid
+  serial      String
+  warehouseId String?      @map("almacen_id") @db.Uuid
+  status      SerialStatus @default(EN_STOCK) @map("estado")
+  createdAt   DateTime     @default(now()) @map("creado_en") @db.Timestamptz
+
+  product       Product           @relation(fields: [productId], references: [id])
+  warehouse     Warehouse?        @relation(fields: [warehouseId], references: [id])
+  movementLines InvMovementLine[]
+  transferLines TransferLine[]
+
+  @@unique([productId, serial])
+  @@map("unidad_serial")
+  @@schema("inv")
+}
+
+// REGLA: inmutable (trigger inv.movimiento_inmutable). Cada movimiento afecta un solo almacén (ADR-03).
+model InvMovement {
+  id                  String          @id @default(uuid(7)) @db.Uuid
+  kind                InvMovementKind @map("tipo")
+  warehouseId         String          @map("almacen_id") @db.Uuid
+  documentRef         String?         @map("documento_ref")
+  cvLineId            String?         @map("cv_linea_id") @db.Uuid
+  ticketId            String?         @map("ticket_id") @db.Uuid
+  transferId          String?         @map("traspaso_id") @db.Uuid
+  adjustmentRequestId String?         @unique @map("solicitud_ajuste_id") @db.Uuid
+  notes               String?         @map("notas")
+  actorId             String          @map("actor_id")
+  createdAt           DateTime        @default(now()) @map("creado_en") @db.Timestamptz
+
+  warehouse         Warehouse          @relation(fields: [warehouseId], references: [id])
+  cvLine            CvLine?            @relation(fields: [cvLineId], references: [id])
+  ticket            Ticket?            @relation(fields: [ticketId], references: [id])
+  transfer          Transfer?          @relation(fields: [transferId], references: [id])
+  adjustmentRequest AdjustmentRequest? @relation(fields: [adjustmentRequestId], references: [id])
+  actor             UserProfile        @relation(fields: [actorId], references: [userId])
+  lines             InvMovementLine[]
+
+  @@index([warehouseId, createdAt])
+  @@map("movimiento")
+  @@schema("inv")
+}
+
+// POR QUÉ: cantidad con signo (+ entra, − sale del almacén del movimiento); el kardex es la suma acumulada.
+model InvMovementLine {
+  id           String  @id @default(uuid(7)) @db.Uuid
+  movementId   String  @map("movimiento_id") @db.Uuid
+  productId    String  @map("producto_id") @db.Uuid
+  quantity     Decimal @map("cantidad") @db.Decimal(14, 2)
+  unitCostUsd  Decimal @map("costo_unit_usd") @db.Decimal(18, 2)
+  serialUnitId String? @map("unidad_serial_id") @db.Uuid
+
+  movement   InvMovement @relation(fields: [movementId], references: [id])
+  product    Product     @relation(fields: [productId], references: [id])
+  serialUnit SerialUnit? @relation(fields: [serialUnitId], references: [id])
+
+  @@index([productId])
+  @@map("movimiento_linea")
+  @@schema("inv")
+}
+
+// REGLA: dos pasos; al enviar, el stock pasa a TRANSITO y el destino confirma cantidades y seriales (AGENTS.md §2.8).
+model Transfer {
+  id                     String         @id @default(uuid(7)) @db.Uuid
+  number                 Int            @unique @default(autoincrement()) @map("numero")
+  originWarehouseId      String         @map("almacen_origen_id") @db.Uuid
+  destinationWarehouseId String         @map("almacen_destino_id") @db.Uuid
+  status                 TransferStatus @default(BORRADOR) @map("estado")
+  notes                  String?        @map("notas")
+  createdById            String         @map("creado_por_id")
+  createdAt              DateTime       @default(now()) @map("creado_en") @db.Timestamptz
+  sentById               String?        @map("enviado_por_id")
+  sentAt                 DateTime?      @map("enviado_en") @db.Timestamptz
+  receivedById           String?        @map("recibido_por_id")
+  receivedAt             DateTime?      @map("recibido_en") @db.Timestamptz
+
+  originWarehouse      Warehouse      @relation("TransferOrigin", fields: [originWarehouseId], references: [id])
+  destinationWarehouse Warehouse      @relation("TransferDestination", fields: [destinationWarehouseId], references: [id])
+  createdBy            UserProfile    @relation("TransferCreator", fields: [createdById], references: [userId])
+  sentBy               UserProfile?   @relation("TransferSender", fields: [sentById], references: [userId])
+  receivedBy           UserProfile?   @relation("TransferReceiver", fields: [receivedById], references: [userId])
+  lines                TransferLine[]
+  movements            InvMovement[]
+
+  @@index([status])
+  @@map("traspaso")
+  @@schema("inv")
+}
+
+model TransferLine {
+  id               String   @id @default(uuid(7)) @db.Uuid
+  transferId       String   @map("traspaso_id") @db.Uuid
+  productId        String   @map("producto_id") @db.Uuid
+  quantitySent     Decimal  @map("cantidad_enviada") @db.Decimal(14, 2)
+  quantityReceived Decimal? @map("cantidad_recibida") @db.Decimal(14, 2)
+  serialUnitId     String?  @map("unidad_serial_id") @db.Uuid
+  notes            String?  @map("notas")
+
+  transfer   Transfer    @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  product    Product     @relation(fields: [productId], references: [id])
+  serialUnit SerialUnit? @relation(fields: [serialUnitId], references: [id])
+
+  @@index([transferId])
+  @@map("traspaso_linea")
+  @@schema("inv")
+}
+
+// POR QUÉ: el libro es inmutable, así que el ajuste se pide aquí y el movimiento AJUSTE se inserta solo al aprobarse.
+model AdjustmentRequest {
+  id              String           @id @default(uuid(7)) @db.Uuid
+  warehouseId     String           @map("almacen_id") @db.Uuid
+  areaId          String?          @map("area_id") @db.Uuid
+  status          AdjustmentStatus @default(PENDIENTE) @map("estado")
+  reason          String           @map("motivo")
+  lines           Json             @map("lineas")
+  requestedById   String           @map("solicitado_por_id")
+  createdAt       DateTime         @default(now()) @map("creado_en") @db.Timestamptz
+  decidedById     String?          @map("decidido_por_id")
+  decidedAt       DateTime?        @map("decidido_en") @db.Timestamptz
+  decisionComment String?          @map("comentario_decision")
+
+  warehouse   Warehouse    @relation(fields: [warehouseId], references: [id])
+  area        Area?        @relation(fields: [areaId], references: [id])
+  requestedBy UserProfile  @relation("AdjustmentRequester", fields: [requestedById], references: [userId])
+  decidedBy   UserProfile? @relation("AdjustmentDecider", fields: [decidedById], references: [userId])
+  movement    InvMovement?
+
+  @@index([status])
+  @@map("solicitud_ajuste")
+  @@schema("inv")
+}
+
+// REGLA: una línea de CV aprobado con STOCK_DIMA reserva stock; el despacho la consume (AGENTS.md §2.8).
+model Reservation {
+  id               String            @id @default(uuid(7)) @db.Uuid
+  cvLineId         String            @map("cv_linea_id") @db.Uuid
+  warehouseId      String            @map("almacen_id") @db.Uuid
+  productId        String            @map("producto_id") @db.Uuid
+  quantity         Decimal           @map("cantidad") @db.Decimal(14, 2)
+  consumedQuantity Decimal           @default(0) @map("cantidad_consumida") @db.Decimal(14, 2)
+  status           ReservationStatus @default(ACTIVA) @map("estado")
+  createdAt        DateTime          @default(now()) @map("creado_en") @db.Timestamptz
+  updatedAt        DateTime          @updatedAt @map("actualizado_en") @db.Timestamptz
+
+  cvLine    CvLine    @relation(fields: [cvLineId], references: [id])
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+  product   Product   @relation(fields: [productId], references: [id])
+
+  @@index([cvLineId])
+  @@index([warehouseId, productId, status])
+  @@map("reserva")
+  @@schema("inv")
+}

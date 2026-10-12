@@ -1,0 +1,133 @@
+// prisma/schema/core-catalog.prisma
+// Esquema core: catálogos comerciales (clientes, proveedores, tecnologías, unidades, tipos de servicio, productos).
+
+enum ItemType {
+  HARDWARE
+  INTANGIBLE
+  SERVICIO
+
+  @@schema("core")
+}
+
+model Customer {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  name      String   @map("razon_social")
+  taxId     String?  @map("nit")
+  email     String?  @map("correo")
+  phone     String?  @map("telefono")
+  address   String?  @map("direccion")
+  city      String?  @map("ciudad")
+  country   String?  @map("pais")
+  isActive  Boolean  @default(true) @map("activo")
+  createdAt DateTime @default(now()) @map("creado_en") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("actualizado_en") @db.Timestamptz
+
+  contacts            CustomerContact[]
+  cvs                 Cv[]
+  endCustomerVersions CvVersion[]
+  hourBags            HourBag[]
+  pendingHours        PendingHours[]
+  projects            Project[]
+  tickets             Ticket[]
+
+  @@index([taxId])
+  @@map("cliente")
+  @@schema("core")
+}
+
+model CustomerContact {
+  id         String  @id @default(uuid(7)) @db.Uuid
+  customerId String  @map("cliente_id") @db.Uuid
+  name       String  @map("nombre")
+  position   String? @map("cargo")
+  email      String? @map("correo")
+  phone      String? @map("telefono")
+  isActive   Boolean @default(true) @map("activo")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("cliente_contacto")
+  @@schema("core")
+}
+
+// TRAMPA: "INGRAM", "INGRAM MICRO" e "INGRAM - INT" son un solo proveedor; la modalidad va en la línea del CV.
+model Supplier {
+  id       String  @id @default(uuid(7)) @db.Uuid
+  name     String  @unique @map("nombre")
+  taxId    String? @map("nit")
+  isActive Boolean @default(true) @map("activo")
+
+  cvLines      CvLine[]
+  leasingLines CvLeasingLine[]
+
+  @@map("proveedor")
+  @@schema("core")
+}
+
+model Technology {
+  id       String  @id @default(uuid(7)) @db.Uuid
+  name     String  @unique @map("nombre")
+  isActive Boolean @default(true) @map("activo")
+
+  products     Product[]
+  cvVersions   CvVersion[]
+  cvLines      CvLine[]
+  leasingLines CvLeasingLine[]
+
+  @@map("tecnologia")
+  @@schema("core")
+}
+
+// POR QUÉ: isHours marca la unidad que, con tipo SERVICIO, convierte una línea de CV en bolsa (AGENTS.md §2.1).
+model Unit {
+  id       String  @id @default(uuid(7)) @db.Uuid
+  code     String  @unique @map("codigo")
+  name     String  @map("nombre")
+  isHours  Boolean @default(false) @map("es_horas")
+  isActive Boolean @default(true) @map("activo")
+
+  products Product[]
+  cvLines  CvLine[]
+
+  @@map("unidad")
+  @@schema("core")
+}
+
+model ServiceType {
+  id       String  @id @default(uuid(7)) @db.Uuid
+  name     String  @unique @map("nombre")
+  isActive Boolean @default(true) @map("activo")
+
+  cvVersions CvVersion[]
+
+  @@map("tipo_servicio")
+  @@schema("core")
+}
+
+model Product {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  code          String   @map("codigo")
+  description   String   @map("descripcion")
+  technologyId  String?  @map("tecnologia_id") @db.Uuid
+  unitId        String?  @map("unidad_id") @db.Uuid
+  itemType      ItemType @map("tipo_item")
+  isSerialized  Boolean  @default(false) @map("serializado")
+  createdFromCv Boolean  @default(false) @map("creado_desde_cv")
+  isActive      Boolean  @default(true) @map("activo")
+  createdAt     DateTime @default(now()) @map("creado_en") @db.Timestamptz
+  updatedAt     DateTime @updatedAt @map("actualizado_en") @db.Timestamptz
+
+  technology    Technology?       @relation(fields: [technologyId], references: [id])
+  unit          Unit?             @relation(fields: [unitId], references: [id])
+  cvLines       CvLine[]
+  stocks        Stock[]
+  serialUnits   SerialUnit[]
+  movementLines InvMovementLine[]
+  transferLines TransferLine[]
+  reservations  Reservation[]
+
+  @@index([code])
+  @@map("producto")
+  @@schema("core")
+}

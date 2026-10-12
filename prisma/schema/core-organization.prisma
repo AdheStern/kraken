@@ -1,0 +1,146 @@
+// prisma/schema/core-organization.prisma
+// Esquema core: áreas, ciudades, roles, mapeo de grupos de Entra, excepciones de permisos y parámetros.
+
+enum RoleCode {
+  GERENTE_GENERAL
+  GERENTE_AREA
+  COMERCIAL
+  PREVENTA
+  INGENIERO
+  COORDINADOR_SOPORTE
+  ALMACEN
+  ADMINISTRACION
+  ADMIN_SISTEMA
+
+  @@schema("core")
+}
+
+enum RoleSource {
+  ENTRA
+  MANUAL
+
+  @@schema("core")
+}
+
+// REGLA: las áreas son catálogo; agregar una no requiere despliegue (AGENTS.md §1).
+model Area {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  code      String   @unique @map("codigo")
+  name      String   @map("nombre")
+  isActive  Boolean  @default(true) @map("activo")
+  createdAt DateTime @default(now()) @map("creado_en") @db.Timestamptz
+
+  userRoles          UserRole[]
+  entraGroupRoles    EntraGroupRole[]
+  cvLines            CvLine[]
+  approvalRequests   CvApprovalRequest[]
+  hourBags           HourBagArea[]
+  projects           ProjectArea[]
+  tickets            TicketArea[]
+  adjustmentRequests AdjustmentRequest[]
+
+  @@map("area")
+  @@schema("core")
+}
+
+// REGLA: cada ciudad tiene correlativo de CV, feriados, horario de oficina y almacén (AGENTS.md §1).
+model City {
+  id               String   @id @default(uuid(7)) @db.Uuid
+  code             String   @unique @map("codigo")
+  name             String   @map("nombre")
+  officeScheduleId String?  @map("horario_oficina_id") @db.Uuid
+  isActive         Boolean  @default(true) @map("activo")
+  createdAt        DateTime @default(now()) @map("creado_en") @db.Timestamptz
+
+  officeSchedule OfficeSchedule? @relation(fields: [officeScheduleId], references: [id])
+  holidays       Holiday[]
+  profiles       UserProfile[]
+  cvCounters     CvCounter[]
+  cvs            Cv[]
+  tickets        Ticket[]
+  warehouses     Warehouse[]
+
+  @@map("ciudad")
+  @@schema("core")
+}
+
+model Role {
+  id   String   @id @default(uuid(7)) @db.Uuid
+  code RoleCode @unique @map("codigo")
+  name String   @map("nombre")
+
+  userRoles       UserRole[]
+  entraGroupRoles EntraGroupRole[]
+
+  @@map("rol")
+  @@schema("core")
+}
+
+// POR QUÉ: areaId acota el rol (gerente de DIMANET); null = rol sin área. Unicidad en prisma/sql/core.sql.
+model UserRole {
+  id        String     @id @default(uuid(7)) @db.Uuid
+  userId    String     @map("usuario_id")
+  roleId    String     @map("rol_id") @db.Uuid
+  areaId    String?    @map("area_id") @db.Uuid
+  source    RoleSource @map("origen")
+  createdAt DateTime   @default(now()) @map("creado_en") @db.Timestamptz
+
+  user UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  role Role        @relation(fields: [roleId], references: [id])
+  area Area?       @relation(fields: [areaId], references: [id])
+
+  @@unique([userId, roleId, areaId], map: "usuario_rol_unico")
+  @@map("usuario_rol")
+  @@schema("core")
+}
+
+model EntraGroupRole {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  entraGroupId String   @map("grupo_entra_id")
+  groupName    String?  @map("nombre_grupo")
+  roleId       String   @map("rol_id") @db.Uuid
+  areaId       String?  @map("area_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("creado_en") @db.Timestamptz
+
+  role Role  @relation(fields: [roleId], references: [id])
+  area Area? @relation(fields: [areaId], references: [id])
+
+  @@unique([entraGroupId, roleId, areaId], map: "grupo_entra_rol_unico")
+  @@map("grupo_entra_rol")
+  @@schema("core")
+}
+
+// POR QUÉ: misma forma que una regla de CASL (action, subject, conditions, inverted) para cargarla sin traducir.
+model PermissionException {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  userId      String    @map("usuario_id")
+  action      String    @map("accion")
+  subject     String    @map("recurso")
+  conditions  Json?     @map("condiciones")
+  isDenial    Boolean   @default(false) @map("es_denegacion")
+  reason      String    @map("motivo")
+  grantedById String    @map("otorgado_por_id")
+  expiresAt   DateTime? @map("vence_en") @db.Timestamptz
+  createdAt   DateTime  @default(now()) @map("creado_en") @db.Timestamptz
+
+  user      UserProfile @relation("PermissionExceptionUser", fields: [userId], references: [userId], onDelete: Cascade)
+  grantedBy UserProfile @relation("PermissionExceptionGrantor", fields: [grantedById], references: [userId])
+
+  @@index([userId])
+  @@map("permiso_excepcion")
+  @@schema("core")
+}
+
+// REGLA: umbral del GG, % de desvío del TC y umbrales de alertas son parámetros, no constantes (AGENTS.md §0.16).
+model Parameter {
+  key         String   @id @map("clave")
+  value       Json     @map("valor")
+  description String?  @map("descripcion")
+  updatedById String?  @map("actualizado_por_id")
+  updatedAt   DateTime @updatedAt @map("actualizado_en") @db.Timestamptz
+
+  updatedBy UserProfile? @relation(fields: [updatedById], references: [userId])
+
+  @@map("parametro")
+  @@schema("core")
+}

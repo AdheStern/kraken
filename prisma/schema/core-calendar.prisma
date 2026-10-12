@@ -1,0 +1,44 @@
+// prisma/schema/core-calendar.prisma
+// Esquema core: horarios de oficina por franjas y feriados nacionales o departamentales (AGENTS.md §2.5).
+
+model OfficeSchedule {
+  id       String  @id @default(uuid(7)) @db.Uuid
+  name     String  @unique @map("nombre")
+  isActive Boolean @default(true) @map("activo")
+
+  slots  ScheduleSlot[]
+  cities City[]
+
+  @@map("horario_oficina")
+  @@schema("core")
+}
+
+// REGLA: minutos desde la medianoche en America/La_Paz; weekday ISO 1 = lunes. CHECK en prisma/sql/core.sql.
+model ScheduleSlot {
+  id          String @id @default(uuid(7)) @db.Uuid
+  scheduleId  String @map("horario_id") @db.Uuid
+  weekday     Int    @map("dia_semana")
+  startMinute Int    @map("minuto_inicio")
+  endMinute   Int    @map("minuto_fin")
+
+  schedule OfficeSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@index([scheduleId, weekday])
+  @@map("horario_franja")
+  @@schema("core")
+}
+
+// REGLA: cityId null = feriado nacional. Unicidad (fecha, ciudad) con NULLS NOT DISTINCT en prisma/sql/core.sql.
+model Holiday {
+  id       String   @id @default(uuid(7)) @db.Uuid
+  date     DateTime @map("fecha") @db.Date
+  name     String   @map("nombre")
+  cityId   String?  @map("ciudad_id") @db.Uuid
+  isActive Boolean  @default(true) @map("activo")
+
+  city City? @relation(fields: [cityId], references: [id])
+
+  @@unique([date, cityId], map: "feriado_unico")
+  @@map("feriado")
+  @@schema("core")
+}

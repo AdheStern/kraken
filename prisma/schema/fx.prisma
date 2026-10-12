@@ -1,0 +1,25 @@
+// prisma/schema/fx.prisma
+// Esquema fx: tipo de cambio oficial del BCB guardado por el job fx.fetch-official o cargado a mano (ADR-09).
+
+enum FxSource {
+  CUCU
+  MANUAL
+
+  @@schema("fx")
+}
+
+model FxRate {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  effectiveOn DateTime @map("fecha_vigencia") @db.Date
+  buyRate     Decimal  @map("compra") @db.Decimal(12, 4)
+  sellRate    Decimal  @map("venta") @db.Decimal(12, 4)
+  source      FxSource @map("fuente")
+  fetchedAt   DateTime @default(now()) @map("obtenido_en") @db.Timestamptz
+  createdById String?  @map("creado_por_id")
+
+  createdBy UserProfile? @relation(fields: [createdById], references: [userId])
+
+  @@unique([effectiveOn, source])
+  @@map("tipo_cambio")
+  @@schema("fx")
+}

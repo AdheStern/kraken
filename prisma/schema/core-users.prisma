@@ -1,0 +1,48 @@
+// prisma/schema/core-users.prisma
+// Perfil de negocio de cada usuario de Better Auth. Toda FK a una persona apunta aquí, no a auth.user.
+
+model UserProfile {
+  userId    String   @id @map("usuario_id")
+  cityId    String?  @map("ciudad_id") @db.Uuid
+  jobTitle  String?  @map("cargo")
+  isActive  Boolean  @default(true) @map("activo")
+  createdAt DateTime @default(now()) @map("creado_en") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("actualizado_en") @db.Timestamptz
+
+  user User  @relation(fields: [userId], references: [id])
+  city City? @relation(fields: [cityId], references: [id])
+
+  roles                   UserRole[]
+  permissionExceptions    PermissionException[]    @relation("PermissionExceptionUser")
+  grantedExceptions       PermissionException[]    @relation("PermissionExceptionGrantor")
+  parametersUpdated       Parameter[]
+  fxRatesCreated          FxRate[]
+  cvsCreated              Cv[]
+  cvVersionsCreated       CvVersion[]              @relation("CvVersionCreator")
+  cvVersionsPresales      CvVersion[]              @relation("CvVersionPresales")
+  cvVersionsPostsales     CvVersion[]              @relation("CvVersionPostsales")
+  cvVersionsSold          CvVersionSeller[]
+  approvalsDecided        CvApprovalRequest[]
+  cvAttachments           CvAttachment[]
+  hourMovements           HourMovement[]
+  projectsCreated         Project[]
+  ticketsOwned            Ticket[]                 @relation("TicketOwner")
+  ticketsCreated          Ticket[]                 @relation("TicketCreator")
+  subtasksAssigned        Subtask[]                @relation("SubtaskAssignee")
+  subtasksCreated         Subtask[]                @relation("SubtaskCreator")
+  comments                Comment[]
+  ticketAttachments       TicketAttachment[]
+  timeEntries             TimeEntry[]
+  timerEvents             TimerEvent[]
+  invMovements            InvMovement[]
+  transfersCreated        Transfer[]               @relation("TransferCreator")
+  transfersSent           Transfer[]               @relation("TransferSender")
+  transfersReceived       Transfer[]               @relation("TransferReceiver")
+  adjustmentsRequested    AdjustmentRequest[]      @relation("AdjustmentRequester")
+  adjustmentsDecided      AdjustmentRequest[]      @relation("AdjustmentDecider")
+  inboxItems              InboxItem[]
+  notificationPreferences NotificationPreference[]
+
+  @@map("usuario_perfil")
+  @@schema("core")
+}

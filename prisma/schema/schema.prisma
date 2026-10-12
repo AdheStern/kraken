@@ -1,0 +1,13 @@
+// prisma/schema/schema.prisma
+// Generador y datasource. Un esquema Postgres por dominio (ADR-02); los modelos viven en un archivo por esquema.
+
+generator client {
+  provider        = "prisma-client"
+  output          = "../../src/generated/prisma"
+  previewFeatures = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["auth", "core", "fx", "cv", "horas", "tickets", "inv", "notif", "audit"]
+}

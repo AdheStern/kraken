@@ -1,0 +1,62 @@
+// prisma/schema/tickets-time.prisma
+// Esquema tickets: registros de tiempo (intervalos) y eventos del contador con hora del servidor (AGENTS.md §2.6).
+
+enum TimeEntrySource {
+  CONTADOR
+  MANUAL
+
+  @@schema("tickets")
+}
+
+enum TimerEventKind {
+  INICIAR
+  PAUSAR
+  REANUDAR
+  TERMINAR
+
+  @@schema("tickets")
+}
+
+// REGLA: un solo registro abierto por persona (índice parcial) y sin solapes (EXCLUDE en prisma/sql/tickets.sql).
+model TimeEntry {
+  id        String          @id @default(uuid(7)) @db.Uuid
+  ticketId  String          @map("ticket_id") @db.Uuid
+  subtaskId String?         @map("subtarea_id") @db.Uuid
+  userId    String          @map("usuario_id")
+  startedAt DateTime        @map("inicio") @db.Timestamptz
+  endedAt   DateTime?       @map("fin") @db.Timestamptz
+  source    TimeEntrySource @map("origen")
+  timerId   String?         @map("contador_id") @db.Uuid
+  isLate    Boolean         @default(false) @map("es_tardio")
+  createdAt DateTime        @default(now()) @map("creado_en") @db.Timestamptz
+
+  ticket  Ticket      @relation(fields: [ticketId], references: [id])
+  subtask Subtask?    @relation(fields: [subtaskId], references: [id])
+  user    UserProfile @relation(fields: [userId], references: [userId])
+
+  @@index([ticketId, startedAt])
+  @@index([userId, startedAt])
+  @@unique([userId], map: "registro_tiempo_abierto_unico", where: raw("fin IS NULL"))
+  @@map("registro_tiempo")
+  @@schema("tickets")
+}
+
+// POR QUÉ: occurredAt lo pone la BD (now()); cerrar la pestaña no pierde tiempo y el cliente no puede adelantar la hora.
+model TimerEvent {
+  id         String         @id @default(uuid(7)) @db.Uuid
+  timerId    String         @map("contador_id") @db.Uuid
+  ticketId   String         @map("ticket_id") @db.Uuid
+  subtaskId  String?        @map("subtarea_id") @db.Uuid
+  userId     String         @map("usuario_id")
+  kind       TimerEventKind @map("tipo")
+  occurredAt DateTime       @default(now()) @map("ocurrido_en") @db.Timestamptz
+
+  ticket  Ticket      @relation(fields: [ticketId], references: [id])
+  subtask Subtask?    @relation(fields: [subtaskId], references: [id])
+  user    UserProfile @relation(fields: [userId], references: [userId])
+
+  @@index([timerId, occurredAt])
+  @@index([userId, occurredAt])
+  @@map("evento_contador")
+  @@schema("tickets")
+}

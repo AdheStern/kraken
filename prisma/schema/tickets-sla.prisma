@@ -1,0 +1,55 @@
+// prisma/schema/tickets-sla.prisma
+// Esquema tickets: políticas de SLA por modalidad y prioridad, y su medición por ticket (AGENTS.md §2.7).
+
+enum SlaKind {
+  PRIMERA_RESPUESTA
+  RESOLUCION
+
+  @@schema("tickets")
+}
+
+enum SlaStatus {
+  EN_CURSO
+  PAUSADO
+  CUMPLIDO
+  INCUMPLIDO
+
+  @@schema("tickets")
+}
+
+model SlaPolicy {
+  id                   String         @id @default(uuid(7)) @db.Uuid
+  modality             BagModality    @map("modalidad")
+  priority             TicketPriority @map("prioridad")
+  firstResponseMinutes Int            @map("minutos_primera_respuesta")
+  resolutionMinutes    Int            @map("minutos_resolucion")
+  isActive             Boolean        @default(true) @map("activo")
+
+  measurements SlaMeasurement[]
+
+  @@unique([modality, priority])
+  @@map("sla_politica")
+  @@schema("tickets")
+}
+
+model SlaMeasurement {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  ticketId       String    @map("ticket_id") @db.Uuid
+  policyId       String    @map("politica_id") @db.Uuid
+  kind           SlaKind   @map("tipo")
+  targetMinutes  Int       @map("minutos_objetivo")
+  elapsedMinutes Int       @default(0) @map("minutos_transcurridos")
+  status         SlaStatus @default(EN_CURSO) @map("estado")
+  dueAt          DateTime? @map("vence_en") @db.Timestamptz
+  metAt          DateTime? @map("cumplido_en") @db.Timestamptz
+  alertedAt      DateTime? @map("alertado_en") @db.Timestamptz
+  updatedAt      DateTime  @updatedAt @map("actualizado_en") @db.Timestamptz
+
+  ticket Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  policy SlaPolicy @relation(fields: [policyId], references: [id])
+
+  @@unique([ticketId, kind])
+  @@index([status, dueAt])
+  @@map("sla_medicion")
+  @@schema("tickets")
+}

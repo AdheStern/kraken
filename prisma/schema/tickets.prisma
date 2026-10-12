@@ -1,0 +1,211 @@
+// prisma/schema/tickets.prisma
+// Esquema tickets: proyectos, tickets, áreas, jerarquía de bolsas, subtareas, comentarios y adjuntos (AGENTS.md §2.6).
+
+enum TicketKind {
+  SOPORTE
+  PROYECTO
+
+  @@schema("tickets")
+}
+
+enum TicketStatus {
+  NUEVO
+  ASIGNADO
+  EN_PROGRESO
+  EN_ESPERA_CLIENTE
+  RESUELTO
+  CERRADO
+  CANCELADO
+
+  @@schema("tickets")
+}
+
+// LIMITACIÓN: prioridades provisionales hasta que DIMA defina las suyas (AGENTS.md §14, F3) [CONFIRMAR].
+enum TicketPriority {
+  BAJA
+  MEDIA
+  ALTA
+  CRITICA
+
+  @@schema("tickets")
+}
+
+enum SubtaskStatus {
+  PENDIENTE
+  EN_PROGRESO
+  COMPLETADA
+  CANCELADA
+
+  @@schema("tickets")
+}
+
+enum ProjectStatus {
+  ACTIVO
+  CERRADO
+
+  @@schema("tickets")
+}
+
+model Project {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  name        String        @map("nombre")
+  customerId  String        @map("cliente_id") @db.Uuid
+  startsOn    DateTime?     @map("fecha_inicio") @db.Date
+  endsOn      DateTime?     @map("fecha_fin") @db.Date
+  status      ProjectStatus @default(ACTIVO) @map("estado")
+  createdById String        @map("creado_por_id")
+  createdAt   DateTime      @default(now()) @map("creado_en") @db.Timestamptz
+
+  customer  Customer      @relation(fields: [customerId], references: [id])
+  createdBy UserProfile   @relation(fields: [createdById], references: [userId])
+  areas     ProjectArea[]
+  tickets   Ticket[]
+  hourBags  HourBag[]
+
+  @@index([customerId])
+  @@map("proyecto")
+  @@schema("tickets")
+}
+
+model ProjectArea {
+  projectId String @map("proyecto_id") @db.Uuid
+  areaId    String @map("area_id") @db.Uuid
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  area    Area    @relation(fields: [areaId], references: [id])
+
+  @@id([projectId, areaId])
+  @@map("proyecto_area")
+  @@schema("tickets")
+}
+
+// TRAMPA: el horario y los feriados que ponderan el tiempo son los de cityId (ciudad del ticket), no los del ingeniero.
+model Ticket {
+  id              String         @id @default(uuid(7)) @db.Uuid
+  number          Int            @unique @default(autoincrement()) @map("numero")
+  kind            TicketKind     @map("tipo")
+  projectId       String?        @map("proyecto_id") @db.Uuid
+  customerId      String         @map("cliente_id") @db.Uuid
+  cityId          String         @map("ciudad_id") @db.Uuid
+  priority        TicketPriority @map("prioridad")
+  slaModality     BagModality    @map("modalidad_sla")
+  title           String         @map("titulo")
+  description     String         @map("descripcion")
+  status          TicketStatus   @default(NUEVO) @map("estado")
+  ownerId         String?        @map("encargado_id")
+  createdById     String         @map("creado_por_id")
+  createdAt       DateTime       @default(now()) @map("creado_en") @db.Timestamptz
+  updatedAt       DateTime       @updatedAt @map("actualizado_en") @db.Timestamptz
+  firstResponseAt DateTime?      @map("primera_respuesta_en") @db.Timestamptz
+  resolvedAt      DateTime?      @map("resuelto_en") @db.Timestamptz
+  closedAt        DateTime?      @map("cerrado_en") @db.Timestamptz
+
+  project         Project?           @relation(fields: [projectId], references: [id])
+  customer        Customer           @relation(fields: [customerId], references: [id])
+  city            City               @relation(fields: [cityId], references: [id])
+  owner           UserProfile?       @relation("TicketOwner", fields: [ownerId], references: [userId])
+  createdBy       UserProfile        @relation("TicketCreator", fields: [createdById], references: [userId])
+  areas           TicketArea[]
+  bags            TicketBag[]
+  subtasks        Subtask[]
+  comments        Comment[]
+  attachments     TicketAttachment[]
+  timeEntries     TimeEntry[]
+  timerEvents     TimerEvent[]
+  slaMeasurements SlaMeasurement[]
+  hourMovements   HourMovement[]
+  pendingHours    PendingHours[]
+  invMovements    InvMovement[]
+
+  @@index([status])
+  @@index([customerId])
+  @@index([ownerId])
+  @@map("ticket")
+  @@schema("tickets")
+}
+
+model TicketArea {
+  ticketId String @map("ticket_id") @db.Uuid
+  areaId   String @map("area_id") @db.Uuid
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  area   Area   @relation(fields: [areaId], references: [id])
+
+  @@id([ticketId, areaId])
+  @@map("ticket_area")
+  @@schema("tickets")
+}
+
+// REGLA: priority 1, 2, 3… define el orden en que se llenan las bolsas al cerrar (AGENTS.md §2.6, HORAS-01).
+model TicketBag {
+  ticketId String @map("ticket_id") @db.Uuid
+  bagId    String @map("bolsa_id") @db.Uuid
+  priority Int    @map("prioridad")
+
+  ticket Ticket  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  bag    HourBag @relation(fields: [bagId], references: [id])
+
+  @@id([ticketId, bagId])
+  @@unique([ticketId, priority])
+  @@map("ticket_bolsa")
+  @@schema("tickets")
+}
+
+model Subtask {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  ticketId    String        @map("ticket_id") @db.Uuid
+  title       String        @map("titulo")
+  description String?       @map("descripcion")
+  assigneeId  String?       @map("asignado_id")
+  status      SubtaskStatus @default(PENDIENTE) @map("estado")
+  createdById String        @map("creado_por_id")
+  createdAt   DateTime      @default(now()) @map("creado_en") @db.Timestamptz
+  completedAt DateTime?     @map("completada_en") @db.Timestamptz
+
+  ticket      Ticket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  assignee    UserProfile? @relation("SubtaskAssignee", fields: [assigneeId], references: [userId])
+  createdBy   UserProfile  @relation("SubtaskCreator", fields: [createdById], references: [userId])
+  timeEntries TimeEntry[]
+  timerEvents TimerEvent[]
+
+  @@index([ticketId])
+  @@index([assigneeId])
+  @@map("subtarea")
+  @@schema("tickets")
+}
+
+// POR QUÉ: isPublic distingue el comentario que cuenta como primera respuesta del SLA (AGENTS.md §2.7).
+model Comment {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  ticketId  String   @map("ticket_id") @db.Uuid
+  authorId  String   @map("autor_id")
+  body      String   @map("contenido")
+  isPublic  Boolean  @default(false) @map("es_publico")
+  createdAt DateTime @default(now()) @map("creado_en") @db.Timestamptz
+
+  ticket Ticket      @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author UserProfile @relation(fields: [authorId], references: [userId])
+
+  @@index([ticketId, createdAt])
+  @@map("comentario")
+  @@schema("tickets")
+}
+
+model TicketAttachment {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  ticketId     String   @map("ticket_id") @db.Uuid
+  fileName     String   @map("nombre_archivo")
+  storagePath  String   @map("ruta")
+  sha256       String   @map("hash_sha256")
+  sizeBytes    Int      @map("tamano_bytes")
+  mimeType     String   @map("tipo_mime")
+  uploadedById String   @map("subido_por_id")
+  createdAt    DateTime @default(now()) @map("creado_en") @db.Timestamptz
+
+  ticket     Ticket      @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  uploadedBy UserProfile @relation(fields: [uploadedById], references: [userId])
+
+  @@index([ticketId])
+  @@map("adjunto")
+  @@schema("tickets")
+}

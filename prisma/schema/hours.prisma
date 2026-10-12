@@ -1,0 +1,126 @@
+// prisma/schema/hours.prisma
+// Esquema horas: bolsas de horas, su libro mayor inmutable y las horas pendientes sin bolsa (AGENTS.md §2.4, ADR-03).
+
+enum BagModality {
+  H8X5
+  H24X7
+
+  @@schema("horas")
+}
+
+enum BagScope {
+  AREA
+  PROYECTO
+  GENERAL
+
+  @@schema("horas")
+}
+
+enum BagStatus {
+  ACTIVA
+  AGOTADA
+  VENCIDA
+  CERRADA
+
+  @@schema("horas")
+}
+
+enum HourMovementKind {
+  APERTURA
+  CONSUMO
+  REVERSO
+  AJUSTE
+  VENCIMIENTO
+
+  @@schema("horas")
+}
+
+enum PendingHoursStatus {
+  PENDIENTE
+  APLICADA
+
+  @@schema("horas")
+}
+
+// REGLA: balanceMinutes es caché del libro; cambia solo junto a su movimiento y nunca < 0 (CHECK en prisma/sql/hours.sql).
+model HourBag {
+  id             String      @id @default(uuid(7)) @db.Uuid
+  cvLineId       String      @unique @map("cv_linea_id") @db.Uuid
+  customerId     String      @map("cliente_id") @db.Uuid
+  projectId      String?     @map("proyecto_id") @db.Uuid
+  modality       BagModality @map("modalidad")
+  scope          BagScope    @map("alcance")
+  status         BagStatus   @default(ACTIVA) @map("estado")
+  expiresOn      DateTime?   @map("vence_el") @db.Date
+  balanceMinutes Int         @map("saldo_minutos")
+  createdAt      DateTime    @default(now()) @map("creado_en") @db.Timestamptz
+
+  cvLine       CvLine         @relation(fields: [cvLineId], references: [id])
+  customer     Customer       @relation(fields: [customerId], references: [id])
+  project      Project?       @relation(fields: [projectId], references: [id])
+  areas        HourBagArea[]
+  movements    HourMovement[]
+  ticketBags   TicketBag[]
+  appliedHours PendingHours[]
+
+  @@index([customerId, status])
+  @@map("bolsa")
+  @@schema("horas")
+}
+
+model HourBagArea {
+  bagId  String @map("bolsa_id") @db.Uuid
+  areaId String @map("area_id") @db.Uuid
+
+  bag  HourBag @relation(fields: [bagId], references: [id], onDelete: Cascade)
+  area Area    @relation(fields: [areaId], references: [id])
+
+  @@id([bagId, areaId])
+  @@map("bolsa_area")
+  @@schema("horas")
+}
+
+// REGLA: inmutable (trigger horas.movimiento_inmutable); corregir = insertar un movimiento nuevo (ADR-03).
+model HourMovement {
+  id         String           @id @default(uuid(7)) @db.Uuid
+  bagId      String           @map("bolsa_id") @db.Uuid
+  kind       HourMovementKind @map("tipo")
+  minutes    Int              @map("minutos")
+  ticketId   String?          @map("ticket_id") @db.Uuid
+  reversesId String?          @unique @map("revierte_id") @db.Uuid
+  reason     String?          @map("motivo")
+  actorId    String           @map("actor_id")
+  createdAt  DateTime         @default(now()) @map("creado_en") @db.Timestamptz
+
+  bag        HourBag       @relation(fields: [bagId], references: [id])
+  ticket     Ticket?       @relation(fields: [ticketId], references: [id])
+  reverses   HourMovement? @relation("HourMovementReversal", fields: [reversesId], references: [id])
+  reversedBy HourMovement? @relation("HourMovementReversal")
+  actor      UserProfile   @relation(fields: [actorId], references: [userId])
+
+  @@index([bagId, createdAt])
+  @@index([ticketId])
+  @@map("movimiento")
+  @@schema("horas")
+}
+
+// POR QUÉ: se guardan minutos reales dentro y fuera de horario; se ponderan con la modalidad de la bolsa a la que se apliquen.
+model PendingHours {
+  id             String             @id @default(uuid(7)) @db.Uuid
+  ticketId       String             @map("ticket_id") @db.Uuid
+  customerId     String             @map("cliente_id") @db.Uuid
+  insideMinutes  Int                @map("minutos_dentro")
+  outsideMinutes Int                @map("minutos_fuera")
+  status         PendingHoursStatus @default(PENDIENTE) @map("estado")
+  appliedBagId   String?            @map("bolsa_aplicada_id") @db.Uuid
+  appliedAt      DateTime?          @map("aplicada_en") @db.Timestamptz
+  createdAt      DateTime           @default(now()) @map("creado_en") @db.Timestamptz
+
+  ticket     Ticket   @relation(fields: [ticketId], references: [id])
+  customer   Customer @relation(fields: [customerId], references: [id])
+  appliedBag HourBag? @relation(fields: [appliedBagId], references: [id])
+
+  @@index([customerId, status])
+  @@map("pendiente_sin_bolsa")
+  @@schema("horas")
+}

@@ -317,15 +317,17 @@ Usuarios ─HTTPS→ FortiGate/Radware (WAF + TLS) → IP virtual (keepalived)
 
 PostgreSQL 16 + Prisma. Un esquema por dominio, PK `uuid` v7, `timestamptz` en UTC, borrado lógico solo en catálogos. Tablas y columnas en español `snake_case` vía `@@map`/`@map`; modelos Prisma en inglés.
 
+Prisma 7: `prisma.config.ts` en la raíz (esquema multiarchivo en `prisma/schema/`, URL de migraciones `MIGRATION_DATABASE_URL`); el cliente se genera en `src/generated/prisma` (no versionado) y se usa solo vía `src/server/db.ts` con `@prisma/adapter-pg`. **Toda FK a una persona apunta a `core.usuario_perfil.usuario_id`** (texto, = id de Better Auth), nunca a `auth.user`.
+
 | Esquema | Tablas |
 |---|---|
 | `auth` | Better Auth: `user`, `session`, `account`, `verification` (no tocar sus columnas) |
 | `core` | `area`, `ciudad`, `usuario_perfil`, `rol`, `usuario_rol`, `grupo_entra_rol`, `permiso_excepcion`, `cliente`, `cliente_contacto`, `proveedor`, `tecnologia`, `unidad`, `tipo_servicio`, `producto`, `horario_oficina`, `horario_franja`, `feriado`, `parametro` |
 | `fx` | `tipo_cambio` (fecha de vigencia, compra, venta, fuente, obtenido_en) |
-| `cv` | `numerador`, `cv`, `version`, `grupo`, `linea`, `linea_serial`, `leasing_linea`, `solicitud_aprobacion`, `adjunto` |
+| `cv` | `numerador`, `cv`, `version`, `version_vendedor` (vendedores N–N), `grupo`, `linea`, `linea_serial`, `leasing_linea`, `solicitud_aprobacion`, `adjunto` |
 | `horas` | `bolsa`, `bolsa_area`, `movimiento`, `pendiente_sin_bolsa` |
-| `tickets` | `proyecto`, `ticket`, `ticket_area`, `ticket_bolsa` (con `prioridad`), `subtarea`, `registro_tiempo`, `evento_contador`, `comentario`, `sla_politica`, `sla_medicion` |
-| `inv` | `almacen`, `stock`, `unidad_serial`, `movimiento`, `movimiento_linea`, `traspaso`, `reserva` |
+| `tickets` | `proyecto`, `proyecto_area`, `ticket`, `ticket_area`, `ticket_bolsa` (con `prioridad`), `subtarea`, `registro_tiempo`, `evento_contador`, `comentario`, `adjunto`, `sla_politica`, `sla_medicion` |
+| `inv` | `almacen`, `stock`, `unidad_serial`, `movimiento`, `movimiento_linea`, `traspaso`, `traspaso_linea`, `solicitud_ajuste` (el AJUSTE se inserta en el libro solo al aprobarse), `reserva` |
 | `notif` | `salida` (outbox), `bandeja`, `preferencia` |
 | `audit` | `evento` |
 | `dash` | Vistas SQL de los tableros (sección 6) |
@@ -416,9 +418,11 @@ model HourMovement {
 
 ### Restricciones en la base de datos (en `prisma/sql/`, dentro de la migración correspondiente)
 - `CHECK (balance_minutes >= 0)` en `horas.bolsa`; `CHECK (cantidad >= 0)` en `inv.stock`.
-- Trigger `cv.bloquear_version_cerrada`: rechaza INSERT/UPDATE/DELETE de líneas si la versión no está en `BORRADOR`.
-- Triggers `horas.movimiento_inmutable` e `inv.movimiento_inmutable`: rechazan UPDATE y DELETE.
-- Índices únicos parciales: una sola versión `APROBADA` vigente por CV; un solo registro de tiempo abierto por usuario (`fin IS NULL`).
+- Trigger `cv.bloquear_version_cerrada`: rechaza INSERT/UPDATE/DELETE de líneas, grupos, seriales, leasing y vendedores si la versión no está en `BORRADOR`. Trigger `cv.proteger_version`: fuera de `BORRADOR` solo cambian `estado` y sus marcas de tiempo.
+- Triggers `horas.movimiento_inmutable`, `inv.movimiento_inmutable` y `audit.evento_inmutable`: rechazan UPDATE y DELETE.
+- Índices únicos parciales (declarados en Prisma con la preview `partialIndexes`): una sola versión `APROBADA` vigente por CV; un solo registro de tiempo abierto por usuario (`fin IS NULL`).
+- Unicidad con `NULLS NOT DISTINCT` (declarada con `@@unique` y recreada en `prisma/sql/`): `usuario_rol`, `grupo_entra_rol`, `feriado`, `solicitud_aprobacion`.
+- Flujo: `prisma migrate dev --create-only` → agregar al final de `migration.sql` los `prisma/sql/*.sql` que correspondan → `prisma migrate dev`. Verificar con `prisma migrate diff --from-config-datasource --to-schema prisma/schema` que no haya drift.
 - Exclusión con `btree_gist`: los registros de tiempo de una misma persona no se solapan.
 - El usuario de BD de la aplicación no tiene `TRUNCATE`, `DROP` ni `ALTER`; las migraciones corren con otro usuario, solo en el despliegue.
 
@@ -448,9 +452,10 @@ model HourMovement {
 ```
 dima-hub/
 ├─ prisma/
-│  ├─ schema/            # un .prisma por esquema
+│  ├─ schema/            # un .prisma por esquema (divididos por subdominio si crecen)
 │  ├─ migrations/
 │  └─ sql/               # triggers, CHECK, exclusiones
+├─ prisma.config.ts      # configuración del CLI de Prisma 7
 ├─ src/
 │  ├─ app/               # (auth), (app)/inicio, cv, tickets, horas, inventario, tableros, admin
 │  ├─ domain/            # PURO (ADR-10)
@@ -469,9 +474,11 @@ dima-hub/
 │  ├─ server/
 │  │  ├─ authz/          # políticas CASL y scope*Query()
 │  │  ├─ db.ts           # cliente Prisma + extensión de auditoría + runInTransaction
+│  │  ├─ auth.ts         # configuración de Better Auth
 │  │  ├─ mail/           # Graph + outbox
 │  │  └─ files/          # FileStore (NFS)
 │  ├─ worker/            # entrada pg-boss y handlers
+│  ├─ generated/prisma/  # cliente Prisma generado (no versionado)
 │  └─ components/ui/     # shadcn
 ├─ templates/            # PA-PR-03-RE-01.xlsx
 ├─ tests/canon/          # PRECIO-01, HORAS-01, APROB-01

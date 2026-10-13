@@ -1,25 +1,28 @@
-//src/components/theme/mode-toggle.tsx
+// src/components/theme/mode-toggle.tsx
+// Menú para elegir el tema de la interfaz: claro, oscuro o el del sistema.
 
-"use client"
+"use client";
 
-import * as React from "react"
-import { Moon, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+import type * as React from "react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
 const Trigger = DropdownMenuTrigger as React.ComponentType<
-  React.ComponentPropsWithoutRef<typeof DropdownMenuTrigger> & { asChild?: boolean }
->
+  React.ComponentPropsWithoutRef<typeof DropdownMenuTrigger> & {
+    asChild?: boolean;
+  }
+>;
 
 export function ModeToggle() {
-  const { setTheme } = useTheme()
+  const { setTheme } = useTheme();
 
   return (
     <DropdownMenu>
@@ -42,5 +45,5 @@ export function ModeToggle() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

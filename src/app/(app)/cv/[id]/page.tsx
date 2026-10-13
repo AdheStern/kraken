@@ -88,11 +88,7 @@ async function CvEditor({
         </h1>
         <CvStatusBadge status={header.status} />
         <div className="ml-auto">
-          <CvVersionBar
-            editor={editor}
-            canDuplicate={canCreateCv(user)}
-            canExport={editor.canSeeCosts}
-          />
+          <CvVersionBar editor={editor} canDuplicate={canCreateCv(user)} />
         </div>
         <p className="basis-full text-sm text-muted-foreground">
           {header.title} · {header.customerName} · {header.cityName}

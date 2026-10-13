@@ -20,7 +20,6 @@ import { ReasonDialog } from "./reason-dialog";
 type Props = {
   editor: CvEditorData;
   canDuplicate: boolean;
-  canExport: boolean;
 };
 
 export function CvVersionBar({ editor, canDuplicate }: Props) {

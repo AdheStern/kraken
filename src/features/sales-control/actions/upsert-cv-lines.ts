@@ -8,10 +8,10 @@ import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
 import { canEditCvDraft } from "@/server/authz/cv-permissions";
 import { prisma, runInTransaction } from "@/server/db";
+import { loadCvAccess } from "@/server/sales-control/cv-access";
 import { replaceVersionLines } from "@/server/sales-control/replace-version-lines";
 import { getSessionUser } from "@/server/session";
 import { prepareLineRecords } from "../line-records";
-import { loadCvAccess } from "../queries/load-cv-access";
 import {
   type UpsertCvLinesInput,
   upsertCvLinesSchema,

@@ -6,6 +6,7 @@ import type { RoleCode } from "@/generated/prisma/enums";
 import {
   type CvAccessFacts,
   canCreateCv,
+  canDecideApproval,
   canEditCvDraft,
   canSeeCvCosts,
 } from "@/server/authz/cv-permissions";
@@ -137,5 +138,27 @@ describe("§2.9 CV: costos y margen", () => {
   it("los permisos se suman: ingeniero y gerente de área ve costos de su área", () => {
     const u = user(["INGENIERO"], ["GERENTE_AREA", AREA_NET]);
     expect(canSeeCvCosts(u, foreignNetCv)).toBe(true);
+  });
+});
+
+describe("§2.9 CV: aprobar", () => {
+  const areaRequest = { kind: "AREA" as const, areaId: AREA_NET };
+  const ggRequest = { kind: "GERENCIA_GENERAL" as const, areaId: null };
+
+  it.each<[string, SessionUser, boolean, boolean]>([
+    ["gerente de su área", user(["GERENTE_AREA", AREA_NET]), true, false],
+    ["gerente de otra área", user(["GERENTE_AREA", AREA_TEL]), false, false],
+    ["gerente general", user(["GERENTE_GENERAL"]), false, true],
+    ["comercial", user(["COMERCIAL"]), false, false],
+    ["administración", user(["ADMINISTRACION"]), false, false],
+    [
+      "gerente de área y GG",
+      user(["GERENTE_AREA", AREA_NET], ["GERENTE_GENERAL"]),
+      true,
+      true,
+    ],
+  ])("%s → área %s, GG %s", (_, u, area, gg) => {
+    expect(canDecideApproval(u, areaRequest)).toBe(area);
+    expect(canDecideApproval(u, ggRequest)).toBe(gg);
   });
 });

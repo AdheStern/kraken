@@ -1,4 +1,4 @@
-// src/features/sales-control/queries/load-cv-access.ts
+// src/server/sales-control/cv-access.ts
 // Hechos mínimos de un CV para decidir permisos (creador, vendedores, áreas de líneas, si hay aprobada).
 import type { CvAccessFacts } from "@/server/authz/cv-permissions";
 import type { Tx } from "@/server/db";

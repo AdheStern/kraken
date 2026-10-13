@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { inject } from "vitest";
 import { PrismaClient } from "@/generated/prisma/client";
+import type { RoleCode } from "@/generated/prisma/enums";
 
 export function createTestPrisma(): PrismaClient {
   return new PrismaClient({
@@ -60,4 +61,38 @@ export async function createVersion(
       createdById: userId,
     },
   });
+}
+
+export async function createUserWithRoles(
+  db: PrismaClient,
+  name: string,
+  roles: { code: RoleCode; areaId?: string }[],
+) {
+  const userId = randomUUID();
+  await db.user.create({
+    data: { id: userId, name, email: `${userId}@dima.test` },
+  });
+  await db.userProfile.create({ data: { userId } });
+  for (const { code, areaId } of roles) {
+    const role = await db.role.upsert({
+      where: { code },
+      create: { code, name: code },
+      update: {},
+    });
+    await db.userRole.create({
+      data: {
+        userId,
+        roleId: role.id,
+        areaId: areaId ?? null,
+        source: "MANUAL",
+      },
+    });
+  }
+  return {
+    id: userId,
+    name,
+    email: `${userId}@dima.test`,
+    image: null,
+    roles: roles.map(({ code, areaId }) => ({ code, areaId: areaId ?? null })),
+  };
 }

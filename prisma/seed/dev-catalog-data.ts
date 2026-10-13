@@ -196,12 +196,14 @@ export const DEV_USERS = [
     name: "Gerencia General (demo)",
     role: "GERENTE_GENERAL" as const,
   },
-  {
-    email: "gerente.dimanet@dima.local",
-    name: "Gerente DIMANET (demo)",
-    role: "GERENTE_AREA" as const,
-    areaCode: "DIMANET",
-  },
+  ...["DIMASOFT", "DIMANET", "DIMATEL", "DIMADOC", "DIMAHELP"].map(
+    (areaCode) => ({
+      email: `gerente.${areaCode.toLowerCase()}@dima.local`,
+      name: `Gerente ${areaCode} (demo)`,
+      role: "GERENTE_AREA" as const,
+      areaCode,
+    }),
+  ),
   {
     email: "comercial@dima.local",
     name: "Ana Comercial (demo)",

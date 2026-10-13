@@ -1,26 +1,23 @@
 // src/features/sales-control/queries/get-cv-editor.ts
-// Datos del editor de un CV visible para el usuario: cabecera de la versión vigente de trabajo y permisos.
+// Datos del editor de un CV visible para el usuario: la versión pedida (o la más reciente), su historial,
+// sus solicitudes de aprobación y lo que el usuario puede hacer con ella.
 import { toCvVersionLabel } from "@/domain/sales-control/cv-code";
-import { canEditCvDraft, canSeeCvCosts } from "@/server/authz/cv-permissions";
+import {
+  canDecideApproval,
+  canEditCvDraft,
+  canSeeCvCosts,
+} from "@/server/authz/cv-permissions";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeCvQuery } from "@/server/authz/scope-cv-query";
 import { prisma } from "@/server/db";
-import { parseCustomerSnapshot } from "../customer-snapshot";
-import type { CvEditorData } from "../types";
-import { loadCvAccess } from "./load-cv-access";
-
-const toDateInput = (date: Date | null) =>
-  date ? date.toISOString().slice(0, 10) : "";
-
-// REGLA: el TC se muestra con 2 decimales salvo que tenga más (AGENTS.md §15.4).
-const toFxText = (rate: {
-  decimalPlaces: () => number;
-  toFixed: (dp: number) => string;
-}) => rate.toFixed(Math.max(2, rate.decimalPlaces()));
+import { loadCvAccess } from "@/server/sales-control/cv-access";
+import type { CvApprovalItem, CvEditorData, CvVersionSummary } from "../types";
+import { toEditorHeader } from "./editor-header";
 
 export async function getCvEditor(
   user: SessionUser,
   cvId: string,
+  versionNumber?: number,
 ): Promise<CvEditorData | null> {
   const cv = await prisma.cv.findFirst({
     where: { AND: [scopeCvQuery(user), { id: cvId }] },
@@ -31,48 +28,73 @@ export async function getCvEditor(
       customer: { select: { name: true } },
       versions: {
         orderBy: { number: "desc" },
-        take: 1,
-        include: { sellers: { select: { userId: true } } },
+        include: {
+          createdBy: { select: { user: { select: { name: true } } } },
+        },
       },
     },
   });
-  const version = cv?.versions[0];
-  if (!cv || !version) return null;
-  const access = await loadCvAccess(cv.id, version.id);
-  if (!access) return null;
+  const latest = cv?.versions[0];
+  const shown = cv?.versions.find((v) => v.number === versionNumber) ?? latest;
+  if (!cv || !latest || !shown) return null;
+
+  const version = await prisma.cvVersion.findUniqueOrThrow({
+    where: { id: shown.id },
+    include: {
+      sellers: { select: { userId: true } },
+      approvalRequests: {
+        orderBy: [{ kind: "asc" }, { area: { code: "asc" } }],
+        include: {
+          area: { select: { code: true } },
+          decidedBy: { select: { user: { select: { name: true } } } },
+        },
+      },
+    },
+  });
+  const [latestAccess, shownAccess] = await Promise.all([
+    loadCvAccess(cv.id, latest.id),
+    loadCvAccess(cv.id, shown.id),
+  ]);
+  if (!latestAccess || !shownAccess) return null;
+  const canManage = canEditCvDraft(user, latestAccess);
+  const isLatest = shown.id === latest.id;
+
+  const versions: CvVersionSummary[] = cv.versions.map((v) => ({
+    id: v.id,
+    number: v.number,
+    label: toCvVersionLabel(cv.code, v.number),
+    status: v.status,
+    reason: v.reason,
+    createdByName: v.createdBy.user.name,
+    createdAt: v.createdAt.toISOString(),
+    submittedAt: v.submittedAt?.toISOString() ?? null,
+    approvedAt: v.approvedAt?.toISOString() ?? null,
+  }));
+  const approvals: CvApprovalItem[] = version.approvalRequests.map((r) => ({
+    id: r.id,
+    label:
+      r.kind === "GERENCIA_GENERAL"
+        ? "Gerencia general"
+        : `Gerente ${r.area?.code ?? "de área"}`,
+    status: r.status,
+    comment: r.comment,
+    decidedByName: r.decidedBy?.user.name ?? null,
+    decidedAt: r.decidedAt?.toISOString() ?? null,
+    canDecide:
+      r.status === "PENDIENTE" &&
+      version.status === "EN_APROBACION" &&
+      canDecideApproval(user, r),
+  }));
 
   return {
-    canEdit: version.status === "BORRADOR" && canEditCvDraft(user, access),
-    canSeeCosts: canSeeCvCosts(user, access),
-    header: {
-      cvId: cv.id,
-      versionId: version.id,
-      code: cv.code,
-      versionLabel: toCvVersionLabel(cv.code, version.number),
-      status: version.status,
-      cityName: cv.city.name,
-      customerName: cv.customer.name,
-      title: version.title,
-      issuedOn: toDateInput(version.issuedOn),
-      sellerIds: version.sellers.map((s) => s.userId),
-      presalesId: version.presalesId,
-      postsalesId: version.postsalesId,
-      mainTechnologyId: version.mainTechnologyId,
-      serviceTypeId: version.serviceTypeId,
-      isNewTechnology: version.isNewTechnology,
-      snapshot: parseCustomerSnapshot(version.customerSnapshot),
-      endCustomerId: version.endCustomerId,
-      customerPoNumber: version.customerPoNumber ?? "",
-      customerPoDate: toDateInput(version.customerPoDate),
-      paymentTerms: version.paymentTerms ?? "",
-      deliveryOn: toDateInput(version.deliveryOn),
-      notes: version.notes ?? "",
-      costFxRate: toFxText(version.costFxRate),
-      saleFxRate: toFxText(version.saleFxRate),
-      officialFxRate: version.officialFxRate
-        ? toFxText(version.officialFxRate)
-        : null,
-      revision: version.updatedAt.toISOString(),
-    },
+    header: toEditorHeader(cv, version),
+    canEdit: isLatest && version.status === "BORRADOR" && canManage,
+    canSeeCosts: canSeeCvCosts(user, shownAccess),
+    versionNumber: version.number,
+    isLatest,
+    latestStatus: latest.status,
+    canManage,
+    versions,
+    approvals,
   };
 }

@@ -6,9 +6,9 @@ import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
 import { canEditCvDraft } from "@/server/authz/cv-permissions";
 import { prisma, runInTransaction } from "@/server/db";
+import { loadCvAccess } from "@/server/sales-control/cv-access";
 import { getSessionUser } from "@/server/session";
 import { toCustomerParty } from "../customer-snapshot";
-import { loadCvAccess } from "../queries/load-cv-access";
 import {
   type CvHeaderInput,
   cvHeaderSchema,

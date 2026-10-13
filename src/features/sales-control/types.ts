@@ -1,6 +1,8 @@
 // src/features/sales-control/types.ts
 // Tipos de presentación del Control de Venta (nunca entidades Prisma completas; montos como texto).
-import type { CvVersionStatus } from "@/generated/prisma/enums";
+
+import type { LineComparison } from "@/domain/sales-control/compare-versions";
+import type { ApprovalStatus, CvVersionStatus } from "@/generated/prisma/enums";
 import type { CustomerSnapshot } from "./customer-snapshot";
 
 export type Option = { id: string; label: string; hint?: string };
@@ -54,10 +56,38 @@ export type CvEditorHeader = {
   revision: string;
 };
 
+export type CvVersionSummary = {
+  id: string;
+  number: number;
+  label: string;
+  status: CvVersionStatus;
+  reason: string | null;
+  createdByName: string;
+  createdAt: string;
+  submittedAt: string | null;
+  approvedAt: string | null;
+};
+
+export type CvApprovalItem = {
+  id: string;
+  label: string;
+  status: ApprovalStatus;
+  comment: string | null;
+  decidedByName: string | null;
+  decidedAt: string | null;
+  canDecide: boolean;
+};
+
 export type CvEditorData = {
   header: CvEditorHeader;
   canEdit: boolean;
   canSeeCosts: boolean;
+  versionNumber: number;
+  isLatest: boolean;
+  latestStatus: CvVersionStatus;
+  canManage: boolean;
+  versions: CvVersionSummary[];
+  approvals: CvApprovalItem[];
 };
 
 export type ProductOption = {
@@ -75,4 +105,12 @@ export type CvGridOptions = {
   technologies: Option[];
   units: (Option & { isHours: boolean })[];
   products: ProductOption[];
+};
+
+export type CvComparisonData = {
+  cvId: string;
+  fromLabel: string;
+  toLabel: string;
+  rows: LineComparison[];
+  totals: { label: string; before: string; after: string; diff: string }[];
 };

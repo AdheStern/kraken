@@ -39,3 +39,23 @@ export function canSeeCvCosts(user: SessionUser, cv: CvAccessFacts): boolean {
 function isOwnCv(user: SessionUser, cv: CvAccessFacts): boolean {
   return cv.createdById === user.id || cv.sellerIds.includes(user.id);
 }
+
+export type ApprovalRequestFacts = {
+  kind: "AREA" | "GERENCIA_GENERAL";
+  areaId: string | null;
+};
+
+// REGLA: la solicitud de un área la decide cualquier gerente de esa área; la del GG, el gerente general (§2.3).
+// Sin delegación: nadie más puede decidirlas.
+export function canDecideApproval(
+  user: SessionUser,
+  request: ApprovalRequestFacts,
+): boolean {
+  if (request.kind === "GERENCIA_GENERAL") {
+    return hasRole(user, "GERENTE_GENERAL");
+  }
+  return (
+    request.areaId !== null &&
+    areaIdsWithRole(user, "GERENTE_AREA").includes(request.areaId)
+  );
+}

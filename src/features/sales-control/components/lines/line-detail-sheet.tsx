@@ -4,6 +4,7 @@
 "use client";
 
 import { CircleAlert } from "lucide-react";
+import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -124,12 +125,22 @@ export function LineDetailSheet({
               <section className="grid gap-2">
                 <h3 className="text-sm font-semibold">Bolsa de horas</h3>
                 {needsHourBag ? (
-                  <HourBagFields
-                    value={line.hourBag}
-                    areas={areas}
-                    disabled={disabled}
-                    onChange={(hourBag) => onChange({ hourBag })}
-                  />
+                  <>
+                    <HourBagFields
+                      value={line.hourBag}
+                      areas={areas}
+                      disabled={disabled}
+                      onChange={(hourBag) => onChange({ hourBag })}
+                    />
+                    {line.id && (
+                      <Link
+                        href={`/horas/linea/${line.id}`}
+                        className="w-fit text-sm text-primary underline-offset-4 hover:underline"
+                      >
+                        Ver bolsa y su libro
+                      </Link>
+                    )}
+                  </>
                 ) : (
                   <p className="text-xs text-muted-foreground">
                     Solo para líneas con unidad en horas y tipo Servicio: al

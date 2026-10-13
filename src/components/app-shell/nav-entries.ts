@@ -3,7 +3,7 @@
 // TRAMPA: vive fuera de app-nav.tsx ("use client"); un valor exportado desde un módulo de cliente llega al
 // servidor como referencia, no como dato.
 
-export type NavKey = "inicio" | "cv" | "aprobaciones";
+export type NavKey = "inicio" | "cv" | "horas" | "aprobaciones";
 
 export type NavEntry = { key: NavKey; badge?: number };
 

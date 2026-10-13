@@ -5,7 +5,13 @@
 // muestra los mismos enlaces sin marcar el activo.
 "use client";
 
-import { FileSpreadsheet, House, type LucideIcon, Stamp } from "lucide-react";
+import {
+  FileSpreadsheet,
+  Hourglass,
+  House,
+  type LucideIcon,
+  Stamp,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
@@ -23,6 +29,7 @@ const ITEMS: Record<NavKey, { href: string; label: string; icon: LucideIcon }> =
   {
     inicio: { href: "/inicio", label: "Inicio", icon: House },
     cv: { href: "/cv", label: "Control de Venta", icon: FileSpreadsheet },
+    horas: { href: "/horas", label: "Bolsas de horas", icon: Hourglass },
     aprobaciones: { href: "/aprobaciones", label: "Aprobaciones", icon: Stamp },
   };
 

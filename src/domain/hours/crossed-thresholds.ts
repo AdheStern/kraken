@@ -13,11 +13,14 @@ export function crossedThresholds(
 ): number[] {
   return [...thresholdsPct]
     .sort((a, b) => a - b)
-    .filter((pct) => !hasReached(before, pct) && hasReached(after, pct));
+    .filter(
+      (pct) =>
+        !hasReachedThreshold(before, pct) && hasReachedThreshold(after, pct),
+    );
 }
 
 // TRAMPA: se compara con enteros (consumido × 100 ≥ pct × vendido) para no depender de la coma flotante.
-function hasReached(
+export function hasReachedThreshold(
   { soldMinutes, balanceMinutes }: BagConsumption,
   pct: number,
 ): boolean {

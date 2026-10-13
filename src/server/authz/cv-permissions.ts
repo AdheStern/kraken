@@ -1,5 +1,5 @@
 // src/server/authz/cv-permissions.ts
-// Permisos sobre un CV concreto (AGENTS.md §2.9): crear, editar el borrador y ver costos y margen.
+// Permisos sobre un CV concreto (AGENTS.md §2.9): crear, editar el borrador, ver costos, exportar y aprobar.
 // Funciones puras sobre los roles del usuario y los datos mínimos del CV; cada fila de §2.9 tiene su test.
 import { areaIdsWithRole, hasRole, type SessionUser } from "./roles";
 
@@ -34,6 +34,18 @@ export function canSeeCvCosts(user: SessionUser, cv: CvAccessFacts): boolean {
   if (cv.lineAreaIds.some((areaId) => managedAreaIds.includes(areaId)))
     return true;
   return hasRole(user, "ADMINISTRACION") && cv.hasApprovedVersion;
+}
+
+// REGLA: "CV: exportar Excel" sigue a "costos y margen", pero Administración exporta solo la versión
+// aprobada (o reemplazada), no un borrador posterior (§2.9).
+export function canExportCvVersion(
+  user: SessionUser,
+  cv: CvAccessFacts,
+  versionStatus: string,
+): boolean {
+  const isApproved =
+    versionStatus === "APROBADA" || versionStatus === "REEMPLAZADA";
+  return canSeeCvCosts(user, { ...cv, hasApprovedVersion: isApproved });
 }
 
 function isOwnCv(user: SessionUser, cv: CvAccessFacts): boolean {

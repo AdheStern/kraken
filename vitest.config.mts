@@ -12,6 +12,7 @@ export default defineConfig({
       "src/**/*.test.ts",
       "tests/canon/**/*.test.ts",
       "tests/authz/**/*.test.ts",
+      "tests/golden/**/*.test.ts",
     ],
     coverage: {
       provider: "v8",

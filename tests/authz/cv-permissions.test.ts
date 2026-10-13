@@ -8,6 +8,7 @@ import {
   canCreateCv,
   canDecideApproval,
   canEditCvDraft,
+  canExportCvVersion,
   canSeeCvCosts,
 } from "@/server/authz/cv-permissions";
 import type { SessionUser } from "@/server/authz/roles";
@@ -138,6 +139,56 @@ describe("§2.9 CV: costos y margen", () => {
   it("los permisos se suman: ingeniero y gerente de área ve costos de su área", () => {
     const u = user(["INGENIERO"], ["GERENTE_AREA", AREA_NET]);
     expect(canSeeCvCosts(u, foreignNetCv)).toBe(true);
+  });
+});
+
+describe("§2.9 CV: exportar Excel", () => {
+  it.each<[string, SessionUser, CvAccessFacts, string, boolean]>([
+    [
+      "comercial, propio en borrador",
+      user(["COMERCIAL"]),
+      ownCv,
+      "BORRADOR",
+      true,
+    ],
+    [
+      "comercial, ajeno",
+      user(["COMERCIAL"]),
+      foreignApprovedCv,
+      "APROBADA",
+      false,
+    ],
+    [
+      "gerente general, cualquiera",
+      user(["GERENTE_GENERAL"]),
+      foreignNetCv,
+      "BORRADOR",
+      true,
+    ],
+    ["ingeniero, nunca", user(["INGENIERO"]), ownCv, "APROBADA", false],
+    [
+      "administración, versión aprobada",
+      user(["ADMINISTRACION"]),
+      foreignApprovedCv,
+      "APROBADA",
+      true,
+    ],
+    [
+      "administración, versión reemplazada",
+      user(["ADMINISTRACION"]),
+      foreignApprovedCv,
+      "REEMPLAZADA",
+      true,
+    ],
+    [
+      "administración, borrador de un CV aprobado",
+      user(["ADMINISTRACION"]),
+      foreignApprovedCv,
+      "BORRADOR",
+      false,
+    ],
+  ])("%s → %s", (_, u, cv, status, expected) => {
+    expect(canExportCvVersion(u, cv, status)).toBe(expected);
   });
 });
 

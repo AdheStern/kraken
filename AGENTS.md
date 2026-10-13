@@ -516,18 +516,19 @@ Inicio de sesión (Entra ID) → inicio según rol: GG → tablero ejecutivo; ge
 ### Exportación a Excel (plantilla `PA-PR-03-RE-01`, hoja "CONTROL DE VENTAS V2")
 | Celda(s) | Contenido |
 |---|---|
-| `J1`, `J2`, `J3` | Código `PA-PR-03-RE-01`, fecha, revisión |
+| `J1`, `J2`, `J3` | Código `PA-PR-03-RE-01`, fecha y revisión **del formulario** (vienen de la plantilla, no se escriben) |
 | `C5` · `D5` | Número (con versión si es mayor a 1) · título |
 | `C6`–`C9` | Fecha, vendedor(es), preventa, área(s) separadas por " / " |
-| `H5`–`H7` | Para servicios, línea principal, nueva tecnología |
+| `J5`–`J7` | Para servicios, línea principal, nueva tecnología (`SI`/`NO`); las etiquetas están en `H5`–`H7` |
 | `C10`–`C16` | Cliente, NIT, contacto, correo, teléfono, dirección, ciudad/país |
 | `I11`–`I17` | Cliente final |
 | `C17`–`C21` | OC, fecha OC, términos de pago, fecha de entrega, notas |
-| Fila 23 en adelante | Ítem, proveedor, línea, código, descripción, cantidad, costo unitario y total, venta unitaria y total, TC, venta unitaria y total en Bs, observaciones/seriales, PO#. Filas de grupo y de nota intercaladas. |
-| Totales | `TOTAL $us` costo y venta, total Bs, factor global `=venta/costo` |
-| Leasing | Bloque desplazado según la cantidad de líneas |
+| Fila 23 | Encabezados de la plantilla |
+| Fila 24 en adelante | Ítem, proveedor, línea, código, descripción, cantidad, costo unitario y total, venta unitaria y total, TC de venta, venta unitaria y total en Bs, observaciones/seriales, PO#. Primero las líneas sin lote; cada lote con una fila de nombre y subtotal (`SUM`); las notas en `E` sin número de ítem. |
+| Totales | `TOTAL $us` costo, venta y Bs con `SUMIF` sobre las filas con número de ítem (los subtotales no suman dos veces); factor global sobre las líneas con costo > 0; costo Bs = suma de `ROUND(costo_total × TC costo, 2)` por línea; `H22`/`J22` apuntan a los totales |
+| Leasing | Bloque desplazado según las filas insertadas; 3 filas mínimas, su propio total de costo |
 
-Se escriben **fórmulas** (`=G24*F24`, `=I24*F24`, `=I24*K24`…), no solo valores. Hay un test golden que compara celda por celda.
+Se escriben **fórmulas** redondeadas como el dominio (`=ROUND(G24*F24,2)`, `=ROUND(J24*K24,2)`…), no solo valores, con `fullCalcOnLoad`. La plantilla en blanco `templates/PA-PR-03-RE-01.xlsx` solo tiene la hoja V2, sin datos ni validaciones; las notas de ayuda del formulario se conservan. Hay un test golden (`tests/golden/`) que compara celda por celda.
 
 ---
 

@@ -5,6 +5,7 @@ import { toCvVersionLabel } from "@/domain/sales-control/cv-code";
 import {
   canDecideApproval,
   canEditCvDraft,
+  canExportCvVersion,
   canSeeCvCosts,
 } from "@/server/authz/cv-permissions";
 import type { SessionUser } from "@/server/authz/roles";
@@ -90,6 +91,7 @@ export async function getCvEditor(
     header: toEditorHeader(cv, version),
     canEdit: isLatest && version.status === "BORRADOR" && canManage,
     canSeeCosts: canSeeCvCosts(user, shownAccess),
+    canExport: canExportCvVersion(user, shownAccess, version.status),
     versionNumber: version.number,
     isLatest,
     latestStatus: latest.status,

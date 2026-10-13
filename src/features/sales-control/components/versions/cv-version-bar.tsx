@@ -23,7 +23,7 @@ type Props = {
   canExport: boolean;
 };
 
-export function CvVersionBar({ editor, canDuplicate, canExport }: Props) {
+export function CvVersionBar({ editor, canDuplicate }: Props) {
   const router = useRouter();
   const { header, versions, versionNumber, isLatest, latestStatus, canManage } =
     editor;
@@ -65,7 +65,7 @@ export function CvVersionBar({ editor, canDuplicate, canExport }: Props) {
           Comparar con v{versionNumber - 1}
         </Button>
       )}
-      {canExport && (
+      {editor.canExport && (
         <a
           href={`/api/cv/${header.versionId}/export.xlsx`}
           className={buttonVariants({ variant: "outline", size: "sm" })}

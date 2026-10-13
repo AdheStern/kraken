@@ -82,6 +82,7 @@ export type CvEditorData = {
   header: CvEditorHeader;
   canEdit: boolean;
   canSeeCosts: boolean;
+  canExport: boolean;
   versionNumber: number;
   isLatest: boolean;
   latestStatus: CvVersionStatus;

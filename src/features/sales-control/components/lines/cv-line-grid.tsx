@@ -3,14 +3,16 @@
 "use client";
 
 import Decimal from "decimal.js";
-import type { Dispatch } from "react";
+import type { ClipboardEvent, Dispatch } from "react";
+import { parseTsv } from "@/domain/sales-control/parse-tsv";
 import type { PriceLineResult } from "../../line-pricing";
 import type { CvLineDraft } from "../../schemas/cv-lines-schema";
 import type { CvGridOptions } from "../../types";
 import { CvGroupRow } from "./cv-group-row";
 import { CvItemRow } from "./cv-item-row";
 import { CvNoteRow } from "./cv-note-row";
-import { COLUMNS, type ColumnKey } from "./grid-columns";
+import type { ColumnKey } from "./grid-columns";
+import { GridHeader } from "./grid-header";
 import { handleGridKeyDown } from "./grid-keyboard";
 import type { LinesAction, LinesState } from "./use-cv-lines-state";
 
@@ -21,6 +23,11 @@ type Props = {
   options: CvGridOptions;
   canEdit: boolean;
   dispatch: Dispatch<LinesAction>;
+  onPasteBlock: (
+    target: { lineKey: string; column: ColumnKey },
+    matrix: string[][],
+  ) => void;
+  onApplyGroupFactor: (groupKey: string, factor: string) => void;
 };
 
 export function CvLineGrid({
@@ -30,12 +37,27 @@ export function CvLineGrid({
   options,
   canEdit,
   dispatch,
+  onPasteBlock,
+  onApplyGroupFactor,
 }: Props) {
   const rowOf = new Map(state.lines.map((line, index) => [line.key, index]));
   const sections = [null, ...state.groups.map((group) => group.key)];
   const productsByCode = new Map(
     options.products.map((product) => [product.code.toUpperCase(), product]),
   );
+
+  // POR QUÉ: un bloque con tabuladores o saltos se reparte en celdas como en Excel; un valor suelto se pega normal.
+  function handlePaste(event: ClipboardEvent<HTMLDivElement>) {
+    const cell = (event.target as HTMLElement).dataset.cell;
+    const text = event.clipboardData.getData("text/plain");
+    if (!canEdit || !cell || !/[\t\n]/.test(text.trimEnd())) return;
+    const [row, col] = cell.split(":").map(Number);
+    const line = state.lines[row];
+    const column = columns[col];
+    if (!line || !column) return;
+    event.preventDefault();
+    onPasteBlock({ lineKey: line.key, column }, parseTsv(text));
+  }
 
   function renderLine(line: CvLineDraft) {
     const row = rowOf.get(line.key) ?? 0;
@@ -92,26 +114,10 @@ export function CvLineGrid({
     <div
       className="overflow-x-auto rounded-xl border bg-card"
       onKeyDown={handleGridKeyDown}
+      onPaste={handlePaste}
     >
       <table className="w-max min-w-full border-collapse text-left">
-        <colgroup>
-          {columns.map((key) => (
-            <col key={key} style={{ width: COLUMNS[key].width }} />
-          ))}
-        </colgroup>
-        <thead className="sticky top-0 z-10 bg-card">
-          <tr className="border-b">
-            {columns.map((key) => (
-              <th
-                key={key}
-                scope="col"
-                className={`px-2.5 py-2 text-xs font-medium whitespace-nowrap text-muted-foreground ${"align" in COLUMNS[key] ? "text-right" : ""}`}
-              >
-                {COLUMNS[key].label}
-              </th>
-            ))}
-          </tr>
-        </thead>
+        <GridHeader columns={columns} />
         <tbody>
           {sections.map((groupKey) => {
             const group = state.groups.find((g) => g.key === groupKey);
@@ -146,6 +152,9 @@ export function CvLineGrid({
                   }
                   onRemove={() =>
                     dispatch({ type: "removeGroup", key: group.key })
+                  }
+                  onApplyFactor={(factor) =>
+                    onApplyGroupFactor(group.key, factor)
                   }
                 />
               ),

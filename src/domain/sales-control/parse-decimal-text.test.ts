@@ -35,4 +35,19 @@ describe("parseDecimalText", () => {
   ])("%j no es número", (text) => {
     expect(parseDecimalText(text)).toBeNull();
   });
+
+  it.each([
+    ["1.355", "1.355"],
+    ["1,35", "1.35"],
+    ["2", "2"],
+  ])("sin miles (factor): %s → %s", (text, expected) => {
+    expect(parseDecimalText(text, { allowThousands: false })).toBe(expected);
+  });
+
+  it.each([
+    ["1.234,5"],
+    ["1.2.3"],
+  ])("sin miles (factor): %s no es número", (text) => {
+    expect(parseDecimalText(text, { allowThousands: false })).toBeNull();
+  });
 });

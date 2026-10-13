@@ -45,6 +45,7 @@ type NumberCellProps = CellBase & {
   value: string;
   onValueChange: (value: string) => void;
   muted?: boolean;
+  allowThousands?: boolean;
 };
 
 // POR QUÉ: al salir de la celda se normaliza "1.234,56" → "1234.56"; si no es número se deja para que la validación lo marque.
@@ -57,6 +58,7 @@ export function NumberCell({
   value,
   onValueChange,
   muted,
+  allowThousands = true,
 }: NumberCellProps) {
   return (
     <TextCell
@@ -69,7 +71,7 @@ export function NumberCell({
       value={value}
       onChange={(event) => onValueChange(event.target.value)}
       onBlur={(event) => {
-        const parsed = parseDecimalText(event.target.value);
+        const parsed = parseDecimalText(event.target.value, { allowThousands });
         if (parsed !== null && parsed !== event.target.value)
           onValueChange(parsed);
       }}

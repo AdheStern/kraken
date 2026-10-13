@@ -15,6 +15,7 @@ type Props = {
   onAddLine: () => void;
   onAddNote: () => void;
   onRemove: () => void;
+  onApplyFactor: (factor: string) => void;
 };
 
 const ACTION =
@@ -30,6 +31,7 @@ export function CvGroupRow({
   onAddLine,
   onAddNote,
   onRemove,
+  onApplyFactor,
 }: Props) {
   return (
     <tr className="border-y bg-secondary/70">
@@ -51,6 +53,27 @@ export function CvGroupRow({
           </span>
           {canEdit && (
             <div className="ml-auto flex items-center gap-0.5">
+              <form
+                className="mr-1 flex items-center gap-1"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const input = event.currentTarget.elements.namedItem(
+                    "factor",
+                  ) as HTMLInputElement;
+                  onApplyFactor(input.value);
+                }}
+              >
+                <input
+                  name="factor"
+                  inputMode="decimal"
+                  placeholder="Factor"
+                  aria-label={`Factor para ${name}`}
+                  className="h-7 w-16 rounded-md border bg-background px-1.5 text-right text-xs tabular-nums outline-none focus:border-ring"
+                />
+                <button type="submit" className={ACTION}>
+                  Aplicar
+                </button>
+              </form>
               <button type="button" className={ACTION} onClick={onAddLine}>
                 <Plus className="size-3.5" aria-hidden="true" /> Línea
               </button>

@@ -4,6 +4,7 @@
 "use client";
 
 import { useReducer } from "react";
+import { fillFromProduct } from "../../product-fill";
 import type { CvGroupDraft, CvLineDraft } from "../../schemas/cv-lines-schema";
 import type { ProductOption } from "../../types";
 
@@ -18,6 +19,7 @@ export type LinesAction =
   | { type: "addGroup" }
   | { type: "renameGroup"; key: string; name: string }
   | { type: "removeGroup"; key: string }
+  | { type: "setLines"; lines: CvLineDraft[] }
   | { type: "replace"; state: LinesState };
 
 export function blankLine(
@@ -109,6 +111,8 @@ function reduce(state: LinesState, action: LinesAction): LinesState {
           l.groupKey === action.key ? { ...l, groupKey: null } : l,
         ),
       );
+    case "setLines":
+      return withLines(state, action.lines);
     case "replace":
       return action.state;
   }
@@ -137,21 +141,6 @@ function move(
   const next = [...lines];
   [next[index], next[target]] = [next[target], next[index]];
   return next;
-}
-
-function fillFromProduct(
-  line: CvLineDraft,
-  product: ProductOption,
-): CvLineDraft {
-  return {
-    ...line,
-    productId: product.id,
-    code: product.code,
-    description: line.description || product.description,
-    technologyId: line.technologyId ?? product.technologyId,
-    unitId: line.unitId ?? product.unitId,
-    itemType: line.itemType ?? product.itemType,
-  };
 }
 
 export function useCvLinesState(initial: LinesState) {

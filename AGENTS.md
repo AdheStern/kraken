@@ -443,7 +443,7 @@ model HourMovement {
 | Autenticación | Better Auth + proveedor Microsoft (Entra ID) |
 | Autorización | CASL + funciones de alcance propias |
 | UI | shadcn/ui, Tailwind, lucide-react |
-| Grilla del CV | TanStack Table con edición en celda, teclado, pegar desde Excel, agrupación |
+| Grilla del CV | Tabla propia (`features/sales-control/components/lines`) con edición en celda, teclado, pegar desde Excel y lotes; TanStack Table solo si hace falta ordenar o virtualizar |
 | Gráficos | Recharts (charts de shadcn) |
 | Formularios | react-hook-form + zod |
 | Fechas | date-fns + date-fns-tz |
@@ -562,7 +562,7 @@ type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { code: Error
 ```
 
 **Actions:**
-- CV: `createCv`, `duplicateCv`, `updateCvHeader`, `upsertCvLines`, `applyFactorToGroup`, `submitCvVersion`, `decideApproval`, `createCvVersion`, `voidCv`
+- CV: `createCv`, `duplicateCv`, `updateCvHeader`, `upsertCvLines`, `upsertCvLeasing`, `submitCvVersion`, `decideApproval`, `createCvVersion`, `voidCv`. El factor por lote o tecnología se aplica en el editor (`applyFactorToDrafts`) y lo recalcula y valida `upsertCvLines` al guardar.
 - Horas: `adjustHourBag`, `closeHourBag`, `applyPendingHours`
 - Tickets: `createTicket`, `assignOwner`, `setTicketBags`, `createSubtask`, `startTimer`, `pauseTimer`, `resumeTimer`, `stopTimer`, `addManualTimeEntry`, `changeTicketStatus`, `closeTicket`, `reopenTicket`
 - Inventario: `registerReceipt`, `dispatchItems`, `createTransfer`, `sendTransfer`, `receiveTransfer`, `requestAdjustment`, `decideAdjustment`

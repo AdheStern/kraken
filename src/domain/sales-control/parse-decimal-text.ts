@@ -6,30 +6,39 @@ const CURRENCY_NOISE = /(US\$|\$|Bs\.?|USD|\s| )/gi;
 
 // POR QUÉ: los montos, cantidades y factores del CV tienen como máximo 2 decimales (AGENTS.md §15.4);
 // un separador seguido de exactamente 3 dígitos se lee como separador de miles, no decimal.
-export function parseDecimalText(text: string): string | null {
+// TRAMPA: un factor nunca lleva miles; con allowThousands = false "1.355" es 1.355 (y la validación lo rechaza).
+export function parseDecimalText(
+  text: string,
+  { allowThousands = true }: { allowThousands?: boolean } = {},
+): string | null {
   const cleaned = text.replace(CURRENCY_NOISE, "");
   if (cleaned === "") return null;
   const negative = cleaned.startsWith("-");
   const body = negative ? cleaned.slice(1) : cleaned;
   if (!/^[\d.,]+$/.test(body)) return null;
 
-  const normalized = normalizeSeparators(body);
+  const normalized = normalizeSeparators(body, allowThousands);
   if (normalized === null || !/^\d+(\.\d+)?$/.test(normalized)) return null;
   const canonical = normalized.replace(/^0+(?=\d)/, "");
   return negative && canonical !== "0" ? `-${canonical}` : canonical;
 }
 
-function normalizeSeparators(body: string): string | null {
+function normalizeSeparators(
+  body: string,
+  allowThousands: boolean,
+): string | null {
   const lastComma = body.lastIndexOf(",");
   const lastDot = body.lastIndexOf(".");
   if (lastComma === -1 && lastDot === -1) return body;
   if (lastComma !== -1 && lastDot !== -1) {
+    if (!allowThousands) return null;
     const decimal = lastComma > lastDot ? "," : ".";
     const thousands = decimal === "," ? "." : ",";
     return body.split(thousands).join("").replace(decimal, ".");
   }
   const separator = lastComma !== -1 ? "," : ".";
   const parts = body.split(separator);
+  if (!allowThousands) return parts.length === 2 ? parts.join(".") : null;
   const isThousands = parts.length > 2 || parts[parts.length - 1].length === 3;
   if (isThousands) {
     return parts.slice(1).every((part) => part.length === 3)

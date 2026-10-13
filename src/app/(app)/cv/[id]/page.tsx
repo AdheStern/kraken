@@ -7,12 +7,16 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CvStatusBadge } from "@/features/sales-control/components/cv-status-badge";
+import { DuplicateCvButton } from "@/features/sales-control/components/duplicate-cv-button";
 import { CvHeaderForm } from "@/features/sales-control/components/header/cv-header-form";
+import { CvLeasingEditor } from "@/features/sales-control/components/leasing/cv-leasing-editor";
 import { CvLinesEditor } from "@/features/sales-control/components/lines/cv-lines-editor";
 import { getCvEditor } from "@/features/sales-control/queries/get-cv-editor";
 import { getCvFormOptions } from "@/features/sales-control/queries/get-cv-form-options";
 import { getCvGridOptions } from "@/features/sales-control/queries/get-cv-grid-options";
+import { getCvLeasing } from "@/features/sales-control/queries/get-cv-leasing";
 import { getCvLines } from "@/features/sales-control/queries/get-cv-lines";
+import { canCreateCv } from "@/server/authz/cv-permissions";
 import { getDecimalParameter } from "@/server/parameters";
 import { requireUser } from "@/server/session";
 
@@ -45,14 +49,21 @@ async function CvEditor({ params }: Pick<PageProps<"/cv/[id]">, "params">) {
   const editor = await getCvEditor(user, id);
   if (!editor) notFound();
   const { header } = editor;
-  const [options, gridOptions, lines, maxFxDeviationPct, thresholdUsd] =
-    await Promise.all([
-      getCvFormOptions(),
-      getCvGridOptions(),
-      getCvLines(header.versionId, editor.canSeeCosts),
-      getDecimalParameter("fx.desvio_max_pct", FX_DEVIATION_FALLBACK_PCT),
-      getDecimalParameter("cv.umbral_gg_usd", GG_THRESHOLD_FALLBACK_USD),
-    ]);
+  const [
+    options,
+    gridOptions,
+    lines,
+    leasing,
+    maxFxDeviationPct,
+    thresholdUsd,
+  ] = await Promise.all([
+    getCvFormOptions(),
+    getCvGridOptions(),
+    getCvLines(header.versionId, editor.canSeeCosts),
+    getCvLeasing(header.versionId, editor.canSeeCosts),
+    getDecimalParameter("fx.desvio_max_pct", FX_DEVIATION_FALLBACK_PCT),
+    getDecimalParameter("cv.umbral_gg_usd", GG_THRESHOLD_FALLBACK_USD),
+  ]);
 
   return (
     <>
@@ -61,6 +72,11 @@ async function CvEditor({ params }: Pick<PageProps<"/cv/[id]">, "params">) {
           {header.versionLabel}
         </h1>
         <CvStatusBadge status={header.status} />
+        {canCreateCv(user) && (
+          <div className="ml-auto">
+            <DuplicateCvButton cvId={header.cvId} />
+          </div>
+        )}
         <p className="basis-full text-sm text-muted-foreground">
           {header.title} · {header.customerName} · {header.cityName}
         </p>
@@ -93,6 +109,16 @@ async function CvEditor({ params }: Pick<PageProps<"/cv/[id]">, "params">) {
         canEdit={editor.canEdit}
         canSeeCosts={editor.canSeeCosts}
       />
+      {editor.canSeeCosts && (
+        <CvLeasingEditor
+          // POR QUÉ: guardar leasing no cambia la revisión de la versión; se remonta con los ids guardados.
+          key={leasing.map((line) => line.id).join(",")}
+          versionId={header.versionId}
+          initial={leasing}
+          options={gridOptions}
+          canEdit={editor.canEdit}
+        />
+      )}
     </>
   );
 }

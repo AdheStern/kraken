@@ -36,6 +36,7 @@ pnpm test:int                 # integración con Postgres (Testcontainers)
 pnpm test:e2e                 # Playwright
 pnpm biome check --write      # lint + formato
 pnpm prisma migrate dev       # migraciones en desarrollo
+pnpm skills:install           # restaura las skills de agentes desde skills-lock.json
 docker compose -f deploy/compose.dev.yml up -d   # Postgres + correo falso
 ```
 

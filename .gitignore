@@ -43,3 +43,8 @@ next-env.d.ts
 
 # prisma client generado
 /src/generated
+
+# skills de agentes (se restauran desde skills-lock.json)
+/.claude/skills/
+/.agents/
+/.claude/settings.local.json

@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-13T00:00:00Z",
+  "title": "Design System: Kraken by DIMA",
+  "extensions": {
+    "colorMeta": {
+      "dima-blue": {
+        "role": "primary",
+        "displayName": "Azul DIMA (#00469D)",
+        "canonical": "oklch(0.42 0.16 259)",
+        "tonalRamp": [
+          "oklch(0.15 0.08 259)",
+          "oklch(0.25 0.12 259)",
+          "oklch(0.34 0.14 260)",
+          "oklch(0.42 0.16 259)",
+          "oklch(0.52 0.17 257)",
+          "oklch(0.62 0.15 255)",
+          "oklch(0.78 0.09 255)",
+          "oklch(0.93 0.03 255)"
+        ]
+      },
+      "kraken-coral": {
+        "role": "secondary",
+        "displayName": "Coral kraken",
+        "canonical": "oklch(0.74 0.15 35)",
+        "tonalRamp": [
+          "oklch(0.3 0.1 30)",
+          "oklch(0.42 0.14 30)",
+          "oklch(0.52 0.16 30)",
+          "oklch(0.62 0.17 30)",
+          "oklch(0.74 0.15 35)",
+          "oklch(0.82 0.11 40)",
+          "oklch(0.87 0.07 45)",
+          "oklch(0.95 0.03 45)"
+        ]
+      },
+      "ground-light": {
+        "role": "neutral",
+        "displayName": "Fondo claro teñido",
+        "canonical": "oklch(0.975 0.006 255)"
+      },
+      "ground-dark": {
+        "role": "neutral",
+        "displayName": "Fondo abisal",
+        "canonical": "oklch(0.155 0.03 263)"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Wordmark",
+        "purpose": "Solo el nombre del producto."
+      },
+      "headline": {
+        "displayName": "Título",
+        "purpose": "Título de cada pantalla."
+      }
+    },
+    "shadows": [
+      {
+        "name": "glass",
+        "value": "inset 0 1px 0 oklch(1 0 0 / 0.35), 0 24px 48px -16px var(--glass-shadow)",
+        "purpose": "Tarjetas y píldoras de vidrio."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Poses de la mascota (420ms)."
+      },
+      {
+        "name": "disclosure",
+        "value": "220ms ease-out",
+        "purpose": "Despliegue del acceso de administrador (grid-template-rows)."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botón Microsoft",
+      "kind": "button",
+      "refersTo": "button-microsoft-light",
+      "description": "Acción principal del login; guía de marca de Microsoft.",
+      "html": "<button class=\"ds-btn-ms\"><svg viewBox=\"0 0 21 21\" width=\"20\" height=\"20\"><rect x=\"1\" y=\"1\" width=\"9\" height=\"9\" fill=\"#f25022\"/><rect x=\"11\" y=\"1\" width=\"9\" height=\"9\" fill=\"#7fba00\"/><rect x=\"1\" y=\"11\" width=\"9\" height=\"9\" fill=\"#00a4ef\"/><rect x=\"11\" y=\"11\" width=\"9\" height=\"9\" fill=\"#ffb900\"/></svg>Iniciar sesión con Microsoft</button>",
+      "css": ".ds-btn-ms { display:flex; align-items:center; justify-content:center; gap:12px; height:48px; width:320px; border:1px solid #8c8c8c; border-radius:10px; background:#fff; color:#5e5e5e; font-weight:600; font-size:15px; transition:background-color .15s; } .ds-btn-ms:hover { background:#f3f3f3; } .ds-btn-ms:focus-visible { outline:none; box-shadow:0 0 0 3px color-mix(in oklch, var(--ring) 60%, transparent); }"
+    },
+    {
+      "name": "Botón primario",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Acción primaria de formularios de trabajo.",
+      "html": "<button class=\"ds-btn-primary\">Guardar</button>",
+      "css": ".ds-btn-primary { height:40px; padding:0 16px; border:0; border-radius:10px; background:var(--primary); color:var(--primary-foreground); font-weight:500; font-size:14px; transition:opacity .15s; } .ds-btn-primary:hover { opacity:.85; } .ds-btn-primary:focus-visible { outline:none; box-shadow:0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); }"
+    },
+    {
+      "name": "Campo de texto",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campo estándar con etiqueta encima.",
+      "html": "<label class=\"ds-field\"><span>Correo</span><input type=\"email\" placeholder=\"admin@dima.com.bo\"></label>",
+      "css": ".ds-field { display:grid; gap:8px; font-size:14px; font-weight:500; color:var(--foreground); } .ds-field input { height:40px; padding:0 10px; border:1px solid var(--input); border-radius:10px; background:transparent; color:var(--foreground); font-size:14px; } .ds-field input:focus-visible { outline:none; border-color:var(--ring); box-shadow:0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); }"
+    },
+    {
+      "name": "Chip de vidrio",
+      "kind": "chip",
+      "refersTo": "chip-glass",
+      "description": "Rótulo de un nodo sobre el campo azul.",
+      "html": "<div class=\"ds-chip-wrap\"><span class=\"ds-chip\">Control de Venta</span></div>",
+      "css": ".ds-chip-wrap { padding:24px; background:var(--brand); } .ds-chip { display:inline-block; padding:4px 12px; border-radius:9999px; background:oklch(1 0 0 / .12); border:1px solid oklch(1 0 0 / .24); color:#fff; font-size:12px; font-weight:500; backdrop-filter:blur(10px) saturate(1.3); }"
+    },
+    {
+      "name": "Tarjeta de vidrio",
+      "kind": "card",
+      "refersTo": "card-glass",
+      "description": "Contenedor que deja ver el campo azul detrás.",
+      "html": "<div class=\"ds-glass-wrap\"><div class=\"ds-glass\"><strong>Inicia sesión</strong><p>Usa tu cuenta de DIMA en Microsoft 365.</p></div></div>",
+      "css": ".ds-glass-wrap { padding:32px; background:linear-gradient(90deg, var(--brand) 40%, var(--background) 40%); } .ds-glass { max-width:320px; padding:32px; border-radius:18px; background:var(--glass-bg); border:1px solid var(--glass-border); box-shadow:inset 0 1px 0 oklch(1 0 0 / .35), 0 24px 48px -16px var(--glass-shadow); backdrop-filter:blur(40px) saturate(1.4); color:var(--foreground); } .ds-glass strong { font-size:24px; letter-spacing:-.02em; } .ds-glass p { margin:6px 0 0; font-size:14px; color:var(--muted-foreground); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El centro de la red",
+    "overview": "Kraken es el centro que sostiene el negocio de DIMA. El mundo visual sale del isotipo DIMA: anillos huecos unidos por trazos, sobre un campo comprometido de azul institucional. El kraken chibi coral ocupa el nodo central y sus tentáculos llegan a cada módulo. Es la única nota cálida del sistema y su reacción es la firma del producto.",
+    "keyCharacteristics": [
+      "Campo azul DIMA a sangre como región de marca, nunca como acento disperso.",
+      "Red de anillos huecos (trazo de 5 px en los módulos, 3.5 px en los satélites) con aristas de 2 px.",
+      "Mascota coral vectorial y plana, sin sombreado ni textura.",
+      "Vidrio esmerilado solo sobre el campo azul o la red.",
+      "Un solo momento de movimiento por superficie."
+    ],
+    "rules": [
+      {
+        "name": "The Coral Is the Kraken Rule",
+        "body": "El coral nunca aparece fuera de la mascota. Si algo necesita calidez o alerta, usa los tokens de estado, no coral.",
+        "section": "colors"
+      },
+      {
+        "name": "The Blue Field Rule",
+        "body": "El azul DIMA ocupa regiones completas (paneles, bandas). Teñido o atenuado como fondo de tarjetas genéricas pierde su función.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Wordmark Rule",
+        "body": "Nunito se usa solo para el nombre del producto. Los títulos de pantalla van en Geist.",
+        "section": "typography"
+      },
+      {
+        "name": "The Glass Needs a View Rule",
+        "body": "El vidrio solo se usa sobre algo que deja ver: el campo azul o la red. Sobre un fondo liso es una tarjeta opaca.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do usar el azul DIMA como campo completo en las regiones de marca, tanto en claro como en oscuro.",
+      "Do dibujar la red con anillos huecos y enmascarar las aristas dentro de los anillos.",
+      "Do reservar el movimiento de la red para un solo momento con significado (redirigir, cargar).",
+      "Do escribir los errores en español diciendo qué hacer (\"Espera un minuto e intenta de nuevo\")."
+    ],
+    "donts": [
+      "Don't usar coral fuera de la mascota.",
+      "Don't poner vidrio sobre fondos lisos donde no deja ver nada.",
+      "Don't dejar animaciones ambientales permanentes en la red.",
+      "Don't alterar el logo ni los colores del botón de Microsoft.",
+      "Don't hacer que una acción secundaria compita visualmente con el botón de Microsoft."
+    ]
+  }
+}

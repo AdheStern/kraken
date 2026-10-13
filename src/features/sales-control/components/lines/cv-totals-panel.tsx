@@ -1,33 +1,25 @@
 // src/features/sales-control/components/lines/cv-totals-panel.tsx
 // Panel lateral fijo del editor: totales USD y Bs, factor global, margen, servicios propios, áreas y
 // aprobadores que se generarán al enviar (AGENTS.md §2.2, §2.3 y §5).
-import Decimal from "decimal.js";
 import { TriangleAlert } from "lucide-react";
 import { formatAmount } from "@/lib/format-amount";
 import type { LinesSummary } from "../../line-pricing";
-import type { Option } from "../../types";
 
 type Props = {
   summary: LinesSummary;
-  areas: Option[];
+  /** null fuera de BORRADOR: las solicitudes reales están en el panel de aprobaciones. */
+  approvers: string[] | null;
   thresholdUsd: string;
   canSeeCosts: boolean;
 };
 
 export function CvTotalsPanel({
   summary,
-  areas,
+  approvers,
   thresholdUsd,
   canSeeCosts,
 }: Props) {
   const { totals } = summary;
-  const areaLabels = summary.areaIds.map(
-    (id) => areas.find((area) => area.id === id)?.label ?? "Área",
-  );
-  // REGLA: el GG aprueba en paralelo si el total de venta alcanza el umbral (§2.3, APROB-01).
-  const needsGeneralManager = totals.totalSaleUsd.greaterThanOrEqualTo(
-    new Decimal(thresholdUsd),
-  );
 
   return (
     <aside
@@ -83,35 +75,32 @@ export function CvTotalsPanel({
           datos por completar y no suma.
         </p>
       )}
-      <div className="grid content-start gap-2 border-t pt-3 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6 2xl:border-t 2xl:border-l-0 2xl:pt-3 2xl:pl-0">
-        <p className="text-xs font-medium text-muted-foreground">
-          Aprobarán al enviar
-        </p>
-        {areaLabels.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Agrega líneas con área para ver los aprobadores.
+      {approvers && (
+        <div className="grid content-start gap-2 border-t pt-3 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6 2xl:border-t 2xl:border-l-0 2xl:pt-3 2xl:pl-0">
+          <p className="text-xs font-medium text-muted-foreground">
+            Aprobarán al enviar
           </p>
-        ) : (
-          <ul className="flex flex-wrap gap-1.5">
-            {areaLabels.map((label) => (
-              <li
-                key={label}
-                className="rounded-md bg-secondary px-2 py-0.5 text-xs font-medium"
-              >
-                Gerente {label}
-              </li>
-            ))}
-            {needsGeneralManager && (
-              <li className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                Gerente general
-              </li>
-            )}
-          </ul>
-        )}
-        <p className="text-xs text-muted-foreground">
-          El gerente general se suma desde USD {formatAmount(thresholdUsd)}.
-        </p>
-      </div>
+          {approvers.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Agrega líneas con área para ver los aprobadores.
+            </p>
+          ) : (
+            <ul className="flex flex-wrap gap-1.5">
+              {approvers.map((label) => (
+                <li
+                  key={label}
+                  className={`rounded-md px-2 py-0.5 text-xs font-medium ${label === "Gerente general" ? "bg-primary/10 text-primary" : "bg-secondary"}`}
+                >
+                  {label}
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="text-xs text-muted-foreground">
+            El gerente general se suma desde USD {formatAmount(thresholdUsd)}.
+          </p>
+        </div>
+      )}
     </aside>
   );
 }

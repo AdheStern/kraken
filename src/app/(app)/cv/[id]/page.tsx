@@ -1,5 +1,6 @@
 // src/app/(app)/cv/[id]/page.tsx
-// Editor de un CV: encabezado con código y estado, cabecera plegable y líneas (AGENTS.md §5, Editor de CV).
+// Editor de un CV: encabezado con versión y acciones, aprobaciones, cabecera plegable, líneas, leasing e
+// historial. `?v=` muestra una versión anterior en solo lectura (AGENTS.md §2.3 y §5, Editor de CV).
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -7,15 +8,18 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CvStatusBadge } from "@/features/sales-control/components/cv-status-badge";
-import { DuplicateCvButton } from "@/features/sales-control/components/duplicate-cv-button";
 import { CvHeaderForm } from "@/features/sales-control/components/header/cv-header-form";
 import { CvLeasingEditor } from "@/features/sales-control/components/leasing/cv-leasing-editor";
 import { CvLinesEditor } from "@/features/sales-control/components/lines/cv-lines-editor";
+import { ApprovalPanel } from "@/features/sales-control/components/versions/approval-panel";
+import { CvVersionBar } from "@/features/sales-control/components/versions/cv-version-bar";
+import { VersionHistory } from "@/features/sales-control/components/versions/version-history";
 import { getCvEditor } from "@/features/sales-control/queries/get-cv-editor";
 import { getCvFormOptions } from "@/features/sales-control/queries/get-cv-form-options";
 import { getCvGridOptions } from "@/features/sales-control/queries/get-cv-grid-options";
 import { getCvLeasing } from "@/features/sales-control/queries/get-cv-leasing";
 import { getCvLines } from "@/features/sales-control/queries/get-cv-lines";
+import type { CvEditorData } from "@/features/sales-control/types";
 import { canCreateCv } from "@/server/authz/cv-permissions";
 import { getDecimalParameter } from "@/server/parameters";
 import { requireUser } from "@/server/session";
@@ -26,7 +30,10 @@ export const metadata: Metadata = { title: "Editor de CV" };
 const FX_DEVIATION_FALLBACK_PCT = "2";
 const GG_THRESHOLD_FALLBACK_USD = "50000.00";
 
-export default function CvEditorPage({ params }: PageProps<"/cv/[id]">) {
+export default function CvEditorPage({
+  params,
+  searchParams,
+}: PageProps<"/cv/[id]">) {
   return (
     <main className="mx-auto flex w-full max-w-[1720px] flex-col gap-5 px-4 py-6 sm:px-6">
       <Link
@@ -37,16 +44,24 @@ export default function CvEditorPage({ params }: PageProps<"/cv/[id]">) {
         Control de Venta
       </Link>
       <Suspense fallback={<EditorSkeleton />}>
-        <CvEditor params={params} />
+        <CvEditor params={params} searchParams={searchParams} />
       </Suspense>
     </main>
   );
 }
 
-async function CvEditor({ params }: Pick<PageProps<"/cv/[id]">, "params">) {
-  const { id } = await params;
+async function CvEditor({
+  params,
+  searchParams,
+}: Pick<PageProps<"/cv/[id]">, "params" | "searchParams">) {
+  const [{ id }, { v }] = await Promise.all([params, searchParams]);
   const user = await requireUser();
-  const editor = await getCvEditor(user, id);
+  const versionNumber = Number(v);
+  const editor = await getCvEditor(
+    user,
+    id,
+    Number.isInteger(versionNumber) ? versionNumber : undefined,
+  );
   if (!editor) notFound();
   const { header } = editor;
   const [
@@ -72,23 +87,23 @@ async function CvEditor({ params }: Pick<PageProps<"/cv/[id]">, "params">) {
           {header.versionLabel}
         </h1>
         <CvStatusBadge status={header.status} />
-        {canCreateCv(user) && (
-          <div className="ml-auto">
-            <DuplicateCvButton cvId={header.cvId} />
-          </div>
-        )}
+        <div className="ml-auto">
+          <CvVersionBar
+            editor={editor}
+            canDuplicate={canCreateCv(user)}
+            canExport={editor.canSeeCosts}
+          />
+        </div>
         <p className="basis-full text-sm text-muted-foreground">
           {header.title} · {header.customerName} · {header.cityName}
         </p>
         {!editor.canEdit && (
           <p className="basis-full text-sm text-muted-foreground">
-            Solo lectura:{" "}
-            {header.status === "BORRADOR"
-              ? "no eres comercial de este CV."
-              : "la versión ya no está en borrador."}
+            Solo lectura: {readOnlyReason(editor)}
           </p>
         )}
       </header>
+      <ApprovalPanel approvals={editor.approvals} />
       <CvHeaderForm
         header={header}
         options={options}
@@ -119,8 +134,23 @@ async function CvEditor({ params }: Pick<PageProps<"/cv/[id]">, "params">) {
           canEdit={editor.canEdit}
         />
       )}
+      <VersionHistory
+        cvId={header.cvId}
+        versions={editor.versions}
+        current={editor.versionNumber}
+      />
     </>
   );
+}
+
+function readOnlyReason(editor: CvEditorData): string {
+  if (!editor.isLatest)
+    return "es una versión anterior; abre la más reciente para trabajar.";
+  if (editor.header.status === "EN_APROBACION")
+    return "la versión está en aprobación y no se puede editar.";
+  if (editor.header.status !== "BORRADOR")
+    return "la versión ya no está en borrador. Para cambiarla, crea una versión nueva.";
+  return "no eres comercial de este CV.";
 }
 
 function EditorSkeleton() {

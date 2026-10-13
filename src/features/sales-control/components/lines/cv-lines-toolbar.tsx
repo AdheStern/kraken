@@ -2,9 +2,18 @@
 // Barra del editor de líneas: agregar línea, nota o lote, factor por tecnología y guardar.
 "use client";
 
-import { Layers, LoaderCircle, Plus, Save, StickyNote } from "lucide-react";
+import {
+  Layers,
+  LoaderCircle,
+  Plus,
+  Save,
+  Send,
+  StickyNote,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { ActionResult } from "@/lib/action-result";
 import type { Option } from "../../types";
+import { ReasonDialog } from "../versions/reason-dialog";
 
 type Props = {
   technologies: Option[];
@@ -15,6 +24,9 @@ type Props = {
   onAddGroup: () => void;
   onApplyTechnologyFactor: (technologyId: string, factor: string) => void;
   onSave: () => void;
+  approverLabels: string[];
+  onSubmit: () => Promise<ActionResult<unknown>>;
+  onSubmitted: () => void;
 };
 
 const FIELD =
@@ -89,6 +101,27 @@ export function CvLinesToolbar(props: Props) {
         )}
         {props.isSaving ? "Guardando…" : "Guardar líneas"}
       </Button>
+      <ReasonDialog
+        trigger={
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={props.isDirty || props.isSaving}
+            title={
+              props.isDirty ? "Guarda los cambios antes de enviar" : undefined
+            }
+          >
+            <Send aria-hidden="true" />
+            Enviar a aprobación
+          </Button>
+        }
+        title="Enviar a aprobación"
+        description={`Aprobarán en paralelo: ${props.approverLabels.join(", ") || "las áreas de las líneas"}. La versión ya no se podrá editar.`}
+        confirmLabel="Enviar"
+        required={false}
+        onConfirm={props.onSubmit}
+        onDone={props.onSubmitted}
+      />
     </div>
   );
 }

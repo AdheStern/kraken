@@ -4,7 +4,9 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { submitCvVersion } from "../../actions/submit-cv-version";
 import { upsertCvLines } from "../../actions/upsert-cv-lines";
+import { approverLabels } from "../../approver-labels";
 import type { CvGridOptions } from "../../types";
 import { CvLineGrid } from "./cv-line-grid";
 import { CvLinesToolbar } from "./cv-lines-toolbar";
@@ -57,6 +59,7 @@ export function CvLinesEditor({
     canSeeCosts,
     hoursUnitIds,
   );
+  const approvers = approverLabels(summary, options.areas, thresholdUsd);
   const detailLine = state.lines.find((line) => line.key === detailKey) ?? null;
   const isDirty = JSON.stringify(state) !== baseline;
 
@@ -103,6 +106,9 @@ export function CvLinesEditor({
             }
             onAddGroup={() => dispatch({ type: "addGroup" })}
             onSave={() => void save()}
+            approverLabels={approvers}
+            onSubmit={() => submitCvVersion({ versionId })}
+            onSubmitted={() => router.refresh()}
             onApplyTechnologyFactor={commands.applyTechnologyFactor}
           />
         ) : (
@@ -148,7 +154,7 @@ export function CvLinesEditor({
       />
       <CvTotalsPanel
         summary={summary}
-        areas={options.areas}
+        approvers={canEdit ? approvers : null}
         thresholdUsd={thresholdUsd}
         canSeeCosts={canSeeCosts}
       />

@@ -2,12 +2,15 @@
 // Envía una versión en BORRADOR a aprobación: congela el umbral, crea una solicitud por área (+GG si
 // corresponde) y avisa a los aprobadores, todo en la transacción recibida (AGENTS.md §2.3, flujo de aprobación).
 import Decimal from "decimal.js";
+import { toBusinessDate } from "@/domain/calendar/business-date";
 import { computeApprovalTargets } from "@/domain/sales-control/approval-round";
 import { toCvVersionLabel } from "@/domain/sales-control/cv-code";
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { canEditCvDraft } from "@/server/authz/cv-permissions";
 import type { SessionUser } from "@/server/authz/roles";
 import type { Tx } from "@/server/db";
+import { findBagPlanProblem } from "@/server/hours/bag-plan-problem";
+import { planBagsForVersion } from "@/server/hours/version-bag-plan";
 import { notify } from "@/server/notifications/notify";
 import { findApprovers, lockVersion } from "./approvers";
 import { loadCvAccess } from "./cv-access";
@@ -42,6 +45,13 @@ export async function submitVersion(
       "VALIDATION",
       "Agrega al menos una línea antes de enviar.",
     );
+
+  // REGLA: una reducción de horas que dejaría una bolsa en negativo no se puede enviar (§2.4).
+  const bagProblem = findBagPlanProblem(
+    await planBagsForVersion(tx, versionId),
+    toBusinessDate(now),
+  );
+  if (bagProblem) return actionError(bagProblem.code, bagProblem.message);
 
   const areaIds = version.lines.flatMap((line) =>
     line.areaId ? [line.areaId] : [],

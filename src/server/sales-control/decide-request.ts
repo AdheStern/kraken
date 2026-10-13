@@ -7,6 +7,7 @@ import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { canDecideApproval } from "@/server/authz/cv-permissions";
 import type { SessionUser } from "@/server/authz/roles";
 import type { Tx } from "@/server/db";
+import { applyVersionBags } from "@/server/hours/apply-version-bags";
 import { notify } from "@/server/notifications/notify";
 import { lockVersion } from "./approvers";
 
@@ -80,7 +81,15 @@ export async function decideRequest(
       where: { id: version.id },
       data: { status: "APROBADA", approvedAt: now },
     });
-    // LIMITACIÓN: la generación de bolsas (F2) y reservas de stock (F4) se engancha aquí cuando existan.
+    // REGLA: al aprobarse se generan las bolsas de horas (§2.3, §2.4); si su plan es inviable, applyVersionBags
+    // lanza y la decisión entera se revierte. LIMITACIÓN: las reservas de stock (F4) se enganchan aquí.
+    await applyVersionBags(tx, {
+      cvId: version.cvId,
+      versionId: version.id,
+      actorId: user.id,
+      label: toCvVersionLabel(version.cv.code, version.number),
+      reason: version.reason,
+    });
   } else if (outcome.round === "OBSERVADA") {
     await tx.cvVersion.update({
       where: { id: version.id },

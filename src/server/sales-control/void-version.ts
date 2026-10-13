@@ -8,6 +8,7 @@ import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { canEditCvDraft } from "@/server/authz/cv-permissions";
 import type { SessionUser } from "@/server/authz/roles";
 import type { Tx } from "@/server/db";
+import { closeCvBags } from "@/server/hours/close-cv-bags";
 import { notify } from "@/server/notifications/notify";
 import { lockVersion } from "./approvers";
 import { loadCvAccess } from "./cv-access";
@@ -42,10 +43,7 @@ export async function voidLatestVersion(
       "Solo se anula un borrador o una versión aprobada.",
     );
   }
-  if (
-    latest.status === "APROBADA" &&
-    (await hasDownstreamActivity(tx, latest.id))
-  ) {
+  if (latest.status === "APROBADA" && (await hasDownstreamActivity(tx, cvId))) {
     return actionError(
       "INVALID_STATE",
       "La versión tiene consumos de horas o despachos; no se puede anular.",
@@ -56,6 +54,12 @@ export async function voidLatestVersion(
     where: { id: latest.id },
     data: { status: "ANULADA", voidedAt: now },
   });
+  if (latest.status === "APROBADA")
+    await closeCvBags(tx, {
+      cvId,
+      actorId: user.id,
+      reason: `CV anulado · ${reason.trim()}`,
+    });
   const stillApproved = await tx.cvVersion.count({
     where: { cvId, status: "APROBADA" },
   });
@@ -76,15 +80,13 @@ export async function voidLatestVersion(
 }
 
 // REGLA: una versión aprobada con consumos de horas o despachos de inventario no se anula (§8).
-async function hasDownstreamActivity(
-  tx: Tx,
-  versionId: string,
-): Promise<boolean> {
+// POR QUÉ: se mira todo el CV; una bolsa puede seguir enlazada a la línea de una versión anterior.
+async function hasDownstreamActivity(tx: Tx, cvId: string): Promise<boolean> {
   const [consumptions, movements] = await Promise.all([
     tx.hourMovement.count({
-      where: { kind: "CONSUMO", bag: { cvLine: { versionId } } },
+      where: { kind: "CONSUMO", bag: { cvLine: { version: { cvId } } } },
     }),
-    tx.invMovement.count({ where: { cvLine: { versionId } } }),
+    tx.invMovement.count({ where: { cvLine: { version: { cvId } } } }),
   ]);
   return consumptions + movements > 0;
 }

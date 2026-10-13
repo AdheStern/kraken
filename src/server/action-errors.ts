@@ -3,6 +3,7 @@
 import { type ActionResult, actionError } from "@/lib/action-result";
 import { formatMinutes } from "@/lib/format-minutes";
 import {
+  BagPlanError,
   BagStateError,
   InsufficientBalanceError,
 } from "@/server/hours/hour-errors";
@@ -19,6 +20,9 @@ export function toActionError<T>(
       "INSUFFICIENT_BALANCE",
       `La bolsa no tiene saldo suficiente: quedan ${formatMinutes(error.balanceMinutes)}.`,
     );
+  }
+  if (error instanceof BagPlanError) {
+    return actionError(error.code, error.message);
   }
   if (error instanceof BagStateError) {
     return actionError("INVALID_STATE", error.message);

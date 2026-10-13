@@ -337,7 +337,7 @@ Prisma 7: `prisma.config.ts` en la raíz (esquema multiarchivo en `prisma/schema
 | `audit` | `evento` |
 | `dash` | Vistas SQL de los tableros (sección 6) |
 
-**Relaciones clave:** Cliente 1–N CV · CV 1–N Versión · Versión 1–N Línea · Versión 1–N SolicitudAprobación · Línea N–1 Área · Línea 1–0..1 Bolsa · Bolsa 1–N MovimientoHoras · Ticket 1–N TicketBolsa (prioridad) N–1 Bolsa · Ticket 1–N Subtarea · Ticket/Subtarea 1–N RegistroTiempo · Proyecto 1–N Ticket · Línea 1–N Reserva · Almacén 1–N Stock · Stock 1–N MovimientoInv.
+**Relaciones clave:** Cliente 1–N CV · CV 1–N Versión · Versión 1–N Línea · Versión 1–N SolicitudAprobación · Línea N–1 Área · Línea 1–0..1 Bolsa (por linaje: `linea_origen_id`) · Bolsa 1–N MovimientoHoras · Ticket 1–N TicketBolsa (prioridad) N–1 Bolsa · Ticket 1–N Subtarea · Ticket/Subtarea 1–N RegistroTiempo · Proyecto 1–N Ticket · Línea 1–N Reserva · Almacén 1–N Stock · Stock 1–N MovimientoInv.
 
 ### Extracto Prisma (núcleo)
 ```prisma
@@ -383,6 +383,7 @@ model CvLine {
   unitSaleUsd   Decimal? @db.Decimal(18, 2)
   pricingSource PricingSource?                          // FACTOR | PRECIO
   hourBagSpec   Json?                                   // { modality, scope, areaIds, projectId, expiresOn }
+  originLineId  String?  @db.Uuid                       // raíz del linaje: la hereda cada versión nueva (no un CV duplicado)
   coverageStart DateTime? @db.Date
   coverageEnd   DateTime? @db.Date
   poNumber      String?
@@ -394,7 +395,7 @@ model CvLine {
 // prisma/schema/horas.prisma
 model HourBag {
   id             String   @id @db.Uuid
-  cvLineId       String   @unique @db.Uuid              // línea de la versión que la creó
+  cvLineId       String   @unique @db.Uuid              // línea de la versión aprobada vigente (se mueve al aprobar otra)
   customerId     String   @db.Uuid
   modality       BagModality                            // H8X5 | H24X7
   scope          BagScope                               // AREA | PROYECTO | GENERAL

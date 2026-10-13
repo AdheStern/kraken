@@ -15,7 +15,8 @@
     "skills:install": "pnpm dlx skills experimental_install -y && node -e \"require('fs').cpSync('.agents/skills','.claude/skills',{recursive:true})\"",
     "db:seed:admin": "tsx --env-file-if-exists=.env prisma/seed/seed-super-admin.ts",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:int": "vitest run --config vitest.int.config.mts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -24,6 +25,8 @@
     "better-auth": "^1.7.7",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
+    "date-fns": "^4.4.0",
+    "date-fns-tz": "^3.2.0",
     "decimal.js": "^10.6.0",
     "lucide-react": "^1.55.0",
     "next": "16.4.0",
@@ -37,6 +40,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.4.2",
     "@tailwindcss/turbopack": "^4",
+    "@testcontainers/postgresql": "^12.2.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -44,6 +48,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "prisma": "7.10.0",
     "tailwindcss": "^4",
+    "testcontainers": "^12.2.0",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vitest": "^5.0.4"

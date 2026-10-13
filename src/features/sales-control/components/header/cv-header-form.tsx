@@ -4,6 +4,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, LoaderCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ type Props = {
   options: CvFormOptions;
   canEdit: boolean;
   maxFxDeviationPct: string;
+  defaultOpen: boolean;
 };
 
 type SaveState =
@@ -38,8 +40,10 @@ export function CvHeaderForm({
   options,
   canEdit,
   maxFxDeviationPct,
+  defaultOpen,
 }: Props) {
-  const [isOpen, setIsOpen] = useState(true);
+  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const [saveState, setSaveState] = useState<SaveState>({ kind: "idle" });
   const form = useForm<CvHeaderInput>({
     resolver: zodResolver(cvHeaderSchema),
@@ -53,6 +57,8 @@ export function CvHeaderForm({
       return setSaveState({ kind: "error", message: result.error.message });
     form.reset(values);
     setSaveState({ kind: "saved" });
+    // POR QUÉ: el TC guardado cambia los montos en Bs de la grilla, que se recalcula con datos del servidor.
+    router.refresh();
   }
 
   return (

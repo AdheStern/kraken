@@ -72,6 +72,7 @@ export async function getCvEditor(
       officialFxRate: version.officialFxRate
         ? toFxText(version.officialFxRate)
         : null,
+      revision: version.updatedAt.toISOString(),
     },
   };
 }

@@ -51,10 +51,28 @@ export type CvEditorHeader = {
   costFxRate: string;
   saleFxRate: string;
   officialFxRate: string | null;
+  revision: string;
 };
 
 export type CvEditorData = {
   header: CvEditorHeader;
   canEdit: boolean;
   canSeeCosts: boolean;
+};
+
+export type ProductOption = {
+  id: string;
+  code: string;
+  description: string;
+  technologyId: string | null;
+  unitId: string | null;
+  itemType: "HARDWARE" | "INTANGIBLE" | "SERVICIO";
+};
+
+export type CvGridOptions = {
+  areas: Option[];
+  suppliers: Option[];
+  technologies: Option[];
+  units: (Option & { isHours: boolean })[];
+  products: ProductOption[];
 };

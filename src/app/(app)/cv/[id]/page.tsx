@@ -8,8 +8,11 @@ import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CvStatusBadge } from "@/features/sales-control/components/cv-status-badge";
 import { CvHeaderForm } from "@/features/sales-control/components/header/cv-header-form";
+import { CvLinesEditor } from "@/features/sales-control/components/lines/cv-lines-editor";
 import { getCvEditor } from "@/features/sales-control/queries/get-cv-editor";
 import { getCvFormOptions } from "@/features/sales-control/queries/get-cv-form-options";
+import { getCvGridOptions } from "@/features/sales-control/queries/get-cv-grid-options";
+import { getCvLines } from "@/features/sales-control/queries/get-cv-lines";
 import { getDecimalParameter } from "@/server/parameters";
 import { requireUser } from "@/server/session";
 
@@ -17,10 +20,11 @@ export const metadata: Metadata = { title: "Editor de CV" };
 
 // [CONFIRMAR] respaldo si el parámetro no está cargado (AGENTS.md §14, F1).
 const FX_DEVIATION_FALLBACK_PCT = "2";
+const GG_THRESHOLD_FALLBACK_USD = "50000.00";
 
 export default function CvEditorPage({ params }: PageProps<"/cv/[id]">) {
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6">
+    <main className="mx-auto flex w-full max-w-[1720px] flex-col gap-5 px-4 py-6 sm:px-6">
       <Link
         href="/cv"
         className="flex w-fit items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
@@ -38,13 +42,17 @@ export default function CvEditorPage({ params }: PageProps<"/cv/[id]">) {
 async function CvEditor({ params }: Pick<PageProps<"/cv/[id]">, "params">) {
   const { id } = await params;
   const user = await requireUser();
-  const [editor, options, maxFxDeviationPct] = await Promise.all([
-    getCvEditor(user, id),
-    getCvFormOptions(),
-    getDecimalParameter("fx.desvio_max_pct", FX_DEVIATION_FALLBACK_PCT),
-  ]);
+  const editor = await getCvEditor(user, id);
   if (!editor) notFound();
   const { header } = editor;
+  const [options, gridOptions, lines, maxFxDeviationPct, thresholdUsd] =
+    await Promise.all([
+      getCvFormOptions(),
+      getCvGridOptions(),
+      getCvLines(header.versionId, editor.canSeeCosts),
+      getDecimalParameter("fx.desvio_max_pct", FX_DEVIATION_FALLBACK_PCT),
+      getDecimalParameter("cv.umbral_gg_usd", GG_THRESHOLD_FALLBACK_USD),
+    ]);
 
   return (
     <>
@@ -70,6 +78,20 @@ async function CvEditor({ params }: Pick<PageProps<"/cv/[id]">, "params">) {
         options={options}
         canEdit={editor.canEdit}
         maxFxDeviationPct={maxFxDeviationPct}
+        defaultOpen={lines.lines.length === 0}
+      />
+      <CvLinesEditor
+        key={header.revision}
+        versionId={header.versionId}
+        initial={lines}
+        options={gridOptions}
+        fxRates={{
+          costFxRate: header.costFxRate,
+          saleFxRate: header.saleFxRate,
+        }}
+        thresholdUsd={thresholdUsd}
+        canEdit={editor.canEdit}
+        canSeeCosts={editor.canSeeCosts}
       />
     </>
   );

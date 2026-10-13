@@ -48,3 +48,7 @@ next-env.d.ts
 /.claude/skills/
 /.agents/
 /.claude/settings.local.json
+
+# artefactos locales de impeccable (capturas de revisión y rondas de decisión)
+/.impeccable/review/
+/.impeccable/questions/

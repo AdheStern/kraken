@@ -1,5 +1,5 @@
+// src/lib/auth-client.ts
+// Cliente de Better Auth para el navegador; usa el mismo origen que la app (/api/auth/*).
 import { createAuthClient } from "better-auth/react";
-export const authClient = createAuthClient({
-  /** The base URL of the server (optional if you're using the same domain) */
-  baseURL: "http://localhost:3000",
-});
+
+export const authClient = createAuthClient();

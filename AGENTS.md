@@ -1,9 +1,10 @@
-# AGENTS.md — DIMA Hub (plataforma de gestión interna de DIMA Ltda.)
+# AGENTS.md — Kraken by DIMA (plataforma de gestión interna de DIMA Ltda.)
 
 > Fuente de verdad para agentes de código (Claude Code, Codex y similares).
 > Versión legible para personas: `docs/plan-maestro.html` (documento maestro v0.1, octubre 2026).
 > Si este archivo y el código no coinciden, **gana este archivo**. Si una decisión lo contradice,
-> se actualiza este archivo en el mismo PR. "DIMA Hub" es un nombre provisional.
+> se actualiza este archivo en el mismo PR. El producto se llama **Kraken by DIMA** ("DIMA Hub" fue el nombre provisional;
+> el repositorio y algunos identificadores técnicos aún lo usan).
 
 ---
 
@@ -36,6 +37,7 @@ pnpm test:int                 # integración con Postgres (Testcontainers)
 pnpm test:e2e                 # Playwright
 pnpm biome check --write      # lint + formato
 pnpm prisma migrate dev       # migraciones en desarrollo
+pnpm db:seed:admin            # crea/actualiza la cuenta de emergencia ADMIN_SISTEMA desde SUPERADMIN_*
 pnpm skills:install           # restaura las skills de agentes desde skills-lock.json
 docker compose -f deploy/compose.dev.yml up -d   # Postgres + correo falso
 ```
@@ -286,7 +288,7 @@ Usuarios ─HTTPS→ FortiGate/Radware (WAF + TLS) → IP virtual (keepalived)
 | ADR-02 | Un esquema Postgres por dominio (`core`, `cv`, `horas`, `tickets`, `inv`, `fx`, `notif`, `audit`, `auth`) con Prisma `multiSchema`. | Orden, permisos y respaldos selectivos. Prisma es el único dueño del esquema. |
 | ADR-03 | Libros mayores inmutables (`horas.movimiento`, `inv.movimiento`). El saldo es una caché actualizada en la misma transacción con `SELECT … FOR UPDATE`; `CHECK (saldo >= 0)` como última red. | Auditoría, correcciones sin borrar, sin sobregiros concurrentes. |
 | ADR-04 | Decimales exactos (`NUMERIC`) y `Prisma.Decimal` en TS. | Sin errores de coma flotante. |
-| ADR-05 | Better Auth + Microsoft Entra ID (OIDC, inquilino único). Sesiones en BD. Grupos de Entra → roles. | SSO, MFA y acceso condicional heredados; dar de baja en Entra corta el acceso. |
+| ADR-05 | Better Auth + Microsoft Entra ID (OIDC, inquilino único). Sesiones en BD. Grupos de Entra → roles. Email/contraseña solo para la cuenta de emergencia `ADMIN_SISTEMA` (sin registro público; el login va por `/api/auth`, no por Server Action, para que aplique el límite de intentos). | SSO, MFA y acceso condicional heredados; dar de baja en Entra corta el acceso. |
 | ADR-06 | Authz centralizada en `src/server/authz`: CASL + funciones `scope*Query(user)`. | Reglas de 2.9 en un solo lugar, testeables. |
 | ADR-07 | Jobs con pg-boss en un proceso worker separado. | Sin Redis; los jobs sobreviven a reinicios; sin doble ejecución. |
 | ADR-08 | Correo con Microsoft Graph `sendMail` (app-only) desde un buzón de servicio, limitado con RBAC para aplicaciones de Exchange. **Outbox**: la action escribe en `notif.salida` dentro de su transacción y el worker envía con reintentos. | Sin SMTP propio; ningún correo se pierde ni se envía por una transacción revertida. |
@@ -465,7 +467,7 @@ dima-hub/
 │  │  ├─ hours/          # ponderación, asignación, redondeo
 │  │  ├─ sla/
 │  │  └─ inventory/      # costo promedio, validación de traspasos
-│  ├─ features/          # un módulo por dominio, misma forma:
+│  ├─ features/          # un módulo por dominio, misma forma (auth/: login, Entra ID y acceso de emergencia):
 │  │  └─ sales-control/
 │  │     ├─ schemas/     # zod
 │  │     ├─ actions/     # "use server", una por archivo
@@ -476,8 +478,10 @@ dima-hub/
 │  │  ├─ authz/          # políticas CASL y scope*Query()
 │  │  ├─ db.ts           # cliente Prisma + extensión de auditoría + runInTransaction
 │  │  ├─ auth.ts         # configuración de Better Auth
+│  │  ├─ auth-policies.ts # quién entra con contraseña, cuenta activa, alta del perfil
 │  │  ├─ mail/           # Graph + outbox
 │  │  └─ files/          # FileStore (NFS)
+│  ├─ proxy.ts           # redirección optimista por cookie de sesión (Next 16: antes middleware)
 │  ├─ worker/            # entrada pg-boss y handlers
 │  ├─ generated/prisma/  # cliente Prisma generado (no versionado)
 │  └─ components/ui/     # shadcn
@@ -728,7 +732,8 @@ PR → biome · typecheck · tests de dominio · integración con Postgres · bu
 |---|---|
 | `DATABASE_URL`, `MIGRATION_DATABASE_URL` | Usuario de la app (sin DDL) y usuario de migraciones |
 | `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` | Sesiones |
-| `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET` | Inicio de sesión (permisos delegados) |
+| `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET` | Inicio de sesión (permisos delegados). URI de redirección en Entra: `{BETTER_AUTH_URL}/api/auth/callback/microsoft` |
+| `SUPERADMIN_EMAIL`, `SUPERADMIN_PASSWORD` | Solo los lee `pnpm db:seed:admin` (contraseña de 12+ caracteres); la app nunca los usa |
 | `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, `MAIL_SENDER` | Correo (registro de app separado, solo `Mail.Send`, limitado al buzón) |
 | `FX_API_URL` | API del tipo de cambio |
 | `FILES_ROOT` | Punto de montaje NFS |
@@ -835,7 +840,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 | Caída o cambio de la API de TC | BAJO | TC guardado, carga manual, interfaz `FxRateProvider` |
 
 **Decisiones abiertas (no implementar como definitivas; aislarlas en parámetros):**
-- **F0:** nivel de RAID del NAS; repositorio Git; nombre definitivo del producto.
+- **F0:** nivel de RAID del NAS; repositorio Git.
 - **F1:** significado del sufijo `-DS`; confirmar que un rechazo cierra la ronda; valor inicial del umbral del GG; % de desvío del TC que dispara la advertencia.
 - **F2:** horario real de cada ciudad (¿con pausa de mediodía?) y feriados departamentales; carga de las bolsas vigentes (propuesta: un "CV de saldo inicial" por cliente, aprobado por su gerente).
 - **F3:** confirmar el redondeo hacia arriba; confirmar que se suman los tiempos en paralelo; prioridades de ticket y tiempos de SLA por prioridad y modalidad.

@@ -12,7 +12,7 @@
 
 1. **Cabecera obligatoria** en todo archivo de código: ruta + una o dos líneas de propósito.
 2. **Tamaños:** componente ≤120 líneas (máx. 200) · Server Action una por archivo ≤80 (máx. 120) · schemas/queries/types ≤150 (máx. 200) · módulo de dominio ≤150 (máx. 250) · función ≤30 (máx. 50).
-3. **Dinero con `Prisma.Decimal`**, nunca `number`. Montos `NUMERIC(18,2)`, factor `NUMERIC(8,2)`, TC `NUMERIC(12,4)`.
+3. **Dinero con `Prisma.Decimal`**, nunca `number`. En `src/domain` se usa `Decimal` de `decimal.js` (la misma librería que envuelve Prisma); la conversión ocurre en `queries/` y `actions/`. Montos `NUMERIC(18,2)`, factor `NUMERIC(8,2)`, TC `NUMERIC(12,4)`.
 4. **Tiempo en minutos enteros** (`Int`). Las horas con decimales son solo presentación.
 5. **Fechas en UTC** (`timestamptz`); el calendario de negocio se calcula en `America/La_Paz` con date-fns-tz.
 6. **Ningún saldo (horas o stock) cambia sin insertar su movimiento en la misma transacción** (`runInTransaction`). Un `UPDATE` directo a un saldo es un bug.

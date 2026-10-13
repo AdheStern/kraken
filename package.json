@@ -13,7 +13,9 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "skills:install": "pnpm dlx skills experimental_install -y && node -e \"require('fs').cpSync('.agents/skills','.claude/skills',{recursive:true})\"",
-    "db:seed:admin": "tsx --env-file-if-exists=.env prisma/seed/seed-super-admin.ts"
+    "db:seed:admin": "tsx --env-file-if-exists=.env prisma/seed/seed-super-admin.ts",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -22,6 +24,7 @@
     "better-auth": "^1.7.7",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
+    "decimal.js": "^10.6.0",
     "lucide-react": "^1.55.0",
     "next": "16.4.0",
     "next-themes": "^0.4.6",
@@ -37,11 +40,13 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^5.0.4",
     "babel-plugin-react-compiler": "1.0.0",
     "prisma": "7.10.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.4"
   },
   "packageManager": "pnpm@11.24.0"
 }

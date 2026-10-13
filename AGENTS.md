@@ -192,7 +192,7 @@ Cada línea de horas de servicio de un CV aprobado genera una **bolsa**.
 | Alcance | `AREA` (una o más áreas), `PROYECTO` (un proyecto) o `GENERAL` (cualquier ticket del cliente). Si es compartida entre áreas, todas consumen **del mismo saldo**. |
 | Vencimiento | Opcional. No acepta trabajo realizado después de la fecha; el saldo restante se registra como `VENCIMIENTO`. |
 | Saldo | **Nunca negativo.** No se consumen más horas de las disponibles. |
-| Versiones del CV | Si una versión nueva cambia las horas, al aprobarse se registra un `AJUSTE` por la diferencia. Si la reducción dejaría el saldo negativo, la versión no se puede enviar. |
+| Versiones del CV | Si una versión nueva cambia las horas, al aprobarse se registra un `AJUSTE` por la diferencia con la línea aprobada anterior (no con lo vendido, para respetar los ajustes manuales). Modalidad, alcance, áreas y vencimiento se actualizan hacia adelante; los consumos hechos no se recalculan. Si la versión quita la línea, un `AJUSTE` por el saldo cierra la bolsa (`CERRADA`). Si la reducción dejaría el saldo negativo, la versión no se puede enviar. Una bolsa `VENCIDA` o `CERRADA` no se reabre: si la versión cambia sus horas, se agrega una línea nueva. |
 
 **Libro mayor:** el saldo es la suma de movimientos inmutables `APERTURA`, `CONSUMO`, `REVERSO`, `AJUSTE`, `VENCIMIENTO`. Corregir = un movimiento nuevo. `balanceMinutes` es una caché actualizada en la misma transacción.
 
@@ -595,7 +595,7 @@ Viven en `src/domain/*/state-machine.ts`. La interfaz muestra solo las transicio
 - **Solicitud de aprobación:** `PENDIENTE → APROBADA | RECHAZADA | CERRADA` (CERRADA si otra solicitud de la ronda fue rechazada).
 - **Ticket:** `NUEVO → ASIGNADO → EN_PROGRESO ⇄ EN_ESPERA_CLIENTE` (SLA en pausa) · `EN_PROGRESO → RESUELTO` · `RESUELTO → EN_PROGRESO` (no conforme) · `RESUELTO → CERRADO` (descuento de horas) · `CERRADO → EN_PROGRESO` (reabrir con REVERSO) · `NUEVO | ASIGNADO → CANCELADO`.
 - **Contador:** `CORRIENDO ⇄ PAUSADO` · `CORRIENDO | PAUSADO → TERMINADO`. Cada transición se guarda en `tickets.evento_contador` con hora del servidor.
-- **Bolsa:** `ACTIVA → AGOTADA` (saldo 0) · `AGOTADA → ACTIVA` (ajuste o versión con más horas) · `ACTIVA → VENCIDA` · `ACTIVA → CERRADA` (manual).
+- **Bolsa:** `ACTIVA → AGOTADA` (saldo 0) · `AGOTADA → ACTIVA` (ajuste o versión con más horas) · `ACTIVA | AGOTADA → VENCIDA` · `ACTIVA | AGOTADA → CERRADA` (manual o línea quitada en una versión). `VENCIDA` y `CERRADA` son terminales.
 - **Traspaso:** `BORRADOR → EN_TRANSITO → RECIBIDO | RECIBIDO_CON_DIFERENCIAS` · `BORRADOR → CANCELADO`.
 
 ---

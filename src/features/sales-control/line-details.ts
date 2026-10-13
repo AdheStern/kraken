@@ -2,6 +2,7 @@
 // Reglas de los detalles de una línea (vigencia, seriales, bolsa de horas, alta en catálogo).
 // Puro: lo usan la grilla para avisar y el servidor para rechazar (AGENTS.md §2.1 y §2.4).
 import Decimal from "decimal.js";
+import { toBagMinutes } from "@/domain/hours/to-bag-minutes";
 import type { LineIssue } from "./line-pricing";
 import {
   type CvLineDraft,
@@ -74,8 +75,7 @@ function hourBagIssues(
   quantity: Decimal | null,
 ): LineIssue[] {
   const issues: LineIssue[] = [];
-  // REGLA: el tiempo se guarda en minutos enteros (regla 4): 1.25 h = 75 min sirve; 1.01 h no.
-  if (quantity && !quantity.times(60).isInteger()) {
+  if (quantity && toBagMinutes(quantity) === null) {
     issues.push({
       field: "quantity",
       message: "Las horas deben dar minutos enteros, p. ej. 1.5 o 1.25.",

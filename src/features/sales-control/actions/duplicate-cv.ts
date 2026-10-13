@@ -88,7 +88,7 @@ export async function duplicateCv(
         include: { versions: { select: { id: true } } },
       });
       await copyVersionContent(tx, version.id, cv.versions[0].id, {
-        includeSerials: false,
+        sameSale: false,
       });
       return cv.id;
     });

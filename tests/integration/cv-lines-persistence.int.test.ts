@@ -140,7 +140,7 @@ describe("copyVersionContent", () => {
     });
     const target = await createVersion(db, f.cv.id, f.userId, 2);
     await db.$transaction((tx) =>
-      copyVersionContent(tx, f.version.id, target.id, { includeSerials: true }),
+      copyVersionContent(tx, f.version.id, target.id, { sameSale: true }),
     );
 
     const [line] = await db.cvLine.findMany({

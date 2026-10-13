@@ -46,6 +46,9 @@ model CvLine {
   unitSaleUsd   Decimal?       @map("venta_unit_usd") @db.Decimal(18, 2)
   pricingSource PricingSource? @map("origen_precio")
   hourBagSpec   Json?          @map("especificacion_bolsa")
+  // REGLA: raíz del linaje entre versiones (la línea de la versión donde nació); con ella una versión nueva
+  // encuentra su bolsa de horas (§2.4). Sin FK: la raíz vive en una versión inmutable y nunca se borra.
+  originLineId  String?        @map("linea_origen_id") @db.Uuid
   coverageStart DateTime?      @map("vigencia_inicio") @db.Date
   coverageEnd   DateTime?      @map("vigencia_fin") @db.Date
   poNumber      String?        @map("po_numero")
@@ -64,6 +67,7 @@ model CvLine {
   invMovements InvMovement[]
 
   @@index([versionId, position])
+  @@index([originLineId])
   @@map("linea")
   @@schema("cv")
 }

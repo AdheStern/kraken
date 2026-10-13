@@ -71,7 +71,7 @@ export async function startNewVersion(
       sellers: { create: sellers.map(({ userId }) => ({ userId })) },
     },
   });
-  await copyVersionContent(tx, latest.id, created.id, { includeSerials: true });
+  await copyVersionContent(tx, latest.id, created.id, { sameSale: true });
   await notify(tx, {
     event: "CV_NUEVA_VERSION",
     userIds: sellers.map((s) => s.userId).filter((id) => id !== user.id),

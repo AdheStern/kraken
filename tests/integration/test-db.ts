@@ -96,3 +96,32 @@ export async function createUserWithRoles(
     roles: roles.map(({ code, areaId }) => ({ code, areaId: areaId ?? null })),
   };
 }
+
+// Bolsa vacía (saldo 0) colgada de una línea de horas del CV de prueba; el saldo se carga con movimientos.
+export async function createHourBagFixture(db: PrismaClient) {
+  const f = await createCvFixture(db);
+  const line = await db.cvLine.create({
+    data: {
+      versionId: f.version.id,
+      position: 1,
+      kind: "ITEM",
+      areaId: f.area.id,
+      description: "Soporte 8x5",
+      quantity: "20",
+      unitCostUsd: "0",
+      unitSaleUsd: "0",
+      pricingSource: "PRECIO",
+    },
+  });
+  const bag = await db.hourBag.create({
+    data: {
+      cvLineId: line.id,
+      customerId: f.customer.id,
+      modality: "H8X5",
+      scope: "AREA",
+      balanceMinutes: 0,
+      areas: { create: { areaId: f.area.id } },
+    },
+  });
+  return { ...f, line, bag };
+}

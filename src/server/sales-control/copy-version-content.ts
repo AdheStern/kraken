@@ -1,14 +1,14 @@
 // src/server/sales-control/copy-version-content.ts
 // Copia lotes, líneas y leasing de una versión a otra en BORRADOR (duplicar CV, nueva versión).
-// POR QUÉ: una versión nueva del mismo CV conserva los seriales (es la misma venta); un CV duplicado no,
-// porque los seriales pertenecen a la entrega del CV original.
+// POR QUÉ: una versión nueva del mismo CV (sameSale) conserva los seriales y el linaje de cada línea, que
+// enlaza su bolsa de horas (§2.4); un CV duplicado no, porque es otra venta con otras entregas y bolsas.
 import type { Tx } from "@/server/db";
 
 export async function copyVersionContent(
   tx: Tx,
   sourceVersionId: string,
   targetVersionId: string,
-  { includeSerials }: { includeSerials: boolean },
+  { sameSale }: { sameSale: boolean },
 ): Promise<void> {
   const [groups, lines, leasingLines] = await Promise.all([
     tx.cvGroup.findMany({
@@ -39,10 +39,11 @@ export async function copyVersionContent(
     groupIds.set(group.id, created.id);
   }
   for (const {
-    id: _id,
+    id,
     versionId: _from,
     groupId,
     hourBagSpec,
+    originLineId,
     serials,
     ...line
   } of lines) {
@@ -52,7 +53,8 @@ export async function copyVersionContent(
         versionId: targetVersionId,
         groupId: groupId ? (groupIds.get(groupId) ?? null) : null,
         hourBagSpec: hourBagSpec ?? undefined,
-        serials: includeSerials
+        originLineId: sameSale ? (originLineId ?? id) : null,
+        serials: sameSale
           ? { create: serials.map(({ serial }) => ({ serial })) }
           : undefined,
       },

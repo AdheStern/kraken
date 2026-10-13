@@ -1,6 +1,6 @@
 // src/features/sales-control/components/lines/row-parts.tsx
 // Piezas comunes de las filas de la grilla: número de fila con estado y acciones (mover, quitar).
-import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, SlidersHorizontal, Trash2 } from "lucide-react";
 
 export function RowNumber({
   row,
@@ -59,5 +59,38 @@ export function RowActions({
         <Trash2 className="size-3.5" />
       </button>
     </div>
+  );
+}
+
+type DetailState = "empty" | "filled" | "issues";
+
+const DETAIL_LABEL: Record<DetailState, string> = {
+  empty: "Detalle: vigencia, seriales, bolsa de horas",
+  filled: "Detalle con datos cargados",
+  issues: "El detalle tiene datos por completar",
+};
+
+export function DetailButton({
+  state,
+  onClick,
+}: {
+  state: DetailState;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={`${ICON_BUTTON} relative`}
+      onClick={onClick}
+      aria-label={DETAIL_LABEL[state]}
+      title={DETAIL_LABEL[state]}
+    >
+      <SlidersHorizontal className="size-3.5" />
+      {state !== "empty" && (
+        <span
+          className={`absolute top-1 right-1 size-1.5 rounded-full ${state === "issues" ? "bg-destructive" : "bg-primary"}`}
+        />
+      )}
+    </button>
   );
 }

@@ -15,6 +15,7 @@ import type { ColumnKey } from "./grid-columns";
 import { GridHeader } from "./grid-header";
 import { handleGridKeyDown } from "./grid-keyboard";
 import type { LinesAction, LinesState } from "./use-cv-lines-state";
+import type { LineDetailInfo } from "./use-lines-pricing";
 
 type Props = {
   state: LinesState;
@@ -23,6 +24,8 @@ type Props = {
   options: CvGridOptions;
   canEdit: boolean;
   dispatch: Dispatch<LinesAction>;
+  details: Map<string, LineDetailInfo>;
+  onOpenDetail: (lineKey: string) => void;
   onPasteBlock: (
     target: { lineKey: string; column: ColumnKey },
     matrix: string[][],
@@ -37,6 +40,8 @@ export function CvLineGrid({
   options,
   canEdit,
   dispatch,
+  details,
+  onOpenDetail,
   onPasteBlock,
   onApplyGroupFactor,
 }: Props) {
@@ -92,6 +97,8 @@ export function CvLineGrid({
         line={line}
         options={options}
         result={results.get(line.key) ?? { ok: false, issues: [] }}
+        detailState={details.get(line.key)?.state ?? "empty"}
+        onDetail={() => onOpenDetail(line.key)}
         onChange={(patch) =>
           dispatch({ type: "updateLine", key: line.key, patch })
         }

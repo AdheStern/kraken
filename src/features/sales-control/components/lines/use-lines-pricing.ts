@@ -1,18 +1,27 @@
 // src/features/sales-control/components/lines/use-lines-pricing.ts
-// Precio de cada línea y resumen de la versión en vivo, con las mismas funciones que usa el servidor.
+// Precio de cada línea, problemas de detalle y resumen de la versión en vivo, con las mismas funciones
+// que usa el servidor al guardar.
 "use client";
 
 import Decimal from "decimal.js";
 import { useMemo } from "react";
-import { priceLine, summarizeLines } from "../../line-pricing";
+import { lineDetailIssues, needsHourBag } from "../../line-details";
+import { type LineIssue, priceLine, summarizeLines } from "../../line-pricing";
 import type { CvLineDraft } from "../../schemas/cv-lines-schema";
 
 type FxText = { costFxRate: string; saleFxRate: string };
+
+export type LineDetailInfo = {
+  issues: LineIssue[];
+  needsHourBag: boolean;
+  state: "empty" | "filled" | "issues";
+};
 
 export function useLinesPricing(
   lines: CvLineDraft[],
   fxRates: FxText,
   canSeeCosts: boolean,
+  hoursUnitIds: ReadonlySet<string>,
 ) {
   const fx = useMemo(
     () => ({
@@ -43,5 +52,27 @@ export function useLinesPricing(
     [visible, fx],
   );
   const summary = useMemo(() => summarizeLines(visible, fx), [visible, fx]);
-  return { results, summary };
+  const details = useMemo(() => {
+    const context = { hoursUnitIds };
+    return new Map<string, LineDetailInfo>(
+      lines
+        .filter((l) => l.kind === "ITEM")
+        .map((line) => {
+          const issues = lineDetailIssues(line, context);
+          const hasData =
+            line.serials.length > 0 ||
+            !!line.coverageStart ||
+            !!line.coverageEnd ||
+            !!line.hourBag ||
+            line.saveAsProduct;
+          const state =
+            issues.length > 0 ? "issues" : hasData ? "filled" : "empty";
+          return [
+            line.key,
+            { issues, needsHourBag: needsHourBag(line, context), state },
+          ];
+        }),
+    );
+  }, [lines, hoursUnitIds]);
+  return { results, summary, details };
 }

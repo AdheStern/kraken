@@ -20,6 +20,8 @@ function item(
   return {
     id,
     groupKey,
+    serials: [],
+    createProduct: false,
     data: {
       kind: "ITEM",
       description,
@@ -38,6 +40,9 @@ function item(
       pricingSource: "FACTOR",
       poNumber: null,
       notes: null,
+      coverageStart: null,
+      coverageEnd: null,
+      hourBagSpec: null,
     },
   };
 }

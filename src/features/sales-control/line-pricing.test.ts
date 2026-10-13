@@ -29,6 +29,11 @@ function draft(overrides: Partial<CvLineDraft>): CvLineDraft {
     unitSaleUsd: "0",
     poNumber: "",
     notes: "",
+    serials: [],
+    coverageStart: "",
+    coverageEnd: "",
+    hourBag: null,
+    saveAsProduct: false,
     ...overrides,
   };
 }

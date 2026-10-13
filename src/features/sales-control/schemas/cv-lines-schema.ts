@@ -2,9 +2,24 @@
 // Borrador de líneas y lotes de una versión tal como lo edita la grilla (los números viajan como texto).
 // La validación de montos y factor la hace priceLine con el dominio de precios.
 import { z } from "zod";
-import { ItemType, SupplyMode } from "@/generated/prisma/enums";
+import {
+  BagModality,
+  BagScope,
+  ItemType,
+  SupplyMode,
+} from "@/generated/prisma/enums";
 
 const optionalId = z.string().nullable();
+const dateText = z.union([z.iso.date(), z.literal("")]);
+
+// REGLA: una línea de HORAS + SERVICIO genera una bolsa al aprobarse; aquí se captura su especificación (§2.4).
+export const hourBagSpecSchema = z.object({
+  modality: z.enum(BagModality),
+  scope: z.enum(BagScope),
+  areaIds: z.array(z.string()).max(10),
+  projectId: z.string().nullable(),
+  expiresOn: dateText,
+});
 
 export const cvGroupDraftSchema = z.object({
   key: z.string().min(1),
@@ -33,6 +48,11 @@ export const cvLineDraftSchema = z.object({
   unitSaleUsd: z.string(),
   poNumber: z.string().trim().max(60),
   notes: z.string().trim().max(1000),
+  serials: z.array(z.string().trim().min(1).max(80)).max(1000),
+  coverageStart: dateText,
+  coverageEnd: dateText,
+  hourBag: hourBagSpecSchema.nullable(),
+  saveAsProduct: z.boolean(),
 });
 
 export const upsertCvLinesSchema = z.object({
@@ -43,4 +63,5 @@ export const upsertCvLinesSchema = z.object({
 
 export type CvGroupDraft = z.infer<typeof cvGroupDraftSchema>;
 export type CvLineDraft = z.infer<typeof cvLineDraftSchema>;
+export type HourBagSpec = z.infer<typeof hourBagSpecSchema>;
 export type UpsertCvLinesInput = z.infer<typeof upsertCvLinesSchema>;

@@ -47,6 +47,11 @@ export function blankLine(
     unitSaleUsd: "",
     poNumber: "",
     notes: "",
+    serials: [],
+    coverageStart: "",
+    coverageEnd: "",
+    hourBag: null,
+    saveAsProduct: false,
   };
 }
 

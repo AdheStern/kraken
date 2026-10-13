@@ -9,7 +9,7 @@ import type { ColumnKey } from "./grid-columns";
 import { catalogCells } from "./item-catalog-cells";
 import type { ItemCellContext } from "./item-cell-context";
 import { pricingCells } from "./item-pricing-cells";
-import { RowActions, RowNumber } from "./row-parts";
+import { DetailButton, RowActions, RowNumber } from "./row-parts";
 
 type Props = {
   line: CvLineDraft;
@@ -22,6 +22,8 @@ type Props = {
   onProductCode: (code: string) => void;
   onMove: (offset: -1 | 1) => void;
   onRemove: () => void;
+  detailState: "empty" | "filled" | "issues";
+  onDetail: () => void;
 };
 
 export function CvItemRow({
@@ -35,6 +37,8 @@ export function CvItemRow({
   onProductCode,
   onMove,
   onRemove,
+  detailState,
+  onDetail,
 }: Props) {
   const context: ItemCellContext = {
     line,
@@ -49,12 +53,17 @@ export function CvItemRow({
     onChange,
   };
   const cells = {
-    index: <RowNumber row={row} hasIssues={!result.ok} />,
+    index: (
+      <RowNumber row={row} hasIssues={!result.ok || detailState === "issues"} />
+    ),
     ...catalogCells(context, options, onProductCode),
     ...pricingCells(context),
-    actions: canEdit ? (
-      <RowActions onMove={onMove} onRemove={onRemove} />
-    ) : null,
+    actions: (
+      <div className="flex items-center justify-end">
+        <DetailButton state={detailState} onClick={onDetail} />
+        {canEdit && <RowActions onMove={onMove} onRemove={onRemove} />}
+      </div>
+    ),
   };
 
   return (

@@ -2,6 +2,7 @@
 // Lotes y líneas de una versión como borrador editable de la grilla (números como texto).
 // REGLA: sin permiso de costos no se envían costo ni factor al navegador (AGENTS.md regla 12).
 import { prisma } from "@/server/db";
+import { parseHourBagSpec } from "../line-details";
 import type { CvGroupDraft, CvLineDraft } from "../schemas/cv-lines-schema";
 
 export type CvLinesDraft = { groups: CvGroupDraft[]; lines: CvLineDraft[] };
@@ -18,6 +19,7 @@ export async function getCvLines(
     prisma.cvLine.findMany({
       where: { versionId },
       orderBy: { position: "asc" },
+      include: { serials: { orderBy: { serial: "asc" } } },
     }),
   ]);
 
@@ -44,6 +46,15 @@ export async function getCvLines(
       unitSaleUsd: l.unitSaleUsd?.toFixed(2) ?? "",
       poNumber: l.poNumber ?? "",
       notes: l.notes ?? "",
+      serials: l.serials.map((s) => s.serial),
+      coverageStart: toDateText(l.coverageStart),
+      coverageEnd: toDateText(l.coverageEnd),
+      hourBag: parseHourBagSpec(l.hourBagSpec),
+      saveAsProduct: false,
     })),
   };
+}
+
+function toDateText(date: Date | null): string {
+  return date ? date.toISOString().slice(0, 10) : "";
 }

@@ -1,13 +1,17 @@
 // src/features/sales-control/line-records.ts
-// Convierte el borrador de la grilla en registros listos para guardar: valida cada línea con priceLine,
-// fija los montos recalculados y suma los totales de la versión. Puro; lo usa upsertCvLines.
-
+// Convierte el borrador de la grilla en registros listos para guardar: valida cada línea con priceLine
+// y las reglas de detalle, fija los montos recalculados y suma los totales. Puro; lo usa upsertCvLines.
 import type { FxRates } from "@/domain/pricing/compute-line-totals";
 import { computeVersionTotals } from "@/domain/pricing/compute-version-totals";
 import type {
   VersionLineRecord,
   VersionTotalsRecord,
 } from "@/server/sales-control/replace-version-lines";
+import {
+  type LineDetailContext,
+  lineDetailIssues,
+  needsHourBag,
+} from "./line-details";
 import { type PricedLine, priceLine } from "./line-pricing";
 import type { CvGroupDraft, CvLineDraft } from "./schemas/cv-lines-schema";
 
@@ -19,6 +23,7 @@ export function prepareLineRecords(
   groups: CvGroupDraft[],
   lines: CvLineDraft[],
   fx: FxRates,
+  context: LineDetailContext,
 ): PreparedLines {
   const groupKeys = new Set(groups.map((group) => group.key));
   const records: VersionLineRecord[] = [];
@@ -34,17 +39,25 @@ export function prepareLineRecords(
       records.push({
         id: draft.id,
         groupKey: draft.groupKey,
+        serials: [],
+        createProduct: false,
         data: noteData(draft),
       });
       continue;
     }
     const result = priceLine(draft, fx);
-    if (!result.ok)
-      return { ok: false, message: `${prefix} ${result.issues[0].message}` };
+    const issues = [
+      ...(result.ok ? [] : result.issues),
+      ...lineDetailIssues(draft, context),
+    ];
+    if (!result.ok || issues.length > 0)
+      return { ok: false, message: `${prefix} ${issues[0].message}` };
     records.push({
       id: draft.id,
       groupKey: draft.groupKey,
-      data: itemData(draft, result.value),
+      serials: draft.serials,
+      createProduct: draft.saveAsProduct && !draft.productId,
+      data: itemData(draft, result.value, needsHourBag(draft, context)),
     });
     pricedTotals.push(result.value.totals);
   }
@@ -62,7 +75,12 @@ export function prepareLineRecords(
 function itemData(
   draft: CvLineDraft,
   priced: PricedLine,
+  withHourBag: boolean,
 ): VersionLineRecord["data"] {
+  const hourBag =
+    withHourBag && draft.hourBag
+      ? { ...draft.hourBag, expiresOn: draft.hourBag.expiresOn || null }
+      : null;
   return {
     kind: "ITEM",
     description: draft.description,
@@ -81,6 +99,9 @@ function itemData(
     pricingSource: priced.pricing.pricingSource,
     poNumber: draft.poNumber || null,
     notes: draft.notes || null,
+    coverageStart: draft.coverageStart ? new Date(draft.coverageStart) : null,
+    coverageEnd: draft.coverageEnd ? new Date(draft.coverageEnd) : null,
+    hourBagSpec: hourBag,
   };
 }
 
@@ -103,5 +124,8 @@ function noteData(draft: CvLineDraft): VersionLineRecord["data"] {
     pricingSource: null,
     poNumber: null,
     notes: null,
+    coverageStart: null,
+    coverageEnd: null,
+    hourBagSpec: null,
   };
 }

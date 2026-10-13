@@ -50,7 +50,12 @@ export async function upsertCvLines(
     costFxRate: new Decimal(version.costFxRate.toString()),
     saleFxRate: new Decimal(version.saleFxRate.toString()),
   };
-  const prepared = prepareLineRecords(groups, lines, fx);
+  const hoursUnits = await prisma.unit.findMany({
+    where: { isHours: true },
+    select: { id: true },
+  });
+  const context = { hoursUnitIds: new Set(hoursUnits.map((unit) => unit.id)) };
+  const prepared = prepareLineRecords(groups, lines, fx, context);
   if (!prepared.ok) return actionError("VALIDATION", prepared.message);
 
   try {

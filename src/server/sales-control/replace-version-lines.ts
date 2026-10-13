@@ -1,6 +1,7 @@
 // src/server/sales-control/replace-version-lines.ts
 // Sincroniza lotes y líneas de una versión en BORRADOR con lo que mandó el editor y guarda sus totales.
 // Corre dentro de la transacción de la action; los triggers de cv rechazan versiones cerradas (ADR-11).
+import { Prisma } from "@/generated/prisma/client";
 import type {
   CvLineKind,
   ItemType,
@@ -18,6 +19,9 @@ export type VersionGroupRecord = {
 export type VersionLineRecord = {
   id: string | null;
   groupKey: string | null;
+  serials: string[];
+  // POR QUÉ: un producto escrito a mano se da de alta en el catálogo marcado "creado desde CV" (§2.1).
+  createProduct: boolean;
   data: {
     kind: CvLineKind;
     description: string;
@@ -36,6 +40,9 @@ export type VersionLineRecord = {
     pricingSource: PricingSource | null;
     poNumber: string | null;
     notes: string | null;
+    coverageStart: Date | null;
+    coverageEnd: Date | null;
+    hourBagSpec: Prisma.InputJsonValue | null;
   };
 };
 
@@ -73,10 +80,56 @@ export async function replaceVersionLines(
     const groupId = line.groupKey
       ? (groupIds.get(line.groupKey) ?? null)
       : null;
-    const data = { ...line.data, position: index + 1, groupId };
-    if (line.id)
-      await tx.cvLine.update({ where: { id: line.id, versionId }, data });
-    else await tx.cvLine.create({ data: { ...data, versionId } });
+    await saveLine(tx, versionId, line, index + 1, groupId);
   }
   await tx.cvVersion.update({ where: { id: versionId }, data: totals });
+}
+
+async function saveLine(
+  tx: Tx,
+  versionId: string,
+  line: VersionLineRecord,
+  position: number,
+  groupId: string | null,
+) {
+  const productId = line.createProduct
+    ? await createProductFromLine(tx, line)
+    : line.data.productId;
+  const data = {
+    ...line.data,
+    productId,
+    position,
+    groupId,
+    hourBagSpec: line.data.hourBagSpec ?? Prisma.DbNull,
+  };
+  const saved = line.id
+    ? await tx.cvLine.update({ where: { id: line.id, versionId }, data })
+    : await tx.cvLine.create({ data: { ...data, versionId } });
+  if (line.id)
+    await tx.cvLineSerial.deleteMany({ where: { lineId: saved.id } });
+  if (line.serials.length > 0) {
+    await tx.cvLineSerial.createMany({
+      data: line.serials.map((serial) => ({ lineId: saved.id, serial })),
+    });
+  }
+}
+
+async function createProductFromLine(
+  tx: Tx,
+  line: VersionLineRecord,
+): Promise<string> {
+  const { code, description, technologyId, unitId, itemType } = line.data;
+  if (!code || !itemType)
+    throw new Error("Producto desde CV sin código o tipo");
+  const product = await tx.product.create({
+    data: {
+      code,
+      description,
+      technologyId,
+      unitId,
+      itemType,
+      createdFromCv: true,
+    },
+  });
+  return product.id;
 }

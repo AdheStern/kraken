@@ -9,9 +9,8 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { AppNav } from "./app-nav";
 
-export function AppSidebar({ user }: { user: ReactNode }) {
+export function AppSidebar({ nav, user }: { nav: ReactNode; user: ReactNode }) {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -25,9 +24,7 @@ export function AppSidebar({ user }: { user: ReactNode }) {
           </div>
         </div>
       </SidebarHeader>
-      <SidebarContent>
-        <AppNav />
-      </SidebarContent>
+      <SidebarContent>{nav}</SidebarContent>
       <SidebarFooter>{user}</SidebarFooter>
       <SidebarRail />
     </Sidebar>

@@ -18,6 +18,14 @@ export function canCreateCv(user: SessionUser): boolean {
   );
 }
 
+// REGLA: aprueban el gerente general y los gerentes de área; nadie más tiene bandeja de aprobaciones (§2.9).
+export function canApproveCvs(user: SessionUser): boolean {
+  return (
+    hasRole(user, "GERENTE_GENERAL") ||
+    areaIdsWithRole(user, "GERENTE_AREA").length > 0
+  );
+}
+
 // REGLA: comercial y gerente de área editan sus propios borradores; el GG, todos (§2.9).
 export function canEditCvDraft(user: SessionUser, cv: CvAccessFacts): boolean {
   if (hasRole(user, "GERENTE_GENERAL")) return true;

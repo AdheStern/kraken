@@ -12,6 +12,7 @@ import type { SessionUser } from "@/server/authz/roles";
 import { scopeCvQuery } from "@/server/authz/scope-cv-query";
 import { prisma } from "@/server/db";
 import { loadCvAccess } from "@/server/sales-control/cv-access";
+import { approvalRequestLabel } from "../approval-request-label";
 import type { CvApprovalItem, CvEditorData, CvVersionSummary } from "../types";
 import { toEditorHeader } from "./editor-header";
 
@@ -73,10 +74,7 @@ export async function getCvEditor(
   }));
   const approvals: CvApprovalItem[] = version.approvalRequests.map((r) => ({
     id: r.id,
-    label:
-      r.kind === "GERENCIA_GENERAL"
-        ? "Gerencia general"
-        : `Gerente ${r.area?.code ?? "de área"}`,
+    label: approvalRequestLabel(r.kind, r.area?.code ?? null),
     status: r.status,
     comment: r.comment,
     decidedByName: r.decidedBy?.user.name ?? null,

@@ -115,3 +115,16 @@ export type CvComparisonData = {
   rows: LineComparison[];
   totals: { label: string; before: string; after: string; diff: string }[];
 };
+
+export type PendingApprovalItem = {
+  requestId: string;
+  cvId: string;
+  versionNumber: number;
+  versionLabel: string;
+  title: string;
+  customerName: string;
+  totalSaleUsd: string;
+  areaCodes: string[];
+  requestLabel: string;
+  submittedAt: string;
+};

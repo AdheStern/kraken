@@ -568,6 +568,7 @@ type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { code: Error
 - Tickets: `createTicket`, `assignOwner`, `setTicketBags`, `createSubtask`, `startTimer`, `pauseTimer`, `resumeTimer`, `stopTimer`, `addManualTimeEntry`, `changeTicketStatus`, `closeTicket`, `reopenTicket`
 - Inventario: `registerReceipt`, `dispatchItems`, `createTransfer`, `sendTransfer`, `receiveTransfer`, `requestAdjustment`, `decideAdjustment`
 - Administración: CRUD de catálogos, `setParameter`, `mapEntraGroup`, `grantPermissionException`, `setManualFxRate`
+- Notificaciones: `markInboxRead`
 
 **Route handlers:** `GET /api/cv/[versionId]/export.xlsx` (con authz) · `GET /api/inventory/receipts/[id].pdf` · `GET /api/health/live` · `GET /api/health/ready` (BD + NFS; HAProxy saca el nodo si falla) · `/api/auth/*`.
 

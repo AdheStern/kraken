@@ -38,6 +38,8 @@ pnpm test:e2e                 # Playwright
 pnpm biome check --write      # lint + formato
 pnpm prisma migrate dev       # migraciones en desarrollo
 pnpm db:seed:admin            # crea/actualiza la cuenta de emergencia ADMIN_SISTEMA desde SUPERADMIN_*
+pnpm db:seed:dev              # SOLO desarrollo: catálogos y usuarios demo (gg@, gerente.dimanet@, comercial@, comercial2@dima.local)
+                              # con DEV_SEED_PASSWORD; entrar con contraseña exige AUTH_DEV_PASSWORD_LOGIN=true
 pnpm skills:install           # restaura las skills de agentes desde skills-lock.json
 docker compose -f deploy/compose.dev.yml up -d   # Postgres + correo falso
 ```

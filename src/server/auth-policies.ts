@@ -10,11 +10,20 @@ const PASSWORD_ROLE = "ADMIN_SISTEMA";
 export async function canSignInWithPassword(email: string): Promise<boolean> {
   const count = await prisma.userRole.count({
     where: {
-      role: { code: PASSWORD_ROLE },
+      ...(allowsDevPasswordLogin() ? {} : { role: { code: PASSWORD_ROLE } }),
       user: { isActive: true, user: { email: email.toLowerCase() } },
     },
   });
   return count > 0;
+}
+
+// POR QUÉ: en desarrollo no hay Entra; los usuarios de `pnpm db:seed:dev` entran con contraseña.
+// Nunca en producción, aunque la variable quede definida por error.
+function allowsDevPasswordLogin(): boolean {
+  return (
+    process.env.NODE_ENV !== "production" &&
+    process.env.AUTH_DEV_PASSWORD_LOGIN === "true"
+  );
 }
 
 // POR QUÉ: un perfil inexistente aún no fue desactivado; solo bloquea un `activo = false` explícito.

@@ -1,7 +1,8 @@
+// next.config.ts
+// Configuración de Next.js: Cache Components, compilador de React, Tailwind en Turbopack y redirecciones.
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
   reactCompiler: true,
@@ -12,6 +13,10 @@ const nextConfig: NextConfig = {
         as: "*.css",
       },
     },
+  },
+  // POR QUÉ: el inicio de cada rol vive en /inicio (AGENTS.md §5); la raíz solo redirige.
+  async redirects() {
+    return [{ source: "/", destination: "/inicio", permanent: false }];
   },
 };
 

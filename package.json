@@ -16,7 +16,8 @@
     "db:seed:admin": "tsx --env-file-if-exists=.env prisma/seed/seed-super-admin.ts",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:int": "vitest run --config vitest.int.config.mts"
+    "test:int": "vitest run --config vitest.int.config.mts",
+    "db:seed:dev": "tsx --env-file-if-exists=.env prisma/seed/seed-dev.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

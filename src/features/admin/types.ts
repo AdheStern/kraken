@@ -112,3 +112,10 @@ export type UserAdminOptions = {
   areas: CatalogOption[];
   cities: CatalogOption[];
 };
+
+export type ParameterView = {
+  key: string;
+  text: string;
+  updatedAt: string | null;
+  updatedBy: string | null;
+};

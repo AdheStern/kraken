@@ -40,6 +40,12 @@ export function toActionError<T>(
       "Ya existe un registro con ese nombre o código. Usa otro o edita el existente.",
     );
   }
+  if (hasCode(error, "P2025")) {
+    return actionError(
+      "NOT_FOUND",
+      "El registro ya no existe. Recarga la página.",
+    );
+  }
   if (hasCode(error, "P2003")) {
     return actionError(
       "VALIDATION",

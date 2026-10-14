@@ -156,4 +156,9 @@ export const DEV_USERS = [
     name: "Bruno Comercial (demo)",
     role: "COMERCIAL" as const,
   },
+  {
+    email: "administracion@dima.local",
+    name: "Carla Administración (demo)",
+    role: "ADMINISTRACION" as const,
+  },
 ];

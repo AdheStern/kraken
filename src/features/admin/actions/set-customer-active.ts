@@ -6,7 +6,7 @@ import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
 import { prisma } from "@/server/db";
 import { guardAdmin } from "../admin-guard";
-import { type ActiveInput, activeSchema } from "../schemas/customer-schemas";
+import { type ActiveInput, activeSchema } from "../schemas/active-schema";
 
 export async function setCustomerActive(
   input: ActiveInput,

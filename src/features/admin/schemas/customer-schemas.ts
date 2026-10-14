@@ -39,7 +39,3 @@ export const customerContactSchema = z.object({
 });
 
 export type CustomerContactInput = z.input<typeof customerContactSchema>;
-
-export const activeSchema = z.object({ id: z.uuid(), isActive: z.boolean() });
-
-export type ActiveInput = z.input<typeof activeSchema>;

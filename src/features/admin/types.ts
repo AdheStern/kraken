@@ -40,3 +40,36 @@ export type CustomerDetail = {
   isActive: boolean;
   contacts: CustomerContactView[];
 };
+
+export type ItemTypeCode = "HARDWARE" | "INTANGIBLE" | "SERVICIO";
+
+export type ProductRow = {
+  id: string;
+  code: string;
+  description: string;
+  technology: string | null;
+  unit: string | null;
+  itemType: ItemTypeCode;
+  isSerialized: boolean;
+  createdFromCv: boolean;
+  isActive: boolean;
+};
+
+export type ProductDetail = {
+  id: string;
+  code: string;
+  description: string;
+  technologyId: string | null;
+  unitId: string | null;
+  itemType: ItemTypeCode;
+  isSerialized: boolean;
+  createdFromCv: boolean;
+  isActive: boolean;
+};
+
+export type CatalogOption = { id: string; label: string };
+
+export type ProductFormOptions = {
+  technologies: CatalogOption[];
+  units: CatalogOption[];
+};

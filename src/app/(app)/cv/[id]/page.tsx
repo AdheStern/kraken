@@ -7,12 +7,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getVersionBagEffects } from "@/features/hours/queries/get-version-bag-effects";
 import { CvStatusBadge } from "@/features/sales-control/components/cv-status-badge";
 import { CvHeaderForm } from "@/features/sales-control/components/header/cv-header-form";
 import { CvLeasingEditor } from "@/features/sales-control/components/leasing/cv-leasing-editor";
 import { CvLinesEditor } from "@/features/sales-control/components/lines/cv-lines-editor";
 import { OpeningBalanceBadge } from "@/features/sales-control/components/opening-balance-badge";
 import { ApprovalPanel } from "@/features/sales-control/components/versions/approval-panel";
+import { BagEffectsNote } from "@/features/sales-control/components/versions/bag-effects-note";
 import { CvVersionBar } from "@/features/sales-control/components/versions/cv-version-bar";
 import { VersionHistory } from "@/features/sales-control/components/versions/version-history";
 import { getCvEditor } from "@/features/sales-control/queries/get-cv-editor";
@@ -72,6 +74,7 @@ async function CvEditor({
     leasing,
     maxFxDeviationPct,
     thresholdUsd,
+    bagEffects,
   ] = await Promise.all([
     getCvFormOptions(),
     getCvGridOptions(),
@@ -79,6 +82,10 @@ async function CvEditor({
     getCvLeasing(header.versionId, editor.canSeeCosts),
     getDecimalParameter("fx.desvio_max_pct", FX_DEVIATION_FALLBACK_PCT),
     getDecimalParameter("cv.umbral_gg_usd", GG_THRESHOLD_FALLBACK_USD),
+    // REGLA: el aviso solo aplica al borrador que se puede enviar; lo aprobado ya movió sus bolsas (§2.4).
+    header.status === "BORRADOR" && editor.canEdit
+      ? getVersionBagEffects(header.versionId)
+      : null,
   ]);
 
   return (
@@ -101,6 +108,7 @@ async function CvEditor({
           </p>
         )}
       </header>
+      {bagEffects && <BagEffectsNote effects={bagEffects} />}
       <ApprovalPanel approvals={editor.approvals} />
       <CvHeaderForm
         header={header}

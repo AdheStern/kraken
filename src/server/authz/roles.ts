@@ -16,6 +16,15 @@ export function hasRole(user: SessionUser, code: RoleCode): boolean {
   return user.roles.some((role) => role.code === code);
 }
 
+// REGLA: un usuario es miembro de las áreas de cualquiera de sus roles con área (grupos de Entra → rol + área).
+export function memberAreaIds(user: SessionUser): string[] {
+  return [
+    ...new Set(
+      user.roles.flatMap((role) => (role.areaId ? [role.areaId] : [])),
+    ),
+  ];
+}
+
 // POR QUÉ: un gerente de área puede serlo de varias áreas; el rol lleva el área como alcance.
 export function areaIdsWithRole(user: SessionUser, code: RoleCode): string[] {
   return user.roles

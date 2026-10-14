@@ -263,11 +263,11 @@ Roles asignados por grupos de Entra ID, más **excepciones por usuario** gestion
 | CV: exportar Excel | Propios | Su área | Todos | No | Aprobados |
 | Tickets: ver | De clientes de sus CV | De su área | Todos | Asignados o con subtarea suya | No |
 | Tickets: registrar tiempo | No | Su área | No | Sus subtareas y tickets a cargo | No |
-| Bolsas: ver saldo | De sus CV | De su área | Todas | De sus tickets | Todas |
+| Bolsas: ver saldo | De sus CV | De su área | Todas | De su área y de sus tickets | Todas |
 | Bolsas: ajuste manual | No | Su área, con motivo | Todas, con motivo | No | No |
 | Inventario | Consulta de stock | Consulta + aprobar ajustes de su área | Todo | Consulta de stock | Todo |
 
-Almacén opera inventario y POS. El coordinador gestiona los tickets de su área. El administrador del sistema gestiona usuarios, permisos y parámetros pero **no** ve montos por ese rol. **Cada fila de esta tabla es un test.**
+Almacén opera inventario y POS. El coordinador gestiona los tickets de su área. **Bolsas:** todo usuario con un rol asignado a un área (ingeniero, coordinador, preventa, gerente…) ve todas las bolsas de esa área, en cualquier estado y con su libro; ajustarlas o cerrarlas sigue siendo solo del gerente del área y del GG. El administrador del sistema gestiona usuarios, permisos y parámetros pero **no** ve montos por ese rol. **Cada fila de esta tabla es un test.**
 
 ---
 
@@ -848,7 +848,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 **Decisiones abiertas (no implementar como definitivas; aislarlas en parámetros):**
 - **F0:** nivel de RAID del NAS; repositorio Git. Deuda: el worker existe (F2, `bags.expire`), pero faltan `mail.dispatch` con Graph y `fx.fetch-official`; hasta entonces los correos esperan en `notif.salida`.
 - **F1:** significado del sufijo `-DS`; confirmar que un rechazo cierra la ronda; valor inicial del umbral del GG; % de desvío del TC que dispara la advertencia.
-- **F2:** horario real de cada ciudad (¿con pausa de mediodía?) y feriados departamentales y de traslado; umbrales de alerta (80% y 100%) y días de aviso de vencimiento (30); multiplicador 2 fuera de horario; si el coordinador de soporte ve las bolsas de su área (hoy sí). *Resuelto:* las bolsas vigentes se cargan con un "CV de saldo inicial" por cliente (`es_saldo_inicial`, solo horas de servicio con costo y venta 0), aprobado por su gerente.
+- **F2:** horario real de cada ciudad (¿con pausa de mediodía?) y feriados departamentales y de traslado: los carga el administrador en `/admin/calendario`. *Confirmado por DIMA (2026-10-14):* multiplicador 2 fuera de horario en 8x5, umbrales de alerta 80% y 100%, aviso de vencimiento a 30 días, y los miembros de un área ven todas sus bolsas. *Resuelto:* las bolsas vigentes se cargan con un "CV de saldo inicial" por cliente (`es_saldo_inicial`, solo horas de servicio con costo y venta 0), aprobado por su gerente.
 - **F3:** confirmar el redondeo hacia arriba; confirmar que se suman los tiempos en paralelo; prioridades de ticket y tiempos de SLA por prioridad y modalidad.
 - **F4:** método de valoración (propuesto: costo promedio ponderado); productos que exigen serial; almacenes exactos.
 - **F5:** KPIs, KGIs y metas definitivas.

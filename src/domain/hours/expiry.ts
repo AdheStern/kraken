@@ -13,7 +13,7 @@ export function daysUntilExpiry(expiresOn: string, today: string): number {
   return toDayNumber(expiresOn) - toDayNumber(today);
 }
 
-// [CONFIRMAR] los días de anticipación (30) vienen del parámetro horas.aviso_vencimiento_dias.
+// POR QUÉ: los días de anticipación (30, confirmados por DIMA) vienen del parámetro horas.aviso_vencimiento_dias.
 export function isExpiryWarningDue(
   expiresOn: string | null,
   today: string,

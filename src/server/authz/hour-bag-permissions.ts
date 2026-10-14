@@ -1,6 +1,11 @@
 // src/server/authz/hour-bag-permissions.ts
 // Permisos sobre bolsas de horas (AGENTS.md §2.9): entrar al módulo y ajustar o cerrar una bolsa.
-import { areaIdsWithRole, hasRole, type SessionUser } from "./roles";
+import {
+  areaIdsWithRole,
+  hasRole,
+  memberAreaIds,
+  type SessionUser,
+} from "./roles";
 
 const BAG_VIEWERS = [
   "GERENTE_GENERAL",
@@ -12,7 +17,10 @@ const BAG_VIEWERS = [
 ] as const;
 
 export function canSeeHourBags(user: SessionUser): boolean {
-  return BAG_VIEWERS.some((code) => hasRole(user, code));
+  return (
+    BAG_VIEWERS.some((code) => hasRole(user, code)) ||
+    memberAreaIds(user).length > 0
+  );
 }
 
 // REGLA: ajuste manual (y cierre): el gerente de área en las bolsas de su área y el GG en todas,

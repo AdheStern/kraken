@@ -47,9 +47,32 @@ describe("§2.9 Bolsas: ver saldo", () => {
     expect(scope).toContain('"assigneeId":"yo"');
   });
 
-  it("[CONFIRMAR] el coordinador de soporte ve las de su área", () => {
-    expect(scopeHourBagQuery(user(["COORDINADOR_SOPORTE", "help"]))).toEqual({
-      OR: [{ areas: { some: { areaId: { in: ["help"] } } } }],
+  it.each<RoleCode>([
+    "COORDINADOR_SOPORTE",
+    "PREVENTA",
+    "INGENIERO",
+  ])("todo miembro del área (%s con área) ve todas sus bolsas", (role) => {
+    const scope = scopeHourBagQuery(user([role, "help"]));
+    expect(scope.OR?.[0]).toEqual({
+      areas: { some: { areaId: { in: ["help"] } } },
+    });
+    expect(canSeeHourBags(user([role, "help"]))).toBe(true);
+  });
+
+  it("las áreas de varios roles se suman sin repetirse", () => {
+    expect(
+      scopeHourBagQuery(
+        user(
+          ["GERENTE_AREA", "net"],
+          ["INGENIERO", "net"],
+          ["PREVENTA", "tel"],
+        ),
+      ),
+    ).toEqual({
+      OR: [
+        { areas: { some: { areaId: { in: ["net", "tel"] } } } },
+        expect.anything(),
+      ],
     });
   });
 

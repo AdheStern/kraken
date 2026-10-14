@@ -2,7 +2,7 @@
 // Filtro de visibilidad de bolsas de horas según los roles (AGENTS.md §2.9, fila "Bolsas: ver saldo").
 // REGLA: todo listado de bolsas pasa por aquí; prohibido escribir condiciones de visibilidad a mano (regla 7).
 import type { Prisma } from "@/generated/prisma/client";
-import { areaIdsWithRole, hasRole, type SessionUser } from "./roles";
+import { hasRole, memberAreaIds, type SessionUser } from "./roles";
 
 const NOTHING: Prisma.HourBagWhereInput = { id: { in: [] } };
 
@@ -11,7 +11,8 @@ export function scopeHourBagQuery(user: SessionUser): Prisma.HourBagWhereInput {
     return {};
 
   const visible: Prisma.HourBagWhereInput[] = [];
-  const areaIds = bagAreaIds(user);
+  // REGLA: todo miembro de un área (cualquier rol con esa área) ve todas sus bolsas, con su historial (§2.9).
+  const areaIds = memberAreaIds(user);
   if (areaIds.length > 0)
     visible.push({ areas: { some: { areaId: { in: areaIds } } } });
   if (hasRole(user, "COMERCIAL")) {
@@ -46,13 +47,4 @@ export function scopeHourBagQuery(user: SessionUser): Prisma.HourBagWhereInput {
     });
   }
   return visible.length > 0 ? { OR: visible } : NOTHING;
-}
-
-// [CONFIRMAR] §2.9 no tiene fila de bolsas para el coordinador de soporte; se asume que ve las de su área,
-// porque define la jerarquía de bolsas de los tickets de su área (§2.6).
-function bagAreaIds(user: SessionUser): string[] {
-  return [
-    ...areaIdsWithRole(user, "GERENTE_AREA"),
-    ...areaIdsWithRole(user, "COORDINADOR_SOPORTE"),
-  ];
 }

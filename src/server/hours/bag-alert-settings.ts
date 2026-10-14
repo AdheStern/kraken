@@ -9,7 +9,8 @@ export type BagAlertSettings = {
   warningDays: number;
 };
 
-// [CONFIRMAR] 80% y 100% de consumo, y aviso 30 días antes del vencimiento (AGENTS.md §2.4, §14).
+// REGLA: 80% y 100% de consumo y aviso 30 días antes del vencimiento, confirmados por DIMA (AGENTS.md §2.4, §14);
+// se cambian con los parámetros, sin desplegar.
 const DEFAULT_THRESHOLDS_PCT = [80, 100];
 const DEFAULT_WARNING_DAYS = 30;
 

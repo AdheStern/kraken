@@ -6,7 +6,7 @@ export type BagModality = "H8X5" | "H24X7";
 export type SplitMinutes = { insideMinutes: number; outsideMinutes: number };
 
 // REGLA: en 8x5 un minuto fuera de horario o en feriado descuenta 2; en 24x7 todo es 1 a 1 (§2.5).
-// [CONFIRMAR] el multiplicador 2 con DIMA; vive solo en esta tabla (regla 16).
+// Confirmado por DIMA (AGENTS.md §14); vive solo en esta tabla.
 export const OUTSIDE_HOURS_MULTIPLIER: Readonly<Record<BagModality, number>> = {
   H8X5: 2,
   H24X7: 1,

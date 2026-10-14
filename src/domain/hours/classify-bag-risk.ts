@@ -16,7 +16,7 @@ type RiskInput = {
   expiresOn: string | null;
 };
 
-// [CONFIRMAR] riskPct (80) y warningDays (30) vienen de los parámetros de alertas de horas.
+// POR QUÉ: riskPct (80) y warningDays (30) vienen de los parámetros de alertas de horas (confirmados por DIMA).
 export function classifyBagRisk(
   bag: RiskInput,
   today: string,

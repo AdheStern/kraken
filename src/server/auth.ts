@@ -11,6 +11,7 @@ import {
   isAccountDisabled,
 } from "@/server/auth-policies";
 import { prisma } from "@/server/db";
+import { syncEntraRolesFromAccount } from "@/server/entra/sync-entra-roles";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -48,6 +49,12 @@ export const auth = betterAuth({
     }),
   },
   databaseHooks: {
+    // REGLA: los roles de origen ENTRA se recalculan en cada inicio de sesión con Microsoft, antes de crear la
+    // sesión (ADR-05). Si falla, falla el inicio de sesión: nunca se entra con roles viejos.
+    account: {
+      create: { after: syncEntraRolesFromAccount },
+      update: { after: syncEntraRolesFromAccount },
+    },
     user: {
       create: {
         after: async (user) => {

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T00:00:00Z",
+  "generatedAt": "2026-10-14T00:00:00Z",
   "title": "Design System: Kraken by DIMA",
   "extensions": {
     "colorMeta": {
@@ -60,6 +60,26 @@
         "name": "glass",
         "value": "inset 0 1px 0 oklch(1 0 0 / 0.35), 0 24px 48px -16px var(--glass-shadow)",
         "purpose": "Tarjetas y píldoras de vidrio."
+      },
+      {
+        "name": "surface",
+        "value": "inset 0 1px 0 var(--surface-highlight), 0 1px 2px var(--shadow-near), 0 18px 40px -22px var(--shadow-far)",
+        "purpose": "Contenedores de trabajo de vidrio (kr-surface) y sólidos (kr-solid)."
+      },
+      {
+        "name": "lift",
+        "value": "inset 0 1px 0 var(--surface-highlight), 0 2px 4px var(--shadow-near), 0 26px 50px -24px var(--shadow-far-hover)",
+        "purpose": "Tarjetas clicables al pasar el puntero (kr-lift, -2px)."
+      },
+      {
+        "name": "float",
+        "value": "inset 0 1px 0 var(--surface-highlight), 0 2px 6px var(--shadow-near), 0 32px 64px -24px var(--shadow-far-hover)",
+        "purpose": "Diálogos, paneles, menús y selectores (kr-float)."
+      },
+      {
+        "name": "button-primary",
+        "value": "inset 0 1px 0 oklch(1 0 0 / 0.22), 0 8px 18px -10px var(--shadow-far-hover)",
+        "purpose": "Botón primario."
       }
     ],
     "motion": [
@@ -72,11 +92,42 @@
         "name": "disclosure",
         "value": "220ms ease-out",
         "purpose": "Despliegue del acceso de administrador (grid-template-rows)."
+      },
+      {
+        "name": "ease-out-expo-app",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Toda la motion de la app."
+      },
+      {
+        "name": "page-enter",
+        "value": "420ms, -10px, stagger 50ms",
+        "purpose": "Entrada de cada pantalla (kr-enter, CSS)."
+      },
+      {
+        "name": "nav-node",
+        "value": "spring stiffness 380 damping 32",
+        "purpose": "Nodo activo que recorre la red del riel (motion layoutId)."
+      },
+      {
+        "name": "count-up",
+        "value": "900ms",
+        "purpose": "Cifras que cuentan (NumberFlow) y anillos que se dibujan."
+      },
+      {
+        "name": "signal",
+        "value": "1400ms once",
+        "purpose": "Señal de Inicio hacia lo pendiente (kr-travel)."
       }
     ],
     "breakpoints": [
-      { "name": "sm", "value": "640px" },
-      { "name": "lg", "value": "1024px" }
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      }
     ]
   },
   "components": [

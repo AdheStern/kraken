@@ -119,3 +119,25 @@ export type ParameterView = {
   updatedAt: string | null;
   updatedBy: string | null;
 };
+
+export type FxRateView = {
+  effectiveOn: string;
+  buyRate: string;
+  sellRate: string;
+  source: "CUCU" | "MANUAL";
+  fetchedAt: string;
+  createdBy: string | null;
+};
+
+export type FxPanel = {
+  today: string;
+  current: FxRateView | null;
+  previousSellRate: string | null;
+  series: { date: string; sellRate: string }[];
+  monthAverage: {
+    saleFxRate: string;
+    costFxRate: string;
+    versions: number;
+  } | null;
+  history: FxRateView[];
+};

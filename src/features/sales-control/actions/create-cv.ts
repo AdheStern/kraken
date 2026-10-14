@@ -12,6 +12,7 @@ import { toActionError } from "@/server/action-errors";
 import { canCreateCv } from "@/server/authz/cv-permissions";
 import { systemClock } from "@/server/clock";
 import { runInTransaction } from "@/server/db";
+import { findCurrentFxRate } from "@/server/fx/find-current-fx-rate";
 import { allocateCvNumber } from "@/server/sales-control/allocate-cv-number";
 import { getSessionUser } from "@/server/session";
 import { toCustomerParty } from "../customer-snapshot";
@@ -43,11 +44,9 @@ export async function createCv(
       const customer = await tx.customer.findUnique({
         where: { id: data.customerId },
       });
-      const officialFx = await tx.fxRate.findFirst({
-        orderBy: { effectiveOn: "desc" },
-      });
       if (!city || !customer) return null;
       const now = systemClock.now();
+      const officialFx = await findCurrentFxRate(tx, toBusinessDate(now));
       const year = toBusinessYear(now);
       const number = await allocateCvNumber(tx, city.id, year);
       const cv = await tx.cv.create({

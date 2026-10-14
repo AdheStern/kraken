@@ -1,0 +1,68 @@
+// src/features/admin/components/fx-manual-form.tsx
+// Carga manual del TC oficial de una fecha, para cuando el job no lo obtuvo del BCB.
+"use client";
+
+import { LoaderCircle } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { setManualFxRate } from "../actions/set-manual-fx-rate";
+import { LabeledInput } from "./labeled-input";
+import { useAdminAction } from "./use-admin-action";
+
+export function FxManualForm({ today }: { today: string }) {
+  const { isPending, error, run } = useAdminAction();
+  const [saved, setSaved] = useState(false);
+  const [draft, setDraft] = useState({
+    effectiveOn: today,
+    buyRate: "",
+    sellRate: "",
+  });
+
+  return (
+    <form
+      className="kr-surface grid gap-4 rounded-xl p-5 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end"
+      onSubmit={async (event) => {
+        event.preventDefault();
+        setSaved(false);
+        setSaved(await run(() => setManualFxRate(draft)));
+      }}
+    >
+      <LabeledInput
+        label="Rige desde"
+        type="date"
+        max={today}
+        value={draft.effectiveOn}
+        onChange={(effectiveOn) => setDraft({ ...draft, effectiveOn })}
+      />
+      <LabeledInput
+        label="Compra"
+        inputMode="decimal"
+        placeholder="6.86"
+        value={draft.buyRate}
+        onChange={(buyRate) => setDraft({ ...draft, buyRate })}
+      />
+      <LabeledInput
+        label="Venta"
+        inputMode="decimal"
+        placeholder="6.96"
+        value={draft.sellRate}
+        onChange={(sellRate) => setDraft({ ...draft, sellRate })}
+      />
+      <Button type="submit" disabled={isPending}>
+        {isPending && (
+          <LoaderCircle className="animate-spin" aria-hidden="true" />
+        )}
+        Cargar TC
+      </Button>
+      {(saved || error) && (
+        <p
+          role={error ? "alert" : "status"}
+          className={`text-sm sm:col-span-4 ${error ? "text-destructive" : "text-muted-foreground"}`}
+        >
+          {error ??
+            "Cargado. Si el BCB publica ese mismo día, su TC tiene prioridad sobre el manual."}
+        </p>
+      )}
+    </form>
+  );
+}

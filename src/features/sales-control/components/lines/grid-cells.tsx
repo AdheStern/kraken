@@ -107,7 +107,7 @@ export function SelectCell({
       disabled={disabled}
       value={value ?? ""}
       onChange={(event) => onValueChange(event.target.value || null)}
-      className={`${CELL} cursor-pointer pr-1`}
+      className={`${CELL} cursor-pointer pr-1 disabled:cursor-default disabled:appearance-none`}
     >
       <option value="">{placeholder}</option>
       {options.map((option) => (

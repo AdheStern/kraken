@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { NodeMark } from "@/components/app-shell/node-mark";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getVersionBagEffects } from "@/features/hours/queries/get-version-bag-effects";
 import { CvStatusBadge } from "@/features/sales-control/components/cv-status-badge";
@@ -91,6 +92,7 @@ async function CvEditor({
   return (
     <>
       <header className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <NodeMark />
         <h1 className="text-2xl font-semibold tracking-[-0.02em] tabular-nums">
           {header.versionLabel}
         </h1>

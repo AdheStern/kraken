@@ -128,7 +128,7 @@ export function CvLinesEditor({
             venta en 0. Cada línea abre su bolsa al aprobarse.
           </p>
         )}
-        <LinesNotice notice={notice} isDirty={isDirty} />
+        {canEdit && <LinesNotice notice={notice} isDirty={isDirty} />}
         {state.lines.length === 0 && state.groups.length === 0 ? (
           <KrakenEmpty compact title="Este CV todavía no tiene líneas.">
             {canEdit &&

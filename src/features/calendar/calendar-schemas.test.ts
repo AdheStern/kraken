@@ -16,10 +16,12 @@ describe("time-text", () => {
   it("00:00 como fin es la medianoche siguiente", () => {
     expect(toMinuteOfDay("00:00", true)).toBe(1440);
     expect(toMinuteOfDay("00:00", false)).toBe(0);
-    expect(toTimeText(1440)).toBe("00:00");
+    expect(toTimeText(1440)).toBe("24:00");
+    expect(toMinuteOfDay("24:00", true)).toBe(1440);
+    expect(toMinuteOfDay("8:30", false)).toBe(510);
   });
 
-  it.each(["8:30", "24:00", "12:60", ""])("rechaza %o", (text) => {
+  it.each(["24:00", "12:60", "8:3", ""])("rechaza %o como inicio", (text) => {
     expect(toMinuteOfDay(text, false)).toBeNull();
   });
 });

@@ -39,7 +39,7 @@ export function CvVersionBar({ editor, canDuplicate }: Props) {
           onChange={(event) =>
             router.push(`/cv/${header.cvId}?v=${event.target.value}`)
           }
-          className="h-8 rounded-lg border bg-background px-2 text-sm outline-none focus:border-ring"
+          className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/30 dark:bg-input/30"
         >
           {versions.map((v) => (
             <option key={v.id} value={v.number}>

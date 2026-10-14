@@ -39,7 +39,7 @@ export function RiskPanel({ bags }: { bags: BagSummary[] }) {
             <li key={bag.id}>
               <Link
                 href={`/horas/${bag.id}`}
-                className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-primary/5"
+                className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] rounded-lg px-3 py-2.5 transition-colors hover:bg-primary/5"
               >
                 <HourBagRing
                   pct={bag.consumedPct}
@@ -58,7 +58,7 @@ export function RiskPanel({ bags }: { bags: BagSummary[] }) {
                     {bag.customerName}
                   </span>
                 </span>
-                <span className="text-right text-xs tabular-nums">
+                <span className="col-start-2 text-xs tabular-nums sm:col-start-auto sm:text-right">
                   <span className="block font-medium">
                     quedan {formatMinutes(bag.balanceMinutes)}
                   </span>

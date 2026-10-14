@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { NodeMark } from "@/components/app-shell/node-mark";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BagCard } from "@/features/hours/components/bag-card";
 import { listHourBags } from "@/features/hours/queries/list-hour-bags";
@@ -42,14 +43,17 @@ async function CustomerBags({
   const active = bags.filter((b) => b.status === "ACTIVA").length;
   return (
     <>
-      <header>
-        <h1 className="text-2xl font-semibold tracking-[-0.02em]">
-          {bags[0].customerName}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {bags.length === 1 ? "1 bolsa" : `${bags.length} bolsas`} ·{" "}
-          {active === 1 ? "1 activa" : `${active} activas`}
-        </p>
+      <header className="flex items-start gap-3">
+        <NodeMark className="mt-2" />
+        <div>
+          <h1 className="text-2xl font-semibold tracking-[-0.02em]">
+            {bags[0].customerName}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {bags.length === 1 ? "1 bolsa" : `${bags.length} bolsas`} ·{" "}
+            {active === 1 ? "1 activa" : `${active} activas`}
+          </p>
+        </div>
       </header>
       <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {bags.map((bag) => (

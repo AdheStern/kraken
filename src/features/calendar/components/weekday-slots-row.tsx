@@ -47,21 +47,25 @@ export function WeekdaySlotsRow({ weekday, slots, onChange }: Props) {
             className="flex items-center gap-1 rounded-lg border bg-background px-1.5 py-1"
           >
             <Input
-              type="time"
+              inputMode="numeric"
+              maxLength={5}
+              placeholder="08:30"
               value={slot.start}
               onChange={(e) => update(index, { start: e.target.value })}
               aria-label={`${name}, inicio de la franja ${index + 1}`}
-              className="h-7 w-[7.75rem] border-0 px-1 tabular-nums shadow-none"
+              className="h-7 w-[4.25rem] border-0 bg-transparent px-1 text-center tabular-nums shadow-none"
             />
             <span className="text-muted-foreground" aria-hidden="true">
               –
             </span>
             <Input
-              type="time"
+              inputMode="numeric"
+              maxLength={5}
+              placeholder="08:30"
               value={slot.end}
               onChange={(e) => update(index, { end: e.target.value })}
               aria-label={`${name}, fin de la franja ${index + 1}`}
-              className="h-7 w-[7.75rem] border-0 px-1 tabular-nums shadow-none"
+              className="h-7 w-[4.25rem] border-0 bg-transparent px-1 text-center tabular-nums shadow-none"
             />
             <Button
               variant="ghost"
@@ -93,6 +97,6 @@ function nextSlot(weekday: number, slots: SlotView[]): SlotView {
   return {
     weekday,
     start: last.end,
-    end: last.end < "23:00" ? "23:00" : "00:00",
+    end: last.end < "23:00" ? "23:00" : "24:00",
   };
 }

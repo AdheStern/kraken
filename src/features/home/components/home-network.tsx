@@ -18,9 +18,9 @@ export type HomeNode = {
 // Posiciones de los nodos en % del área de la red; el kraken está en CENTER.
 const CENTER = { x: 24, y: 50 };
 const SLOTS = [
-  { x: 60, y: 22 },
-  { x: 80, y: 50 },
-  { x: 60, y: 78 },
+  { x: 50, y: 21 },
+  { x: 82, y: 50 },
+  { x: 50, y: 79 },
 ] as const;
 
 type Props = { greeting: string; subtitle: string; nodes: HomeNode[] };

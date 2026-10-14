@@ -5,6 +5,7 @@ import {
   Building2,
   CalendarDays,
   Cpu,
+  KeyRound,
   Layers,
   type LucideIcon,
   MapPin,
@@ -29,6 +30,7 @@ const ICONS: Record<AdminSectionKey, LucideIcon> = {
   unidades: Ruler,
   "tipos-servicio": Wrench,
   usuarios: Users,
+  "grupos-entra": KeyRound,
   parametros: SlidersHorizontal,
   "tipo-cambio": ArrowLeftRight,
 };

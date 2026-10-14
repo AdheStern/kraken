@@ -571,7 +571,7 @@ type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { code: Error
 - Horas: `adjustHourBag`, `closeHourBag`, `applyPendingHours`
 - Tickets: `createTicket`, `assignOwner`, `setTicketBags`, `createSubtask`, `startTimer`, `pauseTimer`, `resumeTimer`, `stopTimer`, `addManualTimeEntry`, `changeTicketStatus`, `closeTicket`, `reopenTicket`
 - Inventario: `registerReceipt`, `dispatchItems`, `createTransfer`, `sendTransfer`, `receiveTransfer`, `requestAdjustment`, `decideAdjustment`
-- Administración: CRUD de catálogos (`upsertSimpleCatalogItem` y `setSimpleCatalogItemActive` para áreas, ciudades, tecnologías, unidades, tipos de servicio y proveedores; `upsertCustomer`, `upsertCustomerContact`, `upsertProduct`, `markProductReviewed` y sus bajas), usuarios (`updateUserProfile`, `setUserActive`, `grantUserRole`, `revokeUserRole`), `setParameter`, `setManualFxRate`; pendientes: `mapEntraGroup`, `grantPermissionException`
+- Administración: CRUD de catálogos (`upsertSimpleCatalogItem` y `setSimpleCatalogItemActive` para áreas, ciudades, tecnologías, unidades, tipos de servicio y proveedores; `upsertCustomer`, `upsertCustomerContact`, `upsertProduct`, `markProductReviewed` y sus bajas), usuarios (`updateUserProfile`, `setUserActive`, `grantUserRole`, `revokeUserRole`), `mapEntraGroup`, `unmapEntraGroup`, `setParameter`, `setManualFxRate`; pendiente: `grantPermissionException`
 - Notificaciones: `markInboxRead`
 
 **Route handlers:** `GET /api/cv/[versionId]/export.xlsx` (con authz) · `GET /api/inventory/receipts/[id].pdf` · `GET /api/health/live` · `GET /api/health/ready` (BD + NFS; HAProxy saca el nodo si falla) · `/api/auth/*`.
@@ -740,7 +740,7 @@ PR → biome · typecheck · tests de dominio · integración con Postgres · bu
 |---|---|
 | `DATABASE_URL`, `MIGRATION_DATABASE_URL` | Usuario de la app (sin DDL) y usuario de migraciones |
 | `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` | Sesiones |
-| `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET` | Inicio de sesión (permisos delegados). URI de redirección en Entra: `{BETTER_AUTH_URL}/api/auth/callback/microsoft` |
+| `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET` | Inicio de sesión (permisos delegados). URI de redirección en Entra: `{BETTER_AUTH_URL}/api/auth/callback/microsoft`. Configuración de token: notificación `groups` (grupos de seguridad, token de id, Id. de grupo); cada grupo se mapea a rol + área en `/admin/grupos-entra` y los roles de origen ENTRA se recalculan en cada inicio de sesión (`src/server/entra/sync-entra-roles.ts`) |
 | `SUPERADMIN_EMAIL`, `SUPERADMIN_PASSWORD` | Solo los lee `pnpm db:seed:admin` (contraseña de 12+ caracteres); la app nunca los usa |
 | `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, `MAIL_SENDER` | Correo (registro de app separado, solo `Mail.Send`, limitado al buzón) |
 | `FX_API_URL` | API del tipo de cambio |
@@ -848,7 +848,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 | Caída o cambio de la API de TC | BAJO | TC guardado, carga manual, interfaz `FxRateProvider` |
 
 **Decisiones abiertas (no implementar como definitivas; aislarlas en parámetros):**
-- **F0:** nivel de RAID del NAS; repositorio Git. Qué roles operativos llevan área (`role-area-rules.ts`: el gerente de área la exige; comercial, preventa, ingeniero y coordinador la admiten). Pendiente de la administración: grupos de Entra → roles (sincronizar al iniciar sesión), excepciones de permisos (requieren CASL) y visor de auditoría (requiere la extensión de ADR-14). Deuda: el worker existe (F2, `bags.expire`), pero faltan `mail.dispatch` con Graph y `fx.fetch-official`; hasta entonces los correos esperan en `notif.salida`.
+- **F0:** nivel de RAID del NAS; repositorio Git. Qué roles operativos llevan área (`role-area-rules.ts`: el gerente de área la exige; comercial, preventa, ingeniero y coordinador la admiten). Pendiente de la administración: excepciones de permisos (requieren CASL) y visor de auditoría (requiere la extensión de ADR-14). Los roles de Entra se recalculan solo al iniciar sesión: sacar a alguien de un grupo rige cuando su sesión vence o vuelve a entrar (duración de sesión por decidir). Deuda: el worker existe (F2, `bags.expire`), pero faltan `mail.dispatch` con Graph y `fx.fetch-official`; hasta entonces los correos esperan en `notif.salida`.
 - **F1:** significado del sufijo `-DS`; confirmar que un rechazo cierra la ronda; valor inicial del umbral del GG; % de desvío del TC que dispara la advertencia.
 - **F2:** horario real de cada ciudad (¿con pausa de mediodía?) y feriados departamentales y de traslado: los carga el administrador en `/admin/calendario`. *Confirmado por DIMA (2026-10-14):* multiplicador 2 fuera de horario en 8x5, umbrales de alerta 80% y 100%, aviso de vencimiento a 30 días, y los miembros de un área ven todas sus bolsas. *Resuelto:* las bolsas vigentes se cargan con un "CV de saldo inicial" por cliente (`es_saldo_inicial`, solo horas de servicio con costo y venta 0), aprobado por su gerente.
 - **F3:** confirmar el redondeo hacia arriba; confirmar que se suman los tiempos en paralelo; prioridades de ticket y tiempos de SLA por prioridad y modalidad.

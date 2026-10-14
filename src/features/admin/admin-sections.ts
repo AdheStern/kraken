@@ -14,6 +14,7 @@ export type AdminSectionKey =
   | "unidades"
   | "tipos-servicio"
   | "usuarios"
+  | "grupos-entra"
   | "parametros"
   | "tipo-cambio";
 
@@ -109,6 +110,13 @@ export const ADMIN_GROUPS: readonly AdminGroup[] = [
         "Usuarios y roles",
         "Quién entra, con qué roles y en qué áreas.",
         "/admin/usuarios",
+        "system",
+      ),
+      section(
+        "grupos-entra",
+        "Grupos de Entra ID",
+        "Qué grupo de Microsoft da cada rol al iniciar sesión.",
+        "/admin/grupos-entra",
         "system",
       ),
       section(

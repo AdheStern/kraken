@@ -141,3 +141,14 @@ export type FxPanel = {
   } | null;
   history: FxRateView[];
 };
+
+export type EntraGroupView = {
+  entraGroupId: string;
+  groupName: string;
+  roles: {
+    id: string;
+    roleName: string;
+    areaCode: string | null;
+    people: number;
+  }[];
+};

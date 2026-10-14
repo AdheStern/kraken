@@ -19,6 +19,7 @@ export async function getAdminOverview(): Promise<AdminCounts> {
     tiposServicio,
     usuarios,
     parametros,
+    gruposEntra,
   ] = await Promise.all([
     prisma.customer.count(active),
     prisma.supplier.count(active),
@@ -30,6 +31,9 @@ export async function getAdminOverview(): Promise<AdminCounts> {
     prisma.serviceType.count(active),
     prisma.userProfile.count(active),
     prisma.parameter.count(),
+    prisma.entraGroupRole
+      .groupBy({ by: ["entraGroupId"] })
+      .then((groups) => groups.length),
   ]);
   return {
     clientes,
@@ -42,5 +46,6 @@ export async function getAdminOverview(): Promise<AdminCounts> {
     "tipos-servicio": tiposServicio,
     usuarios,
     parametros,
+    "grupos-entra": gruposEntra,
   };
 }

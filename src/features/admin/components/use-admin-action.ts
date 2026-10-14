@@ -11,8 +11,10 @@ export function useAdminAction() {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // TRAMPA: refresh() seguido de push() deja la navegación sin efecto; con destino solo se navega.
   async function run<T>(
     action: () => Promise<ActionResult<T>>,
+    navigateTo?: (data: T) => string,
   ): Promise<boolean> {
     setIsPending(true);
     setError(null);
@@ -22,7 +24,8 @@ export function useAdminAction() {
       setError(result.error.message);
       return false;
     }
-    router.refresh();
+    if (navigateTo) router.push(navigateTo(result.data));
+    else router.refresh();
     return true;
   }
 

@@ -31,6 +31,7 @@ type Props = {
   thresholdUsd: string;
   canEdit: boolean;
   canSeeCosts: boolean;
+  isOpeningBalance: boolean;
 };
 
 export function CvLinesEditor({
@@ -41,6 +42,7 @@ export function CvLinesEditor({
   thresholdUsd,
   canEdit,
   canSeeCosts,
+  isOpeningBalance,
 }: Props) {
   const router = useRouter();
   const [state, dispatch] = useCvLinesState(initial);
@@ -48,16 +50,21 @@ export function CvLinesEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [notice, setNotice] = useState<LinesNoticeValue>(null);
   const [detailKey, setDetailKey] = useState<string | null>(null);
-  const hoursUnitIds = useMemo(
-    () => new Set(options.units.filter((u) => u.isHours).map((u) => u.id)),
-    [options.units],
+  const detailContext = useMemo(
+    () => ({
+      hoursUnitIds: new Set(
+        options.units.filter((u) => u.isHours).map((u) => u.id),
+      ),
+      isOpeningBalance,
+    }),
+    [options.units, isOpeningBalance],
   );
   const columns = visibleColumns(canSeeCosts);
   const { results, summary, details } = useLinesPricing(
     state.lines,
     fxRates,
     canSeeCosts,
-    hoursUnitIds,
+    detailContext,
   );
   const approvers = approverLabels(summary, options.areas, thresholdUsd);
   const detailLine = state.lines.find((line) => line.key === detailKey) ?? null;
@@ -113,6 +120,12 @@ export function CvLinesEditor({
           />
         ) : (
           <h2 className="text-base font-semibold">Líneas</h2>
+        )}
+        {isOpeningBalance && (
+          <p className="rounded-lg bg-primary/10 px-3 py-2 text-sm text-primary">
+            CV de saldo inicial: solo líneas de horas de servicio, con costo y
+            venta en 0. Cada línea abre su bolsa al aprobarse.
+          </p>
         )}
         <LinesNotice notice={notice} isDirty={isDirty} />
         {state.lines.length === 0 && state.groups.length === 0 ? (

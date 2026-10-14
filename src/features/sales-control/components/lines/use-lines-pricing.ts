@@ -5,7 +5,11 @@
 
 import Decimal from "decimal.js";
 import { useMemo } from "react";
-import { lineDetailIssues, needsHourBag } from "../../line-details";
+import {
+  type LineDetailContext,
+  lineDetailIssues,
+  needsHourBag,
+} from "../../line-details";
 import { type LineIssue, priceLine, summarizeLines } from "../../line-pricing";
 import type { CvLineDraft } from "../../schemas/cv-lines-schema";
 
@@ -21,7 +25,7 @@ export function useLinesPricing(
   lines: CvLineDraft[],
   fxRates: FxText,
   canSeeCosts: boolean,
-  hoursUnitIds: ReadonlySet<string>,
+  context: LineDetailContext,
 ) {
   const fx = useMemo(
     () => ({
@@ -53,7 +57,6 @@ export function useLinesPricing(
   );
   const summary = useMemo(() => summarizeLines(visible, fx), [visible, fx]);
   const details = useMemo(() => {
-    const context = { hoursUnitIds };
     return new Map<string, LineDetailInfo>(
       lines
         .filter((l) => l.kind === "ITEM")
@@ -73,6 +76,6 @@ export function useLinesPricing(
           ];
         }),
     );
-  }, [lines, hoursUnitIds]);
+  }, [lines, context]);
   return { results, summary, details };
 }

@@ -8,6 +8,7 @@ import type { CvEditorHeader } from "../types";
 type CvBase = {
   id: string;
   code: string;
+  isOpeningBalance: boolean;
   city: { name: string };
   customer: { name: string };
 };
@@ -32,6 +33,7 @@ export function toEditorHeader(
     cvId: cv.id,
     versionId: version.id,
     code: cv.code,
+    isOpeningBalance: cv.isOpeningBalance,
     versionLabel: toCvVersionLabel(cv.code, version.number),
     status: version.status,
     cityName: cv.city.name,

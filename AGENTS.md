@@ -535,7 +535,7 @@ Se escriben **fórmulas** redondeadas como el dominio (`=ROUND(G24*F24,2)`, `=RO
 
 ## 6. Tableros y KPIs (propuesta a validar con gerencia)
 
-Cada indicador tiene **una sola definición** (en `src/domain` o en una vista `dash.*`) que se reutiliza. Las metas (KGI) se configuran por área y periodo.
+Cada indicador tiene **una sola definición** (en `src/domain` o en una vista `dash.*`) que se reutiliza. Las metas (KGI) se configuran por área y periodo. Los CV de saldo inicial (`cv.cv.es_saldo_inicial`) no son ventas del periodo: se excluyen de los KPI económicos; sus horas sí cuentan en los operativos.
 
 **Económicos:** ventas aprobadas (por área, comercial, cliente, tecnología, ciudad) · margen bruto en USD y % (solo costo > 0; servicios propios aparte) · factor promedio ponderado · pipeline por estado · tiempo de aprobación y pendiente más antiguo · renovaciones próximas (30/60/90 días) · horas vendidas · cumplimiento de meta.
 
@@ -847,7 +847,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 **Decisiones abiertas (no implementar como definitivas; aislarlas en parámetros):**
 - **F0:** nivel de RAID del NAS; repositorio Git. Deuda: el worker existe (F2, `bags.expire`), pero faltan `mail.dispatch` con Graph y `fx.fetch-official`; hasta entonces los correos esperan en `notif.salida`.
 - **F1:** significado del sufijo `-DS`; confirmar que un rechazo cierra la ronda; valor inicial del umbral del GG; % de desvío del TC que dispara la advertencia.
-- **F2:** horario real de cada ciudad (¿con pausa de mediodía?) y feriados departamentales; carga de las bolsas vigentes (propuesta: un "CV de saldo inicial" por cliente, aprobado por su gerente).
+- **F2:** horario real de cada ciudad (¿con pausa de mediodía?) y feriados departamentales. *Resuelto:* las bolsas vigentes se cargan con un "CV de saldo inicial" por cliente (`es_saldo_inicial`, solo horas de servicio con costo y venta 0), aprobado por su gerente.
 - **F3:** confirmar el redondeo hacia arriba; confirmar que se suman los tiempos en paralelo; prioridades de ticket y tiempos de SLA por prioridad y modalidad.
 - **F4:** método de valoración (propuesto: costo promedio ponderado); productos que exigen serial; almacenes exactos.
 - **F5:** KPIs, KGIs y metas definitivas.

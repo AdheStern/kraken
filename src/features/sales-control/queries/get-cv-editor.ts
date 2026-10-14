@@ -26,6 +26,7 @@ export async function getCvEditor(
     select: {
       id: true,
       code: true,
+      isOpeningBalance: true,
       city: { select: { name: true } },
       customer: { select: { name: true } },
       versions: {

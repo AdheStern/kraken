@@ -18,6 +18,7 @@ export type CvFormOptions = {
 export type CvListRow = {
   id: string;
   code: string;
+  isOpeningBalance: boolean;
   versionLabel: string;
   title: string;
   customerName: string;
@@ -31,6 +32,7 @@ export type CvEditorHeader = {
   cvId: string;
   versionId: string;
   code: string;
+  isOpeningBalance: boolean;
   versionLabel: string;
   status: CvVersionStatus;
   cityName: string;

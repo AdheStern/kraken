@@ -11,6 +11,7 @@ import { CvStatusBadge } from "@/features/sales-control/components/cv-status-bad
 import { CvHeaderForm } from "@/features/sales-control/components/header/cv-header-form";
 import { CvLeasingEditor } from "@/features/sales-control/components/leasing/cv-leasing-editor";
 import { CvLinesEditor } from "@/features/sales-control/components/lines/cv-lines-editor";
+import { OpeningBalanceBadge } from "@/features/sales-control/components/opening-balance-badge";
 import { ApprovalPanel } from "@/features/sales-control/components/versions/approval-panel";
 import { CvVersionBar } from "@/features/sales-control/components/versions/cv-version-bar";
 import { VersionHistory } from "@/features/sales-control/components/versions/version-history";
@@ -87,6 +88,7 @@ async function CvEditor({
           {header.versionLabel}
         </h1>
         <CvStatusBadge status={header.status} />
+        {header.isOpeningBalance && <OpeningBalanceBadge />}
         <div className="ml-auto">
           <CvVersionBar editor={editor} canDuplicate={canCreateCv(user)} />
         </div>
@@ -119,6 +121,7 @@ async function CvEditor({
         thresholdUsd={thresholdUsd}
         canEdit={editor.canEdit}
         canSeeCosts={editor.canSeeCosts}
+        isOpeningBalance={header.isOpeningBalance}
       />
       {editor.canSeeCosts && (
         <CvLeasingEditor

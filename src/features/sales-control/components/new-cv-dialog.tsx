@@ -26,6 +26,7 @@ import {
   createCvSchema,
 } from "../schemas/create-cv-schema";
 import type { CvFormOptions } from "../types";
+import { OpeningBalanceField } from "./opening-balance-field";
 
 // POR QUÉ: valores de las plantillas actuales (AGENTS.md §2.2); el comercial los ajusta a la coyuntura.
 const DEFAULT_FX = { costFxRate: "6.97", saleFxRate: "6.96" };
@@ -39,7 +40,13 @@ export function NewCvDialog({
   const [serverError, setServerError] = useState<string | null>(null);
   const form = useForm<CreateCvInput>({
     resolver: zodResolver(createCvSchema),
-    defaultValues: { cityId: "", customerId: "", title: "", ...DEFAULT_FX },
+    defaultValues: {
+      cityId: "",
+      customerId: "",
+      title: "",
+      ...DEFAULT_FX,
+      isOpeningBalance: false,
+    },
   });
   const { errors, isSubmitting } = form.formState;
 
@@ -145,6 +152,7 @@ export function NewCvDialog({
               {...form.register("saleFxRate")}
             />
           </FormField>
+          <OpeningBalanceField control={form.control} />
         </form>
         {serverError && (
           <p

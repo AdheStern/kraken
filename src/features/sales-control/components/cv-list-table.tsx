@@ -13,6 +13,7 @@ import {
 import { formatAmount } from "@/lib/format-amount";
 import type { CvListRow } from "../types";
 import { CvStatusBadge } from "./cv-status-badge";
+import { OpeningBalanceBadge } from "./opening-balance-badge";
 
 const dateFormat = new Intl.DateTimeFormat("es-BO", {
   dateStyle: "medium",
@@ -51,6 +52,11 @@ export function CvListTable({
                 >
                   {row.versionLabel}
                 </Link>
+                {row.isOpeningBalance && (
+                  <span className="ml-2 align-middle">
+                    <OpeningBalanceBadge />
+                  </span>
+                )}
               </TableCell>
               <TableCell className="max-w-72 truncate">{row.title}</TableCell>
               <TableCell className="max-w-56 truncate text-muted-foreground">

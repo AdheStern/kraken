@@ -33,6 +33,7 @@ export async function listCvs(
     select: {
       id: true,
       code: true,
+      isOpeningBalance: true,
       city: { select: { code: true } },
       customer: { select: { name: true } },
       versions: {
@@ -56,6 +57,7 @@ export async function listCvs(
       {
         id: cv.id,
         code: cv.code,
+        isOpeningBalance: cv.isOpeningBalance,
         versionLabel: toCvVersionLabel(cv.code, latest.number),
         title: latest.title,
         customerName: cv.customer.name,

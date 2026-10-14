@@ -32,6 +32,7 @@
 ```bash
 pnpm dev                      # app en desarrollo
 pnpm worker:dev               # worker pg-boss
+pnpm worker:migrate           # instala/actualiza el esquema pgboss con MIGRATION_DATABASE_URL y da DML al rol de DATABASE_URL
 pnpm test                     # dominio y unitarios (Vitest)
 pnpm test:int                 # integración con Postgres (Testcontainers)
 pnpm test:e2e                 # Playwright
@@ -727,7 +728,7 @@ Operación conjunta: **DIMANET** (virtualización, red, seguridad perimetral, NA
 **DR en Azure (en frío):** procedimiento ensayado (Terraform o Bicep + script): crear VM con Postgres, restaurar al último WAL, levantar la app con las mismas imágenes y cambiar el DNS. Se ensaya dos veces al año.
 
 ### CI/CD
-PR → biome · typecheck · tests de dominio · integración con Postgres · build → merge a main → imagen Docker etiquetada con el commit → staging + `prisma migrate deploy` → smoke E2E → aprobación manual → producción: migración compatible hacia atrás → drenar `app-01`, actualizar, verificar → drenar `app-02`, actualizar, verificar.
+PR → biome · typecheck · tests de dominio · integración con Postgres · build → merge a main → imagen Docker etiquetada con el commit → staging + `prisma migrate deploy` + `pnpm worker:migrate` → smoke E2E → aprobación manual → producción: migración compatible hacia atrás → drenar `app-01`, actualizar, verificar → drenar `app-02`, actualizar, verificar.
 - Runner autoalojado en `ops-01` (sin puertos de entrada).
 - Entornos: desarrollo (Compose local con Postgres y correo falso), staging y producción.
 - Observabilidad: logs JSON a Loki con `requestId`; métricas en Prometheus/Grafana; Uptime Kuma avisa por correo y Teams.

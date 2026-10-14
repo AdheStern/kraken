@@ -6,13 +6,19 @@ import { BUSINESS_TIME_ZONE } from "@/domain/calendar/business-date";
 import { prisma } from "@/server/db";
 import { JOBS } from "./job-registry";
 
-// TRAMPA: pg-boss crea su esquema "pgboss" al arrancar; en producción el usuario de la app no tiene DDL (§4),
-// así que ese esquema se crea en el despliegue con el usuario de migraciones antes del primer arranque.
+// TRAMPA: en producción el usuario de la app no tiene DDL (§4): el esquema pgboss lo instala y actualiza
+// `pnpm worker:migrate` en el despliegue, y el worker solo verifica su versión. En desarrollo migra solo.
 const connectionString = process.env.DATABASE_URL;
+const isProduction = process.env.NODE_ENV === "production";
 
 async function main() {
   if (!connectionString) throw new Error("Define DATABASE_URL para el worker.");
-  const boss = new PgBoss({ connectionString, schema: "pgboss" });
+  const boss = new PgBoss({
+    connectionString,
+    schema: "pgboss",
+    migrate: !isProduction,
+    createSchema: !isProduction,
+  });
   boss.on("error", (error) => console.error("[worker]", error));
   await boss.start();
   for (const job of JOBS) {

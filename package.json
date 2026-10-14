@@ -18,7 +18,8 @@
     "test:coverage": "vitest run --coverage",
     "test:int": "vitest run --config vitest.int.config.mts",
     "db:seed:dev": "tsx --env-file-if-exists=.env prisma/seed/seed-dev.ts",
-    "worker:dev": "tsx watch --env-file-if-exists=.env src/worker/index.ts"
+    "worker:dev": "tsx watch --env-file-if-exists=.env src/worker/index.ts",
+    "worker:migrate": "tsx --env-file-if-exists=.env src/worker/migrate.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

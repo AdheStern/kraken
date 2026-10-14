@@ -5,6 +5,7 @@ import { prisma } from "@/server/db";
 import { upsertCredentialUser } from "./credential-user";
 import * as data from "./dev-catalog-data";
 import { upsertRoles } from "./roles";
+import { seedCalendar } from "./seed-calendar";
 
 async function main() {
   if (process.env.NODE_ENV === "production") {
@@ -18,6 +19,7 @@ async function main() {
     async (tx) => {
       await upsertRoles(tx);
       await seedCatalogs(tx);
+      await seedCalendar(tx);
       for (const user of data.DEV_USERS) {
         const area =
           "areaCode" in user

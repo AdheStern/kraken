@@ -10,6 +10,7 @@ import {
   Hourglass,
   House,
   type LucideIcon,
+  Settings,
   Stamp,
 } from "lucide-react";
 import Link from "next/link";
@@ -31,6 +32,11 @@ const ITEMS: Record<NavKey, { href: string; label: string; icon: LucideIcon }> =
     cv: { href: "/cv", label: "Control de Venta", icon: FileSpreadsheet },
     horas: { href: "/horas", label: "Bolsas de horas", icon: Hourglass },
     aprobaciones: { href: "/aprobaciones", label: "Aprobaciones", icon: Stamp },
+    admin: {
+      href: "/admin/calendario",
+      label: "Administración",
+      icon: Settings,
+    },
   };
 
 export function AppNav({ entries }: { entries: readonly NavEntry[] }) {

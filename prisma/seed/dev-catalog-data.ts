@@ -188,6 +188,16 @@ export const PARAMETERS = [
     description:
       "% de desvío del TC ingresado frente al oficial que dispara la advertencia",
   },
+  {
+    key: "horas.alerta_consumo_pct",
+    value: [80, 100],
+    description: "% de consumo de una bolsa que dispara un aviso (lista)",
+  },
+  {
+    key: "horas.aviso_vencimiento_dias",
+    value: 30,
+    description: "Días antes del vencimiento de una bolsa en que se avisa",
+  },
 ];
 
 export const DEV_USERS = [

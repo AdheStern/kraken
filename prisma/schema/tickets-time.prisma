@@ -34,9 +34,9 @@ model TimeEntry {
   subtask Subtask?    @relation(fields: [subtaskId], references: [id])
   user    UserProfile @relation(fields: [userId], references: [userId])
 
+  @@unique([userId], map: "registro_tiempo_abierto_unico", where: raw("fin IS NULL"))
   @@index([ticketId, startedAt])
   @@index([userId, startedAt])
-  @@unique([userId], map: "registro_tiempo_abierto_unico", where: raw("fin IS NULL"))
   @@map("registro_tiempo")
   @@schema("tickets")
 }

@@ -292,7 +292,7 @@ Usuarios ─HTTPS→ FortiGate/Radware (WAF + TLS) → IP virtual (keepalived)
 | ADR-04 | Decimales exactos (`NUMERIC`) y `Prisma.Decimal` en TS. | Sin errores de coma flotante. |
 | ADR-05 | Better Auth + Microsoft Entra ID (OIDC, inquilino único). Sesiones en BD. Grupos de Entra → roles. Email/contraseña solo para la cuenta de emergencia `ADMIN_SISTEMA` (sin registro público; el login va por `/api/auth`, no por Server Action, para que aplique el límite de intentos). | SSO, MFA y acceso condicional heredados; dar de baja en Entra corta el acceso. |
 | ADR-06 | Authz centralizada en `src/server/authz`: CASL + funciones `scope*Query(user)`. | Reglas de 2.9 en un solo lugar, testeables. |
-| ADR-07 | Jobs con pg-boss en un proceso worker separado. | Sin Redis; los jobs sobreviven a reinicios; sin doble ejecución. |
+| ADR-07 | Jobs con pg-boss en un proceso worker separado (`src/worker`, registro en `job-registry.ts`). Su esquema `pgboss` queda fuera de Prisma y en producción se crea con el usuario de migraciones antes del primer arranque. | Sin Redis; los jobs sobreviven a reinicios; sin doble ejecución. |
 | ADR-08 | Correo con Microsoft Graph `sendMail` (app-only) desde un buzón de servicio, limitado con RBAC para aplicaciones de Exchange. **Outbox**: la action escribe en `notif.salida` dentro de su transacción y el worker envía con reintentos. | Sin SMTP propio; ningún correo se pierde ni se envía por una transacción revertida. |
 | ADR-09 | TC desacoplado: job a las 00:15 + reintentos cada hora → `fx.tipo_cambio`. Cada versión guarda TC de costo, TC de venta y TC oficial. | La API puede fallar; los CV históricos no cambian. |
 | ADR-10 | Lógica de dominio pura en `src/domain` (precio, calendario, ponderación, asignación, SLA, costo promedio). | Las reglas delicadas se prueban sin BD. |
@@ -415,7 +415,7 @@ model HourMovement {
   ticketId   String?  @db.Uuid
   reversesId String?  @db.Uuid
   reason     String?
-  actorId    String
+  actorId    String?                                    // null = proceso del sistema (job bags.expire)
   createdAt  DateTime @default(now()) @db.Timestamptz
   @@schema("horas")
   @@map("movimiento")
@@ -845,7 +845,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 | Caída o cambio de la API de TC | BAJO | TC guardado, carga manual, interfaz `FxRateProvider` |
 
 **Decisiones abiertas (no implementar como definitivas; aislarlas en parámetros):**
-- **F0:** nivel de RAID del NAS; repositorio Git.
+- **F0:** nivel de RAID del NAS; repositorio Git. Deuda: el worker existe (F2, `bags.expire`), pero faltan `mail.dispatch` con Graph y `fx.fetch-official`; hasta entonces los correos esperan en `notif.salida`.
 - **F1:** significado del sufijo `-DS`; confirmar que un rechazo cierra la ronda; valor inicial del umbral del GG; % de desvío del TC que dispara la advertencia.
 - **F2:** horario real de cada ciudad (¿con pausa de mediodía?) y feriados departamentales; carga de las bolsas vigentes (propuesta: un "CV de saldo inicial" por cliente, aprobado por su gerente).
 - **F3:** confirmar el redondeo hacia arriba; confirmar que se suman los tiempos en paralelo; prioridades de ticket y tiempos de SLA por prioridad y modalidad.

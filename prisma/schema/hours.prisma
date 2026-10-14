@@ -44,16 +44,19 @@ enum PendingHoursStatus {
 
 // REGLA: balanceMinutes es caché del libro; cambia solo junto a su movimiento y nunca < 0 (CHECK en prisma/sql/hours.sql).
 model HourBag {
-  id             String      @id @default(uuid(7)) @db.Uuid
-  cvLineId       String      @unique @map("cv_linea_id") @db.Uuid
-  customerId     String      @map("cliente_id") @db.Uuid
-  projectId      String?     @map("proyecto_id") @db.Uuid
-  modality       BagModality @map("modalidad")
-  scope          BagScope    @map("alcance")
-  status         BagStatus   @default(ACTIVA) @map("estado")
-  expiresOn      DateTime?   @map("vence_el") @db.Date
-  balanceMinutes Int         @map("saldo_minutos")
-  createdAt      DateTime    @default(now()) @map("creado_en") @db.Timestamptz
+  id                String      @id @default(uuid(7)) @db.Uuid
+  cvLineId          String      @unique @map("cv_linea_id") @db.Uuid
+  customerId        String      @map("cliente_id") @db.Uuid
+  projectId         String?     @map("proyecto_id") @db.Uuid
+  modality          BagModality @map("modalidad")
+  scope             BagScope    @map("alcance")
+  status            BagStatus   @default(ACTIVA) @map("estado")
+  expiresOn         DateTime?   @map("vence_el") @db.Date
+  balanceMinutes    Int         @map("saldo_minutos")
+  // POR QUÉ: marcas de idempotencia del job bags.expire; una versión que cambia el vencimiento las limpia.
+  expiryWarnedAt    DateTime?   @map("aviso_vencimiento_en") @db.Timestamptz
+  expiryDayWarnedAt DateTime?   @map("aviso_vence_hoy_en") @db.Timestamptz
+  createdAt         DateTime    @default(now()) @map("creado_en") @db.Timestamptz
 
   cvLine       CvLine         @relation(fields: [cvLineId], references: [id])
   customer     Customer       @relation(fields: [customerId], references: [id])
@@ -89,14 +92,15 @@ model HourMovement {
   ticketId   String?          @map("ticket_id") @db.Uuid
   reversesId String?          @unique @map("revierte_id") @db.Uuid
   reason     String?          @map("motivo")
-  actorId    String           @map("actor_id")
+  // POR QUÉ: null = lo registró un proceso del sistema (p. ej. el job de vencimiento), no una persona.
+  actorId    String?          @map("actor_id")
   createdAt  DateTime         @default(now()) @map("creado_en") @db.Timestamptz
 
   bag        HourBag       @relation(fields: [bagId], references: [id])
   ticket     Ticket?       @relation(fields: [ticketId], references: [id])
   reverses   HourMovement? @relation("HourMovementReversal", fields: [reversesId], references: [id])
   reversedBy HourMovement? @relation("HourMovementReversal")
-  actor      UserProfile   @relation(fields: [actorId], references: [userId])
+  actor      UserProfile?  @relation(fields: [actorId], references: [userId], onDelete: Restrict)
 
   @@index([bagId, createdAt])
   @@index([ticketId])

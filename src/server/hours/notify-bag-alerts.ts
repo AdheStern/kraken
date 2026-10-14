@@ -15,7 +15,7 @@ export async function notifyBagAlerts(
   tx: Tx,
   bagId: string,
   posted: PostedMovement,
-  actorId: string,
+  actorId: string | null,
 ): Promise<void> {
   const sold = await tx.hourMovement.aggregate({
     where: { bagId, kind: { in: [...SOLD_KINDS] } },

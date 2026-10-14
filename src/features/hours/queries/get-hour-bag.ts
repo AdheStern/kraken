@@ -48,7 +48,8 @@ export async function getHourBag(
       balanceAfter: balance,
       createdAt: m.createdAt.toISOString(),
       reason: m.reason,
-      actorName: m.actor.user.name,
+      // POR QUÉ: sin actor = lo registró un proceso del sistema (job de vencimiento).
+      actorName: m.actor?.user.name ?? "Sistema",
       ticketId: m.ticket?.id ?? null,
       ticketNumber: m.ticket?.number ?? null,
     };

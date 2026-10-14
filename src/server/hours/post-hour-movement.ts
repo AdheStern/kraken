@@ -18,7 +18,8 @@ export type HourMovementInput = {
   bagId: string;
   kind: HourMovementKind;
   minutes: number;
-  actorId: string;
+  // POR QUÉ: null solo para los procesos del sistema (job de vencimiento); una persona siempre firma.
+  actorId: string | null;
   ticketId?: string | null;
   reversesId?: string | null;
   reason?: string | null;

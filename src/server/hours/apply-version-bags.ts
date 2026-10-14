@@ -104,10 +104,21 @@ async function adjustBag(
   input: ApplyInput,
 ): Promise<void> {
   const line = plannedLine(context, op.lineId);
+  const current = await tx.hourBag.findUniqueOrThrow({
+    where: { id: op.bagId },
+    select: { expiresOn: true },
+  });
+  const expiresOn = current.expiresOn?.toISOString().slice(0, 10) ?? null;
+  // POR QUÉ: con otra fecha de vencimiento, los avisos de bags.expire deben volver a salir.
+  const resetWarnings =
+    expiresOn !== line.spec.expiresOn
+      ? { expiryWarnedAt: null, expiryDayWarnedAt: null }
+      : {};
   await tx.hourBag.update({
     where: { id: op.bagId },
     data: {
       ...bagAttributes(line),
+      ...resetWarnings,
       cvLineId: op.lineId,
       areas: {
         deleteMany: {},

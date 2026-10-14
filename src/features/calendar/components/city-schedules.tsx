@@ -42,7 +42,7 @@ export function CitySchedules({ cities, schedules }: Props) {
         {cities.map((city) => (
           <li
             key={city.id}
-            className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5"
+            className="flex flex-col gap-2 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
           >
             <span className="text-sm">
               <span className="font-medium tabular-nums">{city.code}</span>
@@ -53,7 +53,7 @@ export function CitySchedules({ cities, schedules }: Props) {
               onValueChange={(value) => assign(city.id, String(value))}
             >
               <SelectTrigger
-                className="h-8 w-56"
+                className="h-8 w-full sm:w-56"
                 aria-label={`Horario de ${city.name}`}
               >
                 <SelectValue>

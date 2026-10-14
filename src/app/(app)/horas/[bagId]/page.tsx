@@ -96,7 +96,7 @@ async function HourBag({
           </p>
         </div>
         {canChange && (
-          <div className="flex items-center gap-1">
+          <div className="flex w-full items-center gap-1 sm:w-auto">
             <AdjustBagDialog
               bagId={bag.id}
               balanceMinutes={bag.balanceMinutes}

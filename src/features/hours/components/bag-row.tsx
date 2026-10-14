@@ -15,7 +15,7 @@ export function BagRow({ bag }: { bag: BagSummary }) {
   return (
     <li
       className={cn(
-        "relative grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 px-4 py-3 transition-colors hover:bg-muted/40 md:grid-cols-[auto_minmax(0,1.6fr)_minmax(0,1fr)_7.5rem_9rem] md:items-center",
+        "relative grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 px-4 py-3 transition-colors hover:bg-muted/40 md:grid-cols-[auto_minmax(0,1.6fr)_minmax(0,1fr)_10.5rem_11.5rem] md:items-center",
         isEnded && "text-muted-foreground",
       )}
     >
@@ -26,13 +26,19 @@ export function BagRow({ bag }: { bag: BagSummary }) {
         className="row-span-3 mt-0.5 md:row-span-1 md:mt-0"
       />
       <div className="min-w-0">
-        <Link
-          href={`/horas/${bag.id}`}
-          className="font-medium tabular-nums after:absolute after:inset-0 hover:underline"
-        >
-          {bag.cvLabel}
-        </Link>
-        <span className="text-muted-foreground"> · {bag.lineDescription}</span>
+        {/* POR QUÉ: una descripción larga no debe empujar la fila; el texto completo queda en el title. */}
+        <p className="line-clamp-2 md:line-clamp-1" title={bag.lineDescription}>
+          <Link
+            href={`/horas/${bag.id}`}
+            className="font-medium tabular-nums after:absolute after:inset-0 hover:underline"
+          >
+            {bag.cvLabel}
+          </Link>
+          <span className="text-muted-foreground">
+            {" "}
+            · {bag.lineDescription}
+          </span>
+        </p>
         <p className="truncate text-sm text-muted-foreground">
           <Link
             href={`/horas/clientes/${bag.customerId}`}
@@ -45,7 +51,7 @@ export function BagRow({ bag }: { bag: BagSummary }) {
       <p className="truncate text-sm text-muted-foreground">
         {MODALITY_LABELS[bag.modality]} · {scopeText(bag)}
       </p>
-      <p className="text-sm tabular-nums md:text-right">
+      <p className="text-sm tabular-nums md:text-right md:whitespace-nowrap">
         {isEnded || bag.status === "AGOTADA" ? (
           <BagStatusBadge status={bag.status} />
         ) : (
@@ -60,7 +66,7 @@ export function BagRow({ bag }: { bag: BagSummary }) {
       </p>
       <p
         className={cn(
-          "col-start-2 text-sm md:col-start-auto md:text-right",
+          "col-start-2 text-sm md:col-start-auto md:text-right md:whitespace-nowrap",
           expiresSoon ? "font-medium text-warning" : "text-muted-foreground",
         )}
       >

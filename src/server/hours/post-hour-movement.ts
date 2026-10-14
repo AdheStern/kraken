@@ -1,6 +1,7 @@
 // src/server/hours/post-hour-movement.ts
 // Único punto que mueve el saldo de una bolsa: bloquea la fila, inserta el movimiento del libro y actualiza
-// la caché del saldo y el estado, todo en la transacción recibida (AGENTS.md regla 6, ADR-03).
+// la caché del saldo y el estado, y avisa los umbrales cruzados, todo en la transacción recibida
+// (AGENTS.md regla 6, §2.4 alertas, ADR-03).
 import {
   type BagStatus,
   canTransitionBag,
@@ -11,6 +12,7 @@ import type { HourMovementKind } from "@/generated/prisma/enums";
 import type { Tx } from "@/server/db";
 import { BagStateError, InsufficientBalanceError } from "./hour-errors";
 import { lockBags } from "./lock-bags";
+import { notifyBagAlerts } from "./notify-bag-alerts";
 
 export type HourMovementInput = {
   bagId: string;
@@ -72,7 +74,7 @@ export async function postHourMovement(
     where: { id: bagId },
     data: { balanceMinutes: balanceAfter, status },
   });
-  return {
+  const posted: PostedMovement = {
     movementId: movement.id,
     kind: input.kind,
     minutes,
@@ -81,6 +83,9 @@ export async function postHourMovement(
     statusBefore: bag.status,
     status,
   };
+  // POR QUÉ: cerrar o vencer no es consumo; esos avisos los dan el cierre y el job de vencimiento.
+  if (!endAs) await notifyBagAlerts(tx, bagId, posted, input.actorId);
+  return posted;
 }
 
 function resolveStatus(

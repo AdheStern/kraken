@@ -1,5 +1,6 @@
 // src/server/hours/bag-alert-settings.ts
 // Umbrales de alerta de las bolsas, editables sin desplegar (core.parametro; AGENTS.md §2.4 "Umbrales configurables").
+import { prisma, type Tx } from "@/server/db";
 import { getIntListParameter, getIntParameter } from "@/server/parameters";
 
 export type BagAlertSettings = {
@@ -12,11 +13,20 @@ export type BagAlertSettings = {
 const DEFAULT_THRESHOLDS_PCT = [80, 100];
 const DEFAULT_WARNING_DAYS = 30;
 
-export async function getBagAlertSettings(): Promise<BagAlertSettings> {
-  const [thresholdsPct, warningDays] = await Promise.all([
-    getIntListParameter("horas.alerta_consumo_pct", DEFAULT_THRESHOLDS_PCT),
-    getIntParameter("horas.aviso_vencimiento_dias", DEFAULT_WARNING_DAYS),
-  ]);
+export async function getBagAlertSettings(
+  db: Pick<Tx, "parameter"> = prisma,
+): Promise<BagAlertSettings> {
+  // TRAMPA: en serie y no con Promise.all; dentro de una transacción el cliente no admite consultas paralelas.
+  const thresholdsPct = await getIntListParameter(
+    "horas.alerta_consumo_pct",
+    DEFAULT_THRESHOLDS_PCT,
+    db,
+  );
+  const warningDays = await getIntParameter(
+    "horas.aviso_vencimiento_dias",
+    DEFAULT_WARNING_DAYS,
+    db,
+  );
   return {
     thresholdsPct,
     riskPct: Math.min(...thresholdsPct),

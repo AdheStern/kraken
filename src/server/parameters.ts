@@ -1,6 +1,9 @@
 // src/server/parameters.ts
 // Lectura de parámetros del sistema (core.parametro), editables por el administrador sin desplegar.
-import { prisma } from "@/server/db";
+import { prisma, type Tx } from "@/server/db";
+
+// POR QUÉ: dentro de una transacción se lee con su cliente (tx); fuera, con el global.
+type ParameterReader = Pick<Tx, "parameter">;
 
 // POR QUÉ: los valores numéricos se guardan como texto en el JSON para no perder decimales.
 export async function getDecimalParameter(
@@ -18,8 +21,9 @@ export async function getDecimalParameter(
 export async function getIntListParameter(
   key: string,
   fallback: readonly number[],
+  db: ParameterReader = prisma,
 ): Promise<number[]> {
-  const parameter = await prisma.parameter.findUnique({ where: { key } });
+  const parameter = await db.parameter.findUnique({ where: { key } });
   const value = parameter?.value;
   if (
     Array.isArray(value) &&
@@ -33,8 +37,9 @@ export async function getIntListParameter(
 export async function getIntParameter(
   key: string,
   fallback: number,
+  db: ParameterReader = prisma,
 ): Promise<number> {
-  const parameter = await prisma.parameter.findUnique({ where: { key } });
+  const parameter = await db.parameter.findUnique({ where: { key } });
   const value = Number(parameter?.value);
   return parameter && Number.isInteger(value) && value >= 0 ? value : fallback;
 }

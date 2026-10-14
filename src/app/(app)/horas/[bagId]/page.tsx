@@ -7,6 +7,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AdjustBagDialog } from "@/features/hours/components/adjust-bag-dialog";
 import { BagFacts } from "@/features/hours/components/bag-facts";
 import {
   MODALITY_LABELS,
@@ -14,6 +15,7 @@ import {
 } from "@/features/hours/components/bag-labels";
 import { BagLedgerTable } from "@/features/hours/components/bag-ledger-table";
 import { BagStatusBadge } from "@/features/hours/components/bag-status-badge";
+import { CloseBagDialog } from "@/features/hours/components/close-bag-dialog";
 import {
   bagTone,
   HourBagRing,
@@ -48,6 +50,9 @@ async function HourBag({
   const detail = await getHourBag(user, bagId);
   if (!detail) notFound();
   const { bag, ledger } = detail;
+  // REGLA: solo el gerente del área o el GG ajustan o cierran, y solo bolsas no terminales (§2.9, §8).
+  const canChange =
+    detail.canAdjust && (bag.status === "ACTIVA" || bag.status === "AGOTADA");
   return (
     <>
       <header className="flex flex-wrap items-center gap-4">
@@ -90,6 +95,18 @@ async function HourBag({
             </Link>
           </p>
         </div>
+        {canChange && (
+          <div className="flex items-center gap-1">
+            <AdjustBagDialog
+              bagId={bag.id}
+              balanceMinutes={bag.balanceMinutes}
+            />
+            <CloseBagDialog
+              bagId={bag.id}
+              balanceMinutes={bag.balanceMinutes}
+            />
+          </div>
+        )}
       </header>
       <BagFacts bag={bag} />
       <section className="flex flex-col gap-2.5" aria-labelledby="libro">

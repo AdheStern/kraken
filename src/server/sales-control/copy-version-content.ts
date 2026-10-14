@@ -10,21 +10,20 @@ export async function copyVersionContent(
   targetVersionId: string,
   { sameSale }: { sameSale: boolean },
 ): Promise<void> {
-  const [groups, lines, leasingLines] = await Promise.all([
-    tx.cvGroup.findMany({
-      where: { versionId: sourceVersionId },
-      orderBy: { position: "asc" },
-    }),
-    tx.cvLine.findMany({
-      where: { versionId: sourceVersionId },
-      orderBy: { position: "asc" },
-      include: { serials: true },
-    }),
-    tx.cvLeasingLine.findMany({
-      where: { versionId: sourceVersionId },
-      orderBy: { position: "asc" },
-    }),
-  ]);
+  // TRAMPA: en serie; dentro de una transacción el cliente usa una sola conexión y pg@9 rechaza consultas en paralelo.
+  const groups = await tx.cvGroup.findMany({
+    where: { versionId: sourceVersionId },
+    orderBy: { position: "asc" },
+  });
+  const lines = await tx.cvLine.findMany({
+    where: { versionId: sourceVersionId },
+    orderBy: { position: "asc" },
+    include: { serials: true },
+  });
+  const leasingLines = await tx.cvLeasingLine.findMany({
+    where: { versionId: sourceVersionId },
+    orderBy: { position: "asc" },
+  });
 
   const groupIds = new Map<string, string>();
   for (const group of groups) {

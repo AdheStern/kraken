@@ -21,17 +21,16 @@ export async function loadCvAccess(
     },
   });
   if (!cv) return null;
-  const [sellers, lines] = await Promise.all([
-    db.cvVersionSeller.findMany({
-      where: { versionId },
-      select: { userId: true },
-    }),
-    db.cvLine.findMany({
-      where: { versionId, areaId: { not: null } },
-      select: { areaId: true },
-      distinct: ["areaId"],
-    }),
-  ]);
+  // TRAMPA: en serie; dentro de una transacción el cliente usa una sola conexión y pg@9 rechaza consultas en paralelo.
+  const sellers = await db.cvVersionSeller.findMany({
+    where: { versionId },
+    select: { userId: true },
+  });
+  const lines = await db.cvLine.findMany({
+    where: { versionId, areaId: { not: null } },
+    select: { areaId: true },
+    distinct: ["areaId"],
+  });
   return {
     createdById: cv.createdById,
     sellerIds: sellers.map((s) => s.userId),

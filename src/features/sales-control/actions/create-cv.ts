@@ -38,11 +38,14 @@ export async function createCv(
 
   try {
     const cvId = await runInTransaction(async (tx) => {
-      const [city, customer, officialFx] = await Promise.all([
-        tx.city.findUnique({ where: { id: data.cityId } }),
-        tx.customer.findUnique({ where: { id: data.customerId } }),
-        tx.fxRate.findFirst({ orderBy: { effectiveOn: "desc" } }),
-      ]);
+      // TRAMPA: en serie; dentro de una transacción el cliente usa una sola conexión y pg@9 rechaza consultas en paralelo.
+      const city = await tx.city.findUnique({ where: { id: data.cityId } });
+      const customer = await tx.customer.findUnique({
+        where: { id: data.customerId },
+      });
+      const officialFx = await tx.fxRate.findFirst({
+        orderBy: { effectiveOn: "desc" },
+      });
       if (!city || !customer) return null;
       const now = systemClock.now();
       const year = toBusinessYear(now);

@@ -82,11 +82,12 @@ export async function voidLatestVersion(
 // REGLA: una versión aprobada con consumos de horas o despachos de inventario no se anula (§8).
 // POR QUÉ: se mira todo el CV; una bolsa puede seguir enlazada a la línea de una versión anterior.
 async function hasDownstreamActivity(tx: Tx, cvId: string): Promise<boolean> {
-  const [consumptions, movements] = await Promise.all([
-    tx.hourMovement.count({
-      where: { kind: "CONSUMO", bag: { cvLine: { version: { cvId } } } },
-    }),
-    tx.invMovement.count({ where: { cvLine: { version: { cvId } } } }),
-  ]);
+  // TRAMPA: en serie; dentro de una transacción el cliente usa una sola conexión y pg@9 rechaza consultas en paralelo.
+  const consumptions = await tx.hourMovement.count({
+    where: { kind: "CONSUMO", bag: { cvLine: { version: { cvId } } } },
+  });
+  const movements = await tx.invMovement.count({
+    where: { cvLine: { version: { cvId } } },
+  });
   return consumptions + movements > 0;
 }

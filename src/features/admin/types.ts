@@ -1,5 +1,7 @@
 // src/features/admin/types.ts
 // Tipos de presentación de la administración (nunca entidades Prisma completas).
+import type { RoleCode } from "@/generated/prisma/enums";
+import type { RoleAreaRule } from "./role-area-rules";
 
 export type SimpleCatalogItem = {
   id: string;
@@ -72,4 +74,41 @@ export type CatalogOption = { id: string; label: string };
 export type ProductFormOptions = {
   technologies: CatalogOption[];
   units: CatalogOption[];
+};
+
+export type UserRoleView = {
+  id: string;
+  role: string;
+  roleName: string;
+  areaId: string | null;
+  areaCode: string | null;
+  source: "ENTRA" | "MANUAL";
+};
+
+export type UserRow = {
+  id: string;
+  name: string;
+  email: string;
+  image: string | null;
+  city: string | null;
+  isActive: boolean;
+  roles: UserRoleView[];
+};
+
+export type UserAdminDetail = UserRow & {
+  cityId: string | null;
+  jobTitle: string | null;
+  isSelf: boolean;
+};
+
+export type RoleOption = {
+  code: RoleCode;
+  name: string;
+  areaRule: RoleAreaRule;
+};
+
+export type UserAdminOptions = {
+  roles: RoleOption[];
+  areas: CatalogOption[];
+  cities: CatalogOption[];
 };

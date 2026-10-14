@@ -53,7 +53,7 @@ export function WeekdaySlotsRow({ weekday, slots, onChange }: Props) {
               value={slot.start}
               onChange={(e) => update(index, { start: e.target.value })}
               aria-label={`${name}, inicio de la franja ${index + 1}`}
-              className="h-7 w-[4.25rem] border-0 bg-transparent px-1 text-center tabular-nums shadow-none"
+              className="h-7 w-[4.25rem] border-0 bg-transparent px-1 text-center dark:bg-transparent tabular-nums shadow-none"
             />
             <span className="text-muted-foreground" aria-hidden="true">
               –
@@ -65,7 +65,7 @@ export function WeekdaySlotsRow({ weekday, slots, onChange }: Props) {
               value={slot.end}
               onChange={(e) => update(index, { end: e.target.value })}
               aria-label={`${name}, fin de la franja ${index + 1}`}
-              className="h-7 w-[4.25rem] border-0 bg-transparent px-1 text-center tabular-nums shadow-none"
+              className="h-7 w-[4.25rem] border-0 bg-transparent px-1 text-center dark:bg-transparent tabular-nums shadow-none"
             />
             <Button
               variant="ghost"

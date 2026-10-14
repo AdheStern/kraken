@@ -186,7 +186,7 @@ La app es un riel azul a la izquierda (offcanvas en móvil, con el kraken y el w
 
 ## Elevation & Depth
 
-La profundidad viene del vidrio y de sombras en capas teñidas del azul: una sombra cercana corta que asienta la pieza y una lejana amplia que la separa del suelo. Cuanto más flota la capa, más larga la lejana.
+La profundidad viene del vidrio y de sombras en capas teñidas del azul: una sombra cercana corta que asienta la pieza y una lejana amplia que la separa del suelo. Cuanto más flota la capa, más larga la lejana. En oscuro, una sombra negra no se ve sobre el abismo: la lejana pasa a ser un **brillo azul** (`--shadow-far` y `--shadow-far-hover` en azul DIMA translúcido), y el suelo suma un tercer brillo central (`--ground-light-c`) para que las superficies tengan algo detrás.
 
 ### Shadow Vocabulary
 - **Vidrio de marca** (`kr-glass`: `inset 0 1px 0 oklch(1 0 0 / 0.35), 0 24px 48px -16px var(--glass-shadow)`): tarjetas y píldoras del login.

@@ -116,6 +116,7 @@
   /* Superficies de trabajo: vidrio sobre el brillo del suelo, con sombra en capas teñida de azul. */
   --ground-light-a: oklch(0.62 0.17 252 / 0.22);
   --ground-light-b: oklch(0.42 0.16 259 / 0.14);
+  --ground-light-c: oklch(0.6 0.15 254 / 0.05);
   --surface-bg: oklch(1 0 0 / 0.7);
   --surface-solid: oklch(0.995 0.003 255);
   --surface-edge: oklch(1 0 0 / 0.75);
@@ -166,13 +167,14 @@
 
   --ground-light-a: oklch(0.55 0.18 254 / 0.32);
   --ground-light-b: oklch(0.42 0.16 260 / 0.34);
-  --surface-bg: oklch(0.25 0.05 262 / 0.6);
+  --ground-light-c: oklch(0.4 0.15 258 / 0.22);
+  --surface-bg: oklch(0.27 0.05 262 / 0.62);
   --surface-solid: oklch(0.205 0.035 263);
   --surface-edge: oklch(1 0 0 / 0.08);
   --surface-highlight: oklch(1 0 0 / 0.11);
   --shadow-near: oklch(0.08 0.05 262 / 0.45);
-  --shadow-far: oklch(0.1 0.09 262 / 0.85);
-  --shadow-far-hover: oklch(0.12 0.11 260 / 0.95);
+  --shadow-far: oklch(0.38 0.15 258 / 0.42);
+  --shadow-far-hover: oklch(0.45 0.16 256 / 0.55);
   --header-bg: oklch(0.155 0.03 263 / 0.7);
 }
 
@@ -187,8 +189,7 @@
     @apply font-sans;
     color-scheme: light;
     scrollbar-width: thin;
-    scrollbar-color: color-mix(in oklch, var(--brand) 32%, transparent)
-      transparent;
+    scrollbar-color: oklch(0.42 0.16 259 / 0.35) transparent;
   }
   .dark {
     color-scheme: dark;
@@ -476,6 +477,11 @@
       56rem 40rem at -8% 108%,
       var(--ground-light-b),
       transparent 60%
+    ),
+    radial-gradient(
+      80rem 50rem at 50% 45%,
+      var(--ground-light-c),
+      transparent 70%
     ),
     var(--background);
   background-attachment: fixed;

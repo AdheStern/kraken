@@ -2,6 +2,7 @@
 // Tarjeta de una bolsa en la vista del cliente: anillo de módulo con el % al centro, CV, modalidad, alcance,
 // saldo sobre lo vendido y vencimiento (AGENTS.md §5, "Bolsas de un cliente").
 import Link from "next/link";
+import { CountUp } from "@/components/motion/count-up";
 import { formatMinutes } from "@/lib/format-minutes";
 import { cn } from "@/lib/utils";
 import type { BagSummary } from "../types";
@@ -14,8 +15,8 @@ export function BagCard({ bag }: { bag: BagSummary }) {
   return (
     <li
       className={cn(
-        "relative flex flex-col gap-4 rounded-xl border bg-card p-5 transition-colors hover:border-ring/50",
-        isEnded && "bg-muted/30",
+        "kr-surface kr-lift relative flex flex-col gap-4 rounded-xl p-5",
+        isEnded && "opacity-80",
       )}
     >
       <div className="flex items-start justify-between gap-3">
@@ -28,7 +29,7 @@ export function BagCard({ bag }: { bag: BagSummary }) {
             className="absolute inset-0"
           />
           <span className="text-lg font-semibold tabular-nums">
-            {bag.consumedPct}%
+            <CountUp value={bag.consumedPct} />%
           </span>
         </div>
         {bag.status !== "ACTIVA" && <BagStatusBadge status={bag.status} />}

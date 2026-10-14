@@ -1,7 +1,8 @@
 // src/features/sales-control/components/cv-list-table.tsx
 // Tabla del listado de CV con estado vacío accionable (AGENTS.md §5: los vacíos dicen qué hacer).
-import { FileSpreadsheet } from "lucide-react";
+
 import Link from "next/link";
+import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import {
   Table,
   TableBody,
@@ -30,7 +31,7 @@ export function CvListTable({
   if (rows.length === 0) return <EmptyState isFiltered={isFiltered} />;
 
   return (
-    <div className="overflow-x-auto rounded-xl border bg-card">
+    <div className="kr-surface overflow-x-auto rounded-xl">
       <Table>
         <TableHeader>
           <TableRow>
@@ -81,21 +82,17 @@ export function CvListTable({
 
 function EmptyState({ isFiltered }: { isFiltered: boolean }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed px-6 py-14 text-center">
-      <FileSpreadsheet
-        className="size-8 text-muted-foreground"
-        aria-hidden="true"
-      />
-      <p className="font-medium">
-        {isFiltered
+    <KrakenEmpty
+      mood={isFiltered ? "curious" : "idle"}
+      title={
+        isFiltered
           ? "Ningún CV coincide con la búsqueda."
-          : "Todavía no tienes CV."}
-      </p>
-      <p className="max-w-sm text-sm text-muted-foreground">
-        {isFiltered
-          ? "Prueba con otro código, cliente o estado."
-          : "Crea uno con «Nuevo CV»; el número se asigna según la ciudad y el año."}
-      </p>
-    </div>
+          : "Todavía no tienes CV."
+      }
+    >
+      {isFiltered
+        ? "Prueba con otro código, cliente o estado."
+        : "Crea uno con «Nuevo CV»; el número se asigna según la ciudad y el año."}
+    </KrakenEmpty>
   );
 }

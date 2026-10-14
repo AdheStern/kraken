@@ -22,7 +22,7 @@ export function VersionHistory({
   if (versions.length < 2) return null;
   return (
     <section
-      className="rounded-xl border bg-card"
+      className="kr-surface rounded-xl"
       aria-label="Historial de versiones"
     >
       <h2 className="border-b px-5 py-3 text-sm font-semibold">

@@ -77,7 +77,8 @@ export function HourBagRing({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={circumference * (1 - pct / 100)}
-          className="transition-[stroke-dashoffset] duration-[420ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
+          style={{ "--kr-ring-c": circumference } as React.CSSProperties}
+          className="kr-ring-draw transition-[stroke-dashoffset] duration-[420ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
         />
       )}
     </svg>

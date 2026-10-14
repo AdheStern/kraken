@@ -3,7 +3,15 @@
 // navegación y flota (DESIGN.md, Kraken signature; con reduced motion queda quieto y solo cambia la mirada).
 import { cn } from "@/lib/utils";
 
-type Props = { className?: string; mood?: "idle" | "alert" };
+type Mood = "idle" | "alert" | "curious";
+type Props = { className?: string; mood?: Mood };
+
+// POR QUÉ: la mirada cuenta el estado: abajo hacia la navegación si algo espera, arriba si busca y no encuentra.
+const PUPILS: Record<Mood, string | undefined> = {
+  idle: undefined,
+  alert: "translate(2px, 5px)",
+  curious: "translate(-3px, -4px)",
+};
 
 export function KrakenMark({ className, mood = "idle" }: Props) {
   const isAlert = mood === "alert";
@@ -40,10 +48,9 @@ export function KrakenMark({ className, mood = "idle" }: Props) {
           className="fill-(--brand-ink)"
         />
         <ellipse cx="18" cy="6" rx="9" ry="11" className="fill-(--brand-ink)" />
-        {/* POR QUÉ: con pendientes, las pupilas bajan hacia la navegación, donde espera la bandeja. */}
         <g
           className="transition-transform duration-500 ease-out motion-reduce:transition-none"
-          style={isAlert ? { transform: "translate(2px, 5px)" } : undefined}
+          style={PUPILS[mood] ? { transform: PUPILS[mood] } : undefined}
         >
           <circle cx="-15" cy="1" r="3.4" className="fill-white" />
           <circle cx="21" cy="1" r="3.4" className="fill-white" />

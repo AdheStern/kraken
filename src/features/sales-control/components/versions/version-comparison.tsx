@@ -1,5 +1,6 @@
 // src/features/sales-control/components/versions/version-comparison.tsx
 // Comparador de versiones: diferencia de totales y líneas agregadas, quitadas y modificadas (AGENTS.md §2.3).
+import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import type { LineComparison } from "@/domain/sales-control/compare-versions";
 import { formatAmount } from "@/lib/format-amount";
 import type { CvComparisonData } from "../../types";
@@ -33,10 +34,7 @@ export function VersionComparison({
     <div className="grid gap-5">
       <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {data.totals.map((total) => (
-          <div
-            key={total.label}
-            className="rounded-xl border bg-card px-4 py-3"
-          >
+          <div key={total.label} className="kr-surface rounded-xl px-4 py-3">
             <dt className="text-xs text-muted-foreground">{total.label}</dt>
             <dd className="mt-1 tabular-nums">
               <span className="text-muted-foreground">
@@ -51,7 +49,7 @@ export function VersionComparison({
             </dd>
           </div>
         ))}
-        <div className="rounded-xl border bg-card px-4 py-3 text-sm lg:col-span-2">
+        <div className="kr-surface rounded-xl px-4 py-3 text-sm lg:col-span-2">
           <dt className="text-xs text-muted-foreground">Líneas</dt>
           <dd className="mt-1">
             {counts.AGREGADA} agregadas · {counts.QUITADA} quitadas ·{" "}
@@ -60,12 +58,12 @@ export function VersionComparison({
         </div>
       </dl>
       {rows.length === 0 ? (
-        <p className="rounded-xl border border-dashed px-6 py-10 text-center text-sm text-muted-foreground">
+        <KrakenEmpty compact title="Sin cambios en las líneas.">
           Las líneas de {data.fromLabel} y {data.toLabel} son iguales; solo
           cambió la cabecera o el leasing.
-        </p>
+        </KrakenEmpty>
       ) : (
-        <ul className="divide-y rounded-xl border bg-card">
+        <ul className="kr-surface divide-y divide-border/60 rounded-xl">
           {rows.map((row, index) => (
             <ComparisonRow key={`${row.status}-${index}`} row={row} />
           ))}

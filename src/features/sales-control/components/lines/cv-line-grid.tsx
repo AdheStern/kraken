@@ -119,7 +119,7 @@ export function CvLineGrid({
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: delegación del teclado de las celdas (inputs y selects) hijas.
     <div
-      className="overflow-x-auto rounded-xl border bg-card"
+      className="kr-solid overflow-x-auto rounded-xl"
       onKeyDown={handleGridKeyDown}
       onPaste={handlePaste}
     >

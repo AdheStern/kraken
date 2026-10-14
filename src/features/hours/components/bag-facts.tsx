@@ -21,9 +21,12 @@ export function BagFacts({ bag }: { bag: BagSummary }) {
     },
   ];
   return (
-    <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border bg-border sm:grid-cols-[repeat(auto-fit,minmax(9rem,1fr))]">
+    <dl className="kr-solid grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-border/70 sm:grid-cols-[repeat(auto-fit,minmax(9rem,1fr))]">
       {facts.map((fact) => (
-        <div key={fact.label} className="flex flex-col gap-1 bg-card px-4 py-3">
+        <div
+          key={fact.label}
+          className="flex flex-col gap-1 bg-(--surface-solid) px-4 py-3"
+        >
           <dt className="text-xs text-muted-foreground">{fact.label}</dt>
           <dd
             className={cn(

@@ -85,7 +85,7 @@ export function CvLeasingEditor({
     <Collapsible
       open={isOpen}
       onOpenChange={setIsOpen}
-      className="rounded-xl border bg-card"
+      className="kr-surface rounded-xl"
     >
       <CollapsibleTrigger className="flex w-full items-center gap-2 px-5 py-3.5 text-left text-sm font-semibold outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
         Leasing

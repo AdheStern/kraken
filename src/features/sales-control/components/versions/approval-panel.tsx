@@ -33,7 +33,7 @@ export function ApprovalPanel({ approvals }: { approvals: CvApprovalItem[] }) {
   if (approvals.length === 0) return null;
 
   return (
-    <section className="rounded-xl border bg-card" aria-label="Aprobaciones">
+    <section className="kr-surface rounded-xl" aria-label="Aprobaciones">
       <h2 className="border-b px-5 py-3 text-sm font-semibold">Aprobaciones</h2>
       <ul className="divide-y">
         {approvals.map((item) => (

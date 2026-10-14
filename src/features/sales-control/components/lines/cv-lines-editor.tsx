@@ -4,6 +4,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import { submitCvVersion } from "../../actions/submit-cv-version";
 import { upsertCvLines } from "../../actions/upsert-cv-lines";
 import { approverLabels } from "../../approver-labels";
@@ -129,11 +130,10 @@ export function CvLinesEditor({
         )}
         <LinesNotice notice={notice} isDirty={isDirty} />
         {state.lines.length === 0 && state.groups.length === 0 ? (
-          <p className="rounded-xl border border-dashed px-6 py-10 text-center text-sm text-muted-foreground">
-            {canEdit
-              ? "Este CV todavía no tiene líneas. Agrega una línea y pega desde Excel, o agrega una nota o un lote."
-              : "Este CV no tiene líneas."}
-          </p>
+          <KrakenEmpty compact title="Este CV todavía no tiene líneas.">
+            {canEdit &&
+              "Agrega una línea y pega desde Excel, o agrega una nota o un lote."}
+          </KrakenEmpty>
         ) : (
           <CvLineGrid
             state={state}

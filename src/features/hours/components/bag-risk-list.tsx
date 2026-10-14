@@ -1,9 +1,10 @@
 // src/features/hours/components/bag-risk-list.tsx
 // Seguimiento de bolsas: primero las en riesgo (consumo alto o vencen pronto), luego las activas y, plegadas,
 // las agotadas, vencidas y cerradas (AGENTS.md §2.4 alertas, §6 bolsas en riesgo).
-import { ChevronRight, Hourglass, TriangleAlert } from "lucide-react";
+import { ChevronRight, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import type { BagSummary } from "../types";
 import { BagRow } from "./bag-row";
 
@@ -86,7 +87,9 @@ function BagList({
   className?: string;
 }) {
   return (
-    <ul className={`divide-y rounded-xl border bg-card ${className ?? ""}`}>
+    <ul
+      className={`kr-surface divide-y divide-border/60 rounded-xl ${className ?? ""}`}
+    >
       {bags.map((bag) => (
         <BagRow key={bag.id} bag={bag} />
       ))}
@@ -96,14 +99,15 @@ function BagList({
 
 function EmptyState({ isFiltered }: { isFiltered: boolean }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed px-6 py-14 text-center">
-      <Hourglass className="size-8 text-muted-foreground" aria-hidden="true" />
-      <p className="font-medium">
-        {isFiltered
+    <KrakenEmpty
+      mood={isFiltered ? "curious" : "idle"}
+      title={
+        isFiltered
           ? "Ninguna bolsa coincide con el filtro."
-          : "Aún no hay bolsas de horas."}
-      </p>
-      <p className="max-w-sm text-sm text-muted-foreground">
+          : "Aún no hay bolsas de horas."
+      }
+    >
+      <p>
         {isFiltered ? (
           "Prueba con otro cliente o estado."
         ) : (
@@ -118,6 +122,6 @@ function EmptyState({ isFiltered }: { isFiltered: boolean }) {
           </>
         )}
       </p>
-    </div>
+    </KrakenEmpty>
   );
 }

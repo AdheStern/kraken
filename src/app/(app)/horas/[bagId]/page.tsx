@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { CountUp } from "@/components/motion/count-up";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdjustBagDialog } from "@/features/hours/components/adjust-bag-dialog";
 import { BagFacts } from "@/features/hours/components/bag-facts";
@@ -65,7 +66,7 @@ async function HourBag({
             className="absolute inset-0"
           />
           <span className="text-lg font-semibold tabular-nums">
-            {bag.consumedPct}%
+            <CountUp value={bag.consumedPct} />%
           </span>
         </div>
         <div className="min-w-0 flex-1">

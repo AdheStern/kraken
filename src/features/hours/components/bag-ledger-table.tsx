@@ -19,7 +19,7 @@ function signed(minutes: number): string {
 
 export function BagLedgerTable({ entries }: { entries: BagLedgerEntry[] }) {
   return (
-    <div className="overflow-hidden rounded-xl border bg-card">
+    <div className="kr-solid overflow-hidden rounded-xl">
       <table className="w-full text-sm">
         <thead className="hidden border-b text-left text-xs text-muted-foreground md:table-header-group">
           <tr>

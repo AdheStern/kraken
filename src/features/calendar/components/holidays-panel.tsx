@@ -6,6 +6,7 @@
 import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { upsertHoliday } from "../actions/upsert-holiday";
@@ -42,7 +43,7 @@ export function HolidaysPanel({ year, holidays, cities }: Props) {
   return (
     <div className="grid gap-3">
       <form
-        className="grid gap-2 rounded-xl border bg-card p-3 sm:grid-cols-[10rem_minmax(0,1fr)_10rem_auto]"
+        className="kr-surface grid gap-2 rounded-xl p-3 sm:grid-cols-[10rem_minmax(0,1fr)_10rem_auto]"
         onSubmit={(event) => {
           event.preventDefault();
           add();
@@ -82,12 +83,12 @@ export function HolidaysPanel({ year, holidays, cities }: Props) {
         </p>
       )}
       {holidays.length === 0 ? (
-        <p className="rounded-xl border border-dashed px-6 py-10 text-center text-sm text-muted-foreground">
-          No hay feriados cargados para {year}. Agrega los nacionales y los de
-          cada ciudad; sin ellos esos días cuentan como laborables.
-        </p>
+        <KrakenEmpty compact title={`No hay feriados cargados para ${year}.`}>
+          Agrega los nacionales y los de cada ciudad; sin ellos esos días
+          cuentan como laborables.
+        </KrakenEmpty>
       ) : (
-        <ul className="divide-y rounded-xl border bg-card">
+        <ul className="kr-surface divide-y divide-border/60 rounded-xl">
           {holidays.map((h) => (
             <HolidayRow
               key={h.id}

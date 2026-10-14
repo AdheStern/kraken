@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { ModuleHeading } from "@/components/app-shell/module-heading";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toBusinessYear } from "@/domain/calendar/business-date";
 import { CitySchedules } from "@/features/calendar/components/city-schedules";
@@ -24,15 +25,10 @@ export default function CalendarAdminPage({
 }: PageProps<"/admin/calendario">) {
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8 sm:px-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-[-0.02em]">
-          Calendario de negocio
-        </h1>
-        <p className="max-w-2xl text-sm text-muted-foreground">
-          En una bolsa 8x5, cada minuto fuera de estas franjas o en un feriado
-          descuenta el doble. Se usa el horario de la ciudad del ticket.
-        </p>
-      </header>
+      <ModuleHeading
+        title="Calendario de negocio"
+        description="En una bolsa 8x5, cada minuto fuera de estas franjas o en un feriado descuenta el doble. Se usa el horario de la ciudad del ticket."
+      />
       <Suspense fallback={<Skeleton className="h-96 w-full rounded-xl" />}>
         <CalendarAdmin searchParams={searchParams} />
       </Suspense>

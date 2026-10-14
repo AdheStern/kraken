@@ -38,7 +38,7 @@ export function CitySchedules({ cities, schedules }: Props) {
 
   return (
     <div className="grid gap-2">
-      <ul className="divide-y rounded-xl border bg-card">
+      <ul className="kr-surface divide-y divide-border/60 rounded-xl">
         {cities.map((city) => (
           <li
             key={city.id}

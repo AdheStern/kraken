@@ -23,7 +23,7 @@ export function CvTotalsPanel({
 
   return (
     <aside
-      className="grid content-start gap-4 rounded-xl border bg-card p-4 lg:grid-cols-[minmax(180px,auto)_minmax(0,1fr)_minmax(220px,280px)] lg:gap-6 2xl:sticky 2xl:top-16 2xl:grid-cols-1 2xl:gap-4"
+      className="grid content-start gap-4 kr-surface rounded-xl p-4 lg:grid-cols-[minmax(180px,auto)_minmax(0,1fr)_minmax(220px,280px)] lg:gap-6 2xl:sticky 2xl:top-16 2xl:grid-cols-1 2xl:gap-4"
       aria-label="Totales del CV"
     >
       <div>

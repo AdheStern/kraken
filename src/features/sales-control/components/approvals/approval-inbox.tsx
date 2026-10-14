@@ -3,6 +3,7 @@
 // comparador desde la v2 (AGENTS.md §5). Sin delegación: lo que espera más de 24 h se marca (§2.3, §7).
 import { ArrowRight, Clock, GitCompareArrows } from "lucide-react";
 import Link from "next/link";
+import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import { Button } from "@/components/ui/button";
 import { formatAmount } from "@/lib/format-amount";
 import type { PendingApprovalItem } from "../../types";
@@ -19,14 +20,14 @@ export function ApprovalInbox({
 }) {
   if (items.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed px-6 py-12 text-center text-sm text-muted-foreground">
-        No tienes aprobaciones pendientes. Cuando un comercial envíe un CV con
-        líneas de tu área, aparecerá aquí y te llegará un aviso.
-      </p>
+      <KrakenEmpty title="No tienes aprobaciones pendientes.">
+        Cuando un comercial envíe un CV con líneas de tu área, aparecerá aquí y
+        te llegará un aviso.
+      </KrakenEmpty>
     );
   }
   return (
-    <ul className="divide-y rounded-xl border bg-card">
+    <ul className="kr-surface divide-y divide-border/60 rounded-xl">
       {items.map((item) => (
         <InboxRow key={item.requestId} item={item} now={now} />
       ))}

@@ -1,10 +1,11 @@
 // src/app/(app)/horas/linea/[lineId]/page.tsx
 // Abre la bolsa de una línea de CV ("Ver bolsa" en el detalle de línea); si aún no existe, explica cuándo se crea.
-import { ArrowLeft, Hourglass } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { findLineBagId } from "@/features/hours/queries/find-line-bag";
 import { requireUser } from "@/server/session";
@@ -31,20 +32,18 @@ async function LineBag({
   const bagId = await findLineBagId(user, lineId);
   if (bagId) redirect(`/horas/${bagId}`);
   return (
-    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed px-6 py-14 text-center">
-      <Hourglass className="size-8 text-muted-foreground" aria-hidden="true" />
-      <p className="font-medium">Esta línea todavía no tiene bolsa.</p>
-      <p className="max-w-sm text-sm text-muted-foreground">
+    <KrakenEmpty title="Esta línea todavía no tiene bolsa.">
+      <p>
         La bolsa se crea cuando se aprueba la versión del CV. Si ya está
         aprobada, pide acceso a tu gerente de área.
       </p>
       <Link
         href="/horas"
-        className="mt-2 flex items-center gap-1.5 text-sm text-primary underline-offset-4 hover:underline"
+        className="mt-3 inline-flex items-center gap-1.5 text-sm text-primary underline-offset-4 hover:underline"
       >
         <ArrowLeft className="size-4" aria-hidden="true" />
         Bolsas de horas
       </Link>
-    </div>
+    </KrakenEmpty>
   );
 }

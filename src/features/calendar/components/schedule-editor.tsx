@@ -50,7 +50,7 @@ export function ScheduleEditor({ schedule, onCreated }: Props) {
 
   return (
     <section
-      className="rounded-xl border bg-card"
+      className="kr-surface rounded-xl"
       aria-label={name || "Horario nuevo"}
     >
       <header className="flex flex-wrap items-center gap-3 border-b px-4 py-3">

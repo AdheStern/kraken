@@ -64,12 +64,20 @@ export const holidaySchema = z.object({
   cityId: z.uuid().nullable(),
 });
 
+export const updateHolidaySchema = holidaySchema.extend({ id: z.uuid() });
+
 export const deactivateHolidaySchema = z.object({ id: z.uuid() });
+
+export const deactivateOfficeScheduleSchema = z.object({ id: z.uuid() });
 
 export type OfficeScheduleInput = z.input<typeof officeScheduleSchema>;
 export type AssignCityScheduleInput = z.infer<typeof assignCityScheduleSchema>;
 export type HolidayInput = z.infer<typeof holidaySchema>;
+export type UpdateHolidayInput = z.infer<typeof updateHolidaySchema>;
 export type DeactivateHolidayInput = z.infer<typeof deactivateHolidaySchema>;
+export type DeactivateOfficeScheduleInput = z.infer<
+  typeof deactivateOfficeScheduleSchema
+>;
 
 // REGLA: franjas contiguas (12:30 y 12:30) son válidas; solo se rechaza que una empiece antes de que termine
 // la anterior del mismo día (§2.5).

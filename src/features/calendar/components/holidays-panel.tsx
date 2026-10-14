@@ -1,6 +1,6 @@
 // src/features/calendar/components/holidays-panel.tsx
-// Feriados de un año: alta en línea (nacional o de una ciudad) y baja lógica. Un feriado cuenta entero como
-// fuera de horario en la ciudad donde rige (AGENTS.md §2.5).
+// Feriados de un año: alta en línea (nacional o de una ciudad), edición en el lugar y baja lógica. Un feriado
+// cuenta entero como fuera de horario en la ciudad donde rige (AGENTS.md §2.5).
 "use client";
 
 import { LoaderCircle } from "lucide-react";
@@ -8,17 +8,10 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { deactivateHoliday } from "../actions/deactivate-holiday";
 import { upsertHoliday } from "../actions/upsert-holiday";
 import type { CityScheduleView, HolidayView } from "../types";
-
-const NATIONAL = "NACIONAL";
-const dateFormat = new Intl.DateTimeFormat("es-BO", {
-  weekday: "short",
-  day: "numeric",
-  month: "short",
-  timeZone: "UTC",
-});
+import { HolidayRow } from "./holiday-row";
+import { HolidayScopeSelect } from "./holiday-scope-select";
 
 type Props = {
   year: number;
@@ -28,27 +21,21 @@ type Props = {
 
 export function HolidaysPanel({ year, holidays, cities }: Props) {
   const router = useRouter();
-  const [draft, setDraft] = useState({ date: "", name: "", scope: NATIONAL });
+  const [draft, setDraft] = useState<{
+    date: string;
+    name: string;
+    cityId: string | null;
+  }>({ date: "", name: "", cityId: null });
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
 
   async function add() {
     setIsPending(true);
     setError(null);
-    const result = await upsertHoliday({
-      date: draft.date,
-      name: draft.name,
-      cityId: draft.scope === NATIONAL ? null : draft.scope,
-    });
+    const result = await upsertHoliday(draft);
     setIsPending(false);
     if (!result.ok) return setError(result.error.message);
-    setDraft({ date: "", name: "", scope: draft.scope });
-    router.refresh();
-  }
-
-  async function remove(id: string) {
-    const result = await deactivateHoliday({ id });
-    if (!result.ok) return setError(result.error.message);
+    setDraft({ date: "", name: "", cityId: draft.cityId });
     router.refresh();
   }
 
@@ -77,19 +64,11 @@ export function HolidaysPanel({ year, holidays, cities }: Props) {
           aria-label="Nombre del feriado"
           className="h-9"
         />
-        <select
-          value={draft.scope}
-          onChange={(e) => setDraft({ ...draft, scope: e.target.value })}
-          aria-label="Dónde rige"
-          className="h-9 rounded-lg border bg-background px-2 text-sm"
-        >
-          <option value={NATIONAL}>Nacional</option>
-          {cities.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        <HolidayScopeSelect
+          value={draft.cityId}
+          cities={cities}
+          onChange={(cityId) => setDraft({ ...draft, cityId })}
+        />
         <Button type="submit" size="sm" className="h-9" disabled={isPending}>
           {isPending && (
             <LoaderCircle className="animate-spin" aria-hidden="true" />
@@ -110,26 +89,12 @@ export function HolidaysPanel({ year, holidays, cities }: Props) {
       ) : (
         <ul className="divide-y rounded-xl border bg-card">
           {holidays.map((h) => (
-            <li
+            <HolidayRow
               key={h.id}
-              className="grid grid-cols-[6.5rem_minmax(0,1fr)_auto_auto] items-center gap-3 px-4 py-2 text-sm"
-            >
-              <span className="tabular-nums text-muted-foreground">
-                {dateFormat.format(new Date(`${h.date}T00:00:00Z`))}
-              </span>
-              <span className="truncate">{h.name}</span>
-              <span className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                {h.cityCode ?? "Nacional"}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => remove(h.id)}
-                aria-label={`Quitar ${h.name}`}
-              >
-                Quitar
-              </Button>
-            </li>
+              holiday={h}
+              cities={cities}
+              onError={setError}
+            />
           ))}
         </ul>
       )}

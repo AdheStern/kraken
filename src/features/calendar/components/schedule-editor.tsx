@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { deactivateOfficeSchedule } from "../actions/deactivate-office-schedule";
 import { upsertOfficeSchedule } from "../actions/upsert-office-schedule";
 import type { ScheduleView, SlotView } from "../types";
 import { WeekdaySlotsRow } from "./weekday-slots-row";
@@ -38,6 +39,15 @@ export function ScheduleEditor({ schedule, onCreated }: Props) {
     router.refresh();
   }
 
+  async function deactivate() {
+    if (!schedule) return;
+    setMessage(null);
+    const result = await deactivateOfficeSchedule({ id: schedule.id });
+    if (!result.ok)
+      return setMessage({ ok: false, text: result.error.message });
+    router.refresh();
+  }
+
   return (
     <section
       className="rounded-xl border bg-card"
@@ -66,6 +76,11 @@ export function ScheduleEditor({ schedule, onCreated }: Props) {
             >
               {message.text}
             </p>
+          )}
+          {schedule && schedule.cityCodes.length === 0 && (
+            <Button variant="ghost" size="sm" onClick={deactivate}>
+              Desactivar
+            </Button>
           )}
           <Button size="sm" onClick={save} disabled={isPending}>
             {isPending && (

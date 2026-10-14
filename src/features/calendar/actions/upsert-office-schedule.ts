@@ -33,16 +33,22 @@ export async function upsertOfficeSchedule(
   try {
     return await runInTransaction(async (tx) => {
       const sameName = await tx.officeSchedule.findUnique({ where: { name } });
-      if (sameName && sameName.id !== id)
+      if (sameName && sameName.id !== id && (sameName.isActive || id))
         return actionError(
           "VALIDATION",
           "Ya existe un horario con ese nombre.",
         );
+      // POR QUÉ: un horario dado de baja conserva su nombre (único); crear otro igual lo reactiva.
+      const targetId = id ?? sameName?.id ?? null;
       // POR QUÉ: las franjas se reemplazan enteras; el horario es un catálogo, no un libro (§4).
-      const saved = id
+      const saved = targetId
         ? await tx.officeSchedule.update({
-            where: { id },
-            data: { name, slots: { deleteMany: {}, create: slots } },
+            where: { id: targetId },
+            data: {
+              name,
+              isActive: true,
+              slots: { deleteMany: {}, create: slots },
+            },
           })
         : await tx.officeSchedule.create({
             data: { name, slots: { create: slots } },

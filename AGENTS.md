@@ -579,8 +579,8 @@ type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { code: Error
 |---|---|---|
 | `fx.fetch-official` | 00:15 y cada hora hasta tener el TC vigente | API de CUCU → `fx.tipo_cambio` |
 | `mail.dispatch` | Continuo | Envía `notif.salida` con reintento exponencial; tras 10 fallos alerta al administrador |
-| `bags.check-thresholds` | Cada hora y tras cada cierre | Alertas de 80%, 100% y consumo proyectado |
-| `bags.expire` | 00:05 diario | Vence bolsas, registra `VENCIMIENTO`, avisa 30 días antes |
+| `bags.check-thresholds` | Tras cada cierre (F3) | Consumo proyectado mayor al saldo. Los avisos de 80% y 100% no son job: se emiten en la transacción del movimiento que cruza el umbral (F2) |
+| `bags.expire` | 00:05 diario (America/La_Paz) | Vence bolsas, registra `VENCIMIENTO` sin actor, avisa N días antes y el día del vencimiento, una vez cada aviso (implementado) |
 | `sla.evaluate` | Cada 5 min | Mediciones y alerta al 75% |
 | `timers.stale` | Cada 30 min | Contadores abiertos más de 10 h |
 | `approvals.reminder` | 09:00 días hábiles | Solicitudes con más de 24 h |
@@ -848,7 +848,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 **Decisiones abiertas (no implementar como definitivas; aislarlas en parámetros):**
 - **F0:** nivel de RAID del NAS; repositorio Git. Deuda: el worker existe (F2, `bags.expire`), pero faltan `mail.dispatch` con Graph y `fx.fetch-official`; hasta entonces los correos esperan en `notif.salida`.
 - **F1:** significado del sufijo `-DS`; confirmar que un rechazo cierra la ronda; valor inicial del umbral del GG; % de desvío del TC que dispara la advertencia.
-- **F2:** horario real de cada ciudad (¿con pausa de mediodía?) y feriados departamentales. *Resuelto:* las bolsas vigentes se cargan con un "CV de saldo inicial" por cliente (`es_saldo_inicial`, solo horas de servicio con costo y venta 0), aprobado por su gerente.
+- **F2:** horario real de cada ciudad (¿con pausa de mediodía?) y feriados departamentales y de traslado; umbrales de alerta (80% y 100%) y días de aviso de vencimiento (30); multiplicador 2 fuera de horario; si el coordinador de soporte ve las bolsas de su área (hoy sí). *Resuelto:* las bolsas vigentes se cargan con un "CV de saldo inicial" por cliente (`es_saldo_inicial`, solo horas de servicio con costo y venta 0), aprobado por su gerente.
 - **F3:** confirmar el redondeo hacia arriba; confirmar que se suman los tiempos en paralelo; prioridades de ticket y tiempos de SLA por prioridad y modalidad.
 - **F4:** método de valoración (propuesto: costo promedio ponderado); productos que exigen serial; almacenes exactos.
 - **F5:** KPIs, KGIs y metas definitivas.

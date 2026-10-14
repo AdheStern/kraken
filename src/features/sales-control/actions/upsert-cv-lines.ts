@@ -33,7 +33,13 @@ export async function upsertCvLines(
 
   const version = await prisma.cvVersion.findUnique({
     where: { id: versionId },
-    select: { cvId: true, status: true, costFxRate: true, saleFxRate: true },
+    select: {
+      cvId: true,
+      status: true,
+      costFxRate: true,
+      saleFxRate: true,
+      cv: { select: { isOpeningBalance: true } },
+    },
   });
   if (!version) return actionError("NOT_FOUND", "El CV ya no existe.");
   if (version.status !== "BORRADOR")
@@ -54,7 +60,10 @@ export async function upsertCvLines(
     where: { isHours: true },
     select: { id: true },
   });
-  const context = { hoursUnitIds: new Set(hoursUnits.map((unit) => unit.id)) };
+  const context = {
+    hoursUnitIds: new Set(hoursUnits.map((unit) => unit.id)),
+    isOpeningBalance: version.cv.isOpeningBalance,
+  };
   const prepared = prepareLineRecords(groups, lines, fx, context);
   if (!prepared.ok) return actionError("VALIDATION", prepared.message);
 

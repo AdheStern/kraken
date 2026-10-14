@@ -55,6 +55,7 @@ export async function createCv(
           cityId: city.id,
           customerId: customer.id,
           createdById: user.id,
+          isOpeningBalance: data.isOpeningBalance ?? false,
           versions: {
             create: {
               number: 1,

@@ -49,16 +49,18 @@ model CvCounter {
 }
 
 model Cv {
-  id          String    @id @default(uuid(7)) @db.Uuid
-  number      Int       @map("correlativo")
-  cityId      String    @map("ciudad_id") @db.Uuid
-  year        Int       @map("anio")
-  code        String    @unique @map("codigo")
-  customerId  String    @map("cliente_id") @db.Uuid
-  createdById String    @map("creado_por_id")
-  createdAt   DateTime  @default(now()) @map("creado_en") @db.Timestamptz
-  voidedAt    DateTime? @map("anulado_en") @db.Timestamptz
-  voidReason  String?   @map("motivo_anulacion")
+  id               String    @id @default(uuid(7)) @db.Uuid
+  number           Int       @map("correlativo")
+  cityId           String    @map("ciudad_id") @db.Uuid
+  year             Int       @map("anio")
+  code             String    @unique @map("codigo")
+  customerId       String    @map("cliente_id") @db.Uuid
+  createdById      String    @map("creado_por_id")
+  createdAt        DateTime  @default(now()) @map("creado_en") @db.Timestamptz
+  voidedAt         DateTime? @map("anulado_en") @db.Timestamptz
+  voidReason       String?   @map("motivo_anulacion")
+  // REGLA: CV de saldo inicial: traslada horas vigentes antes de Kraken (venta 0, solo horas de servicio, §14 F2).
+  isOpeningBalance Boolean   @default(false) @map("es_saldo_inicial")
 
   city        City           @relation(fields: [cityId], references: [id])
   customer    Customer       @relation(fields: [customerId], references: [id])

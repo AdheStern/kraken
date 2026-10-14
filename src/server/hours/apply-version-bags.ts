@@ -92,7 +92,9 @@ async function openBag(
     kind: "APERTURA",
     minutes: op.minutes,
     actorId: input.actorId,
-    reason: `Apertura · ${input.label}`,
+    reason: context.isOpeningBalance
+      ? `Saldo inicial migrado · ${input.label}`
+      : `Apertura · ${input.label}`,
   });
 }
 

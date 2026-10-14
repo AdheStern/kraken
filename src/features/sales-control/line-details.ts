@@ -10,7 +10,10 @@ import {
   hourBagSpecSchema,
 } from "./schemas/cv-lines-schema";
 
-export type LineDetailContext = { hoursUnitIds: ReadonlySet<string> };
+export type LineDetailContext = {
+  hoursUnitIds: ReadonlySet<string>;
+  isOpeningBalance?: boolean;
+};
 
 const NUMBER = /^\d+(\.\d+)?$/;
 
@@ -61,6 +64,8 @@ export function lineDetailIssues(
   }
   if (needsHourBag(line, context))
     issues.push(...hourBagIssues(line, quantity));
+  if (context.isOpeningBalance)
+    issues.push(...openingBalanceIssues(line, context));
   if (line.saveAsProduct && (!line.code || !line.itemType)) {
     issues.push({
       field: "saveAsProduct",
@@ -68,6 +73,36 @@ export function lineDetailIssues(
     });
   }
   return issues;
+}
+
+// REGLA: un CV de saldo inicial solo traslada horas ya vendidas antes de Kraken: líneas de horas de servicio
+// con costo y venta 0, para no sumar ventas ni márgenes (AGENTS.md §14, F2).
+function openingBalanceIssues(
+  line: CvLineDraft,
+  context: LineDetailContext,
+): LineIssue[] {
+  if (!needsHourBag(line, context))
+    return [
+      {
+        field: "unitId",
+        message:
+          "Un CV de saldo inicial solo lleva líneas de horas de servicio.",
+      },
+    ];
+  if (!isZeroOrEmpty(line.unitSaleUsd) || !isZeroOrEmpty(line.unitCostUsd))
+    return [
+      {
+        field: "unitSaleUsd",
+        message:
+          "En un CV de saldo inicial costo y venta van en 0: son horas ya cobradas.",
+      },
+    ];
+  return [];
+}
+
+function isZeroOrEmpty(text: string): boolean {
+  const value = text.trim();
+  return value === "" || (NUMBER.test(value) && new Decimal(value).isZero());
 }
 
 function hourBagIssues(

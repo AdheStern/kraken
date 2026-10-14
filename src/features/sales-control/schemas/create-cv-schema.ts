@@ -13,6 +13,7 @@ export const createCvSchema = z.object({
     .max(160, "Máximo 160 caracteres."),
   costFxRate: fxRateField,
   saleFxRate: fxRateField,
+  isOpeningBalance: z.boolean().optional(),
 });
 
 export type CreateCvInput = z.infer<typeof createCvSchema>;

@@ -102,3 +102,37 @@ describe("parseHourBagSpec", () => {
     expect(parseHourBagSpec({ ...bag, expiresOn: null })).toEqual(bag);
   });
 });
+
+describe("CV de saldo inicial (§14, F2)", () => {
+  const opening = { ...context, isOpeningBalance: true };
+  const openingFields = (l: CvLineDraft) =>
+    lineDetailIssues(l, opening).map((issue) => issue.field);
+  const hours = line({
+    ...hourService,
+    hourBag: bag,
+    quantity: "20",
+    unitCostUsd: "0",
+    unitSaleUsd: "0.00",
+  });
+
+  it("acepta horas de servicio con costo y venta 0", () => {
+    expect(openingFields(hours)).toEqual([]);
+  });
+
+  it("rechaza otras líneas y cualquier venta o costo", () => {
+    expect(
+      openingFields(line({ unitId: "unit-pieza", itemType: "HARDWARE" })),
+    ).toEqual(["unitId"]);
+    expect(openingFields({ ...hours, unitSaleUsd: "50" })).toEqual([
+      "unitSaleUsd",
+    ]);
+    expect(openingFields({ ...hours, unitCostUsd: "10" })).toEqual([
+      "unitSaleUsd",
+    ]);
+  });
+
+  it("admite notas y no aplica fuera de un CV de saldo inicial", () => {
+    expect(lineDetailIssues(blankLine("NOTA", null), opening)).toEqual([]);
+    expect(fields({ ...hours, unitSaleUsd: "50" })).toEqual([]);
+  });
+});

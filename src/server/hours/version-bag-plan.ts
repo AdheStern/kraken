@@ -25,6 +25,7 @@ export type PlannedLine = {
 
 export type VersionBagContext = {
   customerId: string;
+  isOpeningBalance: boolean;
   plan: BagPlan;
   currentBags: CurrentBag[];
   shortfalls: BagShortfall[];
@@ -48,7 +49,7 @@ export async function planBagsForVersion(
     where: { id: versionId },
     select: {
       cvId: true,
-      cv: { select: { customerId: true } },
+      cv: { select: { customerId: true, isOpeningBalance: true } },
       lines: {
         where: HOUR_LINE,
         orderBy: { position: "asc" },
@@ -68,6 +69,7 @@ export async function planBagsForVersion(
   const plan = planVersionBags(hourLines, currentBags);
   return {
     customerId: version.cv.customerId,
+    isOpeningBalance: version.cv.isOpeningBalance,
     plan,
     currentBags,
     shortfalls: findBagShortfalls(plan.ops, currentBags),

@@ -74,11 +74,11 @@ async function addHourLines(versionId: string, lines: HourLine[]) {
   }
 }
 
-async function approvedCv(lines: HourLine[]) {
+async function approvedCv(lines: HourLine[], isOpeningBalance = false) {
   const f = await createCvFixture(db);
   await db.cv.update({
     where: { id: f.cv.id },
-    data: { createdById: seller.id },
+    data: { createdById: seller.id, isOpeningBalance },
   });
   await addHourLines(f.version.id, lines);
   expect(await submit(f.version.id)).toMatchObject({ ok: true });
@@ -295,5 +295,13 @@ describe("bolsas al aprobar un CV", () => {
         ),
       ),
     ).toMatchObject({ ok: false, error: { code: "INVALID_STATE" } });
+  });
+
+  it("un CV de saldo inicial abre su bolsa con el motivo de migración", async () => {
+    const f = await approvedCv([{ hours: "12.5" }], true);
+    const [bag] = await bagsOf(f.cv.id);
+    expect(bag.balanceMinutes).toBe(750);
+    expect(bag.movements[0]).toMatchObject({ kind: "APERTURA", minutes: 750 });
+    expect(bag.movements[0].reason).toMatch(/^Saldo inicial migrado · /);
   });
 });

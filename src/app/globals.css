@@ -260,6 +260,14 @@
     animation-delay: 200ms;
   }
 
+  /* Señal de Inicio: un tramo de luz recorre una vez el trazo hacia un módulo con algo pendiente. */
+  .kr-travel {
+    stroke-dasharray: 12 100;
+    stroke-dashoffset: 12;
+    opacity: 0;
+    animation: kr-travel 1400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
   .kr-glass-chip {
     background: oklch(1 0 0 / 0.12);
     border: 1px solid oklch(1 0 0 / 0.24);
@@ -318,6 +326,20 @@
     transform-box: fill-box;
     transform-origin: center;
     animation: kr-ink 700ms ease-out forwards;
+  }
+}
+
+@keyframes kr-travel {
+  0% {
+    opacity: 1;
+    stroke-dashoffset: 12;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    stroke-dashoffset: -100;
   }
 }
 
@@ -392,6 +414,9 @@
   }
   .kr-enter > main > * {
     animation: none;
+  }
+  .kr-travel {
+    display: none;
   }
 }
 

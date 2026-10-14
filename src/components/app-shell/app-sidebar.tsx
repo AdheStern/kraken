@@ -1,7 +1,6 @@
 // src/components/app-shell/app-sidebar.tsx
 // Riel de navegación de la app sobre el campo azul DIMA: marca, módulos y usuario (DESIGN.md, Blue Field Rule).
 import type { ReactNode } from "react";
-import { KrakenMark } from "@/components/brand/kraken-mark";
 import {
   Sidebar,
   SidebarContent,
@@ -10,12 +9,14 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 
-export function AppSidebar({ nav, user }: { nav: ReactNode; user: ReactNode }) {
+type Props = { mark: ReactNode; nav: ReactNode; user: ReactNode };
+
+export function AppSidebar({ mark, nav, user }: Props) {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex items-center gap-2.5 px-1 py-1.5">
-          <KrakenMark className="size-8 shrink-0" />
+          {mark}
           <div className="leading-none group-data-[collapsible=icon]:hidden">
             <p className="font-display text-xl tracking-[-0.02em]">Kraken</p>
             <p className="mt-0.5 text-[11px] text-sidebar-foreground/70">

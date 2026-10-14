@@ -5,8 +5,10 @@ import { Suspense } from "react";
 import { AppNav } from "@/components/app-shell/app-nav";
 import { AppSidebar } from "@/components/app-shell/app-sidebar";
 import { BASE_NAV } from "@/components/app-shell/nav-entries";
+import { RailMark } from "@/components/app-shell/rail-mark";
 import { RoleNav } from "@/components/app-shell/role-nav";
 import { SidebarUser } from "@/components/app-shell/sidebar-user";
+import { KrakenMark } from "@/components/brand/kraken-mark";
 import { ModeToggle } from "@/components/theme/mode-toggle";
 import {
   SidebarInset,
@@ -20,6 +22,11 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <SidebarProvider>
       <AppSidebar
+        mark={
+          <Suspense fallback={<KrakenMark className="size-9 shrink-0" />}>
+            <RailMark />
+          </Suspense>
+        }
         nav={
           <Suspense fallback={<AppNav entries={BASE_NAV} />}>
             <RoleNav />
@@ -33,8 +40,8 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
           </Suspense>
         }
       />
-      <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-12 items-center gap-2 border-b bg-background/85 px-3 backdrop-blur">
+      <SidebarInset className="kr-ground">
+        <header className="kr-header sticky top-0 z-10 flex h-12 items-center gap-2 px-3">
           <SidebarTrigger aria-label="Mostrar u ocultar la navegación" />
           <div className="ml-auto flex items-center gap-1">
             <Suspense fallback={<Skeleton className="size-8 rounded-md" />}>

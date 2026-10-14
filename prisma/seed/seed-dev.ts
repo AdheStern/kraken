@@ -1,10 +1,10 @@
 // prisma/seed/seed-dev.ts
-// Carga idempotente de catálogos y usuarios de DESARROLLO (`pnpm db:seed:dev`). Nunca en producción.
+// Carga idempotente de DESARROLLO (`pnpm db:seed:dev`): catálogos base + datos demo y usuarios. Nunca en producción.
 import type { Tx } from "@/server/db";
 import { prisma } from "@/server/db";
+import { seedBaseCatalogs } from "./base-catalogs";
 import { upsertCredentialUser } from "./credential-user";
 import * as data from "./dev-catalog-data";
-import { upsertRoles } from "./roles";
 import { seedCalendar } from "./seed-calendar";
 
 async function main() {
@@ -17,8 +17,8 @@ async function main() {
   }
   await prisma.$transaction(
     async (tx) => {
-      await upsertRoles(tx);
-      await seedCatalogs(tx);
+      await seedBaseCatalogs(tx);
+      await seedDevCatalogs(tx);
       await seedCalendar(tx);
       for (const user of data.DEV_USERS) {
         const area =
@@ -37,44 +37,14 @@ async function main() {
   );
 }
 
-async function seedCatalogs(tx: Tx) {
-  for (const city of data.CITIES) {
-    await tx.city.upsert({
-      where: { code: city.code },
-      create: city,
-      update: { name: city.name },
-    });
-  }
-  for (const area of data.AREAS) {
-    await tx.area.upsert({
-      where: { code: area.code },
-      create: area,
-      update: { name: area.name },
-    });
-  }
-  for (const unit of data.UNITS) {
-    await tx.unit.upsert({
-      where: { code: unit.code },
-      create: unit,
-      update: unit,
-    });
-  }
-  for (const name of data.TECHNOLOGIES) {
-    await tx.technology.upsert({
-      where: { name },
-      create: { name },
-      update: {},
-    });
+async function seedDevCatalogs(tx: Tx) {
+  for (const name of data.DEV_TECHNOLOGIES) {
+    const where = { name: { equals: name, mode: "insensitive" as const } };
+    if (!(await tx.technology.findFirst({ where })))
+      await tx.technology.create({ data: { name } });
   }
   for (const name of data.SUPPLIERS) {
     await tx.supplier.upsert({ where: { name }, create: { name }, update: {} });
-  }
-  for (const name of data.SERVICE_TYPES) {
-    await tx.serviceType.upsert({
-      where: { name },
-      create: { name },
-      update: {},
-    });
   }
   for (const customer of data.CUSTOMERS) {
     const found = await tx.customer.findFirst({
@@ -83,13 +53,6 @@ async function seedCatalogs(tx: Tx) {
     if (!found)
       await tx.customer.create({ data: { ...customer, country: "Bolivia" } });
   }
-  for (const parameter of data.PARAMETERS) {
-    await tx.parameter.upsert({
-      where: { key: parameter.key },
-      create: parameter,
-      update: {},
-    });
-  }
   await seedProducts(tx);
 }
 
@@ -97,7 +60,9 @@ async function seedProducts(tx: Tx) {
   for (const { technology, unit, ...product } of data.PRODUCTS) {
     if (await tx.product.findFirst({ where: { code: product.code } })) continue;
     const technologyRow = technology
-      ? await tx.technology.findUniqueOrThrow({ where: { name: technology } })
+      ? await tx.technology.findFirstOrThrow({
+          where: { name: { equals: technology, mode: "insensitive" } },
+        })
       : null;
     const unitRow = await tx.unit.findUniqueOrThrow({ where: { code: unit } });
     await tx.product.create({

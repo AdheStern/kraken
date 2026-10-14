@@ -39,7 +39,9 @@ pnpm test:e2e                 # Playwright
 pnpm biome check --write      # lint + formato
 pnpm prisma migrate dev       # migraciones en desarrollo
 pnpm db:seed:admin            # crea/actualiza la cuenta de emergencia ADMIN_SISTEMA desde SUPERADMIN_*
-pnpm db:seed:dev              # SOLO desarrollo: catálogos y usuarios demo (gg@, gerente.dimanet@, comercial@, comercial2@dima.local)
+pnpm db:seed:base             # catálogos base (ciudades, áreas, roles, parámetros y la hoja "Listas"); apto para producción,
+                              # solo crea lo que falta
+pnpm db:seed:dev              # SOLO desarrollo: catálogos base + datos y usuarios demo (gg@, gerente.dimanet@, comercial@, comercial2@dima.local)
                               # con DEV_SEED_PASSWORD; entrar con contraseña exige AUTH_DEV_PASSWORD_LOGIN=true
 pnpm skills:install           # restaura las skills de agentes desde skills-lock.json
 docker compose -f deploy/compose.dev.yml up -d   # Postgres + correo falso
@@ -772,7 +774,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - Repositorio, tooling (Biome, lefthook, Vitest, Playwright), CI con runner, Compose de desarrollo [SONNET]
 - Esquemas `auth` y `core`, Better Auth + Entra, grupos → roles, authz con los tests de 2.9 [OPUS]
 - Auditoría, outbox + Graph, job de TC y panel [SONNET]
-- Catálogos base con carga inicial desde la hoja "Listas" de las plantillas [SONNET]
+- Catálogos base con carga inicial desde la hoja "Listas" de las plantillas [SONNET] — `pnpm db:seed:base` (unidades, áreas, tecnologías y tipos de servicio; sin "Ninguno", sin el área "Otro / Externo" y sin las listas de personas, que entran por Entra ID)
 - *Sale cuando:* login con cuenta de DIMA, TC del día visible, correo de prueba recibido y restauración en staging funcionando.
 
 **F1 · Control de Venta (~4 semanas) · primera salida a producción**

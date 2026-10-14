@@ -28,6 +28,10 @@ export const auth = betterAuth({
       // REGLA: inquilino único de DIMA; nunca "common" (AGENTS.md ADR-05).
       tenantId: process.env.ENTRA_TENANT_ID,
       prompt: "select_account",
+      // POR QUÉ: el avatar mide 32 px; 96 px se ve nítido en pantallas de alta densidad (Graph /me/photos).
+      profilePhotoSize: 96,
+      // POR QUÉ: nombre y foto siguen a Microsoft 365; sin esto solo se guardan al crear el usuario.
+      overrideUserInfoOnSignIn: true,
     },
   },
   hooks: {

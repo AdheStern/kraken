@@ -34,6 +34,12 @@ export function toActionError<T>(
       "Esta versión ya no está en borrador. Crea una versión nueva para modificarla.",
     );
   }
+  if (hasCode(error, "P2002")) {
+    return actionError(
+      "CONFLICT",
+      "Ya existe un registro con ese nombre o código. Usa otro o edita el existente.",
+    );
+  }
   if (hasCode(error, "P2003")) {
     return actionError(
       "VALIDATION",

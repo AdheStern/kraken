@@ -4,7 +4,7 @@
 
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
-import { canManageCalendar } from "@/server/authz/admin-permissions";
+import { canManageSystem } from "@/server/authz/admin-permissions";
 import { runInTransaction } from "@/server/db";
 import { getSessionUser } from "@/server/session";
 import {
@@ -22,7 +22,7 @@ export async function updateHoliday(
       "UNAUTHENTICATED",
       "Tu sesión expiró. Vuelve a iniciar sesión.",
     );
-  if (!canManageCalendar(user))
+  if (!canManageSystem(user))
     return actionError(
       "FORBIDDEN",
       "Solo el administrador del sistema edita los feriados.",

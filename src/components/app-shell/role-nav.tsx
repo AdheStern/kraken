@@ -3,7 +3,7 @@
 // con el número de solicitudes pendientes.
 // Va dentro de un <Suspense> porque lee la sesión.
 import { listPendingApprovals } from "@/features/sales-control/queries/list-pending-approvals";
-import { canManageCalendar } from "@/server/authz/admin-permissions";
+import { canOpenAdmin } from "@/server/authz/admin-permissions";
 import { canApproveCvs } from "@/server/authz/cv-permissions";
 import { canSeeHourBags } from "@/server/authz/hour-bag-permissions";
 import { requireUser } from "@/server/session";
@@ -18,6 +18,6 @@ export async function RoleNav() {
     const pending = await listPendingApprovals(user);
     entries.push({ key: "aprobaciones", badge: pending.length });
   }
-  if (canManageCalendar(user)) entries.push({ key: "admin" });
+  if (canOpenAdmin(user)) entries.push({ key: "admin" });
   return <AppNav entries={entries} />;
 }

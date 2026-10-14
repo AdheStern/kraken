@@ -34,7 +34,7 @@ const ITEMS: Record<NavKey, { href: string; label: string; icon: LucideIcon }> =
     horas: { href: "/horas", label: "Bolsas de horas", icon: Hourglass },
     aprobaciones: { href: "/aprobaciones", label: "Aprobaciones", icon: Stamp },
     admin: {
-      href: "/admin/calendario",
+      href: "/admin",
       label: "Administración",
       icon: Settings,
     },

@@ -1,6 +1,6 @@
 // src/features/calendar/queries/get-calendar-admin.ts
 // Horarios con sus franjas, ciudades con su horario y feriados activos de un año, para la administración.
-// LIMITACIÓN: sin alcance por usuario; la página solo se abre con canManageCalendar (catálogo del sistema).
+// LIMITACIÓN: sin alcance por usuario; la página solo se abre con canManageSystem (catálogo del sistema).
 import { prisma } from "@/server/db";
 import { toTimeText } from "../time-text";
 import type { CalendarAdminData } from "../types";

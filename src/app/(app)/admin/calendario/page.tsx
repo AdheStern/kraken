@@ -9,12 +9,13 @@ import { Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toBusinessYear } from "@/domain/calendar/business-date";
+import { AdminBackLink } from "@/features/admin/components/admin-back-link";
 import { CitySchedules } from "@/features/calendar/components/city-schedules";
 import { HolidaysPanel } from "@/features/calendar/components/holidays-panel";
 import { NewSchedule } from "@/features/calendar/components/new-schedule";
 import { ScheduleEditor } from "@/features/calendar/components/schedule-editor";
 import { getCalendarAdmin } from "@/features/calendar/queries/get-calendar-admin";
-import { canManageCalendar } from "@/server/authz/admin-permissions";
+import { canManageSystem } from "@/server/authz/admin-permissions";
 import { systemClock } from "@/server/clock";
 import { requireUser } from "@/server/session";
 
@@ -25,6 +26,7 @@ export default function CalendarAdminPage({
 }: PageProps<"/admin/calendario">) {
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8 sm:px-6">
+      <AdminBackLink />
       <ModuleHeading
         title="Calendario de negocio"
         description="En una bolsa 8x5, cada minuto fuera de estas franjas o en un feriado descuenta el doble. Se usa el horario de la ciudad del ticket."
@@ -40,7 +42,7 @@ async function CalendarAdmin({
   searchParams,
 }: Pick<PageProps<"/admin/calendario">, "searchParams">) {
   const user = await requireUser();
-  if (!canManageCalendar(user)) notFound();
+  if (!canManageSystem(user)) notFound();
   const params = await searchParams;
   const currentYear = toBusinessYear(systemClock.now());
   const requested = Number(params.anio);

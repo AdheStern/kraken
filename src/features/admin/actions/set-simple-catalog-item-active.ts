@@ -4,7 +4,8 @@
 
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
-import { prisma } from "@/server/db";
+import { recordAudit } from "@/server/audit/record-audit";
+import { runInTransaction } from "@/server/db";
 import { getSessionUser } from "@/server/session";
 import { canManageAdminAccess } from "../admin-access";
 import {
@@ -34,12 +35,22 @@ export async function setSimpleCatalogItemActive(
     );
   const args = { where: { id }, data: { isActive } };
   try {
-    if (kind === "areas") await prisma.area.update(args);
-    else if (kind === "ciudades") await prisma.city.update(args);
-    else if (kind === "unidades") await prisma.unit.update(args);
-    else if (kind === "tecnologias") await prisma.technology.update(args);
-    else if (kind === "tipos-servicio") await prisma.serviceType.update(args);
-    else await prisma.supplier.update(args);
+    await runInTransaction(async (tx) => {
+      if (kind === "areas") await tx.area.update(args);
+      else if (kind === "ciudades") await tx.city.update(args);
+      else if (kind === "unidades") await tx.unit.update(args);
+      else if (kind === "tecnologias") await tx.technology.update(args);
+      else if (kind === "tipos-servicio") await tx.serviceType.update(args);
+      else await tx.supplier.update(args);
+      await recordAudit(tx, {
+        actorId: user.id,
+        entity: SIMPLE_CATALOGS[kind].table,
+        entityId: id,
+        action: isActive ? "REACTIVAR" : "BAJA",
+        before: { isActive: !isActive },
+        after: { isActive },
+      });
+    });
     return actionOk(null);
   } catch (error) {
     return toActionError(error, "setSimpleCatalogItemActive");

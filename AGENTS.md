@@ -302,7 +302,7 @@ Usuarios ─HTTPS→ FortiGate/Radware (WAF + TLS) → IP virtual (keepalived)
 | ADR-11 | Versionado de CV por copia (cada versión con sus líneas). Un trigger bloquea cambios en versiones que no estén en `BORRADOR`. | Comparador trivial; lo aprobado no cambia ni por error. |
 | ADR-12 | Exportación con ExcelJS sobre la plantilla oficial `PA-PR-03-RE-01` en `templates/`, escribiendo fórmulas. | El formato que DIMA ya usa; archivo "vivo". |
 | ADR-13 | Docker Compose sobre VMs de VMware, sin Kubernetes. | La misma disponibilidad con mucha menos operación. |
-| ADR-14 | Auditoría en `audit.evento` vía extensión de Prisma (actor, entidad, acción, antes, después, IP, fecha). | Trazabilidad de precios, aprobaciones y ajustes. |
+| ADR-14 | Auditoría en `audit.evento` con `recordAudit(tx, …)` explícito dentro de la transacción de cada action que decide algo (crear, enviar, aprobar o rechazar, nueva versión, anular, ajustes y cierres de bolsas, administración y la sincronización con Entra): actor, entidad, acción, antes, después, IP y requestId. Los guardados de borrador no se auditan: la versión enviada es inmutable y es el rastro de sus precios. | Trazabilidad de precios, aprobaciones y ajustes. Explícito y no una extensión de Prisma: la extensión no ve al actor ni la transacción para leer el «antes» (KISS). |
 | ADR-15 | Fechas UTC en BD; calendario en `America/La_Paz` (UTC−4, sin horario de verano). | Sin errores de zona horaria. |
 | ADR-16 | Adjuntos en NFS del NAS montado en ambos nodos (ruta + hash en BD), copia diaria a Azure Blob, detrás de la interfaz `FileStore`. | Sin servicio de objetos adicional; migrable a S3. |
 

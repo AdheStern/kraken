@@ -4,7 +4,8 @@
 
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
-import { prisma } from "@/server/db";
+import { recordAudit } from "@/server/audit/record-audit";
+import { prisma, runInTransaction } from "@/server/db";
 import { guardAdmin } from "../admin-guard";
 import {
   type CustomerInput,
@@ -14,7 +15,7 @@ import {
 export async function upsertCustomer(
   input: CustomerInput,
 ): Promise<ActionResult<{ id: string }>> {
-  const { denied } = await guardAdmin("commercial", "clientes");
+  const { user, denied } = await guardAdmin("commercial", "clientes");
   if (denied) return denied;
   const parsed = customerSchema.safeParse(input);
   if (!parsed.success)
@@ -27,9 +28,23 @@ export async function upsertCustomer(
         "CONFLICT",
         `Ya existe «${twin.name}» con ese nombre o NIT. Ábrelo y edítalo en lugar de crear otro.`,
       );
-    const saved = id
-      ? await prisma.customer.update({ where: { id }, data })
-      : await prisma.customer.create({ data });
+    const saved = await runInTransaction(async (tx) => {
+      const before = id
+        ? await tx.customer.findUnique({ where: { id } })
+        : null;
+      const after = id
+        ? await tx.customer.update({ where: { id }, data })
+        : await tx.customer.create({ data });
+      await recordAudit(tx, {
+        actorId: user.id,
+        entity: "core.cliente",
+        entityId: after.id,
+        action: id ? "EDITAR" : "CREAR",
+        before,
+        after,
+      });
+      return after;
+    });
     return actionOk({ id: saved.id });
   } catch (error) {
     return toActionError(error, "upsertCustomer");

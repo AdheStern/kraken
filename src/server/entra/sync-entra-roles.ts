@@ -6,6 +6,7 @@ import {
   readGroupClaim,
   roleKey,
 } from "@/domain/auth/entra-roles";
+import { recordAudit } from "@/server/audit/record-audit";
 import { prisma, type Tx } from "@/server/db";
 import { log } from "@/server/log";
 
@@ -73,6 +74,18 @@ async function applyRoles(tx: Tx, userId: string, groupIds: string[]) {
   if (missing.length > 0)
     await tx.userRole.createMany({
       data: missing.map((r) => ({ ...r, userId, source: "ENTRA" as const })),
+    });
+  // REGLA: un cambio de roles deja rastro aunque lo haga Entra; actor null = el sistema (ADR-14).
+  if (stale.length + missing.length > 0)
+    await recordAudit(tx, {
+      actorId: null,
+      entity: "core.usuario_rol",
+      entityId: userId,
+      action: "SINCRONIZAR_ENTRA",
+      before: {
+        quitados: stale.map(({ roleId, areaId }) => ({ roleId, areaId })),
+      },
+      after: { agregados: missing },
     });
 }
 

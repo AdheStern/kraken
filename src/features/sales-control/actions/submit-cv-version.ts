@@ -4,6 +4,7 @@
 
 import { type ActionResult, actionError } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
+import { recordAudit } from "@/server/audit/record-audit";
 import { systemClock } from "@/server/clock";
 import { runInTransaction } from "@/server/db";
 import { getDecimalParameter } from "@/server/parameters";
@@ -34,12 +35,21 @@ export async function submitCvVersion(
       "cv.umbral_gg_usd",
       GG_THRESHOLD_FALLBACK_USD,
     );
-    return await runInTransaction((tx) =>
-      submitVersion(tx, user, parsed.data.versionId, {
+    return await runInTransaction(async (tx) => {
+      const result = await submitVersion(tx, user, parsed.data.versionId, {
         thresholdUsd,
         now: systemClock.now(),
-      }),
-    );
+      });
+      if (result.ok)
+        await recordAudit(tx, {
+          actorId: user.id,
+          entity: "cv.version",
+          entityId: parsed.data.versionId,
+          action: "ENVIAR",
+          after: { requests: result.data.requests, thresholdUsd },
+        });
+      return result;
+    });
   } catch (error) {
     return toActionError(error, "submitCvVersion");
   }

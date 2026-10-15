@@ -75,6 +75,14 @@ describe("syncEntraRoles", () => {
     ]);
 
     await syncEntraRoles(f.user.id, token({ name: "sin grupos" }), db);
+    const trail = await db.auditEvent.count({
+      where: {
+        entityId: f.user.id,
+        action: "SINCRONIZAR_ENTRA",
+        actorId: null,
+      },
+    });
+    expect(trail).toBe(3);
     expect((await rolesOf(f.user.id)).map((r) => r.role.code)).toEqual([
       "COMERCIAL",
     ]);

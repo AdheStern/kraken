@@ -10,6 +10,7 @@ import {
 import { toCvCode } from "@/domain/sales-control/cv-code";
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
+import { recordAudit } from "@/server/audit/record-audit";
 import { canCreateCv } from "@/server/authz/cv-permissions";
 import { scopeCvQuery } from "@/server/authz/scope-cv-query";
 import { systemClock } from "@/server/clock";
@@ -89,6 +90,13 @@ export async function duplicateCv(
       });
       await copyVersionContent(tx, version.id, cv.versions[0].id, {
         sameSale: false,
+      });
+      await recordAudit(tx, {
+        actorId: user.id,
+        entity: "cv.cv",
+        entityId: cv.id,
+        action: "DUPLICAR",
+        after: { code: cv.code, from: version.id },
       });
       return cv.id;
     });

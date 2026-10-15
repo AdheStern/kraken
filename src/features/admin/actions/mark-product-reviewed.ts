@@ -4,7 +4,8 @@
 
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
-import { prisma } from "@/server/db";
+import { recordAudit } from "@/server/audit/record-audit";
+import { runInTransaction } from "@/server/db";
 import { guardAdmin } from "../admin-guard";
 import {
   type ProductReviewInput,
@@ -15,15 +16,25 @@ import {
 export async function markProductReviewed(
   input: ProductReviewInput,
 ): Promise<ActionResult<null>> {
-  const { denied } = await guardAdmin("commercial", "productos");
+  const { user, denied } = await guardAdmin("commercial", "productos");
   if (denied) return denied;
   const parsed = productReviewSchema.safeParse(input);
   if (!parsed.success)
     return actionError("VALIDATION", parsed.error.issues[0].message);
   try {
-    await prisma.product.update({
-      where: { id: parsed.data.id },
-      data: { createdFromCv: false },
+    await runInTransaction(async (tx) => {
+      await tx.product.update({
+        where: { id: parsed.data.id },
+        data: { createdFromCv: false },
+      });
+      await recordAudit(tx, {
+        actorId: user.id,
+        entity: "core.producto",
+        entityId: parsed.data.id,
+        action: "REVISAR",
+        before: { createdFromCv: true },
+        after: { createdFromCv: false },
+      });
     });
     return actionOk(null);
   } catch (error) {

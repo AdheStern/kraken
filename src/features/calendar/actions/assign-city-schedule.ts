@@ -4,8 +4,9 @@
 
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
+import { recordAudit } from "@/server/audit/record-audit";
 import { canManageSystem } from "@/server/authz/admin-permissions";
-import { prisma } from "@/server/db";
+import { runInTransaction } from "@/server/db";
 import { getSessionUser } from "@/server/session";
 import {
   type AssignCityScheduleInput,
@@ -30,9 +31,23 @@ export async function assignCitySchedule(
   if (!parsed.success)
     return actionError("VALIDATION", parsed.error.issues[0].message);
   try {
-    await prisma.city.update({
-      where: { id: parsed.data.cityId },
-      data: { officeScheduleId: parsed.data.scheduleId },
+    await runInTransaction(async (tx) => {
+      const before = await tx.city.findUnique({
+        where: { id: parsed.data.cityId },
+        select: { officeScheduleId: true },
+      });
+      await tx.city.update({
+        where: { id: parsed.data.cityId },
+        data: { officeScheduleId: parsed.data.scheduleId },
+      });
+      await recordAudit(tx, {
+        actorId: user.id,
+        entity: "core.ciudad",
+        entityId: parsed.data.cityId,
+        action: "ASIGNAR_HORARIO",
+        before,
+        after: { officeScheduleId: parsed.data.scheduleId },
+      });
     });
     return actionOk(null);
   } catch (error) {

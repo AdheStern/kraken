@@ -38,7 +38,8 @@ async function queue(to: string, attempts = 0) {
       subject: "Prueba",
       bodyHtml: "<p>Hola</p>",
       attempts,
-      nextAttemptAt: new Date("2029-12-31T00:00:00Z"),
+      // POR QUÉ: la base es compartida; una fecha vieja pone estos correos primero en el lote de 50.
+      nextAttemptAt: new Date("2000-01-01T00:00:00Z"),
     },
   });
 }

@@ -4,6 +4,7 @@
 
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
+import { recordAudit } from "@/server/audit/record-audit";
 import { canManageSystem } from "@/server/authz/admin-permissions";
 import { runInTransaction } from "@/server/db";
 import { getSessionUser } from "@/server/session";
@@ -41,9 +42,16 @@ export async function deactivateOfficeSchedule(
           "VALIDATION",
           `Lo usa ${cities.map((c) => c.name).join(", ")}; asígnale otro horario antes de desactivarlo.`,
         );
-      await tx.officeSchedule.update({
+      const schedule = await tx.officeSchedule.update({
         where: { id: parsed.data.id },
         data: { isActive: false },
+      });
+      await recordAudit(tx, {
+        actorId: user.id,
+        entity: "core.horario_oficina",
+        entityId: schedule.id,
+        action: "BAJA",
+        before: { name: schedule.name },
       });
       return actionOk(null);
     });

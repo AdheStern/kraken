@@ -5,8 +5,9 @@
 
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
+import { recordAudit } from "@/server/audit/record-audit";
 import { systemClock } from "@/server/clock";
-import { prisma } from "@/server/db";
+import { runInTransaction } from "@/server/db";
 import { guardAdmin } from "../admin-guard";
 import {
   type ManualFxRateInput,
@@ -30,10 +31,19 @@ export async function setManualFxRate(
     createdById: user.id,
   };
   try {
-    await prisma.fxRate.upsert({
-      where: { effectiveOn_source: { effectiveOn, source: "MANUAL" } },
-      create: { effectiveOn, source: "MANUAL", ...data },
-      update: data,
+    await runInTransaction(async (tx) => {
+      const saved = await tx.fxRate.upsert({
+        where: { effectiveOn_source: { effectiveOn, source: "MANUAL" } },
+        create: { effectiveOn, source: "MANUAL", ...data },
+        update: data,
+      });
+      await recordAudit(tx, {
+        actorId: user.id,
+        entity: "fx.tipo_cambio",
+        entityId: saved.id,
+        action: "CARGA_MANUAL",
+        after: { effectiveOn: parsed.data.effectiveOn, buyRate, sellRate },
+      });
     });
     return actionOk(null);
   } catch (error) {

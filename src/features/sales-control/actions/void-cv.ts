@@ -4,6 +4,7 @@
 
 import { type ActionResult, actionError } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
+import { recordAudit } from "@/server/audit/record-audit";
 import { scopeCvQuery } from "@/server/authz/scope-cv-query";
 import { systemClock } from "@/server/clock";
 import { prisma, runInTransaction } from "@/server/db";
@@ -32,9 +33,26 @@ export async function voidCv(
   if (visible === 0)
     return actionError("NOT_FOUND", "El CV ya no existe o no lo puedes ver.");
   try {
-    return await runInTransaction((tx) =>
-      voidLatestVersion(tx, user, parsed.data, systemClock.now()),
-    );
+    return await runInTransaction(async (tx) => {
+      const result = await voidLatestVersion(
+        tx,
+        user,
+        parsed.data,
+        systemClock.now(),
+      );
+      if (result.ok)
+        await recordAudit(tx, {
+          actorId: user.id,
+          entity: "cv.cv",
+          entityId: parsed.data.cvId,
+          action: "ANULAR",
+          after: {
+            reason: parsed.data.reason,
+            cvVoided: result.data.cvVoided,
+          },
+        });
+      return result;
+    });
   } catch (error) {
     return toActionError(error, "voidCv");
   }

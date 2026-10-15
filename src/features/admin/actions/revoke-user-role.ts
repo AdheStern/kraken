@@ -4,7 +4,8 @@
 
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
-import { prisma } from "@/server/db";
+import { recordAudit } from "@/server/audit/record-audit";
+import { prisma, runInTransaction } from "@/server/db";
 import { guardAdmin } from "../admin-guard";
 import {
   type RevokeUserRoleInput,
@@ -22,7 +23,12 @@ export async function revokeUserRole(
   try {
     const assigned = await prisma.userRole.findUnique({
       where: { id: parsed.data.userRoleId },
-      select: { userId: true, source: true, role: { select: { code: true } } },
+      select: {
+        userId: true,
+        source: true,
+        areaId: true,
+        role: { select: { code: true } },
+      },
     });
     if (!assigned)
       return actionError(
@@ -40,7 +46,16 @@ export async function revokeUserRole(
         "INVALID_STATE",
         "No puedes quitarte tu propio rol de administrador. Pide a otro administrador que lo haga.",
       );
-    await prisma.userRole.delete({ where: { id: parsed.data.userRoleId } });
+    await runInTransaction(async (tx) => {
+      await tx.userRole.delete({ where: { id: parsed.data.userRoleId } });
+      await recordAudit(tx, {
+        actorId: user.id,
+        entity: "core.usuario_rol",
+        entityId: assigned.userId,
+        action: "QUITAR_ROL",
+        before: { role: assigned.role.code, areaId: assigned.areaId },
+      });
+    });
     return actionOk(null);
   } catch (error) {
     return toActionError(error, "revokeUserRole");

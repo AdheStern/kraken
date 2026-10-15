@@ -4,6 +4,7 @@
 
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
+import { recordAudit } from "@/server/audit/record-audit";
 import { runInTransaction } from "@/server/db";
 import { guardAdmin } from "../admin-guard";
 import {
@@ -31,6 +32,14 @@ export async function setUserActive(
     await runInTransaction(async (tx) => {
       await tx.userProfile.update({ where: { userId }, data: { isActive } });
       if (!isActive) await tx.session.deleteMany({ where: { userId } });
+      await recordAudit(tx, {
+        actorId: user.id,
+        entity: "core.usuario_perfil",
+        entityId: userId,
+        action: isActive ? "REACTIVAR" : "BAJA",
+        before: { isActive: !isActive },
+        after: { isActive },
+      });
     });
     return actionOk(null);
   } catch (error) {

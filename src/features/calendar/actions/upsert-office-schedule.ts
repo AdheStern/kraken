@@ -4,6 +4,7 @@
 
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
+import { recordAudit } from "@/server/audit/record-audit";
 import { canManageSystem } from "@/server/authz/admin-permissions";
 import { runInTransaction } from "@/server/db";
 import { getSessionUser } from "@/server/session";
@@ -53,6 +54,13 @@ export async function upsertOfficeSchedule(
         : await tx.officeSchedule.create({
             data: { name, slots: { create: slots } },
           });
+      await recordAudit(tx, {
+        actorId: user.id,
+        entity: "core.horario_oficina",
+        entityId: saved.id,
+        action: targetId ? "EDITAR" : "CREAR",
+        after: { name, slots },
+      });
       return actionOk({ id: saved.id });
     });
   } catch (error) {

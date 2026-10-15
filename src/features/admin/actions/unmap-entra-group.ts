@@ -4,6 +4,7 @@
 
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
+import { recordAudit } from "@/server/audit/record-audit";
 import { runInTransaction } from "@/server/db";
 import { guardAdmin } from "../admin-guard";
 import {
@@ -16,7 +17,7 @@ import {
 export async function unmapEntraGroup(
   input: UnmapEntraGroupInput,
 ): Promise<ActionResult<{ revoked: number }>> {
-  const { denied } = await guardAdmin("system", "los grupos de Entra");
+  const { user, denied } = await guardAdmin("system", "los grupos de Entra");
   if (denied) return denied;
   const parsed = unmapEntraGroupSchema.safeParse(input);
   if (!parsed.success)
@@ -32,6 +33,18 @@ export async function unmapEntraGroup(
           roleId: mapping.roleId,
           areaId: mapping.areaId,
         },
+      });
+      await recordAudit(tx, {
+        actorId: user.id,
+        entity: "core.grupo_entra_rol",
+        entityId: mapping.entraGroupId,
+        action: "DESMAPEAR",
+        before: {
+          groupName: mapping.groupName,
+          roleId: mapping.roleId,
+          areaId: mapping.areaId,
+        },
+        after: { rolesRetirados: count },
       });
       return count;
     });

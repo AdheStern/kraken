@@ -4,6 +4,7 @@
 
 import { type ActionResult, actionError } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
+import { recordAudit } from "@/server/audit/record-audit";
 import { runInTransaction } from "@/server/db";
 import { changeBagManually } from "@/server/hours/change-bag-manually";
 import { getSessionUser } from "@/server/session";
@@ -25,9 +26,21 @@ export async function closeHourBag(
   if (!parsed.success)
     return actionError("VALIDATION", parsed.error.issues[0].message);
   try {
-    return await runInTransaction((tx) =>
-      changeBagManually(tx, user, { kind: "CIERRE", ...parsed.data }),
-    );
+    return await runInTransaction(async (tx) => {
+      const result = await changeBagManually(tx, user, {
+        kind: "CIERRE",
+        ...parsed.data,
+      });
+      if (result.ok)
+        await recordAudit(tx, {
+          actorId: user.id,
+          entity: "horas.bolsa",
+          entityId: parsed.data.bagId,
+          action: "CERRAR",
+          after: { reason: parsed.data.reason },
+        });
+      return result;
+    });
   } catch (error) {
     return toActionError(error, "closeHourBag");
   }

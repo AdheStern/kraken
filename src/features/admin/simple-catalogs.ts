@@ -19,6 +19,8 @@ export type SimpleCatalogConfig = {
   singular: string;
   description: string;
   access: AdminAccess;
+  // POR QUÉ: la tabla nombra la entidad en el rastro de auditoría (ADR-14).
+  table: string;
   // POR QUÉ: el código identifica (número de CV, grupos de Entra); se fija al crear y no se edita.
   code?: { label: string; pattern: RegExp; hint: string };
   hasTaxId?: boolean;
@@ -32,6 +34,7 @@ export const SIMPLE_CATALOGS: Record<SimpleCatalogKind, SimpleCatalogConfig> = {
     description:
       "Las áreas de las líneas de un CV deciden quién lo aprueba. Dar de baja un área no toca los CV que ya la usan.",
     access: "system",
+    table: "core.area",
     code: {
       label: "Código",
       pattern: /^[A-Z][A-Z0-9]{1,19}$/,
@@ -44,6 +47,7 @@ export const SIMPLE_CATALOGS: Record<SimpleCatalogKind, SimpleCatalogConfig> = {
     description:
       "Cada ciudad lleva su correlativo de CV, su horario y sus feriados. El código va en el número del CV (132LP-25).",
     access: "system",
+    table: "core.ciudad",
     code: {
       label: "Código",
       pattern: /^[A-Z]{2,4}$/,
@@ -56,6 +60,7 @@ export const SIMPLE_CATALOGS: Record<SimpleCatalogKind, SimpleCatalogConfig> = {
     description:
       "La línea principal del CV y la tecnología de cada línea; también agrupa los factores (FACTOR CISCO).",
     access: "system",
+    table: "core.tecnologia",
   },
   unidades: {
     title: "Unidades",
@@ -63,6 +68,7 @@ export const SIMPLE_CATALOGS: Record<SimpleCatalogKind, SimpleCatalogConfig> = {
     description:
       "La unidad de cada línea. Una línea de servicio con una unidad de horas genera una bolsa al aprobarse.",
     access: "system",
+    table: "core.unidad",
     code: {
       label: "Código",
       pattern: /^[A-Z][A-Z0-9_]{1,19}$/,
@@ -75,6 +81,7 @@ export const SIMPLE_CATALOGS: Record<SimpleCatalogKind, SimpleCatalogConfig> = {
     singular: "tipo de servicio",
     description: "Clasificación de la cabecera del CV.",
     access: "system",
+    table: "core.tipo_servicio",
   },
   proveedores: {
     title: "Proveedores",
@@ -82,6 +89,7 @@ export const SIMPLE_CATALOGS: Record<SimpleCatalogKind, SimpleCatalogConfig> = {
     description:
       "Un proveedor por empresa: «INGRAM» e «INGRAM - INT» son el mismo; la modalidad (local, importación) va en la línea.",
     access: "commercial",
+    table: "core.proveedor",
     hasTaxId: true,
   },
 };

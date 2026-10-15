@@ -6,7 +6,8 @@
 import { z } from "zod";
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
-import { prisma } from "@/server/db";
+import { recordAudit } from "@/server/audit/record-audit";
+import { runInTransaction } from "@/server/db";
 import { guardAdmin } from "../admin-guard";
 import {
   isParameterKey,
@@ -29,10 +30,21 @@ export async function setParameter(
     return actionError("VALIDATION", value.error.issues[0].message);
   try {
     const data = { value: value.data, updatedById: user.id };
-    await prisma.parameter.upsert({
-      where: { key },
-      create: { key, ...data, description: PARAMETER_DEFINITIONS[key].label },
-      update: data,
+    await runInTransaction(async (tx) => {
+      const before = await tx.parameter.findUnique({ where: { key } });
+      await tx.parameter.upsert({
+        where: { key },
+        create: { key, ...data, description: PARAMETER_DEFINITIONS[key].label },
+        update: data,
+      });
+      await recordAudit(tx, {
+        actorId: user.id,
+        entity: "core.parametro",
+        entityId: key,
+        action: "EDITAR",
+        before: before ? { value: before.value } : null,
+        after: { value: value.data },
+      });
     });
     return actionOk(null);
   } catch (error) {

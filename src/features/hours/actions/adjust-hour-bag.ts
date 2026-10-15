@@ -6,6 +6,7 @@ import Decimal from "decimal.js";
 import { toBagMinutes } from "@/domain/hours/to-bag-minutes";
 import { type ActionResult, actionError } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
+import { recordAudit } from "@/server/audit/record-audit";
 import { runInTransaction } from "@/server/db";
 import { changeBagManually } from "@/server/hours/change-bag-manually";
 import { getSessionUser } from "@/server/session";
@@ -34,14 +35,27 @@ export async function adjustHourBag(
       "Las horas deben ser mayores que 0 y dar minutos enteros (p. ej. 1.5 o 1.25).",
     );
   try {
-    return await runInTransaction((tx) =>
-      changeBagManually(tx, user, {
+    return await runInTransaction(async (tx) => {
+      const result = await changeBagManually(tx, user, {
         kind: "AJUSTE",
         bagId,
         minutes: operation === "SUMAR" ? minutes : 0 - minutes,
         reason,
-      }),
-    );
+      });
+      if (result.ok)
+        await recordAudit(tx, {
+          actorId: user.id,
+          entity: "horas.bolsa",
+          entityId: bagId,
+          action: "AJUSTAR",
+          after: {
+            minutes: operation === "SUMAR" ? minutes : 0 - minutes,
+            reason,
+            balanceMinutes: result.data.balanceMinutes,
+          },
+        });
+      return result;
+    });
   } catch (error) {
     return toActionError(error, "adjustHourBag");
   }

@@ -9,6 +9,7 @@ import {
 import { toCvCode } from "@/domain/sales-control/cv-code";
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
+import { recordAudit } from "@/server/audit/record-audit";
 import { canCreateCv } from "@/server/authz/cv-permissions";
 import { systemClock } from "@/server/clock";
 import { runInTransaction } from "@/server/db";
@@ -75,6 +76,13 @@ export async function createCv(
             },
           },
         },
+      });
+      await recordAudit(tx, {
+        actorId: user.id,
+        entity: "cv.cv",
+        entityId: cv.id,
+        action: "CREAR",
+        after: { code: cv.code, isOpeningBalance: cv.isOpeningBalance },
       });
       return cv.id;
     });

@@ -4,14 +4,15 @@
 
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
-import { prisma } from "@/server/db";
+import { recordAudit } from "@/server/audit/record-audit";
+import { prisma, runInTransaction } from "@/server/db";
 import { guardAdmin } from "../admin-guard";
 import { type ProductInput, productSchema } from "../schemas/product-schemas";
 
 export async function upsertProduct(
   input: ProductInput,
 ): Promise<ActionResult<{ id: string }>> {
-  const { denied } = await guardAdmin("commercial", "productos");
+  const { user, denied } = await guardAdmin("commercial", "productos");
   if (denied) return denied;
   const parsed = productSchema.safeParse(input);
   if (!parsed.success)
@@ -32,9 +33,21 @@ export async function upsertProduct(
         "CONFLICT",
         `El código ${data.code} ya es de «${twin.description}». Edita ese producto o usa otro código.`,
       );
-    const saved = id
-      ? await prisma.product.update({ where: { id }, data })
-      : await prisma.product.create({ data });
+    const saved = await runInTransaction(async (tx) => {
+      const before = id ? await tx.product.findUnique({ where: { id } }) : null;
+      const after = id
+        ? await tx.product.update({ where: { id }, data })
+        : await tx.product.create({ data });
+      await recordAudit(tx, {
+        actorId: user.id,
+        entity: "core.producto",
+        entityId: after.id,
+        action: id ? "EDITAR" : "CREAR",
+        before,
+        after,
+      });
+      return after;
+    });
     return actionOk({ id: saved.id });
   } catch (error) {
     return toActionError(error, "upsertProduct");

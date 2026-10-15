@@ -4,8 +4,9 @@
 
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
+import { recordAudit } from "@/server/audit/record-audit";
 import { canManageSystem } from "@/server/authz/admin-permissions";
-import { runInTransaction } from "@/server/db";
+import { runInTransaction, type Tx } from "@/server/db";
 import { getSessionUser } from "@/server/session";
 import {
   type UpdateHolidayInput,
@@ -50,12 +51,29 @@ export async function updateHoliday(
           data: { name, isActive: true },
         });
         await tx.holiday.update({ where: { id }, data: { isActive: false } });
+        await audit(tx, user.id, id, {
+          date,
+          name,
+          cityId,
+          reemplazadoPor: clash.id,
+        });
         return actionOk({ id: clash.id });
       }
       await tx.holiday.update({ where: { id }, data: { date, name, cityId } });
+      await audit(tx, user.id, id, { date, name, cityId });
       return actionOk({ id });
     });
   } catch (error) {
     return toActionError(error, "updateHoliday");
   }
+}
+
+function audit(tx: Tx, actorId: string, id: string, after: object) {
+  return recordAudit(tx, {
+    actorId,
+    entity: "core.feriado",
+    entityId: id,
+    action: "EDITAR",
+    after,
+  });
 }

@@ -4,6 +4,7 @@
 
 import { type ActionResult, actionError } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
+import { recordAudit } from "@/server/audit/record-audit";
 import { systemClock } from "@/server/clock";
 import { runInTransaction } from "@/server/db";
 import { decideRequest } from "@/server/sales-control/decide-request";
@@ -26,9 +27,23 @@ export async function decideApproval(
   if (!parsed.success)
     return actionError("VALIDATION", parsed.error.issues[0].message);
   try {
-    return await runInTransaction((tx) =>
-      decideRequest(tx, user, parsed.data, systemClock.now()),
-    );
+    return await runInTransaction(async (tx) => {
+      const result = await decideRequest(
+        tx,
+        user,
+        parsed.data,
+        systemClock.now(),
+      );
+      if (result.ok)
+        await recordAudit(tx, {
+          actorId: user.id,
+          entity: "cv.solicitud_aprobacion",
+          entityId: parsed.data.requestId,
+          action: parsed.data.decision === "APROBADA" ? "APROBAR" : "RECHAZAR",
+          after: { comment: parsed.data.comment, round: result.data.round },
+        });
+      return result;
+    });
   } catch (error) {
     return toActionError(error, "decideApproval");
   }

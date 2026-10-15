@@ -1,0 +1,24 @@
+{
+  "tc_oficial": {
+    "regimen": "flexible",
+    "valor": 11.68,
+    "base": 11.68,
+    "compra": 11.68,
+    "venta": 11.68,
+    "moneda": "USD/BOB",
+    "fecha": "2026-10-15",
+    "vigencia_desde": "2026-10-15",
+    "vigencia_hasta": "2026-10-15",
+    "fecha_publicacion": "2026-10-14",
+    "fecha_publicacion_derivada": true,
+    "nota": "Tipo de Cambio Oficial flexible (RD BCB 142/2026). TCO = mediana ponderada por monto de las compras de dólares de la banca; se publica cada día hábil a las 23:30 y rige el día siguiente. Es el único valor oficial: 'compra' = 'venta' = TCO (la norma ya no fija un tope de venta).",
+    "fuente": "Banco Central de Bolivia (bcb.gob.bo)",
+    "proxima": null,
+    "vigencia_pendiente": null,
+    "actualizado": "2026-10-15T12:32:17.647783+00:00",
+    "proxima_publicacion": "2026-10-15T23:30:00-04:00",
+    "desactualizado": false
+  },
+  "fuente": "Banco Central de Bolivia (bcb.gob.bo)",
+  "disclaimer": "API independiente, no afiliada ni avalada por el Banco Central de Bolivia. Datos tomados de cifras públicas del BCB (bcb.gob.bo), con fines informativos; no es el registro oficial. Sin garantía; uso bajo su responsabilidad."
+}

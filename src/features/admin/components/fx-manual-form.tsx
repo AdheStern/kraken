@@ -35,16 +35,16 @@ export function FxManualForm({ today }: { today: string }) {
         onChange={(effectiveOn) => setDraft({ ...draft, effectiveOn })}
       />
       <LabeledInput
-        label="Compra"
+        label="TC oficial (compra)"
         inputMode="decimal"
-        placeholder="6.86"
+        placeholder="11.68"
         value={draft.buyRate}
         onChange={(buyRate) => setDraft({ ...draft, buyRate })}
       />
       <LabeledInput
-        label="Venta"
+        label="Venta (si difiere)"
         inputMode="decimal"
-        placeholder="6.96"
+        placeholder="Igual a la compra"
         value={draft.sellRate}
         onChange={(sellRate) => setDraft({ ...draft, sellRate })}
       />

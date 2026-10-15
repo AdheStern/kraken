@@ -17,16 +17,25 @@ const rate = (label: string) =>
       `El TC de ${label} debe ser mayor a 0.`,
     );
 
+// POR QUÉ: desde el régimen flexible (RD BCB 142/2026) compra = venta = TCO; una venta vacía toma la compra.
 export const manualFxRateSchema = z
   .object({
     effectiveOn: z.iso.date("Elige la fecha desde la que rige."),
-    buyRate: rate("compra"),
-    sellRate: rate("venta"),
+    buyRate: z.string(),
+    sellRate: z.string(),
   })
-  .refine((v) => new Decimal(v.buyRate).lte(v.sellRate), {
-    message:
-      "La compra no puede ser mayor que la venta (el BCB publica 6.86 y 6.96).",
-    path: ["buyRate"],
-  });
+  .transform((v) => ({ ...v, sellRate: v.sellRate.trim() || v.buyRate }))
+  .pipe(
+    z
+      .object({
+        effectiveOn: z.string(),
+        buyRate: rate("compra"),
+        sellRate: rate("venta"),
+      })
+      .refine((v) => new Decimal(v.buyRate).lte(v.sellRate), {
+        message: "La compra no puede ser mayor que la venta.",
+        path: ["buyRate"],
+      }),
+  );
 
 export type ManualFxRateInput = z.input<typeof manualFxRateSchema>;

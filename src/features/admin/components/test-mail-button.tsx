@@ -33,13 +33,10 @@ export function TestMailButton() {
         Enviarme un correo de prueba
       </Button>
       {queuedTo && !error && (
-        <p
-          role="status"
-          className="max-w-72 text-right text-sm text-muted-foreground"
-        >
+        <output className="block max-w-72 text-right text-sm text-muted-foreground">
           En cola para {queuedTo}; sale en menos de un minuto si el worker está
           corriendo.
-        </p>
+        </output>
       )}
       {error && (
         <p

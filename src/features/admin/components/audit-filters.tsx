@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { AUDIT_ENTITY_LABELS } from "../audit-labels";
 import type { AuditFilters as Filters } from "../types";
 
@@ -32,7 +33,7 @@ export function AuditFilters({ filters }: { filters: Filters }) {
           ))}
         </select>
       </label>
-      <label className="grid gap-1.5 text-sm font-medium">
+      <Label className="grid gap-1.5">
         Desde
         <Input
           name="desde"
@@ -40,8 +41,8 @@ export function AuditFilters({ filters }: { filters: Filters }) {
           defaultValue={filters.from}
           className="h-9"
         />
-      </label>
-      <label className="grid gap-1.5 text-sm font-medium">
+      </Label>
+      <Label className="grid gap-1.5">
         Hasta
         <Input
           name="hasta"
@@ -49,7 +50,7 @@ export function AuditFilters({ filters }: { filters: Filters }) {
           defaultValue={filters.to}
           className="h-9"
         />
-      </label>
+      </Label>
       <div className="flex items-center gap-2">
         <Button type="submit">Filtrar</Button>
         {hasFilters && (

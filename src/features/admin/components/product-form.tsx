@@ -6,6 +6,7 @@ import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { upsertProduct } from "../actions/upsert-product";
 import type { ItemTypeCode, ProductDetail, ProductFormOptions } from "../types";
 import { LabeledInput } from "./labeled-input";
@@ -83,13 +84,13 @@ export function ProductForm({ product, options }: Props) {
         emptyLabel="Sin unidad"
         onChange={(unitId) => set({ unitId })}
       />
-      <label className="flex items-center gap-2 text-sm sm:col-span-2">
+      <Label className="flex items-center gap-2 text-sm font-normal sm:col-span-2">
         <Checkbox
           checked={draft.isSerialized}
           onCheckedChange={(isSerialized) => set({ isSerialized })}
         />
         Lleva número de serie (el inventario lo pide en cada ingreso y salida)
-      </label>
+      </Label>
       <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
         <Button type="submit" disabled={isPending}>
           {isPending && (
@@ -98,10 +99,10 @@ export function ProductForm({ product, options }: Props) {
           {product ? "Guardar cambios" : "Crear producto"}
         </Button>
         {saved && !error && (
-          <p role="status" className="text-sm text-muted-foreground">
+          <output className="block text-sm text-muted-foreground">
             Guardado. Las líneas de CV ya guardadas conservan su código y
             descripción.
-          </p>
+          </output>
         )}
         {error && (
           <p role="alert" className="text-sm text-destructive">

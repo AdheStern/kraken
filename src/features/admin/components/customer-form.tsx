@@ -80,10 +80,10 @@ export function CustomerForm({ customer }: { customer?: CustomerDetail }) {
           {customer ? "Guardar cambios" : "Crear cliente"}
         </Button>
         {saved && !error && (
-          <p role="status" className="text-sm text-muted-foreground">
+          <output className="block text-sm text-muted-foreground">
             Guardado. Un CV en borrador toma estos datos al guardar su cabecera;
             los enviados o aprobados conservan su copia.
-          </p>
+          </output>
         )}
         {error && (
           <p role="alert" className="text-sm text-destructive">

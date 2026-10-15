@@ -4,6 +4,7 @@
 import { PgBoss } from "pg-boss";
 import { BUSINESS_TIME_ZONE } from "@/domain/calendar/business-date";
 import { prisma } from "@/server/db";
+import { log } from "@/server/log";
 import { JOBS } from "./job-registry";
 
 // TRAMPA: en producción el usuario de la app no tiene DDL (§4): el esquema pgboss lo instala y actualiza
@@ -19,17 +20,23 @@ async function main() {
     migrate: !isProduction,
     createSchema: !isProduction,
   });
-  boss.on("error", (error) => console.error("[worker]", error));
+  boss.on("error", (error) => log("error", "pg-boss", { error }));
   await boss.start();
   for (const job of JOBS) {
     await boss.createQueue(job.name);
     if (job.cron)
       await boss.schedule(job.name, job.cron, null, { tz: BUSINESS_TIME_ZONE });
     await boss.work(job.name, async () => {
-      await job.run();
+      try {
+        await job.run();
+      } catch (error) {
+        // POR QUÉ: se registra y se relanza; pg-boss reintenta y marca el job como fallido.
+        log("error", "job falló", { job: job.name, error });
+        throw error;
+      }
     });
   }
-  console.log(`[worker] listo: ${JOBS.map((j) => j.name).join(", ")}`);
+  log("info", "worker listo", { jobs: JOBS.map((j) => j.name) });
 
   const stop = async () => {
     await boss.stop({ graceful: true });
@@ -41,6 +48,6 @@ async function main() {
 }
 
 main().catch((error: unknown) => {
-  console.error("[worker] no pudo arrancar:", error);
+  log("error", "el worker no pudo arrancar", { error });
   process.exit(1);
 });

@@ -7,6 +7,7 @@ import {
   BagStateError,
   InsufficientBalanceError,
 } from "@/server/hours/hour-errors";
+import { logInRequest } from "@/server/request-log";
 
 // POR QUÉ: los triggers de cv (ADR-11) responden con check_violation y estos textos; se reportan como estado inválido.
 const LOCKED_VERSION = /no admite cambios|es inmutable/;
@@ -52,7 +53,7 @@ export function toActionError<T>(
       "Uno de los datos elegidos ya no existe. Recarga la página.",
     );
   }
-  console.error(`[${context}]`, error);
+  void logInRequest("error", "action falló", { action: context, error });
   return actionError(
     "INTERNAL",
     "No pudimos guardar los cambios. Intenta de nuevo en unos segundos.",

@@ -7,6 +7,7 @@ import {
   roleKey,
 } from "@/domain/auth/entra-roles";
 import { prisma, type Tx } from "@/server/db";
+import { log } from "@/server/log";
 
 export type EntraSyncResult = "synced" | "overage";
 
@@ -23,9 +24,9 @@ export async function syncEntraRolesFromAccount(account: AccountRecord) {
     return;
   const result = await syncEntraRoles(account.userId, account.idToken);
   if (result === "overage")
-    console.warn(
-      `[syncEntraRoles] el token de ${account.userId} no trae sus grupos (overage); conserva sus roles de Entra.`,
-    );
+    log("warn", "token sin grupos (overage): conserva sus roles de Entra", {
+      userId: account.userId,
+    });
 }
 
 // POR QUÉ: el ID token llega del intercambio de código con Entra por el canal del servidor; solo se lee, no se

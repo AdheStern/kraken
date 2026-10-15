@@ -17,6 +17,12 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  // REGLA: los roles de Entra se recalculan al iniciar sesión; una sesión de una jornada, sin extenderse sola,
+  // hace que sacar a alguien de un grupo o desactivarlo en Entra rija el mismo día (ADR-05).
+  session: {
+    expiresIn: 60 * 60 * 12,
+    disableSessionRefresh: true,
+  },
   emailAndPassword: {
     enabled: true,
     // REGLA: nadie se registra solo; la cuenta de emergencia se crea con `pnpm db:seed:admin`.

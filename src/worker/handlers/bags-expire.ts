@@ -3,6 +3,7 @@
 import { systemClock } from "@/server/clock";
 import { prisma } from "@/server/db";
 import { expireBags } from "@/server/hours/expire-bags";
+import { log } from "@/server/log";
 import type { JobDefinition } from "../job-registry";
 
 export const bagsExpireJob: JobDefinition = {
@@ -10,13 +11,10 @@ export const bagsExpireJob: JobDefinition = {
   cron: "5 0 * * *",
   run: async () => {
     const result = await expireBags(prisma, systemClock);
-    console.log(
-      JSON.stringify({
-        job: "bags.expire",
-        ...result,
-        at: new Date().toISOString(),
-      }),
-    );
+    log("info", "bolsas vencidas y avisadas", {
+      job: "bags.expire",
+      ...result,
+    });
     return result;
   },
 };

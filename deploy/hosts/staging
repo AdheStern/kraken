@@ -1,0 +1,3 @@
+# deploy/hosts/staging
+# Nodos de staging (AGENTS.md §10): un solo nodo con todo.
+stg-01

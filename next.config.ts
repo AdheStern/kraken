@@ -4,6 +4,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // POR QUÉ: la imagen Docker lleva solo el servidor trazado, no todo node_modules (ADR-13).
+  output: "standalone",
   cacheComponents: true,
   partialPrefetching: true,
   reactCompiler: true,

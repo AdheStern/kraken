@@ -1,0 +1,52 @@
+# deploy/app/compose.yml
+# Nodo de aplicación (app-01, app-02; AGENTS.md §3 y §10): Next.js, worker pg-boss y HAProxy. keepalived
+# (IP virtual) corre en el sistema operativo: necesita la red del host y privilegios (ver keepalived.conf).
+# Secretos en /etc/kraken/*.env (permisos 600, fuera del repositorio). Imágenes en GHCR por commit.
+#   KRAKEN_TAG=<sha> docker compose -f /opt/kraken/compose.yml up -d
+#   KRAKEN_TAG=<sha> docker compose -f /opt/kraken/compose.yml --profile migrate run --rm migrate
+
+name: kraken
+
+x-image: &image-defaults
+  restart: unless-stopped
+  env_file: /etc/kraken/app.env
+  extra_hosts:
+    # POR QUÉ: la app llega a Postgres por el HAProxy de BD del propio nodo (host:5000), nunca directo.
+    - "host.docker.internal:host-gateway"
+  logging:
+    driver: json-file
+    options: { max-size: "20m", max-file: "5" }
+
+services:
+  app:
+    <<: *image-defaults
+    image: ${KRAKEN_REGISTRY:-ghcr.io/adhestern}/kraken-app:${KRAKEN_TAG:?define KRAKEN_TAG}
+    ports:
+      # Solo en la IP del nodo en la VLAN de aplicación: la usan los HAProxy de ambos nodos.
+      - "${NODE_IP:?define NODE_IP}:3000:3000"
+    volumes:
+      - /mnt/kraken-files:/files
+    environment:
+      FILES_ROOT: /files
+
+  worker:
+    <<: *image-defaults
+    image: ${KRAKEN_REGISTRY:-ghcr.io/adhestern}/kraken-worker:${KRAKEN_TAG:?define KRAKEN_TAG}
+    stop_grace_period: 30s
+
+  migrate:
+    <<: *image-defaults
+    image: ${KRAKEN_REGISTRY:-ghcr.io/adhestern}/kraken-worker:${KRAKEN_TAG:?define KRAKEN_TAG}
+    restart: "no"
+    profiles: [migrate]
+    command: ["pnpm", "migrate:deploy"]
+
+  haproxy:
+    image: haproxy:3.0-alpine
+    restart: unless-stopped
+    network_mode: host
+    env_file: /etc/kraken/haproxy.env
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      # Socket de administración: el despliegue drena y habilita nodos por aquí.
+      - /run/haproxy:/run/haproxy

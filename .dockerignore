@@ -1,0 +1,18 @@
+# .dockerignore
+# Fuera del contexto de la imagen: dependencias y builds locales, secretos, reportes y material de diseño.
+node_modules
+.next
+.git
+.github
+.env
+.env.*
+!.env.example
+coverage
+playwright-report
+test-results
+tests/e2e/.auth
+.impeccable
+.agents
+.claude
+deploy
+*.log

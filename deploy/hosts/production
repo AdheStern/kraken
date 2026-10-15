@@ -1,0 +1,4 @@
+# deploy/hosts/production
+# Nodos de aplicación de producción, en el orden en que se actualizan (AGENTS.md §10).
+app-01
+app-02

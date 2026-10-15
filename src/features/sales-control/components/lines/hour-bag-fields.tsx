@@ -3,7 +3,7 @@
 "use client";
 
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import { OptionSelect } from "@/components/ui/option-select";
 import type { HourBagSpec } from "../../schemas/cv-lines-schema";
@@ -97,11 +97,13 @@ export function HourBagFields({ value, areas, disabled, onChange }: Props) {
       )}
       <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">
         Vence (opcional)
-        <Input
-          type="date"
+        <DatePicker
           value={spec.expiresOn}
           disabled={disabled}
-          onChange={(e) => update({ expiresOn: e.target.value })}
+          clearable
+          placeholder="Sin vencimiento"
+          aria-label="Vence"
+          onChange={(expiresOn) => update({ expiresOn })}
         />
       </Label>
     </div>

@@ -5,6 +5,8 @@
 import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Label } from "@/components/ui/label";
 import { setManualFxRate } from "../actions/set-manual-fx-rate";
 import { LabeledInput } from "./labeled-input";
 import { useAdminAction } from "./use-admin-action";
@@ -27,13 +29,15 @@ export function FxManualForm({ today }: { today: string }) {
         setSaved(await run(() => setManualFxRate(draft)));
       }}
     >
-      <LabeledInput
-        label="Rige desde"
-        type="date"
-        max={today}
-        value={draft.effectiveOn}
-        onChange={(effectiveOn) => setDraft({ ...draft, effectiveOn })}
-      />
+      <div className="grid gap-1.5">
+        <Label htmlFor="tc-rige-desde">Rige desde</Label>
+        <DatePicker
+          id="tc-rige-desde"
+          max={today}
+          value={draft.effectiveOn}
+          onChange={(effectiveOn) => setDraft({ ...draft, effectiveOn })}
+        />
+      </div>
       <LabeledInput
         label="TC oficial (compra)"
         inputMode="decimal"

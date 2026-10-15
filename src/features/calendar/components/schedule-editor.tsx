@@ -82,7 +82,7 @@ export function ScheduleEditor({ schedule, onCreated }: Props) {
               Desactivar
             </Button>
           )}
-          <Button size="sm" onClick={save} disabled={isPending}>
+          <Button onClick={save} disabled={isPending}>
             {isPending && (
               <LoaderCircle className="animate-spin" aria-hidden="true" />
             )}

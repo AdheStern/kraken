@@ -6,7 +6,7 @@
 import { CircleAlert } from "lucide-react";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import {
   Sheet,
@@ -77,24 +77,25 @@ export function LineDetailSheet({
                 <div className="grid grid-cols-2 gap-3">
                   <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">
                     Inicio
-                    <Input
-                      type="date"
+                    <DatePicker
                       value={line.coverageStart}
                       disabled={disabled}
-                      onChange={(e) =>
-                        onChange({ coverageStart: e.target.value })
-                      }
+                      clearable
+                      placeholder="Sin fecha"
+                      aria-label="Inicio de la vigencia"
+                      onChange={(coverageStart) => onChange({ coverageStart })}
                     />
                   </Label>
                   <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">
                     Fin
-                    <Input
-                      type="date"
+                    <DatePicker
                       value={line.coverageEnd}
                       disabled={disabled}
-                      onChange={(e) =>
-                        onChange({ coverageEnd: e.target.value })
-                      }
+                      clearable
+                      placeholder="Sin fecha"
+                      aria-label="Fin de la vigencia"
+                      min={line.coverageStart || undefined}
+                      onChange={(coverageEnd) => onChange({ coverageEnd })}
                     />
                   </Label>
                 </div>

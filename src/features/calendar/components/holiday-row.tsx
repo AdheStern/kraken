@@ -6,6 +6,7 @@ import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { deactivateHoliday } from "../actions/deactivate-holiday";
 import { updateHoliday } from "../actions/update-holiday";
@@ -51,12 +52,10 @@ export function HolidayRow({ holiday, cities, onError }: Props) {
   if (isEditing)
     return (
       <li className="grid gap-2 px-4 py-2 sm:grid-cols-[10rem_minmax(0,1fr)_10rem_auto_auto] sm:items-center">
-        <Input
-          type="date"
+        <DatePicker
           value={draft.date}
-          onChange={(e) => setDraft({ ...draft, date: e.target.value })}
+          onChange={(date) => setDraft({ ...draft, date })}
           aria-label={`Nueva fecha de ${holiday.name}`}
-          className="h-9"
         />
         <Input
           value={draft.name}

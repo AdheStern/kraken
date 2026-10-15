@@ -7,6 +7,7 @@ import { TriangleAlert } from "lucide-react";
 import { Controller, type UseFormReturn } from "react-hook-form";
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { FormField } from "@/components/forms/form-field";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { isFxRateDeviating } from "@/domain/pricing/fx-deviation";
@@ -129,11 +130,19 @@ export function HeaderCommercial({
           htmlFor="cv-po-date"
           error={errors.customerPoDate?.message}
         >
-          <Input
-            id="cv-po-date"
-            type="date"
-            disabled={disabled}
-            {...register("customerPoDate")}
+          <Controller
+            control={control}
+            name="customerPoDate"
+            render={({ field }) => (
+              <DatePicker
+                id="cv-po-date"
+                value={field.value ?? ""}
+                onChange={field.onChange}
+                disabled={disabled}
+                clearable
+                placeholder="Sin fecha"
+              />
+            )}
           />
         </FormField>
         <FormField
@@ -153,11 +162,19 @@ export function HeaderCommercial({
           htmlFor="cv-delivery-on"
           error={errors.deliveryOn?.message}
         >
-          <Input
-            id="cv-delivery-on"
-            type="date"
-            disabled={disabled}
-            {...register("deliveryOn")}
+          <Controller
+            control={control}
+            name="deliveryOn"
+            render={({ field }) => (
+              <DatePicker
+                id="cv-delivery-on"
+                value={field.value ?? ""}
+                onChange={field.onChange}
+                disabled={disabled}
+                clearable
+                placeholder="Sin fecha"
+              />
+            )}
           />
         </FormField>
       </HeaderSection>

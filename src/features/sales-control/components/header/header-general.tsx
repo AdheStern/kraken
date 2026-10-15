@@ -7,6 +7,7 @@ import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { CatalogMultiCombobox } from "@/components/forms/catalog-multi-combobox";
 import { FormField } from "@/components/forms/form-field";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { CvHeaderInput } from "../../schemas/cv-header-schema";
@@ -39,11 +40,17 @@ export function HeaderGeneral({ form, options, disabled }: Props) {
           htmlFor="cv-issued-on"
           error={errors.issuedOn?.message}
         >
-          <Input
-            id="cv-issued-on"
-            type="date"
-            disabled={disabled}
-            {...register("issuedOn")}
+          <Controller
+            control={control}
+            name="issuedOn"
+            render={({ field }) => (
+              <DatePicker
+                id="cv-issued-on"
+                value={field.value ?? ""}
+                onChange={field.onChange}
+                disabled={disabled}
+              />
+            )}
           />
         </FormField>
       </HeaderSection>

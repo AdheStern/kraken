@@ -3,6 +3,7 @@
 "use client";
 
 import { Layers, Plus, StickyNote, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { formatAmount } from "@/lib/format-amount";
 
 type Props = {
@@ -38,12 +39,12 @@ export function CvGroupRow({
       <td colSpan={span} className="px-2 py-1.5">
         <div className="flex flex-wrap items-center gap-2">
           <Layers className="size-4 text-primary" aria-hidden="true" />
-          <input
+          <Input
             aria-label="Nombre del lote"
             value={name}
             disabled={!canEdit}
             onChange={(event) => onRename(event.target.value)}
-            className="h-7 w-48 rounded-md border border-transparent bg-transparent px-1.5 text-sm font-semibold outline-none hover:border-border focus:border-ring focus:bg-background"
+            className="h-7 w-48 rounded-md border-transparent bg-transparent px-1.5 font-semibold hover:border-border focus-visible:bg-background dark:bg-transparent"
           />
           <span className="text-xs text-muted-foreground">
             {lineCount} {lineCount === 1 ? "línea" : "líneas"} · subtotal{" "}
@@ -63,12 +64,12 @@ export function CvGroupRow({
                   onApplyFactor(input.value);
                 }}
               >
-                <input
+                <Input
                   name="factor"
                   inputMode="decimal"
                   placeholder="Factor"
                   aria-label={`Factor para ${name}`}
-                  className="h-7 w-16 rounded-md border bg-background px-1.5 text-right text-xs tabular-nums outline-none focus:border-ring"
+                  className="h-7 w-16 rounded-md px-1.5 text-right text-xs tabular-nums md:text-xs"
                 />
                 <button type="submit" className={ACTION}>
                   Aplicar

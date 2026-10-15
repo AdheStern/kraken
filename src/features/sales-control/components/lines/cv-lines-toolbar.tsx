@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { OptionSelect } from "@/components/ui/option-select";
 import type { ActionResult } from "@/lib/action-result";
 import type { Option } from "../../types";
@@ -30,9 +31,6 @@ type Props = {
   onSubmit: () => Promise<ActionResult<unknown>>;
   onSubmitted: () => void;
 };
-
-const FIELD =
-  "h-7 rounded-md border bg-background px-1.5 text-xs outline-none focus:border-ring";
 
 export function CvLinesToolbar(props: Props) {
   const [technology, setTechnology] = useState<string | null>(null);
@@ -61,12 +59,12 @@ export function CvLinesToolbar(props: Props) {
           onValueChange={setTechnology}
           className="h-7 w-32 text-xs"
         />
-        <input
+        <Input
           name="factor"
           inputMode="decimal"
           placeholder="1.35"
           aria-label="Factor"
-          className={`${FIELD} w-14 text-right tabular-nums`}
+          className="h-7 w-14 rounded-md px-1.5 text-right text-xs tabular-nums md:text-xs"
         />
         <Button type="submit" size="xs" variant="ghost">
           Aplicar

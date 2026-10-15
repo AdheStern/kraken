@@ -44,7 +44,8 @@ export function CvVersionBar({ editor, canDuplicate }: Props) {
           onValueChange={(number) =>
             number && router.push(`/cv/${header.cvId}?v=${number}`)
           }
-          className="h-8 w-auto min-w-24"
+          size="sm"
+          className="h-7 w-auto min-w-24"
         />
       )}
       {versionNumber > 1 && (

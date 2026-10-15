@@ -4,8 +4,10 @@
 "use client";
 
 import type { ComponentProps } from "react";
+import { Input } from "@/components/ui/input";
 import { OptionSelect } from "@/components/ui/option-select";
 import { parseDecimalText } from "@/domain/sales-control/parse-decimal-text";
+import { cn } from "@/lib/utils";
 
 const CELL =
   "h-8 w-full min-w-0 rounded-[6px] border border-transparent bg-transparent px-2 text-[13px] outline-none transition-colors " +
@@ -30,13 +32,13 @@ export function TextCell({
   ...props
 }: CellBase & ComponentProps<"input">) {
   return (
-    <input
+    <Input
       data-cell={`${row}:${col}`}
       aria-label={label}
       aria-invalid={error ? true : undefined}
       title={error}
       disabled={disabled}
-      className={`${CELL} ${className ?? ""}`}
+      className={cn(CELL, "md:text-[13px] dark:bg-transparent", className)}
       {...props}
     />
   );

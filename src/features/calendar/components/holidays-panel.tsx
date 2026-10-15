@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { upsertHoliday } from "../actions/upsert-holiday";
 import type { CityScheduleView, HolidayView } from "../types";
@@ -49,14 +50,12 @@ export function HolidaysPanel({ year, holidays, cities }: Props) {
           add();
         }}
       >
-        <Input
-          type="date"
+        <DatePicker
           value={draft.date}
           min={`${year}-01-01`}
           max={`${year}-12-31`}
-          onChange={(e) => setDraft({ ...draft, date: e.target.value })}
+          onChange={(date) => setDraft({ ...draft, date })}
           aria-label="Fecha del feriado"
-          className="h-9"
         />
         <Input
           value={draft.name}

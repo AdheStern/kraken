@@ -53,7 +53,7 @@ export function CitySchedules({ cities, schedules }: Props) {
               onValueChange={(value) => assign(city.id, String(value))}
             >
               <SelectTrigger
-                className="h-8 w-full sm:w-56"
+                className="w-full sm:w-56"
                 aria-label={`Horario de ${city.name}`}
               >
                 <SelectValue>

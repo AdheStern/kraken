@@ -13,8 +13,6 @@ model UserProfile {
   city City? @relation(fields: [cityId], references: [id])
 
   roles                   UserRole[]
-  permissionExceptions    PermissionException[]    @relation("PermissionExceptionUser")
-  grantedExceptions       PermissionException[]    @relation("PermissionExceptionGrantor")
   parametersUpdated       Parameter[]
   fxRatesCreated          FxRate[]
   cvsCreated              Cv[]

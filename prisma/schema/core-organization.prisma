@@ -1,5 +1,6 @@
 // prisma/schema/core-organization.prisma
-// Esquema core: áreas, ciudades, roles, mapeo de grupos de Entra, excepciones de permisos y parámetros.
+// Esquema core: áreas, ciudades, roles, mapeo de grupos de Entra y parámetros. Una excepción de permisos
+// por usuario es un rol asignado a mano (ADR-06).
 
 enum RoleCode {
   GERENTE_GENERAL
@@ -107,27 +108,6 @@ model EntraGroupRole {
 
   @@unique([entraGroupId, roleId, areaId], map: "grupo_entra_rol_unico")
   @@map("grupo_entra_rol")
-  @@schema("core")
-}
-
-// POR QUÉ: misma forma que una regla de CASL (action, subject, conditions, inverted) para cargarla sin traducir.
-model PermissionException {
-  id          String    @id @default(uuid(7)) @db.Uuid
-  userId      String    @map("usuario_id")
-  action      String    @map("accion")
-  subject     String    @map("recurso")
-  conditions  Json?     @map("condiciones")
-  isDenial    Boolean   @default(false) @map("es_denegacion")
-  reason      String    @map("motivo")
-  grantedById String    @map("otorgado_por_id")
-  expiresAt   DateTime? @map("vence_en") @db.Timestamptz
-  createdAt   DateTime  @default(now()) @map("creado_en") @db.Timestamptz
-
-  user      UserProfile @relation("PermissionExceptionUser", fields: [userId], references: [userId], onDelete: Cascade)
-  grantedBy UserProfile @relation("PermissionExceptionGrantor", fields: [grantedById], references: [userId])
-
-  @@index([userId])
-  @@map("permiso_excepcion")
   @@schema("core")
 }
 

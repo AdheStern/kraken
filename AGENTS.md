@@ -254,7 +254,7 @@ Con el ticket abierto, la interfaz muestra el **consumo proyectado** con el mism
 - Valoración: costo promedio ponderado por producto y almacén. **[CONFIRMAR]**
 
 ### 2.9 Roles y permisos
-Roles asignados por grupos de Entra ID, más **excepciones por usuario** gestionadas por el administrador.
+Roles asignados por grupos de Entra ID, más **excepciones por usuario** gestionadas por el administrador: roles asignados a mano.
 
 | Recurso | Comercial | Gerente de área | Gerente general | Ingeniero | Administración |
 |---|---|---|---|---|---|
@@ -294,7 +294,7 @@ Usuarios ─HTTPS→ FortiGate/Radware (WAF + TLS) → IP virtual (keepalived)
 | ADR-03 | Libros mayores inmutables (`horas.movimiento`, `inv.movimiento`). El saldo es una caché actualizada en la misma transacción con `SELECT … FOR UPDATE`; `CHECK (saldo >= 0)` como última red. | Auditoría, correcciones sin borrar, sin sobregiros concurrentes. |
 | ADR-04 | Decimales exactos (`NUMERIC`) y `Prisma.Decimal` en TS. | Sin errores de coma flotante. |
 | ADR-05 | Better Auth + Microsoft Entra ID (OIDC, inquilino único). Sesiones en BD. Grupos de Entra → roles. Email/contraseña solo para la cuenta de emergencia `ADMIN_SISTEMA` (sin registro público; el login va por `/api/auth`, no por Server Action, para que aplique el límite de intentos). | SSO, MFA y acceso condicional heredados; dar de baja en Entra corta el acceso. |
-| ADR-06 | Authz centralizada en `src/server/authz`: CASL + funciones `scope*Query(user)`. | Reglas de 2.9 en un solo lugar, testeables. |
+| ADR-06 | Authz centralizada en `src/server/authz`: funciones propias `can*` y `scope*Query(user)`, sin CASL. Una excepción por usuario es un rol asignado a mano, aparte de los de sus grupos de Entra. | Reglas de 2.9 en un solo lugar, testeables. CASL no aportaba sobre funciones simples (YAGNI). |
 | ADR-07 | Jobs con pg-boss en un proceso worker separado (`src/worker`, registro en `job-registry.ts`). Su esquema `pgboss` queda fuera de Prisma y en producción se crea con el usuario de migraciones antes del primer arranque. | Sin Redis; los jobs sobreviven a reinicios; sin doble ejecución. |
 | ADR-08 | Correo con Microsoft Graph `sendMail` (app-only) desde un buzón de servicio, limitado con RBAC para aplicaciones de Exchange. **Outbox**: la action escribe en `notif.salida` dentro de su transacción y el worker envía con reintentos. | Sin SMTP propio; ningún correo se pierde ni se envía por una transacción revertida. |
 | ADR-09 | TC desacoplado: job a las 00:15 + reintentos cada hora → `fx.tipo_cambio`. Cada versión guarda TC de costo, TC de venta y TC oficial. | La API puede fallar; los CV históricos no cambian. |
@@ -330,7 +330,7 @@ Prisma 7: `prisma.config.ts` en la raíz (esquema multiarchivo en `prisma/schema
 | Esquema | Tablas |
 |---|---|
 | `auth` | Better Auth: `user`, `session`, `account`, `verification` (no tocar sus columnas) |
-| `core` | `area`, `ciudad`, `usuario_perfil`, `rol`, `usuario_rol`, `grupo_entra_rol`, `permiso_excepcion`, `cliente`, `cliente_contacto`, `proveedor`, `tecnologia`, `unidad`, `tipo_servicio`, `producto`, `horario_oficina`, `horario_franja`, `feriado`, `parametro` |
+| `core` | `area`, `ciudad`, `usuario_perfil`, `rol`, `usuario_rol`, `grupo_entra_rol`, `cliente`, `cliente_contacto`, `proveedor`, `tecnologia`, `unidad`, `tipo_servicio`, `producto`, `horario_oficina`, `horario_franja`, `feriado`, `parametro` |
 | `fx` | `tipo_cambio` (fecha de vigencia, compra, venta, fuente, obtenido_en) |
 | `cv` | `numerador`, `cv`, `version`, `version_vendedor` (vendedores N–N), `grupo`, `linea`, `linea_serial`, `leasing_linea`, `solicitud_aprobacion`, `adjunto` |
 | `horas` | `bolsa`, `bolsa_area`, `movimiento`, `pendiente_sin_bolsa` |
@@ -445,7 +445,7 @@ model HourMovement {
 | Framework | Next.js (App Router), React, TypeScript strict |
 | Base de datos | Prisma ORM con `multiSchema` |
 | Autenticación | Better Auth + proveedor Microsoft (Entra ID) |
-| Autorización | CASL + funciones de alcance propias |
+| Autorización | Funciones propias `can*` y `scope*Query` |
 | UI | shadcn/ui, Tailwind, lucide-react |
 | Grilla del CV | Tabla propia (`features/sales-control/components/lines`) con edición en celda, teclado, pegar desde Excel y lotes; TanStack Table solo si hace falta ordenar o virtualizar |
 | Gráficos | Recharts (charts de shadcn) |
@@ -481,7 +481,7 @@ dima-hub/
 │  │     ├─ components/
 │  │     └─ types.ts     # tipos de presentación (nunca entidades Prisma completas)
 │  ├─ server/
-│  │  ├─ authz/          # políticas CASL y scope*Query()
+│  │  ├─ authz/          # can*() y scope*Query()
 │  │  ├─ db.ts           # cliente Prisma + extensión de auditoría + runInTransaction
 │  │  ├─ auth.ts         # configuración de Better Auth
 │  │  ├─ auth-policies.ts # quién entra con contraseña, cuenta activa, alta del perfil
@@ -571,7 +571,7 @@ type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { code: Error
 - Horas: `adjustHourBag`, `closeHourBag`, `applyPendingHours`
 - Tickets: `createTicket`, `assignOwner`, `setTicketBags`, `createSubtask`, `startTimer`, `pauseTimer`, `resumeTimer`, `stopTimer`, `addManualTimeEntry`, `changeTicketStatus`, `closeTicket`, `reopenTicket`
 - Inventario: `registerReceipt`, `dispatchItems`, `createTransfer`, `sendTransfer`, `receiveTransfer`, `requestAdjustment`, `decideAdjustment`
-- Administración: CRUD de catálogos (`upsertSimpleCatalogItem` y `setSimpleCatalogItemActive` para áreas, ciudades, tecnologías, unidades, tipos de servicio y proveedores; `upsertCustomer`, `upsertCustomerContact`, `upsertProduct`, `markProductReviewed` y sus bajas), usuarios (`updateUserProfile`, `setUserActive`, `grantUserRole`, `revokeUserRole`), `mapEntraGroup`, `unmapEntraGroup`, `setParameter`, `setManualFxRate`; pendiente: `grantPermissionException`
+- Administración: CRUD de catálogos (`upsertSimpleCatalogItem` y `setSimpleCatalogItemActive` para áreas, ciudades, tecnologías, unidades, tipos de servicio y proveedores; `upsertCustomer`, `upsertCustomerContact`, `upsertProduct`, `markProductReviewed` y sus bajas), usuarios (`updateUserProfile`, `setUserActive`, `grantUserRole`, `revokeUserRole`), `mapEntraGroup`, `unmapEntraGroup`, `setParameter`, `setManualFxRate`, `sendTestMail`, `retryOutboxMessage`
 - Notificaciones: `markInboxRead`
 
 **Route handlers:** `GET /api/cv/[versionId]/export.xlsx` (con authz) · `GET /api/inventory/receipts/[id].pdf` · `GET /api/health/live` · `GET /api/health/ready` (BD + NFS; HAProxy saca el nodo si falla) · `/api/auth/*`.
@@ -848,7 +848,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 | Caída o cambio de la API de TC | BAJO | TC guardado, carga manual, interfaz `FxRateProvider` |
 
 **Decisiones abiertas (no implementar como definitivas; aislarlas en parámetros):**
-- **F0:** nivel de RAID del NAS; repositorio Git. Qué roles operativos llevan área (`role-area-rules.ts`: el gerente de área la exige; comercial, preventa, ingeniero y coordinador la admiten). Pendiente de la administración: excepciones de permisos (requieren CASL) y visor de auditoría (requiere la extensión de ADR-14). Los roles de Entra se recalculan solo al iniciar sesión: sacar a alguien de un grupo rige cuando su sesión vence o vuelve a entrar (duración de sesión por decidir). Deuda: el worker existe (F2, `bags.expire`), pero faltan `mail.dispatch` con Graph y `fx.fetch-official`; hasta entonces los correos esperan en `notif.salida`.
+- **F0:** nivel de RAID del NAS; repositorio Git. Qué roles operativos llevan área (`role-area-rules.ts`: el gerente de área la exige; comercial, preventa, ingeniero y coordinador la admiten). Los roles de Entra se recalculan al iniciar sesión y la sesión dura 12 h sin extenderse: la baja en Entra rige el mismo día.
 - **F1:** significado del sufijo `-DS`; confirmar que un rechazo cierra la ronda; valor inicial del umbral del GG; % de desvío del TC que dispara la advertencia.
 - **F2:** horario real de cada ciudad (¿con pausa de mediodía?) y feriados departamentales y de traslado: los carga el administrador en `/admin/calendario`. *Confirmado por DIMA (2026-10-14):* multiplicador 2 fuera de horario en 8x5, umbrales de alerta 80% y 100%, aviso de vencimiento a 30 días, y los miembros de un área ven todas sus bolsas. *Resuelto:* las bolsas vigentes se cargan con un "CV de saldo inicial" por cliente (`es_saldo_inicial`, solo horas de servicio con costo y venta 0), aprobado por su gerente.
 - **F3:** confirmar el redondeo hacia arriba; confirmar que se suman los tiempos en paralelo; prioridades de ticket y tiempos de SLA por prioridad y modalidad.

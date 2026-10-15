@@ -5,11 +5,18 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { OptionSelect } from "@/components/ui/option-select";
 import type { HourBagSpec } from "../../schemas/cv-lines-schema";
 import type { Option } from "../../types";
 
-const FIELD =
-  "h-9 w-full rounded-lg border bg-background px-2 text-sm outline-none focus:border-ring disabled:opacity-60";
+const MODALITY_OPTIONS = [
+  { id: "H8X5", label: "8x5 (fuera de horario vale doble)" },
+  { id: "H24X7", label: "24x7" },
+];
+const SCOPE_OPTIONS = [
+  { id: "AREA", label: "Por áreas" },
+  { id: "GENERAL", label: "General (cualquier ticket del cliente)" },
+];
 const EMPTY: HourBagSpec = {
   modality: "H8X5",
   scope: "AREA",
@@ -35,36 +42,29 @@ export function HourBagFields({ value, areas, disabled, onChange }: Props) {
       <div className="grid grid-cols-2 gap-3">
         <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">
           Modalidad
-          <select
-            className={FIELD}
+          <OptionSelect
+            aria-label="Modalidad"
             value={spec.modality}
             disabled={disabled}
-            onChange={(e) =>
-              update({ modality: e.target.value as HourBagSpec["modality"] })
+            options={MODALITY_OPTIONS}
+            onValueChange={(modality) =>
+              modality &&
+              update({ modality: modality as HourBagSpec["modality"] })
             }
-          >
-            <option value="H8X5">8x5 (fuera de horario vale doble)</option>
-            <option value="H24X7">24x7</option>
-          </select>
+          />
         </Label>
         <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">
           Alcance
-          <select
-            className={FIELD}
+          <OptionSelect
+            aria-label="Alcance"
             value={spec.scope}
             disabled={disabled}
-            onChange={(e) =>
-              update({
-                scope: e.target.value as HourBagSpec["scope"],
-                areaIds: [],
-              })
+            options={SCOPE_OPTIONS}
+            onValueChange={(scope) =>
+              scope &&
+              update({ scope: scope as HourBagSpec["scope"], areaIds: [] })
             }
-          >
-            <option value="AREA">Por áreas</option>
-            <option value="GENERAL">
-              General (cualquier ticket del cliente)
-            </option>
-          </select>
+          />
         </Label>
       </div>
       {spec.scope === "AREA" && (

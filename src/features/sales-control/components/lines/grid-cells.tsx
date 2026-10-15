@@ -4,6 +4,7 @@
 "use client";
 
 import type { ComponentProps } from "react";
+import { OptionSelect } from "@/components/ui/option-select";
 import { parseDecimalText } from "@/domain/sales-control/parse-decimal-text";
 
 const CELL =
@@ -99,22 +100,21 @@ export function SelectCell({
   placeholder = "—",
 }: SelectCellProps) {
   return (
-    <select
+    <OptionSelect
       data-cell={`${row}:${col}`}
       aria-label={label}
       aria-invalid={error ? true : undefined}
       title={error}
       disabled={disabled}
-      value={value ?? ""}
-      onChange={(event) => onValueChange(event.target.value || null)}
-      className={`${CELL} cursor-pointer pr-1 disabled:cursor-default disabled:appearance-none`}
-    >
-      <option value="">{placeholder}</option>
-      {options.map((option) => (
-        <option key={option.id} value={option.id}>
-          {option.label}
-        </option>
-      ))}
-    </select>
+      value={value}
+      options={options}
+      emptyLabel={placeholder}
+      onValueChange={onValueChange}
+      // REGLA de la planilla: Enter baja de fila (grid-keyboard.ts); la lista se abre con flechas, espacio o clic.
+      onKeyDown={(event) => {
+        if (event.key === "Enter") event.preventBaseUIHandler();
+      }}
+      className={`${CELL} h-8 gap-1 pr-1 data-popup-open:border-ring [&_svg]:opacity-60`}
+    />
   );
 }

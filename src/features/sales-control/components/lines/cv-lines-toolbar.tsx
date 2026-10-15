@@ -10,7 +10,9 @@ import {
   Send,
   StickyNote,
 } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { OptionSelect } from "@/components/ui/option-select";
 import type { ActionResult } from "@/lib/action-result";
 import type { Option } from "../../types";
 import { ReasonDialog } from "../versions/reason-dialog";
@@ -33,6 +35,7 @@ const FIELD =
   "h-7 rounded-md border bg-background px-1.5 text-xs outline-none focus:border-ring";
 
 export function CvLinesToolbar(props: Props) {
+  const [technology, setTechnology] = useState<string | null>(null);
   return (
     <div className="flex flex-wrap items-center gap-2">
       <h2 className="mr-auto text-base font-semibold">Líneas</h2>
@@ -41,8 +44,6 @@ export function CvLinesToolbar(props: Props) {
         onSubmit={(event) => {
           event.preventDefault();
           const form = event.currentTarget.elements;
-          const technology = (form.namedItem("technology") as HTMLSelectElement)
-            .value;
           const factor = (form.namedItem("factor") as HTMLInputElement).value;
           if (technology) props.onApplyTechnologyFactor(technology, factor);
         }}
@@ -50,21 +51,16 @@ export function CvLinesToolbar(props: Props) {
         <span className="px-1 text-xs text-muted-foreground">
           Factor por tecnología
         </span>
-        <select
+        <OptionSelect
           name="technology"
           aria-label="Tecnología"
-          className={`${FIELD} max-w-32`}
-          defaultValue=""
-        >
-          <option value="" disabled>
-            Tecnología
-          </option>
-          {props.technologies.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.label}
-            </option>
-          ))}
-        </select>
+          size="sm"
+          value={technology}
+          options={props.technologies}
+          placeholder="Tecnología"
+          onValueChange={setTechnology}
+          className="h-7 w-32 text-xs"
+        />
         <input
           name="factor"
           inputMode="decimal"

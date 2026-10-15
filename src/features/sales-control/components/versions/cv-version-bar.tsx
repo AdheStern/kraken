@@ -7,6 +7,7 @@ import { Ban, FileDown, GitBranchPlus, GitCompareArrows } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { OptionSelect } from "@/components/ui/option-select";
 import {
   canStartNewVersion,
   nextVersionState,
@@ -33,21 +34,18 @@ export function CvVersionBar({ editor, canDuplicate }: Props) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       {versions.length > 1 && (
-        <select
+        <OptionSelect
           aria-label="Versión"
-          value={versionNumber}
-          onChange={(event) =>
-            router.push(`/cv/${header.cvId}?v=${event.target.value}`)
+          value={String(versionNumber)}
+          options={versions.map((v) => ({
+            id: String(v.number),
+            label: `v${v.number}${v.number === versions[0].number ? " (más reciente)" : ""}`,
+          }))}
+          onValueChange={(number) =>
+            number && router.push(`/cv/${header.cvId}?v=${number}`)
           }
-          className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/30 dark:bg-input/30"
-        >
-          {versions.map((v) => (
-            <option key={v.id} value={v.number}>
-              v{v.number}
-              {v.number === versions[0].number ? " (más reciente)" : ""}
-            </option>
-          ))}
-        </select>
+          className="h-8 w-auto min-w-24"
+        />
       )}
       {versionNumber > 1 && (
         <Button

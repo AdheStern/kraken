@@ -2,10 +2,8 @@
 // Dónde rige un feriado: nacional (sin ciudad) o en una ciudad (departamental), AGENTS.md §2.5.
 "use client";
 
-import { cn } from "@/lib/utils";
+import { OptionSelect } from "@/components/ui/option-select";
 import type { CityScheduleView } from "../types";
-
-const NATIONAL = "NACIONAL";
 
 type Props = {
   value: string | null;
@@ -21,23 +19,13 @@ export function HolidayScopeSelect({
   className,
 }: Props) {
   return (
-    <select
-      value={value ?? NATIONAL}
-      onChange={(e) =>
-        onChange(e.target.value === NATIONAL ? null : e.target.value)
-      }
+    <OptionSelect
       aria-label="Dónde rige"
-      className={cn(
-        "h-9 rounded-lg border bg-background px-2 text-sm",
-        className,
-      )}
-    >
-      <option value={NATIONAL}>Nacional</option>
-      {cities.map((c) => (
-        <option key={c.id} value={c.id}>
-          {c.name}
-        </option>
-      ))}
-    </select>
+      value={value}
+      options={cities.map((c) => ({ id: c.id, label: c.name }))}
+      emptyLabel="Nacional"
+      onValueChange={onChange}
+      className={className}
+    />
   );
 }

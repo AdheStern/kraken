@@ -31,11 +31,11 @@ export function handleGridKeyDown(event: KeyboardEvent<HTMLElement>) {
   }
 }
 
-// TRAMPA: en un <select> las flechas cambian la opción; ahí solo Enter mueve de fila.
+// TRAMPA: en un selector las flechas abren y recorren sus opciones; ahí solo Enter mueve de fila.
 function toDirection(event: KeyboardEvent, target: HTMLElement): -1 | 0 | 1 {
   if (event.key === "Enter" && !event.ctrlKey && !event.metaKey)
     return event.shiftKey ? -1 : 1;
-  if (target instanceof HTMLSelectElement) return 0;
+  if (target.dataset.slot === "select-trigger") return 0;
   if (event.key === "ArrowDown") return 1;
   if (event.key === "ArrowUp") return -1;
   return 0;

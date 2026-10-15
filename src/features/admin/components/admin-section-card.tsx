@@ -8,6 +8,7 @@ import {
   KeyRound,
   Layers,
   type LucideIcon,
+  Mail,
   MapPin,
   Package,
   Ruler,
@@ -33,6 +34,7 @@ const ICONS: Record<AdminSectionKey, LucideIcon> = {
   "grupos-entra": KeyRound,
   parametros: SlidersHorizontal,
   "tipo-cambio": ArrowLeftRight,
+  correo: Mail,
 };
 
 type Props = { section: AdminSection; count?: number };

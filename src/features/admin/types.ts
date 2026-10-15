@@ -152,3 +152,18 @@ export type EntraGroupView = {
     people: number;
   }[];
 };
+
+export type MailStatus = {
+  transport: { name: string; detail: string; ready: boolean };
+  pending: number;
+  oldestPendingAt: string | null;
+  sentToday: number;
+  failed: {
+    id: string;
+    recipientEmail: string;
+    subject: string;
+    attempts: number;
+    lastError: string | null;
+    createdAt: string;
+  }[];
+};

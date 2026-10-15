@@ -16,6 +16,7 @@ export type AdminSectionKey =
   | "usuarios"
   | "grupos-entra"
   | "parametros"
+  | "correo"
   | "tipo-cambio";
 
 export type AdminSection = {
@@ -131,6 +132,13 @@ export const ADMIN_GROUPS: readonly AdminGroup[] = [
         "Tipo de cambio",
         "TC oficial del día, su historial y la carga manual.",
         "/admin/tipo-cambio",
+        "system",
+      ),
+      section(
+        "correo",
+        "Correo",
+        "La cola de avisos por correo, los que fallaron y el correo de prueba.",
+        "/admin/correo",
         "system",
       ),
     ],

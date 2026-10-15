@@ -167,3 +167,23 @@ export type MailStatus = {
     createdAt: string;
   }[];
 };
+
+export type AuditFilters = {
+  entity?: string;
+  from?: string;
+  to?: string;
+  cursor?: string;
+};
+
+export type AuditEventView = {
+  id: string;
+  at: string;
+  actor: string | null;
+  entity: string;
+  entityId: string;
+  subject: string | null;
+  action: string;
+  before: unknown;
+  after: unknown;
+  ip: string | null;
+};

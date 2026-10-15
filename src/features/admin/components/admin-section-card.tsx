@@ -12,6 +12,7 @@ import {
   MapPin,
   Package,
   Ruler,
+  ScrollText,
   SlidersHorizontal,
   Truck,
   Users,
@@ -35,6 +36,7 @@ const ICONS: Record<AdminSectionKey, LucideIcon> = {
   parametros: SlidersHorizontal,
   "tipo-cambio": ArrowLeftRight,
   correo: Mail,
+  auditoria: ScrollText,
 };
 
 type Props = { section: AdminSection; count?: number };

@@ -33,9 +33,10 @@
 pnpm dev                      # app en desarrollo
 pnpm worker:dev               # worker pg-boss
 pnpm worker:migrate           # instala/actualiza el esquema pgboss con MIGRATION_DATABASE_URL y da DML al rol de DATABASE_URL
+pnpm migrate:deploy           # despliegue: prisma migrate deploy + worker:migrate + db:seed:base (lo corre deploy.sh)
 pnpm test                     # dominio y unitarios (Vitest)
 pnpm test:int                 # integración con Postgres (Testcontainers)
-pnpm test:e2e                 # Playwright
+pnpm build && pnpm test:e2e   # Playwright sobre el build (puerto 3100); sesiones por rol emitidas en la base
 pnpm biome check --write      # lint + formato
 pnpm prisma migrate dev       # migraciones en desarrollo
 pnpm db:seed:admin            # crea/actualiza la cuenta de emergencia ADMIN_SISTEMA desde SUPERADMIN_*
@@ -301,7 +302,7 @@ Usuarios ─HTTPS→ FortiGate/Radware (WAF + TLS) → IP virtual (keepalived)
 | ADR-10 | Lógica de dominio pura en `src/domain` (precio, calendario, ponderación, asignación, SLA, costo promedio). | Las reglas delicadas se prueban sin BD. |
 | ADR-11 | Versionado de CV por copia (cada versión con sus líneas). Un trigger bloquea cambios en versiones que no estén en `BORRADOR`. | Comparador trivial; lo aprobado no cambia ni por error. |
 | ADR-12 | Exportación con ExcelJS sobre la plantilla oficial `PA-PR-03-RE-01` en `templates/`, escribiendo fórmulas. | El formato que DIMA ya usa; archivo "vivo". |
-| ADR-13 | Docker Compose sobre VMs de VMware, sin Kubernetes. | La misma disponibilidad con mucha menos operación. |
+| ADR-13 | Docker Compose sobre VMs de VMware, sin Kubernetes. Dos imágenes sin root (`Dockerfile`): `app` (Next standalone) y `worker` (tsx, solo dependencias de producción; también corre `migrate:deploy`). Plantillas y runbook en `deploy/`. | La misma disponibilidad con mucha menos operación. |
 | ADR-14 | Auditoría en `audit.evento` con `recordAudit(tx, …)` explícito dentro de la transacción de cada action que decide algo (crear, enviar, aprobar o rechazar, nueva versión, anular, ajustes y cierres de bolsas, administración y la sincronización con Entra): actor, entidad, acción, antes, después, IP y requestId. Los guardados de borrador no se auditan: la versión enviada es inmutable y es el rastro de sus precios. | Trazabilidad de precios, aprobaciones y ajustes. Explícito y no una extensión de Prisma: la extensión no ve al actor ni la transacción para leer el «antes» (KISS). |
 | ADR-15 | Fechas UTC en BD; calendario en `America/La_Paz` (UTC−4, sin horario de verano). | Sin errores de zona horaria. |
 | ADR-16 | Adjuntos en NFS del NAS montado en ambos nodos (ruta + hash en BD), copia diaria a Azure Blob, detrás de la interfaz `FileStore`. | Sin servicio de objetos adicional; migrable a S3. |
@@ -579,8 +580,8 @@ type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { code: Error
 **Jobs:**
 | Job | Cuándo | Qué hace |
 |---|---|---|
-| `fx.fetch-official` | 00:15 y cada hora hasta tener el TC vigente | API de CUCU → `fx.tipo_cambio` |
-| `mail.dispatch` | Continuo | Envía `notif.salida` con reintento exponencial; tras 10 fallos alerta al administrador |
+| `fx.fetch-official` | Cada hora a los 15 min (el primero a las 00:15) mientras falte el TC de hoy | API de CUCU → `fx.tipo_cambio`, el vigente y el de mañana si ya se publicó; régimen flexible: compra = venta (implementado) |
+| `mail.dispatch` | Cada minuto | Envía `notif.salida` (lotes de 50 con `SKIP LOCKED`) por Graph, o por Mailpit en desarrollo; reintento exponencial con tope de 6 h; tras 10 fallos o uno permanente lo marca fallido y avisa al administrador en la bandeja (implementado; ver `/admin/correo`) |
 | `bags.check-thresholds` | Tras cada cierre (F3) | Consumo proyectado mayor al saldo. Los avisos de 80% y 100% no son job: se emiten en la transacción del movimiento que cruza el umbral (F2) |
 | `bags.expire` | 00:05 diario (America/La_Paz) | Vence bolsas, registra `VENCIMIENTO` sin actor, avisa N días antes y el día del vencimiento, una vez cada aviso (implementado) |
 | `sla.evaluate` | Cada 5 min | Mediciones y alerta al 75% |
@@ -730,7 +731,7 @@ Operación conjunta: **DIMANET** (virtualización, red, seguridad perimetral, NA
 **DR en Azure (en frío):** procedimiento ensayado (Terraform o Bicep + script): crear VM con Postgres, restaurar al último WAL, levantar la app con las mismas imágenes y cambiar el DNS. Se ensaya dos veces al año.
 
 ### CI/CD
-PR → biome · typecheck · tests de dominio · integración con Postgres · build → merge a main → imagen Docker etiquetada con el commit → staging + `prisma migrate deploy` + `pnpm worker:migrate` → smoke E2E → aprobación manual → producción: migración compatible hacia atrás → drenar `app-01`, actualizar, verificar → drenar `app-02`, actualizar, verificar.
+PR → biome · typecheck · tests de dominio · integración con Postgres · build · E2E (`.github/workflows/ci.yml`) → merge a main → imágenes `app` y `worker` en GHCR etiquetadas con el commit → staging (`pnpm migrate:deploy` + nodo) → aprobación manual del entorno `production` → producción: migración compatible hacia atrás → drenar `app-01`, actualizar, verificar → drenar `app-02`, actualizar, verificar (`.github/workflows/deploy.yml` y `deploy/scripts/deploy.sh`). Ganchos locales con lefthook: Biome antes de cada commit; tipos y tests antes de cada push.
 - Runner autoalojado en `ops-01` (sin puertos de entrada).
 - Entornos: desarrollo (Compose local con Postgres y correo falso), staging y producción.
 - Observabilidad: logs JSON a Loki con `requestId`; métricas en Prometheus/Grafana; Uptime Kuma avisa por correo y Teams.
@@ -744,6 +745,8 @@ PR → biome · typecheck · tests de dominio · integración con Postgres · bu
 | `SUPERADMIN_EMAIL`, `SUPERADMIN_PASSWORD` | Solo los lee `pnpm db:seed:admin` (contraseña de 12+ caracteres); la app nunca los usa |
 | `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, `MAIL_SENDER` | Correo (registro de app separado, solo `Mail.Send`, limitado al buzón) |
 | `FX_API_URL` | API del tipo de cambio |
+| `MAILPIT_URL` | Solo desarrollo: Mailpit (por defecto `http://localhost:8025`) cuando Graph no está configurado |
+| `E2E_BASE_URL` | Solo pruebas: servidor bajo prueba de Playwright (por defecto `http://localhost:3100`) |
 | `FILES_ROOT` | Punto de montaje NFS |
 
 Nunca en el repositorio (`.env.example` documentado). En los servidores: archivos con permisos 600 fuera del proyecto o Docker secrets. Los secretos de Entra se rotan con una alerta 30 días antes de vencer.
@@ -770,10 +773,10 @@ Nunca en el repositorio (`.env.example` documentado). En los servidores: archivo
 Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara la infraestructura en paralelo durante F0. [OPUS] = diseño o lógica delicada; [SONNET] = implementación sobre un patrón existente.
 
 **F0 · Fundaciones e infraestructura (~3 semanas)**
-- VMs, VLANs, Patroni + etcd, HAProxy + keepalived, pgBackRest a NAS y Azure, publicación por FortiGate/Radware [OPUS diseño, SONNET archivos]
-- Repositorio, tooling (Biome, lefthook, Vitest, Playwright), CI con runner, Compose de desarrollo [SONNET]
-- Esquemas `auth` y `core`, Better Auth + Entra, grupos → roles, authz con los tests de 2.9 [OPUS]
-- Auditoría, outbox + Graph, job de TC y panel [SONNET]
+- VMs, VLANs, Patroni + etcd, HAProxy + keepalived, pgBackRest a NAS y Azure, publicación por FortiGate/Radware [OPUS diseño, SONNET archivos] — plantillas y runbook en `deploy/` (sin validar en VMs: ver `deploy/README.md`)
+- Repositorio, tooling (Biome, lefthook, Vitest, Playwright), CI con runner, Compose de desarrollo [SONNET] — hecho; CI en GitHub Actions con `vars.CI_RUNNER`
+- Esquemas `auth` y `core`, Better Auth + Entra, grupos → roles, authz con los tests de 2.9 [OPUS] — hecho; sesión de 12 h
+- Auditoría, outbox + Graph, job de TC y panel [SONNET] — hecho (`/admin/auditoria`, `/admin/correo`, `/admin/tipo-cambio`)
 - Catálogos base con carga inicial desde la hoja "Listas" de las plantillas [SONNET] — `pnpm db:seed:base` (unidades, áreas, tecnologías y tipos de servicio; sin "Ninguno", sin el área "Otro / Externo" y sin las listas de personas, que entran por Entra ID)
 - *Sale cuando:* login con cuenta de DIMA, TC del día visible, correo de prueba recibido y restauración en staging funcionando.
 
@@ -848,7 +851,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 | Caída o cambio de la API de TC | BAJO | TC guardado, carga manual, interfaz `FxRateProvider` |
 
 **Decisiones abiertas (no implementar como definitivas; aislarlas en parámetros):**
-- **F0:** nivel de RAID del NAS; repositorio Git. Qué roles operativos llevan área (`role-area-rules.ts`: el gerente de área la exige; comercial, preventa, ingeniero y coordinador la admiten). Los roles de Entra se recalculan al iniciar sesión y la sesión dura 12 h sin extenderse: la baja en Entra rige el mismo día.
+- **F0:** nivel de RAID del NAS. Repositorio: GitHub (`AdheStern/kraken`); confirmar si pasa a una organización de DIMA. Validar en las VMs las plantillas de `deploy/` (Patroni, pgBackRest, keepalived, despliegue nodo por nodo, restauración en staging, DR en Azure). Registro de app de Graph con `Mail.Send` y RBAC de Exchange para el buzón. El BCB pasó al régimen flexible (RD 142/2026: compra = venta = TCO); los TC de costo y de venta del CV siguen siendo manuales (§2.2). Qué roles operativos llevan área (`role-area-rules.ts`: el gerente de área la exige; comercial, preventa, ingeniero y coordinador la admiten). Los roles de Entra se recalculan al iniciar sesión y la sesión dura 12 h sin extenderse: la baja en Entra rige el mismo día.
 - **F1:** significado del sufijo `-DS`; confirmar que un rechazo cierra la ronda; valor inicial del umbral del GG; % de desvío del TC que dispara la advertencia.
 - **F2:** horario real de cada ciudad (¿con pausa de mediodía?) y feriados departamentales y de traslado: los carga el administrador en `/admin/calendario`. *Confirmado por DIMA (2026-10-14):* multiplicador 2 fuera de horario en 8x5, umbrales de alerta 80% y 100%, aviso de vencimiento a 30 días, y los miembros de un área ven todas sus bolsas. *Resuelto:* las bolsas vigentes se cargan con un "CV de saldo inicial" por cliente (`es_saldo_inicial`, solo horas de servicio con costo y venta 0), aprobado por su gerente.
 - **F3:** confirmar el redondeo hacia arriba; confirmar que se suman los tiempos en paralelo; prioridades de ticket y tiempos de SLA por prioridad y modalidad.

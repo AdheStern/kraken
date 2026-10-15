@@ -2,3 +2,8 @@
 # TRAMPA: Prisma guarda el checksum de cada migracion; un CRLF introducido por git la marca como modificada.
 prisma/migrations/** text eol=lf
 prisma/sql/** text eol=lf
+# TRAMPA: los scripts y la configuración corren en Linux; un CRLF rompe bash, HAProxy y Patroni.
+*.sh text eol=lf
+Dockerfile text eol=lf
+deploy/** text eol=lf
+.github/** text eol=lf

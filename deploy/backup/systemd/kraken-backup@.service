@@ -1,0 +1,13 @@
+# deploy/backup/systemd/kraken-backup@.service
+# Respaldo de pgBackRest en ops-01 a los dos repositorios (AGENTS.md §10): %i = full | diff.
+[Unit]
+Description=Kraken: respaldo %i de PostgreSQL (NAS y Azure)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=pgbackrest
+ExecStart=/usr/bin/pgbackrest --stanza=kraken --type=%i --repo=1 backup
+ExecStart=/usr/bin/pgbackrest --stanza=kraken --type=%i --repo=2 backup
+ExecStartPost=/usr/bin/pgbackrest --stanza=kraken check

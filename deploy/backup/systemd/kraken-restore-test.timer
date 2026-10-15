@@ -1,0 +1,11 @@
+# deploy/backup/systemd/kraken-restore-test.timer
+# Primer domingo de cada mes a las 06:00 de La Paz, después del respaldo completo de las 02:00.
+[Unit]
+Description=Kraken: restauración de prueba mensual
+
+[Timer]
+OnCalendar=Sun *-*-01..07 06:00:00 America/La_Paz
+Persistent=true
+
+[Install]
+WantedBy=timers.target

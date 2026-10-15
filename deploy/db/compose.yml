@@ -1,0 +1,54 @@
+# deploy/db/compose.yml
+# Nodo de base de datos (db-01, db-02, db-03; AGENTS.md §3, §10): etcd (consenso de Patroni) y
+# PostgreSQL 16 + Patroni + pgBackRest. Red del host: Patroni anuncia la IP del nodo.
+#   NODO=db-01 NODE_IP=10.0.20.11 docker compose -f /opt/kraken-db/compose.yml up -d
+
+name: kraken-db
+
+services:
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.17
+    restart: unless-stopped
+    network_mode: host
+    command:
+      - etcd
+      - --name=${NODO:?define NODO}
+      - --data-dir=/etcd-data
+      - --listen-client-urls=http://${NODE_IP:?define NODE_IP}:2379,http://127.0.0.1:2379
+      - --advertise-client-urls=http://${NODE_IP}:2379
+      - --listen-peer-urls=http://${NODE_IP}:2380
+      - --initial-advertise-peer-urls=http://${NODE_IP}:2380
+      - --initial-cluster=${ETCD_CLUSTER:?db-01=http://IP:2380,db-02=…,db-03=…}
+      - --initial-cluster-state=new
+      - --initial-cluster-token=kraken-etcd
+    volumes:
+      - /var/lib/kraken/etcd:/etcd-data
+
+  postgres:
+    image: kraken-patroni:16
+    restart: unless-stopped
+    network_mode: host
+    depends_on: [etcd]
+    env_file: /etc/kraken/patroni.env
+    stop_grace_period: 60s
+    volumes:
+      # POR QUÉ: datos en su propio disco, idealmente en otro datastore o LUN que el de las otras réplicas.
+      - /var/lib/kraken/pg:/var/lib/postgresql/data
+      - /etc/kraken/patroni.yml:/etc/patroni/patroni.yml:ro
+      - /etc/kraken/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf:ro
+      - /etc/kraken/tls:/etc/pgbackrest/tls:ro
+      - /var/spool/kraken/pgbackrest:/var/spool/pgbackrest
+    logging:
+      driver: json-file
+      options: { max-size: "50m", max-file: "5" }
+
+  # Servidor TLS de pgBackRest: ops-01 se conecta aquí para tomar los respaldos (sin SSH entre máquinas).
+  pgbackrest-server:
+    image: kraken-patroni:16
+    restart: unless-stopped
+    network_mode: host
+    command: ["pgbackrest", "server"]
+    volumes:
+      - /var/lib/kraken/pg:/var/lib/postgresql/data
+      - /etc/kraken/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf:ro
+      - /etc/kraken/tls:/etc/pgbackrest/tls:ro

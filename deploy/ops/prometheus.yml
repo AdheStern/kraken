@@ -1,0 +1,15 @@
+# deploy/ops/prometheus.yml
+# Qué mide Prometheus (AGENTS.md §10): HAProxy de cada nodo de app (estado de los Next y del primario de BD),
+# Patroni de cada nodo de base (rol, retraso de réplica) y la salud de la app por la IP virtual.
+# Reemplazar las <IP_…> por las de la VLAN.
+global:
+  scrape_interval: 30s
+
+scrape_configs:
+  - job_name: haproxy
+    static_configs:
+      - targets: ["<IP_APP_01>:8404", "<IP_APP_02>:8404"]
+
+  - job_name: patroni
+    static_configs:
+      - targets: ["<IP_DB_01>:8008", "<IP_DB_02>:8008", "<IP_DB_03>:8008"]

@@ -1,0 +1,32 @@
+// deploy/app/alloy.river
+// Grafana Alloy en cada nodo de app: lee los logs JSON de los contenedores de Kraken (app y worker) y los
+// manda a Loki en ops-01 con la etiqueta del servicio (AGENTS.md §10 Observabilidad). Reemplazar <IP_OPS_01>.
+
+discovery.docker "kraken" {
+  host = "unix:///var/run/docker.sock"
+  filter {
+    name   = "label"
+    values = ["com.docker.compose.project=kraken"]
+  }
+}
+
+discovery.relabel "kraken" {
+  targets = discovery.docker.kraken.targets
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "servicio"
+  }
+}
+
+loki.source.docker "kraken" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.kraken.output
+  forward_to = [loki.write.ops.receiver]
+}
+
+loki.write "ops" {
+  endpoint {
+    url = "http://<IP_OPS_01>:3100/loki/api/v1/push"
+  }
+  external_labels = { nodo = constants.hostname }
+}

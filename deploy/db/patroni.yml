@@ -1,0 +1,78 @@
+# deploy/db/patroni.yml
+# Patroni en cada nodo de base de datos (AGENTS.md §3, §10): réplica síncrona (RPO 0 ante la caída del
+# primario), WAL continuo a pgBackRest y API REST :8008 que usa el HAProxy de los nodos de aplicación.
+# Se copia a /etc/kraken/patroni.yml y se ajustan <NODO> e <IP_NODO> en cada db-0X. Claves en patroni.env.
+
+scope: kraken
+name: <NODO>                     # db-01 | db-02 | db-03
+
+restapi:
+  listen: 0.0.0.0:8008
+  connect_address: <IP_NODO>:8008
+
+etcd3:
+  hosts: <IP_DB_01>:2379,<IP_DB_02>:2379,<IP_DB_03>:2379
+
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    # REGLA: ninguna pérdida de información (§10): el primario confirma solo cuando una réplica tiene el WAL.
+    synchronous_mode: true
+    synchronous_mode_strict: false
+    postgresql:
+      use_pg_rewind: true
+      parameters:
+        wal_level: replica
+        hot_standby: "on"
+        max_wal_senders: 10
+        max_replication_slots: 10
+        wal_log_hints: "on"
+        archive_mode: "on"
+        archive_command: "pgbackrest --stanza=kraken archive-push %p"
+        archive_timeout: 60
+        max_connections: 200
+        shared_buffers: 2GB
+        effective_cache_size: 6GB
+        log_min_duration_statement: 1000
+        timezone: UTC
+  initdb:
+    - encoding: UTF8
+    - data-checksums
+    - locale: C.UTF-8
+
+postgresql:
+  listen: 0.0.0.0:5432
+  connect_address: <IP_NODO>:5432
+  data_dir: /var/lib/postgresql/data/pgdata
+  pgpass: /tmp/pgpass
+  # POR QUÉ: las claves llegan por PATRONI_REPLICATION_PASSWORD y PATRONI_SUPERUSER_PASSWORD (patroni.env);
+  # Patroni las toma del entorno y no quedan en este archivo.
+  authentication:
+    replication:
+      username: replicador
+    superuser:
+      username: postgres
+  # POR QUÉ: solo los nodos de app (por su HAProxy), ops-01 y las otras réplicas llegan al 5432 (§10 VLAN).
+  # LIMITACIÓN: sin TLS dentro de la VLAN de datos (aislada); cifrar en tránsito es una mejora posterior.
+  pg_hba:
+    - local all all peer
+    - host replication replicador <RED_DATOS> scram-sha-256
+    - host all all <RED_DATOS> scram-sha-256
+    - host all all <RED_APP> scram-sha-256
+    - host all all 0.0.0.0/0 reject
+  create_replica_methods:
+    - pgbackrest
+    - basebackup
+  pgbackrest:
+    command: pgbackrest --stanza=kraken --delta restore
+    keep_data: true
+    no_params: true
+  basebackup:
+    checkpoint: fast
+
+tags:
+  nofailover: false
+  noloadbalance: false

@@ -1,5 +1,5 @@
 # deploy/app/compose.yml
-# Nodo de aplicación (app-01, app-02; AGENTS.md §3 y §10): Next.js, worker pg-boss y HAProxy. keepalived
+# Nodo de aplicación (app-01, app-02; AGENTS.md §3 y §10): Next.js, worker pg-boss, HAProxy y Alloy (logs). keepalived
 # (IP virtual) corre en el sistema operativo: necesita la red del host y privilegios (ver keepalived.conf).
 # Secretos en /etc/kraken/*.env (permisos 600, fuera del repositorio). Imágenes en GHCR por commit.
 #   KRAKEN_TAG=<sha> docker compose -f /opt/kraken/compose.yml up -d
@@ -50,3 +50,12 @@ services:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
       # Socket de administración: el despliegue drena y habilita nodos por aquí.
       - /run/haproxy:/run/haproxy
+
+  # Envía los logs JSON de app y worker (con requestId) a Loki en ops-01.
+  alloy:
+    image: grafana/alloy:v1.9.1
+    restart: unless-stopped
+    command: ["run", "/etc/alloy/config.alloy"]
+    volumes:
+      - ./alloy.river:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro

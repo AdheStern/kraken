@@ -1,0 +1,13 @@
+# deploy/backup/systemd/kraken-files-sync.service
+# Copia diaria de los adjuntos del NFS a Azure Blob con versionado (AGENTS.md §10, ADR-16). El contenedor
+# tiene versionado e inmutabilidad: azcopy sync nunca borra versiones en Azure.
+[Unit]
+Description=Kraken: copia de adjuntos a Azure
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=pgbackrest
+EnvironmentFile=/etc/kraken/azure-files.env
+ExecStart=/usr/local/bin/azcopy sync /mnt/nas/kraken-files "${AZURE_FILES_SAS_URL}" --recursive=true --delete-destination=false

@@ -1,0 +1,15 @@
+# deploy/db/Dockerfile.patroni
+# PostgreSQL 16 con Patroni (elige y cambia el primario sobre etcd) y pgBackRest (WAL continuo y respaldos)
+# para db-01, db-02 y db-03 (AGENTS.md §3, §10). Se construye en cada nodo o en ops-01:
+#   docker build -f deploy/db/Dockerfile.patroni -t kraken-patroni:16 deploy/db
+
+FROM postgres:16-bookworm
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends python3-pip python3-psycopg2 pgbackrest curl \
+  && pip3 install --no-cache-dir --break-system-packages "patroni[etcd3]==4.0.*" \
+  && rm -rf /var/lib/apt/lists/* \
+  && mkdir -p /var/spool/pgbackrest /var/log/pgbackrest \
+  && chown -R postgres:postgres /var/spool/pgbackrest /var/log/pgbackrest
+USER postgres
+EXPOSE 5432 8008
+CMD ["patroni", "/etc/patroni/patroni.yml"]

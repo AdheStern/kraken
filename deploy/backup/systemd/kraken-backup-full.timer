@@ -1,0 +1,12 @@
+# deploy/backup/systemd/kraken-backup-full.timer
+# Completo semanal: domingo 02:00 hora de La Paz (AGENTS.md §10 Respaldos).
+[Unit]
+Description=Kraken: respaldo completo semanal
+
+[Timer]
+OnCalendar=Sun *-*-* 02:00:00 America/La_Paz
+Persistent=true
+Unit=kraken-backup@full.service
+
+[Install]
+WantedBy=timers.target

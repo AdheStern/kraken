@@ -2,6 +2,7 @@ allowBuilds:
   '@prisma/engines': true
   cpu-features: false
   esbuild: true
+  lefthook: true
   prisma: true
   protobufjs: false
   sharp: false

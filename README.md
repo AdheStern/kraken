@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kraken by DIMA
 
-## Getting Started
+Plataforma interna de DIMA Ltda.: Control de Venta y su aprobación por área, bolsas de horas, tickets,
+inventario y tableros. Reemplaza los Excel con los que hoy se maneja el negocio.
 
-First, run the development server:
+- **Reglas, arquitectura y forma de trabajar:** [AGENTS.md](AGENTS.md) (fuente de verdad; léelo antes de tocar código).
+- **Identidad visual «La red viva»:** [DESIGN.md](DESIGN.md) y [PRODUCT.md](PRODUCT.md).
+- **Despliegue, respaldos y recuperación:** [deploy/README.md](deploy/README.md).
+
+## Requisitos
+
+- Node.js 24 y pnpm 11 (`corepack enable`).
+- Docker, para el Postgres y el correo de desarrollo y para los tests de integración.
+
+## Puesta en marcha en desarrollo
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install                                   # dependencias, cliente Prisma y ganchos de git (lefthook)
+cp .env.example .env                           # y completa los valores (ver AGENTS.md §10)
+docker compose -f deploy/compose.dev.yml up -d # Postgres 16 y Mailpit (correo falso en http://localhost:8025)
+pnpm prisma migrate dev                        # esquema de la base
+pnpm db:seed:dev                               # catálogos base, datos demo y usuarios demo
+pnpm db:seed:admin                             # cuenta de emergencia del administrador del sistema
+pnpm dev                                       # la app en http://localhost:3000
+pnpm worker:dev                                # en otra terminal: correo, tipo de cambio y vencimientos
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+En desarrollo no hay Entra ID: con `AUTH_DEV_PASSWORD_LOGIN=true` los usuarios demo
+(`gg@dima.local`, `gerente.dimanet@dima.local`, `comercial@dima.local`, `administracion@dima.local`…) entran
+con `DEV_SEED_PASSWORD`. En producción solo la cuenta de emergencia entra con contraseña.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Comandos
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Comando | Qué hace |
+|---|---|
+| `pnpm test` | Dominio, autorización y unitarios (Vitest) |
+| `pnpm test:int` | Integración contra Postgres real (Testcontainers) |
+| `pnpm build && pnpm test:e2e` | E2E con Playwright sobre el build (puerto 3100) |
+| `pnpm biome check --write` | Lint y formato |
+| `pnpm db:seed:base` | Catálogos base, apto para producción |
+| `pnpm worker:migrate` | Esquema de pg-boss con el usuario de migraciones |
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Los ganchos de git corren Biome antes de cada commit, y tipos y tests antes de cada push.

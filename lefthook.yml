@@ -1,0 +1,17 @@
+# lefthook.yml
+# Ganchos de git (AGENTS.md §9 Herramientas): Biome antes de cada commit; tipos y tests de dominio antes de
+# cada push. Se instalan solos con `pnpm install`.
+
+pre-commit:
+  jobs:
+    - name: biome
+      glob: "*.{js,jsx,ts,tsx,mjs,mts,json,jsonc,css}"
+      run: pnpm biome check --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+
+pre-push:
+  parallel: true
+  jobs:
+    - name: typecheck
+      run: pnpm tsc --noEmit
+    - name: test
+      run: pnpm test

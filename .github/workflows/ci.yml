@@ -1,0 +1,80 @@
+# .github/workflows/ci.yml
+# Integración continua de cada PR y de main (AGENTS.md §10 CI/CD): Biome, tipos, dominio, integración con
+# Postgres (Testcontainers), build y E2E. Corre en el runner de ops-01 cuando exista (variable CI_RUNNER).
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  calidad:
+    name: Biome, tipos y tests
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm biome ci
+      - run: pnpm tsc --noEmit
+      - run: pnpm test
+      # Testcontainers levanta su propio Postgres; necesita Docker en el runner.
+      - run: pnpm test:int
+
+  e2e:
+    name: E2E sobre el build
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: dima
+          POSTGRES_PASSWORD: dima
+          POSTGRES_DB: dima_hub
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U dima -d dima_hub"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://dima:dima@localhost:5432/dima_hub
+      MIGRATION_DATABASE_URL: postgresql://dima:dima@localhost:5432/dima_hub
+      BETTER_AUTH_SECRET: ci-solo-pruebas-no-es-un-secreto-real-0123456789
+      BETTER_AUTH_URL: http://localhost:3100
+      DEV_SEED_PASSWORD: ci-demo-password-123
+      SUPERADMIN_EMAIL: admin@dima.local
+      SUPERADMIN_PASSWORD: ci-admin-password-123
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm prisma migrate deploy
+      - run: pnpm db:seed:dev
+      - run: pnpm db:seed:admin
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7

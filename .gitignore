@@ -52,3 +52,8 @@ next-env.d.ts
 # artefactos locales de impeccable (capturas de revisión y rondas de decisión)
 /.impeccable/review/
 /.impeccable/questions/
+
+# Playwright
+/playwright-report/
+/test-results/
+/tests/e2e/.auth/

@@ -31,6 +31,13 @@ export async function seedBaseCatalogs(tx: Tx): Promise<number> {
     await tx.parameter.create({ data: parameter });
     created++;
   }
+  for (const policy of data.SLA_POLICIES) {
+    const key = { modality: policy.modality, priority: policy.priority };
+    if (await tx.slaPolicy.findUnique({ where: { modality_priority: key } }))
+      continue;
+    await tx.slaPolicy.create({ data: policy });
+    created++;
+  }
   return created;
 }
 

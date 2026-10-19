@@ -3,6 +3,7 @@
 import { bagsExpireJob } from "./handlers/bags-expire";
 import { fxFetchOfficialJob } from "./handlers/fx-fetch-official";
 import { mailDispatchJob } from "./handlers/mail-dispatch";
+import { slaEvaluateJob } from "./handlers/sla-evaluate";
 import { timersStaleJob } from "./handlers/timers-stale";
 
 export type JobDefinition = {
@@ -17,4 +18,5 @@ export const JOBS: readonly JobDefinition[] = [
   mailDispatchJob,
   fxFetchOfficialJob,
   timersStaleJob,
+  slaEvaluateJob,
 ];

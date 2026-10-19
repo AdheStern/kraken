@@ -1,8 +1,9 @@
 // src/server/tickets/apply-status-change.ts
 // Cambia el estado de un ticket registrando su evento en el historial inmutable, del que se recalcula el
-// SLA (AGENTS.md §2.7, §8). Único punto que escribe ticket.estado.
+// SLA (AGENTS.md §2.7, §8), y recalcula ese SLA. Único punto que escribe ticket.estado.
 import type { TicketStatus } from "@/domain/tickets/ticket-state-machine";
 import type { Tx } from "@/server/db";
+import { refreshTicketSla } from "@/server/sla/refresh-ticket-sla";
 
 type StatusChange = {
   ticketId: string;
@@ -40,4 +41,6 @@ export async function applyStatusChange(
       where: { id: ticketId, firstResponseAt: null },
       data: { firstResponseAt: now },
     });
+  // REGLA: el SLA se recalcula en la misma transacción de cada cambio de estado (§2.7).
+  await refreshTicketSla(tx, ticketId, now);
 }

@@ -5,6 +5,7 @@ import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import type { SessionUser } from "@/server/authz/roles";
 import { canCommentTicket } from "@/server/authz/ticket-permissions";
 import type { Tx } from "@/server/db";
+import { refreshTicketSla } from "@/server/sla/refresh-ticket-sla";
 import { loadTicketAccess } from "./load-ticket-access";
 
 type NewComment = { ticketId: string; body: string; isPublic: boolean };
@@ -26,10 +27,12 @@ export async function addTicketComment(
     data: { ticketId, authorId: user.id, body, isPublic, createdAt: now },
     select: { id: true },
   });
-  if (isPublic && access.ownerId === user.id)
+  if (isPublic && access.ownerId === user.id) {
     await tx.ticket.updateMany({
       where: { id: ticketId, firstResponseAt: null },
       data: { firstResponseAt: now },
     });
+    await refreshTicketSla(tx, ticketId, now);
+  }
   return actionOk({ commentId: comment.id });
 }

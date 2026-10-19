@@ -42,6 +42,12 @@ describe("parámetros del sistema", () => {
     expect(parse("horas.redondeo_minutos", "0").success).toBe(false);
     expect(parse("horas.redondeo_minutos", "241").success).toBe(false);
   });
+
+  it("el aviso del SLA es un % entero entre 1 y 100", () => {
+    expect(parse("sla.alerta_pct", "75").data).toBe(75);
+    expect(parse("sla.alerta_pct", "0").success).toBe(false);
+    expect(parse("sla.alerta_pct", "101").success).toBe(false);
+  });
 });
 
 describe("área de cada rol", () => {

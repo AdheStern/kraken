@@ -86,4 +86,30 @@ export const PARAMETERS = [
     description:
       "Múltiplo de minutos al que sube el total ponderado de un ticket al cerrarlo [CONFIRMAR]",
   },
+  {
+    key: "sla.alerta_pct",
+    value: 75,
+    description:
+      "% del SLA consumido en que se avisa al encargado y al coordinador",
+  },
 ];
+
+// [CONFIRMAR] tiempos de SLA pendientes de DIMA (AGENTS.md §14, F3): primera respuesta / resolución en minutos,
+// iguales en 8x5 (horas de oficina) y 24x7. Se editan en /admin/sla.
+const SLA_MINUTES = {
+  CRITICA: [30, 240],
+  ALTA: [60, 480],
+  MEDIA: [240, 1440],
+  BAJA: [480, 2400],
+} as const;
+
+export const SLA_POLICIES = (["H8X5", "H24X7"] as const).flatMap((modality) =>
+  (Object.keys(SLA_MINUTES) as (keyof typeof SLA_MINUTES)[]).map(
+    (priority) => ({
+      modality,
+      priority,
+      firstResponseMinutes: SLA_MINUTES[priority][0],
+      resolutionMinutes: SLA_MINUTES[priority][1],
+    }),
+  ),
+);

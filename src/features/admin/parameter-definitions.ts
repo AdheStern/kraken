@@ -11,6 +11,7 @@ export const PARAMETER_KEYS = [
   "horas.alerta_consumo_pct",
   "horas.aviso_vencimiento_dias",
   "horas.redondeo_minutos",
+  "sla.alerta_pct",
 ] as const;
 
 export type ParameterKey = (typeof PARAMETER_KEYS)[number];
@@ -104,6 +105,18 @@ export const PARAMETER_DEFINITIONS: Record<ParameterKey, ParameterDefinition> =
         .regex(/^\d+$/, "Escribe un número entero de minutos.")
         .transform(Number)
         .refine((n) => n >= 1 && n <= 240, "Escribe entre 1 y 240 minutos."),
+    },
+    "sla.alerta_pct": {
+      label: "Aviso del SLA",
+      help: "Al consumir este % del tiempo de primera respuesta o de resolución se avisa al encargado y a los coordinadores del área.",
+      unit: "%",
+      placeholder: "75",
+      parse: z
+        .string()
+        .trim()
+        .regex(/^\d+$/, "Escribe un % entero.")
+        .transform(Number)
+        .refine((n) => n >= 1 && n <= 100, "Escribe un % entre 1 y 100."),
     },
   };
 

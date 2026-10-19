@@ -9,6 +9,7 @@ import { changeTimerRecord } from "@/server/tickets/change-timer-record";
 import { deleteTimeEntryRecord } from "@/server/tickets/delete-time-entry-record";
 import { hasActiveTimers } from "@/server/tickets/has-active-timers";
 import { startTimerRecord } from "@/server/tickets/start-timer-record";
+import { warnProjectedOverrun } from "@/server/tickets/warn-projected-overrun";
 import { warnStaleTimers } from "@/server/tickets/warn-stale-timers";
 import { createTestPrisma, createUserWithRoles } from "./test-db";
 import { createTicket, createTicketFixture, lp } from "./ticket-fixtures";
@@ -167,5 +168,52 @@ describe("contadores olvidados", () => {
           where: { userId, eventType: "CONTADOR_OLVIDADO" },
         }),
       ).toBe(1);
+  });
+});
+
+describe("consumo proyectado mayor al saldo", () => {
+  it("avisa una sola vez por ticket y bolsa", async () => {
+    const f = await createTicketFixture(db, [
+      { modality: "H24X7", minutes: 60 },
+    ]);
+    await db.ticket.update({
+      where: { id: f.ticket.id },
+      data: { status: "EN_PROGRESO" },
+    });
+    const engineer = await createUserWithRoles(db, "Ingeniera", [
+      { code: "INGENIERO", areaId: f.area.id },
+    ]);
+    await db.timeEntry.create({
+      data: {
+        ticketId: f.ticket.id,
+        userId: engineer.id,
+        startedAt: lp("2026-10-19T09:00"),
+        endedAt: lp("2026-10-19T11:00"),
+        source: "MANUAL",
+      },
+    });
+    const clock = { now: () => lp("2026-10-19T12:00") };
+    expect(
+      (await warnProjectedOverrun(db, clock)).warned,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      await db.inboxItem.count({
+        where: {
+          userId: f.userId,
+          eventType: "BOLSA_PROYECCION",
+          link: `/tickets/${f.ticket.id}`,
+        },
+      }),
+    ).toBe(1);
+    await warnProjectedOverrun(db, clock);
+    expect(
+      await db.inboxItem.count({
+        where: {
+          userId: f.userId,
+          eventType: "BOLSA_PROYECCION",
+          link: `/tickets/${f.ticket.id}`,
+        },
+      }),
+    ).toBe(1);
   });
 });

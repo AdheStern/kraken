@@ -5,6 +5,7 @@ import { prisma } from "@/server/db";
 import { seedBaseCatalogs } from "./base-catalogs";
 import { upsertCredentialUser } from "./credential-user";
 import * as data from "./dev-catalog-data";
+import { seedDevTickets } from "./dev-tickets";
 import { seedCalendar } from "./seed-calendar";
 
 async function main() {
@@ -29,6 +30,7 @@ async function main() {
             : null;
         await upsertCredentialUser(tx, { ...user, password, areaId: area?.id });
       }
+      await seedDevTickets(tx, new Date());
     },
     { timeout: 60_000 },
   );

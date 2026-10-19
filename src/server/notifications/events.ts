@@ -14,6 +14,7 @@ export const NOTIFICATION_EVENTS = {
   BOLSA_CERRADA: "Una bolsa de horas se cerró",
   BOLSA_POR_VENCER: "Una bolsa de horas está por vencer",
   BOLSA_VENCIDA: "Una bolsa de horas venció",
+  BOLSA_PROYECCION: "El trabajo de un ticket supera el saldo de su bolsa",
   HORAS_PENDIENTES: "Horas de un ticket sin bolsa",
   TICKET_ASIGNADO: "Te asignaron un ticket o una subtarea",
   CONTADOR_OLVIDADO: "Un contador lleva más de 10 h corriendo",

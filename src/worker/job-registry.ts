@@ -1,5 +1,6 @@
 // src/worker/job-registry.ts
 // Registro de jobs del worker (patrón Registry, AGENTS.md §9): agregar un job no toca el motor que los corre.
+import { bagsCheckThresholdsJob } from "./handlers/bags-check-thresholds";
 import { bagsExpireJob } from "./handlers/bags-expire";
 import { fxFetchOfficialJob } from "./handlers/fx-fetch-official";
 import { mailDispatchJob } from "./handlers/mail-dispatch";
@@ -19,4 +20,5 @@ export const JOBS: readonly JobDefinition[] = [
   fxFetchOfficialJob,
   timersStaleJob,
   slaEvaluateJob,
+  bagsCheckThresholdsJob,
 ];

@@ -45,7 +45,7 @@ describe("reopenTicketHours", () => {
       data: {
         reversedMinutes: 270,
         keptMinutes: 0,
-        discardedPendingMinutes: 0,
+        discardedPending: [],
       },
     });
     expect(await ledgerOf(db, p1.id)).toEqual({
@@ -109,14 +109,28 @@ describe("reopenTicketHours", () => {
     });
   });
 
-  it("descarta el pendiente sin bolsa, que se recalcula al volver a cerrar", async () => {
+  it("descarta el pendiente sin bolsa, aplicado o no, que se recalcula al volver a cerrar", async () => {
     const f = await createTicketFixture(db, []);
     await addTimeEntry(db, f.ticket.id, "2026-10-19T10:00", "2026-10-19T11:00");
     await close(f.coordinator, f.ticket.id);
+    await db.pendingHours.create({
+      data: {
+        ticketId: f.ticket.id,
+        customerId: f.customer.id,
+        insideMinutes: 0,
+        outsideMinutes: 20,
+        status: "APLICADA",
+      },
+    });
 
     expect(await reopen(f.coordinator, f.ticket.id)).toMatchObject({
       ok: true,
-      data: { discardedPendingMinutes: 60 },
+      data: {
+        discardedPending: [
+          { insideMinutes: 60, outsideMinutes: 0, status: "PENDIENTE" },
+          { insideMinutes: 0, outsideMinutes: 20, status: "APLICADA" },
+        ],
+      },
     });
     expect(
       await db.pendingHours.count({ where: { ticketId: f.ticket.id } }),

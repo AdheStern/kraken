@@ -44,6 +44,8 @@ export async function closeTicketHours(
     input.intervals,
     input.bags,
     input.calendar,
+    // POR QUÉ: un 0 cargado a mano en la base no debe impedir el cierre; equivale a no redondear.
+    Math.max(1, input.roundingStepMinutes),
   );
   // REGLA: un CONSUMO por bolsa, con el redondeo incluido; las firmes ya tienen el suyo (§2.6 paso 4).
   const charged = allocation.consumptions.filter((c) => !c.isSettled);

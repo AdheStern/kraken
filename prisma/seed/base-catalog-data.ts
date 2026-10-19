@@ -80,4 +80,10 @@ export const PARAMETERS = [
     value: 30,
     description: "Días antes del vencimiento de una bolsa en que se avisa",
   },
+  {
+    key: "horas.redondeo_minutos",
+    value: 30,
+    description:
+      "Múltiplo de minutos al que sube el total ponderado de un ticket al cerrarlo [CONFIRMAR]",
+  },
 ];

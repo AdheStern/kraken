@@ -7,7 +7,7 @@ import {
   splitByBusinessHours,
   type TimeInterval,
 } from "@/domain/calendar/split-by-business-hours";
-import { applyRounding } from "./apply-rounding";
+import { applyRounding, TICKET_ROUNDING_STEP_MINUTES } from "./apply-rounding";
 import { type BagModality, OUTSIDE_HOURS_MULTIPLIER } from "./weigh-minutes";
 
 const MINUTE_MS = 60_000;
@@ -49,6 +49,7 @@ export function allocateTicketHours(
   intervals: readonly TimeInterval[],
   bags: readonly AllocationBag[],
   calendar: BusinessCalendar,
+  roundingStepMinutes: number = TICKET_ROUNDING_STEP_MINUTES,
 ): TicketAllocation {
   for (const bag of bags) assertBag(bag);
   const cursors: BagCursor[] = bags.map((bag) => ({
@@ -62,7 +63,7 @@ export function allocateTicketHours(
     realMs += segment.end.getTime() - segment.start.getTime();
     allocateSegment(segment, cursors, pending);
   }
-  return summarize(cursors, pending, realMs);
+  return summarize(cursors, pending, realMs, roundingStepMinutes);
 }
 
 // REGLA: todos los intervalos del ticket, de todos los participantes, en orden cronológico; el tiempo de
@@ -124,13 +125,17 @@ function summarize(
   cursors: readonly BagCursor[],
   pending: PendingMs,
   realMs: number,
+  roundingStepMinutes: number,
 ): TicketAllocation {
   const slots = cursors.map(({ bag, weightedMs }) => ({
     minutes: Math.ceil(weightedMs / MINUTE_MS),
     availableMinutes: bag.availableMinutes,
     isSettled: bag.isSettled,
   }));
-  const { roundingMinutes, waivedMinutes } = applyRounding(slots);
+  const { roundingMinutes, waivedMinutes } = applyRounding(
+    slots,
+    roundingStepMinutes,
+  );
   const consumptions = cursors
     .map(({ bag }, i) => ({
       bagId: bag.bagId,

@@ -38,8 +38,16 @@ export async function reopenTicket(
           entity: "tickets.ticket",
           entityId: ticketId,
           action: "REABRIR",
-          before: { status: "CERRADO" },
-          after: { status: "EN_PROGRESO", reason, ...result.data },
+          before: {
+            status: "CERRADO",
+            pendingHours: result.data.discardedPending,
+          },
+          after: {
+            status: "EN_PROGRESO",
+            reason,
+            reversedMinutes: result.data.reversedMinutes,
+            keptMinutes: result.data.keptMinutes,
+          },
         });
       return result;
     });

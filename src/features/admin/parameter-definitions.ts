@@ -10,6 +10,7 @@ export const PARAMETER_KEYS = [
   "fx.desvio_max_pct",
   "horas.alerta_consumo_pct",
   "horas.aviso_vencimiento_dias",
+  "horas.redondeo_minutos",
 ] as const;
 
 export type ParameterKey = (typeof PARAMETER_KEYS)[number];
@@ -91,6 +92,18 @@ export const PARAMETER_DEFINITIONS: Record<ParameterKey, ParameterDefinition> =
         .regex(/^\d+$/, "Escribe un número entero de días.")
         .transform(Number)
         .refine((n) => n >= 1 && n <= 365, "Escribe entre 1 y 365 días."),
+    },
+    "horas.redondeo_minutos": {
+      label: "Redondeo de las horas de un ticket",
+      help: "Al cerrar un ticket, su total ponderado sube al siguiente múltiplo de estos minutos (1 = sin redondeo). Rige para los cierres desde ahora.",
+      unit: "min",
+      placeholder: "30",
+      parse: z
+        .string()
+        .trim()
+        .regex(/^\d+$/, "Escribe un número entero de minutos.")
+        .transform(Number)
+        .refine((n) => n >= 1 && n <= 240, "Escribe entre 1 y 240 minutos."),
     },
   };
 

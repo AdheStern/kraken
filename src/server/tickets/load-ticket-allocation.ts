@@ -5,17 +5,20 @@ import type { BusinessCalendar } from "@/domain/calendar/business-calendar";
 import { toBusinessDate } from "@/domain/calendar/business-date";
 import type { TimeInterval } from "@/domain/calendar/split-by-business-hours";
 import type { AllocationBag } from "@/domain/hours/allocate-ticket-hours";
+import { TICKET_ROUNDING_STEP_MINUTES } from "@/domain/hours/apply-rounding";
 import { toWorkDeadline } from "@/domain/hours/expiry";
 import type { BagModality } from "@/domain/hours/weigh-minutes";
 import { loadBusinessCalendar } from "@/server/calendar/load-business-calendar";
 import type { Tx } from "@/server/db";
 import { lockBags } from "@/server/hours/lock-bags";
+import { getIntParameter } from "@/server/parameters";
 import type { LockedTicket } from "./lock-ticket";
 
 export type TicketAllocationInput = {
   intervals: TimeInterval[];
   bags: AllocationBag[];
   calendar: BusinessCalendar;
+  roundingStepMinutes: number;
 };
 
 type BagInfo = { modality: BagModality; expiresOn: Date | null };
@@ -52,6 +55,12 @@ export async function loadTicketAllocation(
     intervals,
     bags,
     calendar: await loadCalendarFor(tx, ticket.cityId, intervals),
+    // REGLA [CONFIRMAR hacia arriba]: el paso es un parámetro editable sin desplegar (§2.6, regla 16).
+    roundingStepMinutes: await getIntParameter(
+      "horas.redondeo_minutos",
+      TICKET_ROUNDING_STEP_MINUTES,
+      tx,
+    ),
   };
 }
 

@@ -36,6 +36,12 @@ describe("parámetros del sistema", () => {
     expect(parse("horas.aviso_vencimiento_dias", "0").success).toBe(false);
     expect(parse("horas.aviso_vencimiento_dias", "1.5").success).toBe(false);
   });
+
+  it("el redondeo de un ticket son minutos enteros entre 1 y 240", () => {
+    expect(parse("horas.redondeo_minutos", "30").data).toBe(30);
+    expect(parse("horas.redondeo_minutos", "0").success).toBe(false);
+    expect(parse("horas.redondeo_minutos", "241").success).toBe(false);
+  });
 });
 
 describe("área de cada rol", () => {

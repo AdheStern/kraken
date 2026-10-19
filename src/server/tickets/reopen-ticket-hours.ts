@@ -10,10 +10,16 @@ import { postHourMovement } from "@/server/hours/post-hour-movement";
 import type { LockedTicket } from "./lock-ticket";
 import { lockTicketForTransition } from "./lock-ticket-for-transition";
 
+export type DiscardedPending = {
+  insideMinutes: number;
+  outsideMinutes: number;
+  status: "PENDIENTE" | "APLICADA";
+};
+
 export type ReopenedTicket = {
   reversedMinutes: number;
   keptMinutes: number;
-  discardedPendingMinutes: number;
+  discardedPending: DiscardedPending[];
 };
 
 const NOT_CLOSED = "Solo se reabre un ticket cerrado.";
@@ -42,12 +48,12 @@ export async function reopenTicketHours(
     ticket,
     reason,
   );
-  const discardedPendingMinutes = await discardPending(tx, ticketId);
+  const discardedPending = await discardPending(tx, ticketId);
   await tx.ticket.update({
     where: { id: ticketId },
     data: { status: "EN_PROGRESO", closedAt: null },
   });
-  return actionOk({ reversedMinutes, keptMinutes, discardedPendingMinutes });
+  return actionOk({ reversedMinutes, keptMinutes, discardedPending });
 }
 
 async function reverseConsumptions(
@@ -89,13 +95,17 @@ async function reverseConsumptions(
   return { reversedMinutes, keptMinutes };
 }
 
-// LIMITACIÓN: las filas APLICADA no se tocan; su CONSUMO ya se revirtió arriba (applyPendingHours aún no existe).
-async function discardPending(tx: Tx, ticketId: string): Promise<number> {
-  const where = { ticketId, status: "PENDIENTE" as const };
+// POR QUÉ: el pendiente, aplicado o no, se recalcula al volver a cerrar; el CONSUMO de una aplicación ya se
+// revirtió arriba y el rastro queda en el libro y en la auditoría de la reapertura (decisión del 2026-10-19).
+async function discardPending(
+  tx: Tx,
+  ticketId: string,
+): Promise<DiscardedPending[]> {
   const rows = await tx.pendingHours.findMany({
-    where,
-    select: { insideMinutes: true, outsideMinutes: true },
+    where: { ticketId },
+    orderBy: { createdAt: "asc" },
+    select: { insideMinutes: true, outsideMinutes: true, status: true },
   });
-  await tx.pendingHours.deleteMany({ where });
-  return rows.reduce((sum, r) => sum + r.insideMinutes + r.outsideMinutes, 0);
+  await tx.pendingHours.deleteMany({ where: { ticketId } });
+  return rows;
 }

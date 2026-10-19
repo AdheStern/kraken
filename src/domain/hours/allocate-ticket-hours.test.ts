@@ -112,6 +112,16 @@ describe("allocateTicketHours", () => {
     expect(result.chargedMinutes).toBe(180);
   });
 
+  it.each([
+    [15, 165],
+    [50, 200],
+    [1, 165],
+    [60, 180],
+  ])("con paso de %i min el total de 165 queda en %i", (step, charged) => {
+    const result = allocateTicketHours(FRIDAY, [bag("P1", 600)], LA_PAZ, step);
+    expect(result.chargedMinutes).toBe(charged);
+  });
+
   it("el redondeo que no cabe en ninguna bolsa se perdona", () => {
     const result = allocateTicketHours(FRIDAY, [bag("P1", 170)], LA_PAZ);
     expect(result.chargedMinutes).toBe(170);
@@ -158,6 +168,10 @@ describe("applyRounding y roundUpToStep", () => {
     [245, 270],
   ])("%i → %i", (minutes, rounded) => {
     expect(roundUpToStep(minutes)).toBe(rounded);
+  });
+
+  it.each([0, 2.5])("rechaza un paso de %d min", (step) => {
+    expect(() => roundUpToStep(10, step)).toThrow(RangeError);
   });
 
   it("sin consumo no reparte nada", () => {

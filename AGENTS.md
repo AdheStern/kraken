@@ -230,12 +230,12 @@ ponderados = minutos_dentro × 1 + minutos_fuera × m      m = 2 si 8x5, 1 si 24
 
 **Cuantización y descuento al cierre** (`allocateTicketHours`):
 1. Ordenar cronológicamente todos los intervalos del ticket (de todos los participantes y subtareas), ya partidos por horario.
-2. Recorrerlos asignando **minutos reales** a las bolsas según la jerarquía: se llena la prioridad 1, al agotarse se pasa a la 2, etc. Cada minuto se pondera con la modalidad de la bolsa que lo recibe. Las fracciones de minuto ponderado se redondean hacia arriba al minuto.
-3. El total ponderado del ticket se redondea **hacia arriba a múltiplos de 30 min**. La diferencia se carga a la última bolsa usada (o a la siguiente con saldo). **[CONFIRMAR hacia arriba]**
+2. Recorrerlos asignando **minutos reales** a las bolsas según la jerarquía: se llena la prioridad 1, al agotarse se pasa a la 2, etc. Cada minuto se pondera con la modalidad de la bolsa que lo recibe. Las fracciones de minuto ponderado se redondean hacia arriba al minuto, una vez por bolsa (el tiempo se calcula con la precisión del servidor). Una bolsa no recibe trabajo realizado después de su vencimiento.
+3. El total ponderado del ticket se redondea **hacia arriba a múltiplos de 30 min**. La diferencia se carga a la última bolsa usada (o a la siguiente con saldo); lo que no cabe en ninguna se perdona: no es trabajo real y no va a pendiente. **[CONFIRMAR hacia arriba]**
 4. Se insertan los movimientos `CONSUMO` en **una sola transacción** con `SELECT … FOR UPDATE` sobre las bolsas, revalidando los saldos dentro de la transacción.
 5. Lo que no alcance va a `horas.pendiente_sin_bolsa`: no se descuenta, no se pierde, y avisa al comercial y al gerente. Al asociar un CV nuevo, se puede aplicar (`applyPendingHours`).
 
-Con el ticket abierto, la interfaz muestra el **consumo proyectado** con el mismo algoritmo (la misma función). Reabrir un ticket cerrado registra un `REVERSO` de sus consumos, que se recalculan al volver a cerrarlo. El cierre exige que no haya contadores activos.
+Con el ticket abierto, la interfaz muestra el **consumo proyectado** con el mismo algoritmo (la misma función). Reabrir un ticket cerrado (con motivo) registra un `REVERSO` de sus consumos, que se recalculan al volver a cerrarlo, y descarta su pendiente sin bolsa. Si una bolsa ya está `VENCIDA` o `CERRADA`, su consumo queda **firme**: no se revierte y, al volver a cerrar, recibe primero esos mismos minutos sin descontarse otra vez. El cierre exige que no haya contadores activos ni pausados. Cierran y reabren el coordinador o el gerente de un área del ticket y el GG; el encargado lo deja en `RESUELTO`.
 
 ### 2.7 SLA
 - Catálogo de SLA por modalidad y prioridad: tiempo de primera respuesta y de resolución (valores pendientes de DIMA).
@@ -266,11 +266,12 @@ Roles asignados por grupos de Entra ID, más **excepciones por usuario** gestion
 | CV: exportar Excel | Propios | Su área | Todos | No | Aprobados |
 | Tickets: ver | De clientes de sus CV | De su área | Todos | Asignados o con subtarea suya | No |
 | Tickets: registrar tiempo | No | Su área | No | Sus subtareas y tickets a cargo | No |
+| Tickets: cerrar y reabrir | No | Su área | Todos | No | No |
 | Bolsas: ver saldo | De sus CV | De su área | Todas | De su área y de sus tickets | Todas |
 | Bolsas: ajuste manual | No | Su área, con motivo | Todas, con motivo | No | No |
 | Inventario | Consulta de stock | Consulta + aprobar ajustes de su área | Todo | Consulta de stock | Todo |
 
-Almacén opera inventario y POS. El coordinador gestiona los tickets de su área. **Catálogos:** clientes, contactos, proveedores y productos los gestionan Administración y el administrador del sistema; áreas, ciudades, calendario, tecnologías, unidades, tipos de servicio, usuarios, parámetros y TC, solo el administrador del sistema. **Bolsas:** todo usuario con un rol asignado a un área (ingeniero, coordinador, preventa, gerente…) ve todas las bolsas de esa área, en cualquier estado y con su libro; ajustarlas o cerrarlas sigue siendo solo del gerente del área y del GG. El administrador del sistema gestiona usuarios, permisos y parámetros pero **no** ve montos por ese rol. **Cada fila de esta tabla es un test.**
+Almacén opera inventario y POS. El coordinador gestiona los tickets de su área y, como el gerente de área, los cierra y reabre. **Catálogos:** clientes, contactos, proveedores y productos los gestionan Administración y el administrador del sistema; áreas, ciudades, calendario, tecnologías, unidades, tipos de servicio, usuarios, parámetros y TC, solo el administrador del sistema. **Bolsas:** todo usuario con un rol asignado a un área (ingeniero, coordinador, preventa, gerente…) ve todas las bolsas de esa área, en cualquier estado y con su libro; ajustarlas o cerrarlas sigue siendo solo del gerente del área y del GG. El administrador del sistema gestiona usuarios, permisos y parámetros pero **no** ve montos por ese rol. **Cada fila de esta tabla es un test.**
 
 ---
 
@@ -797,8 +798,8 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - *Sale cuando:* cada CV aprobado con horas tiene su bolsa con saldo y alertas, y las bolsas vigentes están cargadas.
 
 **F3 · Tickets, tiempos y SLA (~4 semanas) · segunda salida a producción**
-- `allocateTicketHours` (HORAS-01 + propiedades) [OPUS]
-- Cierre transaccional con bloqueo, test de concurrencia, reapertura con reversos [OPUS]
+- `allocateTicketHours` (HORAS-01 + propiedades) [OPUS] — hecho (`src/domain/hours/allocate-ticket-hours.ts`)
+- Cierre transaccional con bloqueo, test de concurrencia, reapertura con reversos [OPUS] — hecho en el servidor (`closeTicket`, `reopenTicket`); los botones llegan con el detalle del ticket
 - Tickets, proyectos, subtareas, kanban, detalle, jerarquía arrastrable [SONNET]
 - Contador por eventos, registros manuales, contadores olvidados [SONNET]
 - SLA: políticas, reloj, pausas y alertas [OPUS reloj, SONNET UI]
@@ -854,7 +855,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - **F0:** nivel de RAID del NAS. Repositorio: GitHub (`AdheStern/kraken`); confirmar si pasa a una organización de DIMA. Validar en las VMs las plantillas de `deploy/` (Patroni, pgBackRest, keepalived, despliegue nodo por nodo, restauración en staging, DR en Azure). Registro de app de Graph con `Mail.Send` y RBAC de Exchange para el buzón. El BCB pasó al régimen flexible (RD 142/2026: compra = venta = TCO); los TC de costo y de venta del CV siguen siendo manuales (§2.2). Qué roles operativos llevan área (`role-area-rules.ts`: el gerente de área la exige; comercial, preventa, ingeniero y coordinador la admiten). Los roles de Entra se recalculan al iniciar sesión y la sesión dura 12 h sin extenderse: la baja en Entra rige el mismo día.
 - **F1:** significado del sufijo `-DS`; confirmar que un rechazo cierra la ronda; valor inicial del umbral del GG; % de desvío del TC que dispara la advertencia.
 - **F2:** horario real de cada ciudad (¿con pausa de mediodía?) y feriados departamentales y de traslado: los carga el administrador en `/admin/calendario`. *Confirmado por DIMA (2026-10-14):* multiplicador 2 fuera de horario en 8x5, umbrales de alerta 80% y 100%, aviso de vencimiento a 30 días, y los miembros de un área ven todas sus bolsas. *Resuelto:* las bolsas vigentes se cargan con un "CV de saldo inicial" por cliente (`es_saldo_inicial`, solo horas de servicio con costo y venta 0), aprobado por su gerente.
-- **F3:** confirmar el redondeo hacia arriba; confirmar que se suman los tiempos en paralelo; prioridades de ticket y tiempos de SLA por prioridad y modalidad.
+- **F3:** *Resuelto (2026-10-19):* el redondeo que no cabe en ninguna bolsa se perdona; al reabrir, el consumo en bolsas vencidas o cerradas queda firme; cierran y reabren coordinador, gerente de área y GG. Pendiente: confirmar el redondeo hacia arriba; confirmar que se suman los tiempos en paralelo; prioridades de ticket y tiempos de SLA por prioridad y modalidad.
 - **F4:** método de valoración (propuesto: costo promedio ponderado); productos que exigen serial; almacenes exactos.
 - **F5:** KPIs, KGIs y metas definitivas.
 

@@ -6,6 +6,7 @@ import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import type { SessionUser } from "@/server/authz/roles";
 import type { Tx } from "@/server/db";
 import { postHourMovement } from "@/server/hours/post-hour-movement";
+import { applyStatusChange } from "./apply-status-change";
 import { hasActiveTimers } from "./has-active-timers";
 import { loadTicketAllocation } from "./load-ticket-allocation";
 import { lockTicketForTransition } from "./lock-ticket-for-transition";
@@ -61,9 +62,12 @@ export async function closeTicketHours(
   const { insideMinutes, outsideMinutes } = allocation.pending;
   if (insideMinutes + outsideMinutes > 0)
     await recordPendingHours(tx, ticket, allocation.pending, user.id);
-  await tx.ticket.update({
-    where: { id: ticketId },
-    data: { status: "CERRADO", closedAt: now },
+  await applyStatusChange(tx, {
+    ticketId,
+    from: ticket.status,
+    to: "CERRADO",
+    actorId: user.id,
+    now,
   });
   return actionOk({
     chargedMinutes: charged.reduce((sum, c) => sum + c.minutes, 0),

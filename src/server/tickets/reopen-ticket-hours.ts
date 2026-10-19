@@ -7,6 +7,7 @@ import type { SessionUser } from "@/server/authz/roles";
 import type { Tx } from "@/server/db";
 import { lockBags } from "@/server/hours/lock-bags";
 import { postHourMovement } from "@/server/hours/post-hour-movement";
+import { applyStatusChange } from "./apply-status-change";
 import type { LockedTicket } from "./lock-ticket";
 import { lockTicketForTransition } from "./lock-ticket-for-transition";
 
@@ -28,6 +29,7 @@ export async function reopenTicketHours(
   tx: Tx,
   user: SessionUser,
   { ticketId, reason }: { ticketId: string; reason: string },
+  now: Date,
 ): Promise<ActionResult<ReopenedTicket>> {
   const locked = await lockTicketForTransition(
     tx,
@@ -49,9 +51,12 @@ export async function reopenTicketHours(
     reason,
   );
   const discardedPending = await discardPending(tx, ticketId);
-  await tx.ticket.update({
-    where: { id: ticketId },
-    data: { status: "EN_PROGRESO", closedAt: null },
+  await applyStatusChange(tx, {
+    ticketId,
+    from: "CERRADO",
+    to: "EN_PROGRESO",
+    actorId: user.id,
+    now,
   });
   return actionOk({ reversedMinutes, keptMinutes, discardedPending });
 }

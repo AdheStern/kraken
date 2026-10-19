@@ -17,7 +17,12 @@ const close = (user: SessionUser, ticketId: string) =>
   db.$transaction((tx) => closeTicketHours(tx, user, { ticketId }, NOW));
 const reopen = (user: SessionUser, ticketId: string) =>
   db.$transaction((tx) =>
-    reopenTicketHours(tx, user, { ticketId, reason: "Cliente no conforme" }),
+    reopenTicketHours(
+      tx,
+      user,
+      { ticketId, reason: "Cliente no conforme" },
+      NOW,
+    ),
   );
 const resolve = (ticketId: string) =>
   db.ticket.update({ where: { id: ticketId }, data: { status: "RESUELTO" } });

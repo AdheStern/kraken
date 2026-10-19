@@ -31,7 +31,12 @@ export async function reopenTicket(
   const { ticketId, reason } = parsed.data;
   try {
     return await runInTransaction(async (tx) => {
-      const result = await reopenTicketHours(tx, user, { ticketId, reason });
+      const result = await reopenTicketHours(
+        tx,
+        user,
+        { ticketId, reason },
+        new Date(),
+      );
       if (result.ok)
         await recordAudit(tx, {
           actorId: user.id,

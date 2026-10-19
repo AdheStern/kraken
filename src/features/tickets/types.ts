@@ -38,6 +38,7 @@ export type WorkStatus = Extract<
 >;
 
 export type TicketPermissions = {
+  viewerId: string;
   canManage: boolean;
   canClose: boolean;
   canComment: boolean;

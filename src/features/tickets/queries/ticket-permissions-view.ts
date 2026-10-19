@@ -37,6 +37,7 @@ export function toTicketPermissions(
             (to === "CANCELADO" ? canClose : canManage),
         );
   return {
+    viewerId: user.id,
     canManage,
     canClose,
     canComment: canCommentTicket(user, access),

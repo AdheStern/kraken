@@ -17,6 +17,7 @@ import { systemClock } from "@/server/clock";
 import { requireUser } from "@/server/session";
 import { ApprovalsPanel } from "./approvals-panel";
 import { RiskPanel } from "./risk-panel";
+import { TimersPanel } from "./timers-panel";
 
 export const metadata: Metadata = { title: "Inicio" };
 
@@ -49,6 +50,9 @@ async function Home() {
         subtitle={`${today[0].toUpperCase()}${today.slice(1)} · ${headline(summary)}`}
         nodes={toNodes(summary)}
       />
+      {summary.timers && summary.timers.length > 0 && (
+        <TimersPanel timers={summary.timers} />
+      )}
       {(summary.approvals || summary.bagsAtRisk) && (
         <div className="grid gap-5 md:grid-cols-2">
           {summary.approvals && (
@@ -63,6 +67,15 @@ async function Home() {
 
 function toNodes(s: HomeSummary): HomeNode[] {
   const nodes: HomeNode[] = [];
+  if (s.myTickets !== null)
+    nodes.push({
+      key: "tickets",
+      label: "Mis tickets",
+      hint: "abiertos a tu cargo",
+      value: s.myTickets,
+      href: "/tickets?vista=mios",
+      isAlert: false,
+    });
   if (s.approvals)
     nodes.push({
       key: "aprobaciones",
@@ -103,7 +116,10 @@ function headline(s: HomeSummary): string {
       : null,
   ].filter(Boolean);
   if (parts.length > 0) return `${parts.join(" y ")}.`;
-  return s.approvals || s.bagsAtRisk || s.drafts !== null
+  return s.approvals ||
+    s.bagsAtRisk ||
+    s.drafts !== null ||
+    s.myTickets !== null
     ? "Todo al día."
     : "Bienvenido a Kraken.";
 }

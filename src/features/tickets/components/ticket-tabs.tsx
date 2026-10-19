@@ -1,18 +1,19 @@
 // src/features/tickets/components/ticket-tabs.tsx
-// Pestañas de trabajo del detalle: subtareas, bolsas con su jerarquía, comentarios e historial
+// Pestañas de trabajo del detalle: subtareas, registros de tiempo, bolsas con su jerarquía, comentarios e historial
 // (AGENTS.md §5 "Detalle del ticket"; los adjuntos se difieren hasta el FileStore, ADR-16).
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { TicketBagsPanel, TicketDetail } from "../types";
+import type { TicketBagsPanel, TicketDetail, TicketTime } from "../types";
 import { CommentsPanel } from "./comments-panel";
 import { HistoryPanel } from "./history-panel";
 import { SubtasksPanel } from "./subtasks-panel";
 import { TicketBagsTab } from "./ticket-bags-tab";
+import { TimeEntriesPanel } from "./time-entries-panel";
 
-type Props = { detail: TicketDetail; bags: TicketBagsPanel };
+type Props = { detail: TicketDetail; bags: TicketBagsPanel; time: TicketTime };
 
-export function TicketTabs({ detail, bags }: Props) {
+export function TicketTabs({ detail, bags, time }: Props) {
   const isFinished =
     detail.ticket.status === "CERRADO" || detail.ticket.status === "CANCELADO";
   return (
@@ -20,6 +21,9 @@ export function TicketTabs({ detail, bags }: Props) {
       <TabsList className="w-full overflow-x-auto sm:w-fit">
         <TabsTrigger value="subtareas">
           Subtareas <Count value={detail.subtasks.length} />
+        </TabsTrigger>
+        <TabsTrigger value="registros">
+          Registros <Count value={time.entries.length} />
         </TabsTrigger>
         <TabsTrigger value="bolsas">
           Bolsas <Count value={bags.hierarchy.length} />
@@ -37,6 +41,9 @@ export function TicketTabs({ detail, bags }: Props) {
           canManage={detail.permissions.canManage && !isFinished}
           viewerId={detail.permissions.viewerId}
         />
+      </TabsContent>
+      <TabsContent value="registros">
+        <TimeEntriesPanel ticketId={detail.ticket.id} time={time} />
       </TabsContent>
       <TabsContent value="bolsas">
         <TicketBagsTab

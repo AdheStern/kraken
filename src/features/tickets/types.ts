@@ -126,3 +126,33 @@ export type TicketDetail = {
   history: StatusEventView[];
   engineers: Person[];
 };
+
+export type TimerView = {
+  timerId: string;
+  status: "CORRIENDO" | "PAUSADO";
+  // POR QUÉ: lo acumulado sin el tramo en curso; el navegador suma desde runningSince para avanzar cada segundo.
+  closedMs: number;
+  runningSince: string | null;
+  ticketId: string;
+  ticketNumber: number;
+  ticketTitle: string;
+  subtaskTitle: string | null;
+};
+
+export type TimeEntryView = {
+  id: string;
+  person: Person;
+  subtaskTitle: string | null;
+  startedAt: string;
+  endedAt: string | null;
+  minutes: number | null;
+  source: "CONTADOR" | "MANUAL";
+  isLate: boolean;
+  canDelete: boolean;
+};
+
+export type TicketTime = {
+  entries: TimeEntryView[];
+  timers: TimerView[];
+  targets: { id: string | null; label: string }[];
+};

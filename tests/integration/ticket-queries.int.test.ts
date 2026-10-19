@@ -4,7 +4,9 @@
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { getTicketBags } from "@/features/tickets/queries/get-ticket-bags";
 import { getTicketDetail } from "@/features/tickets/queries/get-ticket-detail";
+import { getTicketTime } from "@/features/tickets/queries/get-ticket-time";
 import { listTickets } from "@/features/tickets/queries/list-tickets";
+import { startTimerRecord } from "@/server/tickets/start-timer-record";
 import { createTestPrisma, createUserWithRoles } from "./test-db";
 import { addTimeEntry, createTicketFixture } from "./ticket-fixtures";
 
@@ -89,5 +91,34 @@ describe("bolsas del ticket", () => {
       (await db.hourBag.findUniqueOrThrow({ where: { id: f.bags[0].id } }))
         .balanceMinutes,
     ).toBe(180);
+  });
+});
+
+describe("tiempo del ticket", () => {
+  it("muestra el contador abierto del usuario y dónde puede registrar", async () => {
+    const f = await createTicketFixture(db, []);
+    const engineer = await createUserWithRoles(db, "Ingeniera", [
+      { code: "INGENIERO", areaId: f.area.id },
+    ]);
+    await db.ticket.update({
+      where: { id: f.ticket.id },
+      data: { ownerId: engineer.id, status: "EN_PROGRESO" },
+    });
+    await db.$transaction((tx) =>
+      startTimerRecord(tx, engineer, {
+        ticketId: f.ticket.id,
+        subtaskId: null,
+      }),
+    );
+
+    const time = await getTicketTime(engineer, f.ticket.id);
+    expect(time?.timers).toEqual([
+      expect.objectContaining({ status: "CORRIENDO", ticketId: f.ticket.id }),
+    ]);
+    expect(time?.targets).toEqual([{ id: null, label: "El ticket" }]);
+    expect(time?.entries).toHaveLength(1);
+    expect((await getTicketTime(f.coordinator, f.ticket.id))?.targets).toEqual(
+      [],
+    );
   });
 });

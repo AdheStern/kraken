@@ -10,8 +10,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TicketActions } from "@/features/tickets/components/ticket-actions";
 import { TicketHeader } from "@/features/tickets/components/ticket-header";
 import { TicketTabs } from "@/features/tickets/components/ticket-tabs";
+import { TicketTimer } from "@/features/tickets/components/ticket-timer";
 import { getTicketBags } from "@/features/tickets/queries/get-ticket-bags";
 import { getTicketDetail } from "@/features/tickets/queries/get-ticket-detail";
+import { getTicketTime } from "@/features/tickets/queries/get-ticket-time";
 import { requireUser } from "@/server/session";
 
 export const metadata: Metadata = { title: "Ticket" };
@@ -36,11 +38,12 @@ export default function TicketPage({ params }: PageProps<"/tickets/[id]">) {
 async function Ticket({ params }: Pick<PageProps<"/tickets/[id]">, "params">) {
   const { id } = await params;
   const user = await requireUser();
-  const [detail, bags] = await Promise.all([
+  const [detail, bags, time] = await Promise.all([
     getTicketDetail(user, id),
     getTicketBags(user, id),
+    getTicketTime(user, id),
   ]);
-  if (!detail || !bags) notFound();
+  if (!detail || !bags || !time) notFound();
   return (
     <>
       <TicketHeader
@@ -53,7 +56,8 @@ async function Ticket({ params }: Pick<PageProps<"/tickets/[id]">, "params">) {
           />
         }
       />
-      <TicketTabs detail={detail} bags={bags} />
+      <TicketTimer ticketId={detail.ticket.id} time={time} />
+      <TicketTabs detail={detail} bags={bags} time={time} />
     </>
   );
 }

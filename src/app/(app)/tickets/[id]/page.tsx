@@ -9,6 +9,8 @@ import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TicketActions } from "@/features/tickets/components/ticket-actions";
 import { TicketHeader } from "@/features/tickets/components/ticket-header";
+import { TicketTabs } from "@/features/tickets/components/ticket-tabs";
+import { getTicketBags } from "@/features/tickets/queries/get-ticket-bags";
 import { getTicketDetail } from "@/features/tickets/queries/get-ticket-detail";
 import { requireUser } from "@/server/session";
 
@@ -34,8 +36,11 @@ export default function TicketPage({ params }: PageProps<"/tickets/[id]">) {
 async function Ticket({ params }: Pick<PageProps<"/tickets/[id]">, "params">) {
   const { id } = await params;
   const user = await requireUser();
-  const detail = await getTicketDetail(user, id);
-  if (!detail) notFound();
+  const [detail, bags] = await Promise.all([
+    getTicketDetail(user, id),
+    getTicketBags(user, id),
+  ]);
+  if (!detail || !bags) notFound();
   return (
     <>
       <TicketHeader
@@ -48,6 +53,7 @@ async function Ticket({ params }: Pick<PageProps<"/tickets/[id]">, "params">) {
           />
         }
       />
+      <TicketTabs detail={detail} bags={bags} />
     </>
   );
 }

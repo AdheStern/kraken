@@ -1,0 +1,20 @@
+// prisma/schema/tickets-status.prisma
+// Esquema tickets: historial inmutable de los estados de un ticket; de él se recalcula el reloj del SLA
+// (AGENTS.md §2.7, §8).
+
+// REGLA: inmutable (trigger en prisma/sql/tickets.sql); fromStatus nulo = alta del ticket.
+model TicketStatusEvent {
+  id         String        @id @default(uuid(7)) @db.Uuid
+  ticketId   String        @map("ticket_id") @db.Uuid
+  fromStatus TicketStatus? @map("de")
+  toStatus   TicketStatus  @map("a")
+  actorId    String?       @map("actor_id")
+  occurredAt DateTime      @default(now()) @map("ocurrido_en") @db.Timestamptz
+
+  ticket Ticket       @relation(fields: [ticketId], references: [id])
+  actor  UserProfile? @relation(fields: [actorId], references: [userId])
+
+  @@index([ticketId, occurredAt])
+  @@map("evento_estado")
+  @@schema("tickets")
+}

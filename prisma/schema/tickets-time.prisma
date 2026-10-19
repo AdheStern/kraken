@@ -19,16 +19,18 @@ enum TimerEventKind {
 
 // REGLA: un solo registro abierto por persona (índice parcial) y sin solapes (EXCLUDE en prisma/sql/tickets.sql).
 model TimeEntry {
-  id        String          @id @default(uuid(7)) @db.Uuid
-  ticketId  String          @map("ticket_id") @db.Uuid
-  subtaskId String?         @map("subtarea_id") @db.Uuid
-  userId    String          @map("usuario_id")
-  startedAt DateTime        @map("inicio") @db.Timestamptz
-  endedAt   DateTime?       @map("fin") @db.Timestamptz
-  source    TimeEntrySource @map("origen")
-  timerId   String?         @map("contador_id") @db.Uuid
-  isLate    Boolean         @default(false) @map("es_tardio")
-  createdAt DateTime        @default(now()) @map("creado_en") @db.Timestamptz
+  id            String          @id @default(uuid(7)) @db.Uuid
+  ticketId      String          @map("ticket_id") @db.Uuid
+  subtaskId     String?         @map("subtarea_id") @db.Uuid
+  userId        String          @map("usuario_id")
+  startedAt     DateTime        @map("inicio") @db.Timestamptz
+  endedAt       DateTime?       @map("fin") @db.Timestamptz
+  source        TimeEntrySource @map("origen")
+  timerId       String?         @map("contador_id") @db.Uuid
+  isLate        Boolean         @default(false) @map("es_tardio")
+  // POR QUÉ: el aviso de contador abierto más de 10 h se da una sola vez por registro (job timers.stale).
+  staleWarnedAt DateTime?       @map("aviso_olvido_en") @db.Timestamptz
+  createdAt     DateTime        @default(now()) @map("creado_en") @db.Timestamptz
 
   ticket  Ticket      @relation(fields: [ticketId], references: [id])
   subtask Subtask?    @relation(fields: [subtaskId], references: [id])

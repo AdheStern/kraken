@@ -100,11 +100,11 @@ model Ticket {
   resolvedAt      DateTime?      @map("resuelto_en") @db.Timestamptz
   closedAt        DateTime?      @map("cerrado_en") @db.Timestamptz
 
-  project         Project?           @relation(fields: [projectId], references: [id])
-  customer        Customer           @relation(fields: [customerId], references: [id])
-  city            City               @relation(fields: [cityId], references: [id])
-  owner           UserProfile?       @relation("TicketOwner", fields: [ownerId], references: [userId])
-  createdBy       UserProfile        @relation("TicketCreator", fields: [createdById], references: [userId])
+  project         Project?            @relation(fields: [projectId], references: [id])
+  customer        Customer            @relation(fields: [customerId], references: [id])
+  city            City                @relation(fields: [cityId], references: [id])
+  owner           UserProfile?        @relation("TicketOwner", fields: [ownerId], references: [userId])
+  createdBy       UserProfile         @relation("TicketCreator", fields: [createdById], references: [userId])
   areas           TicketArea[]
   bags            TicketBag[]
   subtasks        Subtask[]
@@ -112,6 +112,7 @@ model Ticket {
   attachments     TicketAttachment[]
   timeEntries     TimeEntry[]
   timerEvents     TimerEvent[]
+  statusEvents    TicketStatusEvent[]
   slaMeasurements SlaMeasurement[]
   hourMovements   HourMovement[]
   pendingHours    PendingHours[]
@@ -138,9 +139,11 @@ model TicketArea {
 
 // REGLA: priority 1, 2, 3… define el orden en que se llenan las bolsas al cerrar (AGENTS.md §2.6, HORAS-01).
 model TicketBag {
-  ticketId String @map("ticket_id") @db.Uuid
-  bagId    String @map("bolsa_id") @db.Uuid
-  priority Int    @map("prioridad")
+  ticketId           String    @map("ticket_id") @db.Uuid
+  bagId              String    @map("bolsa_id") @db.Uuid
+  priority           Int       @map("prioridad")
+  // POR QUÉ: el aviso de consumo proyectado mayor al saldo se da una vez por ticket y bolsa (§2.4 alertas).
+  projectionWarnedAt DateTime? @map("aviso_proyeccion_en") @db.Timestamptz
 
   ticket Ticket  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   bag    HourBag @relation(fields: [bagId], references: [id])

@@ -14,3 +14,13 @@ ALTER TABLE tickets.ticket_bolsa
 
 ALTER TABLE tickets.sla_politica
   ADD CONSTRAINT sla_politica_minutos_ck CHECK (minutos_primera_respuesta > 0 AND minutos_resolucion > 0);
+
+-- REGLA: el historial de estados es inmutable; el SLA se recalcula desde él (AGENTS.md §2.7, ADR-03).
+CREATE FUNCTION tickets.evento_estado_inmutable() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  RAISE EXCEPTION 'tickets.evento_estado es inmutable; registra un evento nuevo'
+    USING ERRCODE = 'check_violation';
+END $$;
+
+CREATE TRIGGER evento_estado_inmutable BEFORE UPDATE OR DELETE ON tickets.evento_estado
+  FOR EACH ROW EXECUTE FUNCTION tickets.evento_estado_inmutable();

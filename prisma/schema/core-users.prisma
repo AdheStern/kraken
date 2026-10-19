@@ -32,6 +32,7 @@ model UserProfile {
   ticketAttachments       TicketAttachment[]
   timeEntries             TimeEntry[]
   timerEvents             TimerEvent[]
+  ticketStatusEvents      TicketStatusEvent[]
   invMovements            InvMovement[]
   transfersCreated        Transfer[]               @relation("TransferCreator")
   transfersSent           Transfer[]               @relation("TransferSender")

@@ -23,9 +23,12 @@ export type TicketAllocationInput = {
 
 type BagInfo = { modality: BagModality; expiresOn: Date | null };
 
+// POR QUÉ: con projectAt es la proyección de un ticket abierto (§2.6 "consumo proyectado"): no bloquea y
+// cuenta los registros abiertos hasta ese instante. Sin él es el cierre, con las bolsas bloqueadas.
 export async function loadTicketAllocation(
   tx: Tx,
-  ticket: LockedTicket,
+  ticket: Pick<LockedTicket, "id" | "cityId">,
+  { projectAt }: { projectAt?: Date } = {},
 ): Promise<TicketAllocationInput> {
   const hierarchy = await tx.ticketBag.findMany({
     where: { ticketId: ticket.id },
@@ -35,10 +38,10 @@ export async function loadTicketAllocation(
   const settled = await loadSettledMinutes(tx, ticket.id);
   // POR QUÉ: los saldos se leen después del bloqueo; así la revalidación dentro de la transacción es
   // la propia asignación y dos cierres sobre la misma bolsa nunca la sobregiran (§2.6 paso 4).
-  const locked = await lockBags(tx, [
-    ...hierarchy.map((h) => h.bagId),
-    ...settled.keys(),
-  ]);
+  const bagIds = [...hierarchy.map((h) => h.bagId), ...settled.keys()];
+  const locked = projectAt
+    ? await readBags(tx, bagIds)
+    : await lockBags(tx, bagIds);
   const bags: AllocationBag[] = [];
   for (const [bagId, { minutes, bag }] of settled)
     if (!hierarchy.some((h) => h.bagId === bagId))
@@ -50,7 +53,7 @@ export async function loadTicketAllocation(
     else if (current?.status === "ACTIVA")
       bags.push(toAllocationBag(bagId, bag, current.balanceMinutes, false));
   }
-  const intervals = await loadClosedIntervals(tx, ticket.id);
+  const intervals = await loadIntervals(tx, ticket.id, projectAt);
   return {
     intervals,
     bags,
@@ -98,13 +101,33 @@ function toAllocationBag(
   };
 }
 
-async function loadClosedIntervals(tx: Tx, ticketId: string) {
+async function readBags(tx: Tx, bagIds: readonly string[]) {
+  const bags = await tx.hourBag.findMany({
+    where: { id: { in: [...bagIds] } },
+    select: { id: true, balanceMinutes: true, status: true },
+  });
+  return new Map(bags.map(({ id, ...bag }) => [id, bag]));
+}
+
+async function loadIntervals(
+  tx: Tx,
+  ticketId: string,
+  projectAt: Date | undefined,
+): Promise<TimeInterval[]> {
   const entries = await tx.timeEntry.findMany({
-    where: { ticketId, endedAt: { not: null } },
+    where: {
+      ticketId,
+      ...(projectAt
+        ? { startedAt: { lt: projectAt } }
+        : { endedAt: { not: null } }),
+    },
     orderBy: { startedAt: "asc" },
     select: { startedAt: true, endedAt: true },
   });
-  return entries.map((e) => ({ start: e.startedAt, end: e.endedAt as Date }));
+  return entries.map((e) => ({
+    start: e.startedAt,
+    end: e.endedAt ?? (projectAt as Date),
+  }));
 }
 
 async function loadCalendarFor(

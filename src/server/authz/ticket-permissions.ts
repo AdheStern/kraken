@@ -66,6 +66,19 @@ export function canLogTime(user: SessionUser, ticket: TicketAccess): boolean {
   return ticket.areaIds.some((areaId) => managed.includes(areaId));
 }
 
+// REGLA: en una subtarea registra su asignado; en el ticket, su encargado; el gerente del área en ambos (§2.9).
+export function canLogTimeOn(
+  user: SessionUser,
+  ticket: TicketAccess,
+  subtaskAssigneeId: string | null | undefined,
+): boolean {
+  if (ticket.ownerId === user.id) return true;
+  if (subtaskAssigneeId !== undefined && subtaskAssigneeId === user.id)
+    return true;
+  const managed = areaIdsWithRole(user, "GERENTE_AREA");
+  return ticket.areaIds.some((areaId) => managed.includes(areaId));
+}
+
 // POR QUÉ: comenta quien trabaja el ticket o lo gestiona; el comercial lo consulta sin intervenir.
 export function canCommentTicket(
   user: SessionUser,

@@ -16,6 +16,7 @@ export const NOTIFICATION_EVENTS = {
   BOLSA_VENCIDA: "Una bolsa de horas venció",
   HORAS_PENDIENTES: "Horas de un ticket sin bolsa",
   TICKET_ASIGNADO: "Te asignaron un ticket o una subtarea",
+  CONTADOR_OLVIDADO: "Un contador lleva más de 10 h corriendo",
   SISTEMA_CORREO_FALLIDO: "Un correo no se pudo enviar",
   SISTEMA_CORREO_PRUEBA: "Correo de prueba",
 } as const;

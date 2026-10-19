@@ -71,33 +71,35 @@ export function TimeEntriesPanel({ ticketId, time }: Props) {
                     {e.endedAt ? formatDateTime(e.endedAt) : "en curso"}
                   </span>
                 </span>
-                {e.isLate && (
-                  <Badge
-                    variant="secondary"
-                    className="bg-warning/15 text-warning"
-                  >
-                    Tardío
+                <span className="flex w-full items-center justify-end gap-3 sm:w-auto">
+                  {e.isLate && (
+                    <Badge
+                      variant="secondary"
+                      className="bg-warning/15 text-warning"
+                    >
+                      Tardío
+                    </Badge>
+                  )}
+                  <Badge variant="outline">
+                    {e.source === "CONTADOR" ? "Contador" : "Manual"}
                   </Badge>
-                )}
-                <Badge variant="outline">
-                  {e.source === "CONTADOR" ? "Contador" : "Manual"}
-                </Badge>
-                <span className="w-20 text-right font-medium tabular-nums">
-                  {e.minutes === null ? "—" : formatMinutes(e.minutes)}
+                  <span className="w-20 text-right font-medium tabular-nums">
+                    {e.minutes === null ? "—" : formatMinutes(e.minutes)}
+                  </span>
+                  {e.canDelete && (
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      aria-label="Borrar registro"
+                      disabled={isPending}
+                      onClick={() =>
+                        run(() => deleteTimeEntry({ entryId: e.id }))
+                      }
+                    >
+                      <Trash2 aria-hidden="true" />
+                    </Button>
+                  )}
                 </span>
-                {e.canDelete && (
-                  <Button
-                    size="icon-sm"
-                    variant="ghost"
-                    aria-label="Borrar registro"
-                    disabled={isPending}
-                    onClick={() =>
-                      run(() => deleteTimeEntry({ entryId: e.id }))
-                    }
-                  >
-                    <Trash2 aria-hidden="true" />
-                  </Button>
-                )}
               </li>
             ))}
           </ul>

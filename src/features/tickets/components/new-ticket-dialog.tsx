@@ -71,7 +71,7 @@ export function NewTicketDialog({ options }: { options: TicketFormOptions }) {
         <form
           id="new-ticket"
           onSubmit={form.handleSubmit(onSubmit)}
-          className="grid max-h-[65dvh] gap-4 overflow-y-auto px-0.5 sm:grid-cols-2"
+          className="grid max-h-[65dvh] gap-4 overflow-x-hidden overflow-y-auto px-0.5 sm:grid-cols-2"
         >
           <NewTicketFields form={form} options={options} />
         </form>

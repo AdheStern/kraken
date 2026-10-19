@@ -42,7 +42,7 @@ pnpm prisma migrate dev       # migraciones en desarrollo
 pnpm db:seed:admin            # crea/actualiza la cuenta de emergencia ADMIN_SISTEMA desde SUPERADMIN_*
 pnpm db:seed:base             # catálogos base (ciudades, áreas, roles, parámetros y la hoja "Listas"); apto para producción,
                               # solo crea lo que falta
-pnpm db:seed:dev              # SOLO desarrollo: catálogos base + datos y usuarios demo (gg@, gerente.dimanet@, comercial@, comercial2@, administracion@dima.local)
+pnpm db:seed:dev              # SOLO desarrollo: catálogos base + datos y usuarios demo (gg@, gerente.dimanet@, comercial@, comercial2@, administracion@, coordinador@, ingeniero@, ingeniero2@dima.local; tickets de ejemplo)
                               # con DEV_SEED_PASSWORD; entrar con contraseña exige AUTH_DEV_PASSWORD_LOGIN=true
 pnpm skills:install           # restaura las skills de agentes desde skills-lock.json
 docker compose -f deploy/compose.dev.yml up -d   # Postgres + correo falso
@@ -231,18 +231,18 @@ ponderados = minutos_dentro × 1 + minutos_fuera × m      m = 2 si 8x5, 1 si 24
 **Cuantización y descuento al cierre** (`allocateTicketHours`):
 1. Ordenar cronológicamente todos los intervalos del ticket (de todos los participantes y subtareas), ya partidos por horario.
 2. Recorrerlos asignando **minutos reales** a las bolsas según la jerarquía: se llena la prioridad 1, al agotarse se pasa a la 2, etc. Cada minuto se pondera con la modalidad de la bolsa que lo recibe. Las fracciones de minuto ponderado se redondean hacia arriba al minuto, una vez por bolsa (el tiempo se calcula con la precisión del servidor). Una bolsa no recibe trabajo realizado después de su vencimiento.
-3. El total ponderado del ticket se redondea **hacia arriba a múltiplos de 30 min**. La diferencia se carga a la última bolsa usada (o a la siguiente con saldo); lo que no cabe en ninguna se perdona: no es trabajo real y no va a pendiente. **[CONFIRMAR hacia arriba]**
+3. El total ponderado del ticket se redondea **hacia arriba a múltiplos de 30 min** (parámetro `horas.redondeo_minutos`; 1 = sin redondeo). La diferencia se carga a la última bolsa usada (o a la siguiente con saldo); lo que no cabe en ninguna se perdona: no es trabajo real y no va a pendiente. **[CONFIRMAR hacia arriba]**
 4. Se insertan los movimientos `CONSUMO` en **una sola transacción** con `SELECT … FOR UPDATE` sobre las bolsas, revalidando los saldos dentro de la transacción.
-5. Lo que no alcance va a `horas.pendiente_sin_bolsa`: no se descuenta, no se pierde, y avisa al comercial y al gerente. Al asociar un CV nuevo, se puede aplicar (`applyPendingHours`).
+5. Lo que no alcance va a `horas.pendiente_sin_bolsa`: no se descuenta, no se pierde, y avisa al comercial y al gerente. Al asociar un CV nuevo, se puede aplicar (`applyPendingHours`): se pondera con la modalidad de la bolsa que lo recibe, sin nuevo redondeo.
 
-Con el ticket abierto, la interfaz muestra el **consumo proyectado** con el mismo algoritmo (la misma función). Reabrir un ticket cerrado (con motivo) registra un `REVERSO` de sus consumos, que se recalculan al volver a cerrarlo, y descarta su pendiente sin bolsa. Si una bolsa ya está `VENCIDA` o `CERRADA`, su consumo queda **firme**: no se revierte y, al volver a cerrar, recibe primero esos mismos minutos sin descontarse otra vez. El cierre exige que no haya contadores activos ni pausados. Cierran y reabren el coordinador o el gerente de un área del ticket y el GG; el encargado lo deja en `RESUELTO`.
+Con el ticket abierto, la interfaz muestra el **consumo proyectado** con el mismo algoritmo (la misma función). Reabrir un ticket cerrado (con motivo) registra un `REVERSO` de sus consumos, que se recalculan al volver a cerrarlo, y descarta su pendiente sin bolsa (aplicado o no; el rastro queda en el libro y en la auditoría). Si una bolsa ya está `VENCIDA` o `CERRADA`, su consumo queda **firme**: no se revierte y, al volver a cerrar, recibe primero esos mismos minutos sin descontarse otra vez. El cierre exige que no haya contadores activos ni pausados. Cierran y reabren el coordinador o el gerente de un área del ticket y el GG; el encargado lo deja en `RESUELTO`. Crean tickets y asignan el encargado los mismos que cierran; el encargado ordena las bolsas y crea subtareas. Cada cambio de estado queda en `tickets.evento_estado` (inmutable). Iniciar el contador en un ticket `ASIGNADO` lo pasa a `EN_PROGRESO`. Los adjuntos del ticket esperan al `FileStore` (ADR-16).
 
 ### 2.7 SLA
-- Catálogo de SLA por modalidad y prioridad: tiempo de primera respuesta y de resolución (valores pendientes de DIMA).
+- Catálogo de SLA por modalidad y prioridad (`/admin/sla`): tiempo de primera respuesta y de resolución. Valores iniciales **[CONFIRMAR]**, iguales en 8x5 y 24x7: crítica 30 min / 4 h, alta 1 h / 8 h, media 4 h / 24 h, baja 8 h / 40 h. Sin política activa no se mide.
 - 8x5: el reloj corre solo en horario de oficina. 24x7: corre siempre.
-- Se pausa en `EN_ESPERA_CLIENTE`.
-- Primera respuesta = primer paso a `EN_PROGRESO` o primer comentario público del encargado. Resolución = paso a `RESUELTO`.
-- Cumplimiento reportado por cliente, área, ingeniero y periodo. Alerta al encargado y al coordinador al 75% del SLA.
+- Corre en `NUEVO`, `ASIGNADO` y `EN_PROGRESO`; se pausa en `EN_ESPERA_CLIENTE` y no corre con el ticket resuelto, cerrado o cancelado. Se recalcula siempre desde `tickets.evento_estado` (`computeSla`, pura); `sla_medicion` es su caché.
+- Primera respuesta = primer paso a `EN_PROGRESO` o primer comentario público del encargado. Resolución = último paso a `RESUELTO`; si el cliente no está conforme, el reloj se reanuda desde lo acumulado. Resolver sin pasar por `EN_PROGRESO` también cumple la primera respuesta.
+- Cumplimiento reportado por cliente, área, ingeniero y periodo. Alerta al encargado y a los coordinadores del área al 75% del SLA (parámetro `sla.alerta_pct`), una sola vez por medición.
 
 ### 2.8 Inventario y POS interno
 - **Almacenes** por ciudad (LP, SC, CB) más almacenes lógicos: `TRANSITO` y, opcionalmente, demostración o repuestos.
@@ -266,6 +266,7 @@ Roles asignados por grupos de Entra ID, más **excepciones por usuario** gestion
 | CV: exportar Excel | Propios | Su área | Todos | No | Aprobados |
 | Tickets: ver | De clientes de sus CV | De su área | Todos | Asignados o con subtarea suya | No |
 | Tickets: registrar tiempo | No | Su área | No | Sus subtareas y tickets a cargo | No |
+| Tickets: crear y asignar encargado | No | Su área | Todos | No | No |
 | Tickets: cerrar y reabrir | No | Su área | Todos | No | No |
 | Bolsas: ver saldo | De sus CV | De su área | Todas | De su área y de sus tickets | Todas |
 | Bolsas: ajuste manual | No | Su área, con motivo | Todas, con motivo | No | No |
@@ -336,7 +337,7 @@ Prisma 7: `prisma.config.ts` en la raíz (esquema multiarchivo en `prisma/schema
 | `fx` | `tipo_cambio` (fecha de vigencia, compra, venta, fuente, obtenido_en) |
 | `cv` | `numerador`, `cv`, `version`, `version_vendedor` (vendedores N–N), `grupo`, `linea`, `linea_serial`, `leasing_linea`, `solicitud_aprobacion`, `adjunto` |
 | `horas` | `bolsa`, `bolsa_area`, `movimiento`, `pendiente_sin_bolsa` |
-| `tickets` | `proyecto`, `proyecto_area`, `ticket`, `ticket_area`, `ticket_bolsa` (con `prioridad`), `subtarea`, `registro_tiempo`, `evento_contador`, `comentario`, `adjunto`, `sla_politica`, `sla_medicion` |
+| `tickets` | `proyecto`, `proyecto_area`, `ticket`, `ticket_area`, `ticket_bolsa` (con `prioridad`), `subtarea`, `registro_tiempo`, `evento_contador`, `evento_estado` (historial inmutable de estados), `comentario`, `adjunto`, `sla_politica`, `sla_medicion` |
 | `inv` | `almacen`, `stock`, `unidad_serial`, `movimiento`, `movimiento_linea`, `traspaso`, `traspaso_linea`, `solicitud_ajuste` (el AJUSTE se inserta en el libro solo al aprobarse), `reserva` |
 | `notif` | `salida` (outbox), `bandeja`, `preferencia` |
 | `audit` | `evento` |
@@ -571,9 +572,9 @@ type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { code: Error
 **Actions:**
 - CV: `createCv`, `duplicateCv`, `updateCvHeader`, `upsertCvLines`, `upsertCvLeasing`, `submitCvVersion`, `decideApproval`, `createCvVersion`, `voidCv`. El factor por lote o tecnología se aplica en el editor (`applyFactorToDrafts`) y lo recalcula y valida `upsertCvLines` al guardar.
 - Horas: `adjustHourBag`, `closeHourBag`, `applyPendingHours`
-- Tickets: `createTicket`, `assignOwner`, `setTicketBags`, `createSubtask`, `startTimer`, `pauseTimer`, `resumeTimer`, `stopTimer`, `addManualTimeEntry`, `changeTicketStatus`, `closeTicket`, `reopenTicket`
+- Tickets: `createTicket`, `assignOwner`, `setTicketBags`, `createSubtask`, `updateSubtask`, `addComment`, `createProject`, `startTimer`, `pauseTimer`, `resumeTimer`, `stopTimer`, `addManualTimeEntry`, `deleteTimeEntry`, `changeTicketStatus`, `closeTicket`, `reopenTicket`
 - Inventario: `registerReceipt`, `dispatchItems`, `createTransfer`, `sendTransfer`, `receiveTransfer`, `requestAdjustment`, `decideAdjustment`
-- Administración: CRUD de catálogos (`upsertSimpleCatalogItem` y `setSimpleCatalogItemActive` para áreas, ciudades, tecnologías, unidades, tipos de servicio y proveedores; `upsertCustomer`, `upsertCustomerContact`, `upsertProduct`, `markProductReviewed` y sus bajas), usuarios (`updateUserProfile`, `setUserActive`, `grantUserRole`, `revokeUserRole`), `mapEntraGroup`, `unmapEntraGroup`, `setParameter`, `setManualFxRate`, `sendTestMail`, `retryOutboxMessage`
+- Administración: CRUD de catálogos (`upsertSimpleCatalogItem` y `setSimpleCatalogItemActive` para áreas, ciudades, tecnologías, unidades, tipos de servicio y proveedores; `upsertCustomer`, `upsertCustomerContact`, `upsertProduct`, `markProductReviewed` y sus bajas), usuarios (`updateUserProfile`, `setUserActive`, `grantUserRole`, `revokeUserRole`), `mapEntraGroup`, `unmapEntraGroup`, `setParameter`, `setManualFxRate`, `sendTestMail`, `retryOutboxMessage`, `upsertSlaPolicy`
 - Notificaciones: `markInboxRead`
 
 **Route handlers:** `GET /api/cv/[versionId]/export.xlsx` (con authz) · `GET /api/inventory/receipts/[id].pdf` · `GET /api/health/live` · `GET /api/health/ready` (BD + NFS; HAProxy saca el nodo si falla) · `/api/auth/*`.
@@ -583,10 +584,10 @@ type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { code: Error
 |---|---|---|
 | `fx.fetch-official` | Cada hora a los 15 min (el primero a las 00:15) mientras falte el TC de hoy | API de CUCU → `fx.tipo_cambio`, el vigente y el de mañana si ya se publicó; régimen flexible: compra = venta (implementado) |
 | `mail.dispatch` | Cada minuto | Envía `notif.salida` (lotes de 50 con `SKIP LOCKED`) por Graph, o por Mailpit en desarrollo; reintento exponencial con tope de 6 h; tras 10 fallos o uno permanente lo marca fallido y avisa al administrador en la bandeja (implementado; ver `/admin/correo`) |
-| `bags.check-thresholds` | Tras cada cierre (F3) | Consumo proyectado mayor al saldo. Los avisos de 80% y 100% no son job: se emiten en la transacción del movimiento que cruza el umbral (F2) |
+| `bags.check-thresholds` | Cada 30 min | Consumo proyectado de un ticket abierto mayor al saldo, una vez por ticket y bolsa (implementado; cada 30 min y no «tras cada cierre» para no acoplar la app a pg-boss). Los avisos de 80% y 100% no son job: se emiten en la transacción del movimiento que cruza el umbral (F2) |
 | `bags.expire` | 00:05 diario (America/La_Paz) | Vence bolsas, registra `VENCIMIENTO` sin actor, avisa N días antes y el día del vencimiento, una vez cada aviso (implementado) |
-| `sla.evaluate` | Cada 5 min | Mediciones y alerta al 75% |
-| `timers.stale` | Cada 30 min | Contadores abiertos más de 10 h |
+| `sla.evaluate` | Cada 5 min | Recalcula el SLA de los tickets abiertos y avisa al 75% (implementado) |
+| `timers.stale` | Cada 30 min | Contadores abiertos más de 10 h, un aviso por registro al ingeniero y al encargado (implementado) |
 | `approvals.reminder` | 09:00 días hábiles | Solicitudes con más de 24 h |
 
 **Códigos de error:** `UNAUTHENTICATED`, `FORBIDDEN`, `VALIDATION`, `NOT_FOUND`, `CONFLICT`, `INVALID_STATE`, `INSUFFICIENT_BALANCE`, `INSUFFICIENT_STOCK`, `EXTERNAL_UNAVAILABLE`, `INTERNAL`. La interfaz traduce cada código a un mensaje que dice qué hacer.
@@ -800,9 +801,9 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 **F3 · Tickets, tiempos y SLA (~4 semanas) · segunda salida a producción**
 - `allocateTicketHours` (HORAS-01 + propiedades) [OPUS] — hecho (`src/domain/hours/allocate-ticket-hours.ts`)
 - Cierre transaccional con bloqueo, test de concurrencia, reapertura con reversos [OPUS] — hecho en el servidor (`closeTicket`, `reopenTicket`); los botones llegan con el detalle del ticket
-- Tickets, proyectos, subtareas, kanban, detalle, jerarquía arrastrable [SONNET]
-- Contador por eventos, registros manuales, contadores olvidados [SONNET]
-- SLA: políticas, reloj, pausas y alertas [OPUS reloj, SONNET UI]
+- Tickets, proyectos, subtareas, kanban, detalle, jerarquía arrastrable [SONNET] — hecho (`/tickets`, `/tickets/[id]`; adjuntos diferidos al `FileStore`)
+- Contador por eventos, registros manuales, contadores olvidados [SONNET] — hecho
+- SLA: políticas, reloj, pausas y alertas [OPUS reloj, SONNET UI] — hecho (`computeSla`, `/admin/sla`, semáforo)
 - *Sale cuando:* los ingenieros registran todo en tickets y gerencia valida el descuento contra un cálculo manual en al menos 10 tickets reales.
 
 **F4 · Inventario y POS (~3–4 semanas)**
@@ -855,7 +856,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - **F0:** nivel de RAID del NAS. Repositorio: GitHub (`AdheStern/kraken`); confirmar si pasa a una organización de DIMA. Validar en las VMs las plantillas de `deploy/` (Patroni, pgBackRest, keepalived, despliegue nodo por nodo, restauración en staging, DR en Azure). Registro de app de Graph con `Mail.Send` y RBAC de Exchange para el buzón. El BCB pasó al régimen flexible (RD 142/2026: compra = venta = TCO); los TC de costo y de venta del CV siguen siendo manuales (§2.2). Qué roles operativos llevan área (`role-area-rules.ts`: el gerente de área la exige; comercial, preventa, ingeniero y coordinador la admiten). Los roles de Entra se recalculan al iniciar sesión y la sesión dura 12 h sin extenderse: la baja en Entra rige el mismo día.
 - **F1:** significado del sufijo `-DS`; confirmar que un rechazo cierra la ronda; valor inicial del umbral del GG; % de desvío del TC que dispara la advertencia.
 - **F2:** horario real de cada ciudad (¿con pausa de mediodía?) y feriados departamentales y de traslado: los carga el administrador en `/admin/calendario`. *Confirmado por DIMA (2026-10-14):* multiplicador 2 fuera de horario en 8x5, umbrales de alerta 80% y 100%, aviso de vencimiento a 30 días, y los miembros de un área ven todas sus bolsas. *Resuelto:* las bolsas vigentes se cargan con un "CV de saldo inicial" por cliente (`es_saldo_inicial`, solo horas de servicio con costo y venta 0), aprobado por su gerente.
-- **F3:** *Resuelto (2026-10-19):* el redondeo que no cabe en ninguna bolsa se perdona; al reabrir, el consumo en bolsas vencidas o cerradas queda firme; cierran y reabren coordinador, gerente de área y GG. Pendiente: confirmar el redondeo hacia arriba; confirmar que se suman los tiempos en paralelo; prioridades de ticket y tiempos de SLA por prioridad y modalidad.
+- **F3:** *Resuelto (2026-10-19):* el redondeo que no cabe en ninguna bolsa se perdona; al reabrir, el consumo en bolsas vencidas o cerradas queda firme; cierran y reabren coordinador, gerente de área y GG. *Resuelto (2026-10-19, tareas 3–5):* crean tickets coordinador, gerente de área y GG; historial inmutable de estados como base del SLA; el paso de redondeo es el parámetro `horas.redondeo_minutos`; adjuntos diferidos. Pendiente: confirmar el redondeo hacia arriba; confirmar que se suman los tiempos en paralelo (se valida en el criterio de salida); prioridades de ticket y tiempos de SLA iniciales [CONFIRMAR].
 - **F4:** método de valoración (propuesto: costo promedio ponderado); productos que exigen serial; almacenes exactos.
 - **F5:** KPIs, KGIs y metas definitivas.
 

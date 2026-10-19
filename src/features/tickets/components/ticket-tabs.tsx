@@ -18,7 +18,8 @@ export function TicketTabs({ detail, bags, time }: Props) {
     detail.ticket.status === "CERRADO" || detail.ticket.status === "CANCELADO";
   return (
     <Tabs defaultValue="subtareas" className="gap-4">
-      <TabsList className="w-full overflow-x-auto sm:w-fit">
+      {/* TRAMPA: una lista centrada que desborda corta la primera pestaña; en el móvil se alinea al inicio. */}
+      <TabsList className="w-full justify-start overflow-x-auto sm:w-fit">
         <TabsTrigger value="subtareas">
           Subtareas <Count value={detail.subtasks.length} />
         </TabsTrigger>

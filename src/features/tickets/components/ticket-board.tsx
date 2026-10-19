@@ -25,7 +25,7 @@ export function TicketBoard({ tickets, isFiltered }: Props) {
       </KrakenEmpty>
     );
   return (
-    <div className="grid gap-4 md:grid-flow-col md:auto-cols-[minmax(15rem,1fr)] md:overflow-x-auto md:pb-2">
+    <div className="grid gap-4 md:grid-flow-col md:auto-cols-[minmax(13.5rem,1fr)] md:overflow-x-auto md:pb-2">
       {BOARD_COLUMNS.map((column) => {
         const cards = tickets.filter((t) => column.statuses.includes(t.status));
         const headingId = `columna-${column.key}`;

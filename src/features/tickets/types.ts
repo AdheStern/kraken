@@ -1,6 +1,7 @@
 // src/features/tickets/types.ts
 // Tipos de presentación de tickets (nunca entidades Prisma; tiempo en minutos enteros, fechas ISO, sin montos).
 import type { BagSummary } from "@/features/hours/types";
+import type { SlaBadgeData } from "@/features/sla/types";
 import type {
   BagModality,
   SubtaskStatus,
@@ -23,6 +24,7 @@ export type TicketCard = {
   areaCodes: string[];
   owner: Person | null;
   updatedAt: string;
+  sla: SlaBadgeData | null;
 };
 
 export type TicketFilters = {
@@ -65,6 +67,7 @@ export type TicketHeader = {
   firstResponseAt: string | null;
   resolvedAt: string | null;
   closedAt: string | null;
+  sla: SlaBadgeData[];
 };
 
 export type SubtaskView = {

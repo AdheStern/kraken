@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { PersonAvatar } from "@/components/app-shell/person-avatar";
 import { Badge } from "@/components/ui/badge";
+import { SlaBadge } from "@/features/sla/components/sla-badge";
 import { cn } from "@/lib/utils";
 import {
   PRIORITY_CLASSES,
@@ -36,6 +37,7 @@ export function TicketCard({ ticket, showStatus = false }: Props) {
         {ticket.customerName}
         {ticket.areaCodes.length > 0 && ` · ${ticket.areaCodes.join(" / ")}`}
       </p>
+      {ticket.sla && !showStatus && <SlaBadge sla={ticket.sla} />}
       <div className="flex items-center justify-between gap-2 text-xs">
         <span
           className={cn(

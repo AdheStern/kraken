@@ -10,6 +10,7 @@ export type AdminSectionKey =
   | "areas"
   | "ciudades"
   | "calendario"
+  | "sla"
   | "tecnologias"
   | "unidades"
   | "tipos-servicio"
@@ -79,6 +80,13 @@ export const ADMIN_GROUPS: readonly AdminGroup[] = [
         "Calendario de negocio",
         "Horarios de oficina y feriados que ponderan las horas.",
         "/admin/calendario",
+        "system",
+      ),
+      section(
+        "sla",
+        "Políticas de SLA",
+        "Primera respuesta y resolución por modalidad y prioridad.",
+        "/admin/sla",
         "system",
       ),
       section(

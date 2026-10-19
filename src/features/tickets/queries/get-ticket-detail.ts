@@ -1,6 +1,10 @@
 // src/features/tickets/queries/get-ticket-detail.ts
 // Un ticket con su cabecera, permisos, subtareas, comentarios e historial; null si no existe o no es visible
 // para el usuario (AGENTS.md §2.9, §5 "Detalle del ticket").
+import {
+  getSlaAlertPct,
+  toSlaBadge,
+} from "@/features/sla/queries/to-sla-badges";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeTicketQuery } from "@/server/authz/scope-ticket-query";
 import { prisma } from "@/server/db";
@@ -29,6 +33,7 @@ export async function getTicketDetail(
         include: { assignee: PERSON },
       },
       comments: { orderBy: { createdAt: "desc" }, include: { author: PERSON } },
+      slaMeasurements: { orderBy: { kind: "asc" } },
       statusEvents: {
         orderBy: { occurredAt: "desc" },
         include: { actor: { select: { user: { select: { name: true } } } } },
@@ -36,6 +41,7 @@ export async function getTicketDetail(
     },
   });
   if (!t) return null;
+  const alertPct = await getSlaAlertPct();
   const areaIds = t.areas.map((a) => a.area.id);
   const access = {
     areaIds,
@@ -64,6 +70,7 @@ export async function getTicketDetail(
       firstResponseAt: t.firstResponseAt?.toISOString() ?? null,
       resolvedAt: t.resolvedAt?.toISOString() ?? null,
       closedAt: t.closedAt?.toISOString() ?? null,
+      sla: t.slaMeasurements.map((m) => toSlaBadge(m, alertPct)),
     },
     permissions: toTicketPermissions(user, access, t.status),
     subtasks: t.subtasks.map((s) => ({

@@ -1,5 +1,9 @@
 // src/features/tickets/queries/list-tickets.ts
 // Tickets visibles para el usuario, para el kanban y la lista (AGENTS.md §2.9 "Tickets: ver", §5 navegación).
+import {
+  getSlaAlertPct,
+  pickCurrentSla,
+} from "@/features/sla/queries/to-sla-badges";
 import type { Prisma } from "@/generated/prisma/client";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeTicketQuery } from "@/server/authz/scope-ticket-query";
@@ -24,6 +28,15 @@ export const TICKET_CARD_SELECT = {
   areas: { select: { area: { select: { code: true } } } },
   owner: {
     select: { userId: true, user: { select: { name: true, image: true } } },
+  },
+  slaMeasurements: {
+    select: {
+      kind: true,
+      status: true,
+      elapsedMinutes: true,
+      targetMinutes: true,
+      dueAt: true,
+    },
   },
 } satisfies Prisma.TicketSelect;
 
@@ -56,10 +69,11 @@ export async function listTickets(
     orderBy: { updatedAt: "desc" },
     take: MAX_TICKETS,
   });
-  return records.map(toTicketCard);
+  const alertPct = await getSlaAlertPct();
+  return records.map((r) => toTicketCard(r, alertPct));
 }
 
-export function toTicketCard(r: CardRecord): TicketCard {
+export function toTicketCard(r: CardRecord, alertPct: number): TicketCard {
   return {
     id: r.id,
     number: r.number,
@@ -78,6 +92,7 @@ export function toTicketCard(r: CardRecord): TicketCard {
         }
       : null,
     updatedAt: r.updatedAt.toISOString(),
+    sla: pickCurrentSla(r.slaMeasurements, alertPct),
   };
 }
 

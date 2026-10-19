@@ -4,6 +4,7 @@
 import type { ReactNode } from "react";
 import { PersonAvatar } from "@/components/app-shell/person-avatar";
 import { Badge } from "@/components/ui/badge";
+import { SlaBadge } from "@/features/sla/components/sla-badge";
 import {
   KIND_LABELS,
   MODALITY_LABELS,
@@ -77,6 +78,13 @@ export function TicketHeader({ ticket, actions }: Props) {
           )}
         </div>
       </div>
+      {ticket.sla.length > 0 && (
+        <div className="flex flex-wrap gap-x-5 gap-y-1">
+          {ticket.sla.map((sla) => (
+            <SlaBadge key={sla.kind} sla={sla} className="text-sm" />
+          ))}
+        </div>
+      )}
       <p className="whitespace-pre-line text-sm text-muted-foreground">
         {ticket.description}
       </p>

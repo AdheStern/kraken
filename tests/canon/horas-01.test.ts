@@ -1,6 +1,7 @@
 // tests/canon/horas-01.test.ts
-// Caso canónico HORAS-01 (AGENTS.md §15.2): partición por horario y ponderación 8x5 del ticket nocturno.
-// La asignación a las bolsas P1/P2 y el redondeo a 30 min se agregan con allocateTicketHours (F3).
+// Caso canónico HORAS-01 (AGENTS.md §15.2): partición por horario, ponderación 8x5 del ticket nocturno,
+// asignación a las bolsas P1/P2, redondeo a 30 min y la variante de modalidades mezcladas.
+// REGLA: no se edita sin cambiar antes la sección 15 de AGENTS.md (regla 13).
 import { fromZonedTime } from "date-fns-tz";
 import { describe, expect, it } from "vitest";
 import type {
@@ -11,7 +12,11 @@ import {
   type BusinessSegment,
   splitByBusinessHours,
 } from "@/domain/calendar/split-by-business-hours";
-import { weighMinutes } from "@/domain/hours/weigh-minutes";
+import {
+  type AllocationBag,
+  allocateTicketHours,
+} from "@/domain/hours/allocate-ticket-hours";
+import { type BagModality, weighMinutes } from "@/domain/hours/weigh-minutes";
 
 const lp = (local: string) => fromZonedTime(local, "America/La_Paz");
 
@@ -102,8 +107,66 @@ describe("HORAS-01 · partición y ponderación", () => {
     expect(total.realMinutes).toBe(145);
     expect(total.weightedMinutes).toBe(245);
   });
+});
 
-  it.todo(
-    "asigna P1 −180 (saldo 0) y P2 −90 (saldo 510) con redondeo a 270 — allocateTicketHours, F3",
-  );
+const bag = (
+  bagId: string,
+  modality: BagModality,
+  availableMinutes: number,
+): AllocationBag => ({
+  bagId,
+  modality,
+  availableMinutes,
+  acceptsWorkUntil: null,
+  isSettled: false,
+});
+
+const TICKET = [...ENGINEER_A, ...ENGINEER_B].map(([from, to]) => ({
+  start: lp(from),
+  end: lp(to),
+}));
+
+describe("HORAS-01 · asignación y redondeo", () => {
+  it("P1 −180 (saldo 0) y P2 −90 (saldo 510): 270 cargados por 145 reales", () => {
+    const result = allocateTicketHours(
+      TICKET,
+      [bag("132LP-25", "H8X5", 180), bag("041LP-26", "H8X5", 600)],
+      LA_PAZ,
+    );
+    expect(result).toEqual({
+      consumptions: [
+        {
+          bagId: "132LP-25",
+          minutes: 180,
+          roundingMinutes: 0,
+          isSettled: false,
+        },
+        {
+          bagId: "041LP-26",
+          minutes: 90,
+          roundingMinutes: 25,
+          isSettled: false,
+        },
+      ],
+      pending: { insideMinutes: 0, outsideMinutes: 0 },
+      realMinutes: 145,
+      weightedMinutes: 245,
+      chargedMinutes: 270,
+      waivedRoundingMinutes: 0,
+    });
+  });
+
+  it("modalidades mezcladas: P2 en 24x7 recibe 32.5 → 33 y el total 213 se redondea una vez a 240", () => {
+    const result = allocateTicketHours(
+      TICKET,
+      [bag("132LP-25", "H8X5", 180), bag("041LP-26", "H24X7", 600)],
+      LA_PAZ,
+    );
+    expect(result.consumptions).toEqual([
+      { bagId: "132LP-25", minutes: 180, roundingMinutes: 0, isSettled: false },
+      { bagId: "041LP-26", minutes: 60, roundingMinutes: 27, isSettled: false },
+    ]);
+    expect(result.weightedMinutes).toBe(213);
+    expect(result.chargedMinutes).toBe(240);
+  });
 });

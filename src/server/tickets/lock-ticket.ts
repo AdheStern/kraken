@@ -9,6 +9,7 @@ export type LockedTicket = {
   status: TicketStatus;
   customerId: string;
   cityId: string;
+  projectId: string | null;
 };
 
 type Row = {
@@ -17,6 +18,7 @@ type Row = {
   estado: TicketStatus;
   cliente_id: string;
   ciudad_id: string;
+  proyecto_id: string | null;
 };
 
 // TRAMPA: el ticket se bloquea siempre antes que sus bolsas (lockBags); con un orden fijo, dos cierres
@@ -27,7 +29,8 @@ export async function lockTicket(
 ): Promise<LockedTicket | null> {
   const [row] = await tx.$queryRaw<Row[]>`
     SELECT id::text AS id, numero, estado::text AS estado,
-           cliente_id::text AS cliente_id, ciudad_id::text AS ciudad_id
+           cliente_id::text AS cliente_id, ciudad_id::text AS ciudad_id,
+           proyecto_id::text AS proyecto_id
     FROM tickets.ticket
     WHERE id = ${ticketId}::uuid
     FOR UPDATE`;
@@ -38,5 +41,6 @@ export async function lockTicket(
     status: row.estado,
     customerId: row.cliente_id,
     cityId: row.ciudad_id,
+    projectId: row.proyecto_id,
   };
 }

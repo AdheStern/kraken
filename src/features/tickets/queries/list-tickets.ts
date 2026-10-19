@@ -20,7 +20,7 @@ export const TICKET_CARD_SELECT = {
   status: true,
   priority: true,
   updatedAt: true,
-  customer: { select: { name: true } },
+  customer: { select: { id: true, name: true } },
   areas: { select: { area: { select: { code: true } } } },
   owner: {
     select: { userId: true, user: { select: { name: true, image: true } } },
@@ -67,6 +67,7 @@ export function toTicketCard(r: CardRecord): TicketCard {
     kind: r.kind,
     status: r.status,
     priority: r.priority,
+    customerId: r.customer.id,
     customerName: r.customer.name,
     areaCodes: r.areas.map((a) => a.area.code),
     owner: r.owner

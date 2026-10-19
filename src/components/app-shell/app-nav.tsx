@@ -12,6 +12,7 @@ import {
   type LucideIcon,
   Settings,
   Stamp,
+  Ticket,
 } from "lucide-react";
 import { LayoutGroup, MotionConfig, motion } from "motion/react";
 import Link from "next/link";
@@ -31,6 +32,7 @@ const ITEMS: Record<NavKey, { href: string; label: string; icon: LucideIcon }> =
   {
     inicio: { href: "/inicio", label: "Inicio", icon: House },
     cv: { href: "/cv", label: "Control de Venta", icon: FileSpreadsheet },
+    tickets: { href: "/tickets", label: "Tickets", icon: Ticket },
     horas: { href: "/horas", label: "Bolsas de horas", icon: Hourglass },
     aprobaciones: { href: "/aprobaciones", label: "Aprobaciones", icon: Stamp },
     admin: {

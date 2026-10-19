@@ -18,6 +18,7 @@ export type TicketCard = {
   kind: TicketKind;
   status: TicketStatus;
   priority: TicketPriority;
+  customerId: string;
   customerName: string;
   areaCodes: string[];
   owner: Person | null;

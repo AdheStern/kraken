@@ -1,6 +1,6 @@
 // tests/e2e/smoke.spec.ts
 // Recorrido de humo de la F0 (AGENTS.md §11, §12): cada rol entra, ve sus módulos y no ve los ajenos.
-// El recorrido completo CV → aprobación → bolsa → ticket llega con la F3.
+// El recorrido de tickets (bolsa → contador → cierre con descuento) está en tickets.spec.ts.
 import { expect, test } from "@playwright/test";
 import { storageFor } from "./users";
 

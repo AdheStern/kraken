@@ -48,7 +48,7 @@ export async function getTicketFormOptions(
       hint: c.taxId ?? undefined,
     })),
     cities: cities.map((c) => ({ id: c.id, label: c.name, hint: c.code })),
-    areas: areas.map((a) => ({ id: a.id, label: a.name, hint: a.code })),
+    areas: areas.map((a) => ({ id: a.id, label: a.code, hint: a.name })),
     projects: projects.map((p) => ({
       id: p.id,
       label: p.name,

@@ -3,7 +3,7 @@
 // descripción y encargado. Los proyectos se filtran por cliente y los ingenieros por área.
 "use client";
 
-import { Controller, type UseFormReturn } from "react-hook-form";
+import { Controller, type UseFormReturn, useWatch } from "react-hook-form";
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { CatalogMultiCombobox } from "@/components/forms/catalog-multi-combobox";
 import { FormField } from "@/components/forms/form-field";
@@ -30,7 +30,11 @@ type Props = {
 
 export function NewTicketFields({ form, options }: Props) {
   const { errors } = form.formState;
-  const [customerId, areaIds] = form.watch(["customerId", "areaIds"]);
+  // TRAMPA: con el React Compiler, form.watch() no vuelve a renderizar; useWatch sí.
+  const [customerId, areaIds] = useWatch({
+    control: form.control,
+    name: ["customerId", "areaIds"],
+  });
   const projects = options.projects.filter((p) => p.customerId === customerId);
   const engineers = options.engineers.filter(
     (e) => e.areaIds === null || e.areaIds.some((a) => areaIds.includes(a)),

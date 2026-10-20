@@ -1,10 +1,13 @@
 // src/app/(app)/tickets/page.tsx
 // Tablero de tickets visibles para el usuario, por estado, con filtros por cliente, área y «solo míos»
 // (AGENTS.md §2.9 "Tickets: ver", §5 navegación "Horas y tickets").
+import { FolderKanban } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
+import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NewTicketDialog } from "@/features/tickets/components/new-ticket-dialog";
 import { TicketBoard } from "@/features/tickets/components/ticket-board";
@@ -27,9 +30,18 @@ export default function TicketsPage({ searchParams }: PageProps<"/tickets">) {
         title="Tickets"
         description="Soporte y proyectos con su encargado; al cerrarlos se descuentan sus horas de las bolsas."
         actions={
-          <Suspense fallback={null}>
-            <NewTicketAction />
-          </Suspense>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/tickets/proyectos"
+              className={buttonVariants({ variant: "outline" })}
+            >
+              <FolderKanban aria-hidden="true" />
+              Proyectos
+            </Link>
+            <Suspense fallback={null}>
+              <NewTicketAction />
+            </Suspense>
+          </div>
         }
       />
       <Suspense fallback={<Skeleton className="h-96 w-full rounded-xl" />}>
@@ -56,17 +68,19 @@ async function TicketsResults({
   ]);
   const pick = (key: string) =>
     typeof params[key] === "string" ? (params[key] as string) : null;
-  const [customerId, areaCode, mine] = [
+  const [customerId, areaCode, mine, projectId] = [
     pick("cliente"),
     pick("area"),
     pick("vista") === "mios",
+    pick("proyecto"),
   ];
   // POR QUÉ: se filtra en memoria para que las opciones de los filtros no se encojan al elegir una.
   const visible = tickets.filter(
     (t) =>
       (!customerId || t.customerId === customerId) &&
       (!areaCode || t.areaCodes.includes(areaCode)) &&
-      (!mine || t.owner?.id === user.id),
+      (!mine || t.owner?.id === user.id) &&
+      (!projectId || t.projectId === projectId),
   );
   const customers = [
     ...new Map(tickets.map((t) => [t.customerId, t.customerName])).entries(),
@@ -78,6 +92,17 @@ async function TicketsResults({
     .map((code) => ({ id: code, label: code }));
   return (
     <>
+      {projectId && (
+        <p className="text-sm text-muted-foreground">
+          Mostrando los tickets de un proyecto.{" "}
+          <Link
+            href="/tickets"
+            className="text-primary underline-offset-4 hover:underline"
+          >
+            Ver todos
+          </Link>
+        </p>
+      )}
       {tickets.length > 0 && (
         <TicketFilters
           customers={customers}
@@ -88,7 +113,8 @@ async function TicketsResults({
       <TicketBoard
         tickets={visible}
         isFiltered={
-          Boolean(customerId || areaCode || mine) && tickets.length > 0
+          Boolean(customerId || areaCode || mine || projectId) &&
+          tickets.length > 0
         }
       />
     </>

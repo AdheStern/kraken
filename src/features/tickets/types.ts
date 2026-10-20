@@ -19,6 +19,7 @@ export type TicketCard = {
   kind: TicketKind;
   status: TicketStatus;
   priority: TicketPriority;
+  projectId: string | null;
   customerId: string;
   customerName: string;
   areaCodes: string[];
@@ -128,6 +129,19 @@ export type TicketDetail = {
   comments: CommentView[];
   history: StatusEventView[];
   engineers: Person[];
+};
+
+export type ProjectView = {
+  id: string;
+  name: string;
+  status: "ACTIVO" | "CERRADO";
+  customerName: string;
+  areaCodes: string[];
+  startsOn: string | null;
+  endsOn: string | null;
+  openTickets: number;
+  bags: number;
+  canManage: boolean;
 };
 
 export type TimerView = {

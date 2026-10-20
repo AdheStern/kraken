@@ -6,7 +6,10 @@ import { getCvHoursView } from "@/features/sales-control/queries/get-cv-hours-vi
 import { getTicketBags } from "@/features/tickets/queries/get-ticket-bags";
 import { getTicketDetail } from "@/features/tickets/queries/get-ticket-detail";
 import { getTicketTime } from "@/features/tickets/queries/get-ticket-time";
+import { listProjects } from "@/features/tickets/queries/list-projects";
 import { listTickets } from "@/features/tickets/queries/list-tickets";
+import { createProjectRecord } from "@/server/tickets/create-project-record";
+import { setProjectStatusRecord } from "@/server/tickets/set-project-status-record";
 import { startTimerRecord } from "@/server/tickets/start-timer-record";
 import { createTestPrisma, createUserWithRoles } from "./test-db";
 import { addTimeEntry, createTicketFixture } from "./ticket-fixtures";
@@ -159,5 +162,49 @@ describe("CV visto por el ingeniero", () => {
     });
     expect(JSON.stringify(view)).not.toMatch(/Usd|cost|sale|factor/i);
     expect(await getCvHoursView(outsider, f.cv.id)).toBeNull();
+  });
+});
+
+describe("proyectos", () => {
+  it("el coordinador crea, ve y cierra los proyectos de su área; otra área no los ve", async () => {
+    const f = await createTicketFixture(db, []);
+    const other = await createTicketFixture(db, []);
+    const created = await db.$transaction((tx) =>
+      createProjectRecord(tx, f.coordinator, {
+        name: "Renovación de la red",
+        customerId: f.customer.id,
+        areaIds: [f.area.id],
+        startsOn: null,
+        endsOn: null,
+      }),
+    );
+    if (!created.ok) throw new Error(created.error.message);
+    const { projectId } = created.data;
+    expect((await listProjects(f.coordinator)).map((p) => p.id)).toContain(
+      projectId,
+    );
+    expect(
+      (await listProjects(other.coordinator)).map((p) => p.id),
+    ).not.toContain(projectId);
+
+    const denied = await db.$transaction((tx) =>
+      setProjectStatusRecord(tx, other.coordinator, {
+        projectId,
+        status: "CERRADO",
+      }),
+    );
+    expect(denied.ok).toBe(false);
+    await db.$transaction((tx) =>
+      setProjectStatusRecord(tx, f.coordinator, {
+        projectId,
+        status: "CERRADO",
+      }),
+    );
+    expect(
+      (await listProjects(f.coordinator)).find((p) => p.id === projectId),
+    ).toMatchObject({
+      status: "CERRADO",
+      canManage: true,
+    });
   });
 });

@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import type { RoleCode } from "@/generated/prisma/enums";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeCvHoursQuery } from "@/server/authz/scope-cv-hours-query";
+import { scopeProjectQuery } from "@/server/authz/scope-project-query";
 import { scopeTicketQuery } from "@/server/authz/scope-ticket-query";
 import {
   canCloseTicket,
@@ -151,5 +152,23 @@ describe("§2.9 CV: ver (ingeniero: cabecera y horas de los CV de sus tickets)",
     "ADMINISTRACION",
   ])("%s no usa la vista de horas (ve los CV por su propio alcance)", (role) => {
     expect(scopeCvHoursQuery(user([role, "net"]))).toEqual({ id: { in: [] } });
+  });
+});
+
+describe("Proyectos: ver (misma regla que Tickets: ver)", () => {
+  it("el GG ve todos y el coordinador los de su área", () => {
+    expect(scopeProjectQuery(user(["GERENTE_GENERAL"]))).toEqual({});
+    expect(scopeProjectQuery(user(["COORDINADOR_SOPORTE", "net"]))).toEqual({
+      OR: [{ areas: { some: { areaId: { in: ["net"] } } } }],
+    });
+  });
+
+  it("el ingeniero ve los proyectos de sus tickets y Administración ninguno", () => {
+    expect(
+      JSON.stringify(scopeProjectQuery(user(["INGENIERO", "net"]))),
+    ).toContain('"ownerId":"yo"');
+    expect(scopeProjectQuery(user(["ADMINISTRACION"]))).toEqual({
+      id: { in: [] },
+    });
   });
 });

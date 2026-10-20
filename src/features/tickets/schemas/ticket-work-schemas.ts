@@ -39,6 +39,11 @@ export const createProjectSchema = z.object({
   endsOn: z.iso.date().nullable(),
 });
 
+export const setProjectStatusSchema = z.object({
+  projectId: z.uuid(),
+  status: z.enum(["ACTIVO", "CERRADO"]),
+});
+
 export const applyPendingHoursSchema = z.object({
   pendingId: z.uuid(),
   bagId: z.uuid("Elige la bolsa."),
@@ -48,4 +53,5 @@ export type CreateSubtaskInput = z.infer<typeof createSubtaskSchema>;
 export type UpdateSubtaskInput = z.infer<typeof updateSubtaskSchema>;
 export type SetTicketBagsInput = z.infer<typeof setTicketBagsSchema>;
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
+export type SetProjectStatusInput = z.infer<typeof setProjectStatusSchema>;
 export type ApplyPendingHoursInput = z.infer<typeof applyPendingHoursSchema>;

@@ -801,10 +801,11 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 
 **F3 · Tickets, tiempos y SLA (~4 semanas) · segunda salida a producción**
 - `allocateTicketHours` (HORAS-01 + propiedades) [OPUS] — hecho (`src/domain/hours/allocate-ticket-hours.ts`)
-- Cierre transaccional con bloqueo, test de concurrencia, reapertura con reversos [OPUS] — hecho en el servidor (`closeTicket`, `reopenTicket`); los botones llegan con el detalle del ticket
+- Cierre transaccional con bloqueo, test de concurrencia, reapertura con reversos [OPUS] — hecho (`closeTicket`, `reopenTicket`, con sus diálogos en el detalle)
 - Tickets, proyectos, subtareas, kanban, detalle, jerarquía arrastrable [SONNET] — hecho (`/tickets`, `/tickets/[id]`, `/tickets/proyectos`; adjuntos en SharePoint con `FileStore`; vista de horas del CV para el ingeniero)
 - Contador por eventos, registros manuales, contadores olvidados [SONNET] — hecho
 - SLA: políticas, reloj, pausas y alertas [OPUS reloj, SONNET UI] — hecho (`computeSla`, `/admin/sla`, semáforo)
+- E2E del recorrido bolsa → ticket → contador → cierre con descuento (`tests/e2e/tickets.spec.ts`) — hecho
 - *Sale cuando:* los ingenieros registran todo en tickets y gerencia valida el descuento contra un cálculo manual en al menos 10 tickets reales.
 
 **F4 · Inventario y POS (~3–4 semanas)**

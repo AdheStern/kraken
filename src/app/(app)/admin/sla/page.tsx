@@ -25,7 +25,7 @@ export default function SlaAdminPage() {
       <AdminBackLink />
       <ModuleHeading
         title="Políticas de SLA"
-        description="Tiempo comprometido de primera respuesta y de resolución. El reloj se pausa mientras el ticket espera al cliente. Valores iniciales por confirmar con DIMA."
+        description="Tiempo comprometido de primera respuesta y de resolución. El reloj se pausa mientras el ticket espera al cliente; en 8x5 cuenta solo el horario de la ciudad del ticket."
       />
       <Suspense fallback={<Skeleton className="h-96 w-full rounded-xl" />}>
         <SlaPolicies />

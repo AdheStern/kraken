@@ -20,7 +20,7 @@ enum TicketStatus {
   @@schema("tickets")
 }
 
-// LIMITACIÓN: prioridades provisionales hasta que DIMA defina las suyas (AGENTS.md §14, F3) [CONFIRMAR].
+// REGLA: prioridades de los SLA confirmados por DIMA (AGENTS.md §2.7).
 enum TicketPriority {
   BAJA
   MEDIA

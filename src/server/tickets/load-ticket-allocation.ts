@@ -58,7 +58,7 @@ export async function loadTicketAllocation(
     intervals,
     bags,
     calendar: await loadCalendarFor(tx, ticket.cityId, intervals),
-    // REGLA [CONFIRMAR hacia arriba]: el paso es un parámetro editable sin desplegar (§2.6, regla 16).
+    // REGLA: el redondeo es hacia arriba; su paso es un parámetro editable sin desplegar (§2.6).
     roundingStepMinutes: await getIntParameter(
       "horas.redondeo_minutos",
       TICKET_ROUNDING_STEP_MINUTES,

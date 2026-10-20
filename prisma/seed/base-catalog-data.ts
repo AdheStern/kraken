@@ -84,7 +84,7 @@ export const PARAMETERS = [
     key: "horas.redondeo_minutos",
     value: 30,
     description:
-      "Múltiplo de minutos al que sube el total ponderado de un ticket al cerrarlo [CONFIRMAR]",
+      "Múltiplo de minutos al que sube (siempre hacia arriba) el total ponderado de un ticket al cerrarlo",
   },
   {
     key: "sla.alerta_pct",
@@ -94,8 +94,8 @@ export const PARAMETERS = [
   },
 ];
 
-// [CONFIRMAR] tiempos de SLA pendientes de DIMA (AGENTS.md §14, F3): primera respuesta / resolución en minutos,
-// iguales en 8x5 (horas de oficina) y 24x7. Se editan en /admin/sla.
+// REGLA: tiempos de SLA confirmados por DIMA (AGENTS.md §2.7): primera respuesta / resolución en minutos, iguales
+// en 8x5 (horas de oficina) y 24x7. Se editan en /admin/sla.
 const SLA_MINUTES = {
   CRITICA: [30, 240],
   ALTA: [60, 480],

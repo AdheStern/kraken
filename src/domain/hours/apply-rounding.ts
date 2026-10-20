@@ -2,7 +2,7 @@
 // Redondea el total ponderado de un ticket hacia arriba a múltiplos del paso (30 min por defecto) y reparte
 // la diferencia desde la última bolsa usada. Regla normativa: AGENTS.md §2.6 paso 3 y caso HORAS-01 (§15.2).
 
-// REGLA [CONFIRMAR hacia arriba] (§2.6, §14): 30 min por defecto; el paso vigente es el parámetro
+// REGLA: siempre hacia arriba, 30 min por defecto (§2.6, confirmado por DIMA); el paso vigente es el parámetro
 // horas.redondeo_minutos (1 = sin redondeo) y llega como argumento.
 export const TICKET_ROUNDING_STEP_MINUTES = 30;
 

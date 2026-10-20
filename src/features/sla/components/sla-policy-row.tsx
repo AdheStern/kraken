@@ -34,7 +34,7 @@ export function SlaPolicyRow({ row }: { row: Row }) {
 
   return (
     <li className="flex flex-col gap-2 px-4 py-3">
-      <div className="grid items-end gap-3 sm:grid-cols-[6rem_1fr_1fr_auto_auto]">
+      <div className="grid items-end gap-3 sm:grid-cols-[6rem_minmax(0,12rem)_minmax(0,12rem)_auto_auto] sm:justify-start">
         <span className="text-sm font-medium">
           {PRIORITY_LABELS[row.priority]}
         </span>

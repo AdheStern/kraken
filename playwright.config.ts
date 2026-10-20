@@ -13,6 +13,8 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,
+  // POR QUÉ: contra un solo servidor de producción, más de dos navegadores a la vez agotan los tiempos en equipos chicos.
+  workers: 2,
   forbidOnly: isCi,
   retries: isCi ? 1 : 0,
   reporter: isCi ? [["github"], ["html", { open: "never" }]] : "list",

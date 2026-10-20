@@ -41,7 +41,8 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
           </Suspense>
         }
       />
-      <SidebarInset className="kr-ground">
+      {/* TRAMPA: sin min-w-0 el área de contenido crece con lo más ancho (tablero, grilla) y la página desborda. */}
+      <SidebarInset className="kr-ground min-w-0">
         <header className="kr-header sticky top-0 z-10 flex h-12 items-center gap-2 px-3">
           <SidebarTrigger aria-label="Mostrar u ocultar la navegación" />
           {/* POR QUÉ: en móvil el riel vive en un panel; la cabecera lleva la marca para no perder identidad. */}

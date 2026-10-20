@@ -14,8 +14,15 @@ test("sin sesión, cualquier pantalla lleva al inicio de sesión", async ({
 
 test("la salud del nodo responde para HAProxy", async ({ request }) => {
   expect((await request.get("/api/health/live")).ok()).toBe(true);
-  const ready = await request.get("/api/health/ready");
-  expect(await ready.json()).toMatchObject({ ready: true });
+  // POR QUÉ: con el servidor en frío la primera conexión a la base puede pasar de 2 s; HAProxy reintenta igual.
+  await expect
+    .poll(
+      async () => (await (await request.get("/api/health/ready")).json()).ready,
+      {
+        timeout: 15_000,
+      },
+    )
+    .toBe(true);
 });
 
 test.describe("gerente general", () => {

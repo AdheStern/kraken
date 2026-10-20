@@ -48,6 +48,15 @@ test("el coordinador crea el ticket con encargado y le suma una bolsa", async ({
     page.getByRole("heading", { level: 1, name: TITLE }),
   ).toBeVisible();
 
+  await page.goto("/tickets");
+  const card = page.locator("li", { hasText: TITLE });
+  await card.getByRole("button", { name: /Cambiar el estado/ }).click();
+  await expect(page.getByRole("menuitem", { name: "Trabajar" })).toBeVisible();
+  await expect(
+    page.getByRole("menuitem", { name: "Cancelar ticket" }),
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.goto(ticketUrl);
   await page.getByRole("tab", { name: /Bolsas/ }).click();
   await page.getByLabel("Sumar una bolsa").click();
   await page

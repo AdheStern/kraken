@@ -2,6 +2,7 @@
 // Traduce errores inesperados de una Server Action a ActionResult; nunca se lanzan al cliente (regla 10).
 import { type ActionResult, actionError } from "@/lib/action-result";
 import { formatMinutes } from "@/lib/format-minutes";
+import { FileStoreError } from "@/server/files/file-store";
 import {
   BagPlanError,
   BagStateError,
@@ -24,6 +25,16 @@ export function toActionError<T>(
   }
   if (error instanceof BagPlanError) {
     return actionError(error.code, error.message);
+  }
+  if (error instanceof FileStoreError) {
+    void logInRequest("error", "almacén de archivos", {
+      action: context,
+      error: error.message,
+    });
+    return actionError(
+      "EXTERNAL_UNAVAILABLE",
+      "El almacén de archivos no respondió. Intenta de nuevo en unos minutos.",
+    );
   }
   if (error instanceof BagStateError) {
     return actionError("INVALID_STATE", error.message);

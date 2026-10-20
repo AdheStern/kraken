@@ -1,5 +1,5 @@
 // src/app/api/health/ready/route.ts
-// Disponibilidad del nodo para HAProxy (AGENTS.md §7, §10): 200 si la base y el NFS responden, 503 si no.
+// Disponibilidad del nodo para HAProxy (AGENTS.md §7, §10): 200 si la base y la carpeta de adjuntos (si se usa FILES_ROOT) responden, 503 si no.
 import { prisma } from "@/server/db";
 import { checkReadiness } from "@/server/health/check-readiness";
 import { log } from "@/server/log";

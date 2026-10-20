@@ -8,6 +8,7 @@ import {
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeTicketQuery } from "@/server/authz/scope-ticket-query";
 import { prisma } from "@/server/db";
+import { selectFileStore } from "@/server/files/select-file-store";
 import type { Person, TicketDetail } from "../types";
 import { listTicketEngineers } from "./list-ticket-engineers";
 import { toTicketPermissions } from "./ticket-permissions-view";
@@ -34,6 +35,12 @@ export async function getTicketDetail(
       },
       comments: { orderBy: { createdAt: "desc" }, include: { author: PERSON } },
       slaMeasurements: { orderBy: { kind: "asc" } },
+      attachments: {
+        orderBy: { createdAt: "desc" },
+        include: {
+          uploadedBy: { select: { user: { select: { name: true } } } },
+        },
+      },
       statusEvents: {
         orderBy: { occurredAt: "desc" },
         include: { actor: { select: { user: { select: { name: true } } } } },
@@ -50,6 +57,7 @@ export async function getTicketDetail(
       s.assigneeId ? [s.assigneeId] : [],
     ),
   };
+  const permissions = toTicketPermissions(user, access, t.status);
   return {
     ticket: {
       id: t.id,
@@ -72,7 +80,7 @@ export async function getTicketDetail(
       closedAt: t.closedAt?.toISOString() ?? null,
       sla: t.slaMeasurements.map((m) => toSlaBadge(m, alertPct)),
     },
-    permissions: toTicketPermissions(user, access, t.status),
+    permissions,
     subtasks: t.subtasks.map((s) => ({
       id: s.id,
       title: s.title,
@@ -95,6 +103,17 @@ export async function getTicketDetail(
       occurredAt: e.occurredAt.toISOString(),
     })),
     engineers: await listTicketEngineers(areaIds),
+    attachments: t.attachments.map((a) => ({
+      id: a.id,
+      fileName: a.fileName,
+      sizeBytes: a.sizeBytes,
+      uploadedBy: a.uploadedBy.user.name,
+      createdAt: a.createdAt.toISOString(),
+      canDelete:
+        t.status !== "CERRADO" &&
+        (a.uploadedById === user.id || permissions.canClose),
+    })),
+    filesEnabled: selectFileStore() !== null,
   };
 }
 

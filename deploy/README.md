@@ -18,7 +18,7 @@ decisiones: [AGENTS.md §3 y §10](../AGENTS.md). Objetivo no negociable: **ning
 | db-01..03 | `db/compose.yml`, `db/patroni.yml`, `db/Dockerfile.patroni` | etcd + PostgreSQL 16 + Patroni (réplica síncrona) + pgBackRest |
 | db-01..03 | `backup/pgbackrest.db.conf` | Empuja el WAL a ops-01 por TLS |
 | ops-01 | `backup/pgbackrest.repo.conf` | Repositorio: NAS (repo1) y Azure inmutable (repo2), cifrados |
-| ops-01 | `backup/systemd/kraken-backup*`, `kraken-files-sync*` | Completo domingo 02:00, diferencial diario 02:00, adjuntos 03:00 |
+| ops-01 | `backup/systemd/kraken-backup*` | Completo domingo 02:00, diferencial diario 02:00 (los adjuntos viven en SharePoint, ADR-16) |
 | ops-01 | `ops/compose.yml`, `ops/prometheus.yml` | Prometheus, Loki, Grafana, Uptime Kuma |
 | stg-01 | `scripts/restore-test.sh` + `backup/systemd/kraken-restore-test*` | Restauración de prueba mensual |
 | ops-01 (runner) | `scripts/deploy.sh`, `hosts/*` | Despliegue nodo por nodo |
@@ -27,9 +27,10 @@ decisiones: [AGENTS.md §3 y §10](../AGENTS.md). Objetivo no negociable: **ning
 ## Valores que pone DIMANET
 
 IPs de la VLAN de aplicación (app-01, app-02, IP virtual) y de datos (db-01..03, ops-01) · interfaz de red
-para keepalived · ruta NFS del NAS para pgBackRest (`/mnt/nas/pgbackrest`) y adjuntos (`/mnt/kraken-files`) ·
-cuenta de Azure Storage con contenedores `pgbackrest` y `kraken-files` con **inmutabilidad (WORM)** y SAS de
-escritura **sin permiso de borrado** · nombre DNS y certificado público en el FortiGate/Radware.
+para keepalived · ruta NFS del NAS para pgBackRest (`/mnt/nas/pgbackrest`) ·
+cuenta de Azure Storage con el contenedor `pgbackrest` con **inmutabilidad (WORM)** y SAS de
+escritura **sin permiso de borrado** · nombre DNS y certificado público en el FortiGate/Radware · sitio de SharePoint
+para los adjuntos con un registro de app `Sites.Selected` (escritura solo en ese sitio) y el id de su biblioteca.
 
 ## Puesta en marcha (orden)
 

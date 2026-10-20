@@ -24,10 +24,7 @@ services:
     ports:
       # Solo en la IP del nodo en la VLAN de aplicación: la usan los HAProxy de ambos nodos.
       - "${NODE_IP:?define NODE_IP}:3000:3000"
-    volumes:
-      - /mnt/kraken-files:/files
-    environment:
-      FILES_ROOT: /files
+    # POR QUÉ: los adjuntos van a SharePoint por Graph (ADR-16, variables SHAREPOINT_* del env_file); sin montaje.
 
   worker:
     <<: *image-defaults

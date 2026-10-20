@@ -57,3 +57,6 @@ next-env.d.ts
 /playwright-report/
 /test-results/
 /tests/e2e/.auth/
+
+# adjuntos locales de desarrollo (FileStore local, ADR-16)
+.files/

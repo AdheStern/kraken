@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   reactCompiler: true,
+  // REGLA: un adjunto pesa hasta 20 MB (MAX_ATTACHMENT_BYTES); el margen cubre los encabezados multipart.
+  experimental: {
+    serverActions: { bodySizeLimit: "21mb" },
+    proxyClientMaxBodySize: "21mb",
+  },
   turbopack: {
     rules: {
       "*.css": {

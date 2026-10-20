@@ -124,6 +124,15 @@ export type TicketBagsPanel = {
   pending: PendingView[];
 };
 
+export type AttachmentView = {
+  id: string;
+  fileName: string;
+  sizeBytes: number;
+  uploadedBy: string;
+  createdAt: string;
+  canDelete: boolean;
+};
+
 export type TicketDetail = {
   ticket: TicketHeader;
   permissions: TicketPermissions;
@@ -131,6 +140,9 @@ export type TicketDetail = {
   comments: CommentView[];
   history: StatusEventView[];
   engineers: Person[];
+  attachments: AttachmentView[];
+  // POR QUÉ: sin almacén configurado la pestaña lo dice en lugar de fallar al subir (ADR-16).
+  filesEnabled: boolean;
 };
 
 export type ProjectView = {

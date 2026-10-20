@@ -235,7 +235,7 @@ ponderados = minutos_dentro × 1 + minutos_fuera × m      m = 2 si 8x5, 1 si 24
 4. Se insertan los movimientos `CONSUMO` en **una sola transacción** con `SELECT … FOR UPDATE` sobre las bolsas, revalidando los saldos dentro de la transacción.
 5. Lo que no alcance va a `horas.pendiente_sin_bolsa`: no se descuenta, no se pierde, y avisa al comercial y al gerente. Al asociar un CV nuevo, se puede aplicar (`applyPendingHours`): se pondera con la modalidad de la bolsa que lo recibe, sin nuevo redondeo.
 
-Con el ticket abierto, la interfaz muestra el **consumo proyectado** con el mismo algoritmo (la misma función). Reabrir un ticket cerrado (con motivo) registra un `REVERSO` de sus consumos, que se recalculan al volver a cerrarlo, y descarta su pendiente sin bolsa (aplicado o no; el rastro queda en el libro y en la auditoría). Si una bolsa ya está `VENCIDA` o `CERRADA`, su consumo queda **firme**: no se revierte y, al volver a cerrar, recibe primero esos mismos minutos sin descontarse otra vez. El cierre exige que no haya contadores activos ni pausados. Cierran y reabren el coordinador o el gerente de un área del ticket y el GG; el encargado lo deja en `RESUELTO`. Crean tickets y asignan el encargado los mismos que cierran; el encargado ordena las bolsas y crea subtareas. Cada cambio de estado queda en `tickets.evento_estado` (inmutable). Iniciar el contador en un ticket `ASIGNADO` lo pasa a `EN_PROGRESO`. Los adjuntos del ticket esperan al `FileStore` (ADR-16).
+Con el ticket abierto, la interfaz muestra el **consumo proyectado** con el mismo algoritmo (la misma función). Reabrir un ticket cerrado (con motivo) registra un `REVERSO` de sus consumos, que se recalculan al volver a cerrarlo, y descarta su pendiente sin bolsa (aplicado o no; el rastro queda en el libro y en la auditoría). Si una bolsa ya está `VENCIDA` o `CERRADA`, su consumo queda **firme**: no se revierte y, al volver a cerrar, recibe primero esos mismos minutos sin descontarse otra vez. El cierre exige que no haya contadores activos ni pausados. Cierran y reabren el coordinador o el gerente de un área del ticket y el GG; el encargado lo deja en `RESUELTO`. Crean tickets y asignan el encargado los mismos que cierran; el encargado ordena las bolsas y crea subtareas. Cada cambio de estado queda en `tickets.evento_estado` (inmutable). Iniciar el contador en un ticket `ASIGNADO` lo pasa a `EN_PROGRESO`. Los adjuntos (hasta 20 MB) los suben quienes trabajan o gestionan el ticket y van a SharePoint (ADR-16); los quita quien los subió o quien cierra el ticket, mientras no esté cerrado.
 
 ### 2.7 SLA
 - Catálogo de SLA por modalidad y prioridad (`/admin/sla`): tiempo de primera respuesta y de resolución. Valores confirmados por DIMA, iguales en 8x5 y 24x7: crítica 30 min / 4 h, alta 1 h / 8 h, media 4 h / 24 h, baja 8 h / 40 h. Sin política activa no se mide.
@@ -285,7 +285,7 @@ Usuarios ─HTTPS→ FortiGate/Radware (WAF + TLS) → IP virtual (keepalived)
   → [app-01, app-02]: HAProxy → Next.js x2 · Worker pg-boss x2
       → HAProxy de BD → Primario Postgres ─síncrona→ Réplica · → Réplica   (Patroni + etcd)
          Primario ─WAL continuo→ pgBackRest (ops-01) → NAS + Azure Blob inmutable
-  Next.js → Entra ID (OIDC) · NFS del NAS (adjuntos)
+  Next.js → Entra ID (OIDC) · SharePoint por Graph (adjuntos)
   Worker  → Microsoft Graph (sendMail) · API BCB de CUCU (TC)
 ```
 
@@ -307,7 +307,7 @@ Usuarios ─HTTPS→ FortiGate/Radware (WAF + TLS) → IP virtual (keepalived)
 | ADR-13 | Docker Compose sobre VMs de VMware, sin Kubernetes. Dos imágenes sin root (`Dockerfile`): `app` (Next standalone) y `worker` (tsx, solo dependencias de producción; también corre `migrate:deploy`). Plantillas y runbook en `deploy/`. | La misma disponibilidad con mucha menos operación. |
 | ADR-14 | Auditoría en `audit.evento` con `recordAudit(tx, …)` explícito dentro de la transacción de cada action que decide algo (crear, enviar, aprobar o rechazar, nueva versión, anular, ajustes y cierres de bolsas, administración y la sincronización con Entra): actor, entidad, acción, antes, después, IP y requestId. Los guardados de borrador no se auditan: la versión enviada es inmutable y es el rastro de sus precios. | Trazabilidad de precios, aprobaciones y ajustes. Explícito y no una extensión de Prisma: la extensión no ve al actor ni la transacción para leer el «antes» (KISS). |
 | ADR-15 | Fechas UTC en BD; calendario en `America/La_Paz` (UTC−4, sin horario de verano). | Sin errores de zona horaria. |
-| ADR-16 | Adjuntos en NFS del NAS montado en ambos nodos (ruta + hash en BD), copia diaria a Azure Blob, detrás de la interfaz `FileStore`. | Sin servicio de objetos adicional; migrable a S3. |
+| ADR-16 | Adjuntos en una biblioteca de **SharePoint** por Microsoft Graph (app-only, `Sites.Selected` sobre el sitio de Kraken), detrás de la interfaz `FileStore` (`src/server/files`): la BD guarda nombre, hash, tamaño y el id del elemento; la descarga pasa por un route handler con authz. `FILES_ROOT` (carpeta o montaje) queda como alternativa y es el almacén de desarrollo. Hasta 20 MB por archivo. | SharePoint ya es el repositorio documental de DIMA, con versionado y retención de M365; sin NAS ni servicio de objetos adicionales. |
 
 ### Flujo de aprobación
 1. El comercial envía la versión → la action valida permisos y reglas (líneas, TC, áreas).
@@ -489,7 +489,7 @@ dima-hub/
 │  │  ├─ auth.ts         # configuración de Better Auth
 │  │  ├─ auth-policies.ts # quién entra con contraseña, cuenta activa, alta del perfil
 │  │  ├─ mail/           # Graph + outbox
-│  │  └─ files/          # FileStore (NFS)
+│  │  └─ files/          # FileStore (SharePoint por Graph; carpeta local en desarrollo)
 │  ├─ proxy.ts           # redirección optimista por cookie de sesión (Next 16: antes middleware)
 │  ├─ worker/            # entrada pg-boss y handlers
 │  ├─ generated/prisma/  # cliente Prisma generado (no versionado)
@@ -572,12 +572,12 @@ type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { code: Error
 **Actions:**
 - CV: `createCv`, `duplicateCv`, `updateCvHeader`, `upsertCvLines`, `upsertCvLeasing`, `submitCvVersion`, `decideApproval`, `createCvVersion`, `voidCv`. El factor por lote o tecnología se aplica en el editor (`applyFactorToDrafts`) y lo recalcula y valida `upsertCvLines` al guardar.
 - Horas: `adjustHourBag`, `closeHourBag`, `applyPendingHours`
-- Tickets: `createTicket`, `assignOwner`, `setTicketBags`, `createSubtask`, `updateSubtask`, `addComment`, `createProject`, `startTimer`, `pauseTimer`, `resumeTimer`, `stopTimer`, `addManualTimeEntry`, `deleteTimeEntry`, `changeTicketStatus`, `closeTicket`, `reopenTicket`
+- Tickets: `createTicket`, `assignOwner`, `setTicketBags`, `createSubtask`, `updateSubtask`, `addComment`, `createProject`, `startTimer`, `pauseTimer`, `resumeTimer`, `stopTimer`, `addManualTimeEntry`, `deleteTimeEntry`, `changeTicketStatus`, `closeTicket`, `reopenTicket`, `setProjectStatus`, `uploadTicketAttachment`, `deleteTicketAttachment`
 - Inventario: `registerReceipt`, `dispatchItems`, `createTransfer`, `sendTransfer`, `receiveTransfer`, `requestAdjustment`, `decideAdjustment`
 - Administración: CRUD de catálogos (`upsertSimpleCatalogItem` y `setSimpleCatalogItemActive` para áreas, ciudades, tecnologías, unidades, tipos de servicio y proveedores; `upsertCustomer`, `upsertCustomerContact`, `upsertProduct`, `markProductReviewed` y sus bajas), usuarios (`updateUserProfile`, `setUserActive`, `grantUserRole`, `revokeUserRole`), `mapEntraGroup`, `unmapEntraGroup`, `setParameter`, `setManualFxRate`, `sendTestMail`, `retryOutboxMessage`, `upsertSlaPolicy`
 - Notificaciones: `markInboxRead`
 
-**Route handlers:** `GET /api/cv/[versionId]/export.xlsx` (con authz) · `GET /api/inventory/receipts/[id].pdf` · `GET /api/health/live` · `GET /api/health/ready` (BD + NFS; HAProxy saca el nodo si falla) · `/api/auth/*`.
+**Route handlers:** `GET /api/cv/[versionId]/export.xlsx` (con authz) · `GET /api/tickets/attachments/[id]` (con authz) · `GET /api/inventory/receipts/[id].pdf` · `GET /api/health/live` · `GET /api/health/ready` (BD y, si los adjuntos van a `FILES_ROOT`, su carpeta; HAProxy saca el nodo si falla) · `/api/auth/*`.
 
 **Jobs:**
 | Job | Cuándo | Qué hace |
@@ -617,7 +617,7 @@ Viven en `src/domain/*/state-machine.ts`. La interfaz muestra solo las transicio
 - **D:** `src/domain` recibe datos y un `Clock`; los servicios inyectan repositorios y proveedores.
 
 ### KISS / YAGNI / DRY
-- KISS: monolito, pg-boss, Docker Compose, NFS.
+- KISS: monolito, pg-boss, Docker Compose, SharePoint para adjuntos.
 - YAGNI: sin portal de clientes, ERP, multimoneda, delegación ni vistas materializadas prematuras.
 - DRY con criterio: el mismo zod para formulario y action; la misma función de asignación para proyección y cierre. Se permite duplicar dos veces antes de abstraer.
 
@@ -716,7 +716,7 @@ Operación conjunta: **DIMANET** (virtualización, red, seguridad perimetral, NA
 | WAL continuo (pgBackRest `archive-async`) | Segundos | NAS + Azure Blob | Toda la ventana de retención (PITR) |
 | Completo | Semanal, domingo 02:00 | NAS + Azure | 8 semanas local · 12 meses Azure |
 | Diferencial | Diario 02:00 | NAS + Azure | 14 días |
-| Adjuntos NFS | Diario + versionado | Azure Blob | 12 meses |
+| Adjuntos (SharePoint) | Versionado y retención de M365 | SharePoint | Según la política de retención de DIMA |
 | Snapshot de VMware | Antes de cada actualización | Datastore | Se borra tras validar (no es respaldo) |
 
 - Azure Blob con **inmutabilidad (WORM)**; credenciales solo en `ops-01`, sin permiso de borrado.
@@ -749,7 +749,8 @@ PR → biome · typecheck · tests de dominio · integración con Postgres · bu
 | `FX_API_URL` | API del tipo de cambio |
 | `MAILPIT_URL` | Solo desarrollo: Mailpit (por defecto `http://localhost:8025`) cuando Graph no está configurado |
 | `E2E_BASE_URL` | Solo pruebas: servidor bajo prueba de Playwright (por defecto `http://localhost:3100`) |
-| `FILES_ROOT` | Punto de montaje NFS |
+| `SHAREPOINT_CLIENT_ID`, `SHAREPOINT_CLIENT_SECRET`, `SHAREPOINT_DRIVE_ID`, `SHAREPOINT_FOLDER` | Adjuntos en SharePoint (registro de app separado con `Sites.Selected`, escritura solo sobre el sitio de Kraken; usa `ENTRA_TENANT_ID`) |
+| `FILES_ROOT` | Alternativa a SharePoint: carpeta o montaje de adjuntos; en desarrollo, sin nada configurado, `./.files` |
 
 Nunca en el repositorio (`.env.example` documentado). En los servidores: archivos con permisos 600 fuera del proyecto o Docker secrets. Los secretos de Entra se rotan con una alerta 30 días antes de vencer.
 
@@ -801,7 +802,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 **F3 · Tickets, tiempos y SLA (~4 semanas) · segunda salida a producción**
 - `allocateTicketHours` (HORAS-01 + propiedades) [OPUS] — hecho (`src/domain/hours/allocate-ticket-hours.ts`)
 - Cierre transaccional con bloqueo, test de concurrencia, reapertura con reversos [OPUS] — hecho en el servidor (`closeTicket`, `reopenTicket`); los botones llegan con el detalle del ticket
-- Tickets, proyectos, subtareas, kanban, detalle, jerarquía arrastrable [SONNET] — hecho (`/tickets`, `/tickets/[id]`; adjuntos diferidos al `FileStore`)
+- Tickets, proyectos, subtareas, kanban, detalle, jerarquía arrastrable [SONNET] — hecho (`/tickets`, `/tickets/[id]`, `/tickets/proyectos`; adjuntos en SharePoint con `FileStore`; vista de horas del CV para el ingeniero)
 - Contador por eventos, registros manuales, contadores olvidados [SONNET] — hecho
 - SLA: políticas, reloj, pausas y alertas [OPUS reloj, SONNET UI] — hecho (`computeSla`, `/admin/sla`, semáforo)
 - *Sale cuando:* los ingenieros registran todo en tickets y gerencia valida el descuento contra un cálculo manual en al menos 10 tickets reales.
@@ -856,7 +857,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - **F0:** nivel de RAID del NAS. Repositorio: GitHub (`AdheStern/kraken`); confirmar si pasa a una organización de DIMA. Validar en las VMs las plantillas de `deploy/` (Patroni, pgBackRest, keepalived, despliegue nodo por nodo, restauración en staging, DR en Azure). Registro de app de Graph con `Mail.Send` y RBAC de Exchange para el buzón. El BCB pasó al régimen flexible (RD 142/2026: compra = venta = TCO); los TC de costo y de venta del CV siguen siendo manuales (§2.2). Qué roles operativos llevan área (`role-area-rules.ts`: el gerente de área la exige; comercial, preventa, ingeniero y coordinador la admiten). Los roles de Entra se recalculan al iniciar sesión y la sesión dura 12 h sin extenderse: la baja en Entra rige el mismo día.
 - **F1:** significado del sufijo `-DS`; confirmar que un rechazo cierra la ronda; valor inicial del umbral del GG; % de desvío del TC que dispara la advertencia.
 - **F2:** horario real de cada ciudad (¿con pausa de mediodía?) y feriados departamentales y de traslado: los carga el administrador en `/admin/calendario`. *Confirmado por DIMA (2026-10-14):* multiplicador 2 fuera de horario en 8x5, umbrales de alerta 80% y 100%, aviso de vencimiento a 30 días, y los miembros de un área ven todas sus bolsas. *Resuelto:* las bolsas vigentes se cargan con un "CV de saldo inicial" por cliente (`es_saldo_inicial`, solo horas de servicio con costo y venta 0), aprobado por su gerente.
-- **F3:** *Resuelto (2026-10-19):* el redondeo que no cabe en ninguna bolsa se perdona; al reabrir, el consumo en bolsas vencidas o cerradas queda firme; cierran y reabren coordinador, gerente de área y GG. *Resuelto (2026-10-19, tareas 3–5):* crean tickets coordinador, gerente de área y GG; historial inmutable de estados como base del SLA; el paso de redondeo es el parámetro `horas.redondeo_minutos`; adjuntos diferidos. *Confirmado por DIMA (2026-10-20):* el redondeo es siempre hacia arriba y los tiempos de SLA de §2.7. Pendiente: confirmar que se suman los tiempos en paralelo (se valida en el criterio de salida).
+- **F3:** *Resuelto (2026-10-19):* el redondeo que no cabe en ninguna bolsa se perdona; al reabrir, el consumo en bolsas vencidas o cerradas queda firme; cierran y reabren coordinador, gerente de área y GG. *Resuelto (2026-10-19, tareas 3–5):* crean tickets coordinador, gerente de área y GG; historial inmutable de estados como base del SLA; el paso de redondeo es el parámetro `horas.redondeo_minutos`; adjuntos en SharePoint (ADR-16; faltan las credenciales del registro de app y el id de la biblioteca). *Confirmado por DIMA (2026-10-20):* el redondeo es siempre hacia arriba y los tiempos de SLA de §2.7. Pendiente: confirmar que se suman los tiempos en paralelo (se valida en el criterio de salida).
 - **F4:** método de valoración (propuesto: costo promedio ponderado); productos que exigen serial; almacenes exactos.
 - **F5:** KPIs, KGIs y metas definitivas.
 

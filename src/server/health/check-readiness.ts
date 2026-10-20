@@ -1,5 +1,5 @@
 // src/server/health/check-readiness.ts
-// ¿Puede este nodo atender? Base de datos y, si hay adjuntos, el NFS con escritura (AGENTS.md §7, ADR-16).
+// ¿Puede este nodo atender? Base de datos y, si los adjuntos van a FILES_ROOT, esa carpeta con escritura (AGENTS.md §7, ADR-16).
 // HAProxy saca el nodo cuando falla.
 import { constants } from "node:fs";
 import { access } from "node:fs/promises";

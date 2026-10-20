@@ -1,10 +1,11 @@
 // src/features/tickets/components/ticket-tabs.tsx
-// Pestañas de trabajo del detalle: subtareas, registros de tiempo, bolsas con su jerarquía, comentarios e historial
-// (AGENTS.md §5 "Detalle del ticket"; los adjuntos se difieren hasta el FileStore, ADR-16).
+// Pestañas de trabajo del detalle: subtareas, registros de tiempo, bolsas con su jerarquía, comentarios, adjuntos e
+// historial (AGENTS.md §5 "Detalle del ticket").
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { TicketBagsPanel, TicketDetail, TicketTime } from "../types";
+import { AttachmentsPanel } from "./attachments-panel";
 import { CommentsPanel } from "./comments-panel";
 import { HistoryPanel } from "./history-panel";
 import { SubtasksPanel } from "./subtasks-panel";
@@ -31,6 +32,9 @@ export function TicketTabs({ detail, bags, time }: Props) {
         </TabsTrigger>
         <TabsTrigger value="comentarios">
           Comentarios <Count value={detail.comments.length} />
+        </TabsTrigger>
+        <TabsTrigger value="adjuntos">
+          Adjuntos <Count value={detail.attachments.length} />
         </TabsTrigger>
         <TabsTrigger value="historial">Historial</TabsTrigger>
       </TabsList>
@@ -59,6 +63,17 @@ export function TicketTabs({ detail, bags, time }: Props) {
           ticketId={detail.ticket.id}
           comments={detail.comments}
           canComment={detail.permissions.canComment}
+        />
+      </TabsContent>
+      <TabsContent value="adjuntos">
+        <AttachmentsPanel
+          ticketId={detail.ticket.id}
+          attachments={detail.attachments}
+          canAttach={
+            detail.permissions.canComment &&
+            detail.ticket.status !== "CANCELADO"
+          }
+          filesEnabled={detail.filesEnabled}
         />
       </TabsContent>
       <TabsContent value="historial">

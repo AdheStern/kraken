@@ -9,6 +9,7 @@ import { Suspense } from "react";
 import { NodeMark } from "@/components/app-shell/node-mark";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getVersionBagEffects } from "@/features/hours/queries/get-version-bag-effects";
+import { CvHoursView } from "@/features/sales-control/components/cv-hours-view";
 import { CvStatusBadge } from "@/features/sales-control/components/cv-status-badge";
 import { CvHeaderForm } from "@/features/sales-control/components/header/cv-header-form";
 import { CvLeasingEditor } from "@/features/sales-control/components/leasing/cv-leasing-editor";
@@ -21,6 +22,7 @@ import { VersionHistory } from "@/features/sales-control/components/versions/ver
 import { getCvEditor } from "@/features/sales-control/queries/get-cv-editor";
 import { getCvFormOptions } from "@/features/sales-control/queries/get-cv-form-options";
 import { getCvGridOptions } from "@/features/sales-control/queries/get-cv-grid-options";
+import { getCvHoursView } from "@/features/sales-control/queries/get-cv-hours-view";
 import { getCvLeasing } from "@/features/sales-control/queries/get-cv-leasing";
 import { getCvLines } from "@/features/sales-control/queries/get-cv-lines";
 import type { CvEditorData } from "@/features/sales-control/types";
@@ -66,7 +68,12 @@ async function CvEditor({
     id,
     Number.isInteger(versionNumber) ? versionNumber : undefined,
   );
-  if (!editor) notFound();
+  if (!editor) {
+    // REGLA: el ingeniero ve la cabecera y las horas de los CV de sus tickets, nunca el editor (§2.9).
+    const hoursView = await getCvHoursView(user, id);
+    if (!hoursView) notFound();
+    return <CvHoursView cv={hoursView} />;
+  }
   const { header } = editor;
   const [
     options,

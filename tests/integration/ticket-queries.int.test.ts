@@ -2,6 +2,7 @@
 // Listado, detalle y bolsas de un ticket contra la base (AGENTS.md §2.9 "Tickets: ver", §2.6 consumo
 // proyectado): cada rol ve lo suyo y la proyección usa la misma asignación del cierre.
 import { afterAll, describe, expect, it, vi } from "vitest";
+import { getCvHoursView } from "@/features/sales-control/queries/get-cv-hours-view";
 import { getTicketBags } from "@/features/tickets/queries/get-ticket-bags";
 import { getTicketDetail } from "@/features/tickets/queries/get-ticket-detail";
 import { getTicketTime } from "@/features/tickets/queries/get-ticket-time";
@@ -120,5 +121,43 @@ describe("tiempo del ticket", () => {
     expect((await getTicketTime(f.coordinator, f.ticket.id))?.targets).toEqual(
       [],
     );
+  });
+});
+
+describe("CV visto por el ingeniero", () => {
+  it("muestra cabecera y horas de los CV de sus tickets, sin montos, y nada a otros", async () => {
+    const f = await createTicketFixture(db, [
+      { modality: "H8X5", minutes: 600 },
+    ]);
+    const engineer = await createUserWithRoles(db, "Ingeniera", [
+      { code: "INGENIERO", areaId: f.area.id },
+    ]);
+    const outsider = await createUserWithRoles(db, "Otro", [
+      { code: "INGENIERO", areaId: f.area.id },
+    ]);
+    await db.ticket.update({
+      where: { id: f.ticket.id },
+      data: { ownerId: engineer.id },
+    });
+    const hours = await db.unit.create({
+      data: { code: `H${f.city.code}`, name: "Horas", isHours: true },
+    });
+    await db.cvLine.updateMany({
+      where: { versionId: f.version.id },
+      data: { itemType: "SERVICIO", unitId: hours.id },
+    });
+    await db.cvVersion.update({
+      where: { id: f.version.id },
+      data: { status: "APROBADA" },
+    });
+
+    const view = await getCvHoursView(engineer, f.cv.id);
+    expect(view?.lines).toHaveLength(1);
+    expect(view?.lines[0]).toMatchObject({
+      hours: "10",
+      bag: { balanceMinutes: 600 },
+    });
+    expect(JSON.stringify(view)).not.toMatch(/Usd|cost|sale|factor/i);
+    expect(await getCvHoursView(outsider, f.cv.id)).toBeNull();
   });
 });

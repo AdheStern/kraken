@@ -121,6 +121,27 @@ export type CvComparisonData = {
   totals: { label: string; before: string; after: string; diff: string }[];
 };
 
+export type CvHoursView = {
+  label: string;
+  title: string;
+  customerName: string;
+  cityName: string;
+  sellerNames: string[];
+  lines: {
+    id: string;
+    description: string;
+    hours: string;
+    areaCode: string | null;
+    modality: "H8X5" | "H24X7" | null;
+    expiresOn: string | null;
+    bag: {
+      id: string;
+      status: "ACTIVA" | "AGOTADA" | "VENCIDA" | "CERRADA";
+      balanceMinutes: number;
+    } | null;
+  }[];
+};
+
 export type PendingApprovalItem = {
   requestId: string;
   cvId: string;

@@ -6,7 +6,8 @@ import { areaIdsWithRole, hasRole, type SessionUser } from "./roles";
 
 const NOTHING: Prisma.CvWhereInput = { id: { in: [] } };
 
-// LIMITACIÓN: el ingeniero verá la cabecera de los CV de sus tickets cuando existan los tickets (F3).
+// POR QUÉ: el ingeniero no entra por aquí; ve la cabecera y las horas de los CV de sus tickets con
+// scopeCvHoursQuery, sin editor ni montos (§2.9, regla 12).
 export function scopeCvQuery(user: SessionUser): Prisma.CvWhereInput {
   if (hasRole(user, "GERENTE_GENERAL")) return {};
 

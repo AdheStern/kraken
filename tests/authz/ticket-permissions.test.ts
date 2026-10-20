@@ -4,6 +4,7 @@
 import { describe, expect, it } from "vitest";
 import type { RoleCode } from "@/generated/prisma/enums";
 import type { SessionUser } from "@/server/authz/roles";
+import { scopeCvHoursQuery } from "@/server/authz/scope-cv-hours-query";
 import { scopeTicketQuery } from "@/server/authz/scope-ticket-query";
 import {
   canCloseTicket,
@@ -132,5 +133,23 @@ describe("Tickets: crear, gestionar, cerrar y reabrir", () => {
   it("el comercial consulta sin gestionar ni comentar", () => {
     expect(canManageTicket(user(["COMERCIAL"]), TICKET)).toBe(false);
     expect(canCommentTicket(user(["COMERCIAL"]), TICKET)).toBe(false);
+  });
+});
+
+describe("§2.9 CV: ver (ingeniero: cabecera y horas de los CV de sus tickets)", () => {
+  it("el ingeniero ve los CV de las bolsas de sus tickets", () => {
+    const scope = JSON.stringify(scopeCvHoursQuery(user(["INGENIERO", "net"])));
+    expect(scope).toContain('"ticketBags"');
+    expect(scope).toContain('"ownerId":"yo"');
+    expect(scope).toContain('"assigneeId":"yo"');
+  });
+
+  it.each<RoleCode>([
+    "COMERCIAL",
+    "GERENTE_AREA",
+    "COORDINADOR_SOPORTE",
+    "ADMINISTRACION",
+  ])("%s no usa la vista de horas (ve los CV por su propio alcance)", (role) => {
+    expect(scopeCvHoursQuery(user([role, "net"]))).toEqual({ id: { in: [] } });
   });
 });

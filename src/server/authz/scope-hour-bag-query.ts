@@ -31,7 +31,6 @@ export function scopeHourBagQuery(user: SessionUser): Prisma.HourBagWhereInput {
       },
     });
   }
-  // LIMITACIÓN: hasta F3 no hay tickets con bolsas; la condición ya queda escrita.
   if (hasRole(user, "INGENIERO")) {
     visible.push({
       ticketBags: {

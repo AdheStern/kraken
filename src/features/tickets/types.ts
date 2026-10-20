@@ -26,6 +26,8 @@ export type TicketCard = {
   owner: Person | null;
   updatedAt: string;
   sla: SlaBadgeData | null;
+  // POR QUÉ: las transiciones que el usuario puede hacer desde el tablero; el servidor vuelve a validarlas (§8).
+  transitions: WorkStatus[];
 };
 
 export type TicketFilters = {

@@ -12,16 +12,17 @@ import {
   STATUS_LABELS,
 } from "../ticket-labels";
 import type { TicketCard as TicketCardData } from "../types";
+import { TicketCardMenu } from "./ticket-card-menu";
 
 type Props = { ticket: TicketCardData; showStatus?: boolean };
 
 export function TicketCard({ ticket, showStatus = false }: Props) {
   return (
     <li className="kr-solid kr-lift relative flex flex-col gap-2 rounded-xl p-3">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Link
           href={`/tickets/${ticket.id}`}
-          className="text-sm font-semibold tabular-nums after:absolute after:inset-0 after:rounded-xl hover:underline"
+          className="mr-auto text-sm font-semibold tabular-nums after:absolute after:inset-0 after:rounded-xl hover:underline"
         >
           #{ticket.number}
         </Link>
@@ -31,6 +32,11 @@ export function TicketCard({ ticket, showStatus = false }: Props) {
         >
           {PRIORITY_LABELS[ticket.priority]}
         </Badge>
+        <TicketCardMenu
+          ticketId={ticket.id}
+          number={ticket.number}
+          transitions={ticket.transitions}
+        />
       </div>
       <p className="line-clamp-2 text-sm font-medium">{ticket.title}</p>
       <p className="truncate text-xs text-muted-foreground">

@@ -10,6 +10,7 @@ import { scopeTicketQuery } from "@/server/authz/scope-ticket-query";
 import { systemClock } from "@/server/clock";
 import { prisma } from "@/server/db";
 import type { TicketCard, TicketFilters } from "../types";
+import { toTicketPermissions } from "./ticket-permissions-view";
 
 // LIMITACIÓN: sin paginación; son ~40 usuarios y cientos de tickets abiertos (AGENTS.md §3).
 const MAX_TICKETS = 400;
@@ -26,7 +27,11 @@ export const TICKET_CARD_SELECT = {
   projectId: true,
   updatedAt: true,
   customer: { select: { id: true, name: true } },
-  areas: { select: { area: { select: { code: true } } } },
+  areas: { select: { area: { select: { id: true, code: true } } } },
+  subtasks: {
+    where: { assigneeId: { not: null } },
+    select: { assigneeId: true },
+  },
   owner: {
     select: { userId: true, user: { select: { name: true, image: true } } },
   },
@@ -71,10 +76,21 @@ export async function listTickets(
     take: MAX_TICKETS,
   });
   const alertPct = await getSlaAlertPct();
-  return records.map((r) => toTicketCard(r, alertPct));
+  return records.map((r) => toTicketCard(user, r, alertPct));
 }
 
-export function toTicketCard(r: CardRecord, alertPct: number): TicketCard {
+export function toTicketCard(
+  user: SessionUser,
+  r: CardRecord,
+  alertPct: number,
+): TicketCard {
+  const access = {
+    areaIds: r.areas.map((a) => a.area.id),
+    ownerId: r.owner?.userId ?? null,
+    subtaskAssigneeIds: r.subtasks.flatMap((s) =>
+      s.assigneeId ? [s.assigneeId] : [],
+    ),
+  };
   return {
     id: r.id,
     number: r.number,
@@ -95,6 +111,7 @@ export function toTicketCard(r: CardRecord, alertPct: number): TicketCard {
       : null,
     updatedAt: r.updatedAt.toISOString(),
     sla: pickCurrentSla(r.slaMeasurements, alertPct),
+    transitions: toTicketPermissions(user, access, r.status).transitions,
   };
 }
 

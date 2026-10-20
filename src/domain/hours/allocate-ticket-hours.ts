@@ -67,7 +67,7 @@ export function allocateTicketHours(
 }
 
 // REGLA: todos los intervalos del ticket, de todos los participantes, en orden cronológico; el tiempo de
-// personas distintas se suma (§2.6 [CONFIRMAR]).
+// personas distintas se suma (§2.6, confirmado por DIMA).
 function toChronologicalSegments(
   intervals: readonly TimeInterval[],
   calendar: BusinessCalendar,

@@ -38,7 +38,7 @@ export async function upsertCvLines(
       status: true,
       costFxRate: true,
       saleFxRate: true,
-      cv: { select: { isOpeningBalance: true } },
+      cv: { select: { isOpeningBalance: true, customerId: true } },
     },
   });
   if (!version) return actionError("NOT_FOUND", "El CV ya no existe.");
@@ -66,6 +66,24 @@ export async function upsertCvLines(
   };
   const prepared = prepareLineRecords(groups, lines, fx, context);
   if (!prepared.ok) return actionError("VALIDATION", prepared.message);
+  // REGLA: una bolsa por proyecto solo usa proyectos activos del cliente del CV (§2.4 alcance).
+  const projectIds = lines.flatMap((l) =>
+    l.hourBag?.scope === "PROYECTO" && l.hourBag.projectId
+      ? [l.hourBag.projectId]
+      : [],
+  );
+  const ownProjects = await prisma.project.count({
+    where: {
+      id: { in: projectIds },
+      customerId: version.cv.customerId,
+      status: "ACTIVO",
+    },
+  });
+  if (ownProjects !== new Set(projectIds).size)
+    return actionError(
+      "VALIDATION",
+      "El proyecto de una bolsa no es de este cliente o ya está cerrado.",
+    );
 
   try {
     await runInTransaction((tx) =>

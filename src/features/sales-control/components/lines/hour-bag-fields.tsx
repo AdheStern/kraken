@@ -1,5 +1,6 @@
 // src/features/sales-control/components/lines/hour-bag-fields.tsx
-// Especificación de la bolsa de horas de una línea HORAS + SERVICIO: modalidad, alcance, áreas y vencimiento.
+// Especificación de la bolsa de horas de una línea HORAS + SERVICIO: modalidad, alcance (áreas, proyecto del
+// cliente o general) y vencimiento.
 "use client";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -15,6 +16,7 @@ const MODALITY_OPTIONS = [
 ];
 const SCOPE_OPTIONS = [
   { id: "AREA", label: "Por áreas" },
+  { id: "PROYECTO", label: "Un proyecto del cliente" },
   { id: "GENERAL", label: "General (cualquier ticket del cliente)" },
 ];
 const EMPTY: HourBagSpec = {
@@ -28,11 +30,18 @@ const EMPTY: HourBagSpec = {
 type Props = {
   value: HourBagSpec | null;
   areas: Option[];
+  projects: Option[];
   disabled: boolean;
   onChange: (value: HourBagSpec) => void;
 };
 
-export function HourBagFields({ value, areas, disabled, onChange }: Props) {
+export function HourBagFields({
+  value,
+  areas,
+  projects,
+  disabled,
+  onChange,
+}: Props) {
   const spec = value ?? EMPTY;
   const update = (patch: Partial<HourBagSpec>) =>
     onChange({ ...spec, ...patch });
@@ -62,7 +71,11 @@ export function HourBagFields({ value, areas, disabled, onChange }: Props) {
             options={SCOPE_OPTIONS}
             onValueChange={(scope) =>
               scope &&
-              update({ scope: scope as HourBagSpec["scope"], areaIds: [] })
+              update({
+                scope: scope as HourBagSpec["scope"],
+                areaIds: [],
+                projectId: null,
+              })
             }
           />
         </Label>
@@ -94,6 +107,23 @@ export function HourBagFields({ value, areas, disabled, onChange }: Props) {
             ))}
           </div>
         </fieldset>
+      )}
+      {spec.scope === "PROYECTO" && (
+        <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">
+          Proyecto
+          <OptionSelect
+            aria-label="Proyecto"
+            value={spec.projectId}
+            disabled={disabled || projects.length === 0}
+            options={projects}
+            placeholder={
+              projects.length === 0
+                ? "El cliente no tiene proyectos activos"
+                : "Elige el proyecto"
+            }
+            onValueChange={(projectId) => update({ projectId })}
+          />
+        </Label>
       )}
       <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">
         Vence (opcional)

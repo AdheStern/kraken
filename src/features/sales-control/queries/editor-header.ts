@@ -10,6 +10,7 @@ type CvBase = {
   code: string;
   isOpeningBalance: boolean;
   city: { name: string };
+  customerId: string;
   customer: { name: string };
 };
 type VersionRow = Prisma.CvVersionGetPayload<{
@@ -37,6 +38,7 @@ export function toEditorHeader(
     versionLabel: toCvVersionLabel(cv.code, version.number),
     status: version.status,
     cityName: cv.city.name,
+    customerId: cv.customerId,
     customerName: cv.customer.name,
     title: version.title,
     issuedOn: toDateInput(version.issuedOn),

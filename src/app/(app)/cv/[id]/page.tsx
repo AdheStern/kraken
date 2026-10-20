@@ -78,7 +78,7 @@ async function CvEditor({
     bagEffects,
   ] = await Promise.all([
     getCvFormOptions(),
-    getCvGridOptions(),
+    getCvGridOptions(header.customerId),
     getCvLines(header.versionId, editor.canSeeCosts),
     getCvLeasing(header.versionId, editor.canSeeCosts),
     getDecimalParameter("fx.desvio_max_pct", FX_DEVIATION_FALLBACK_PCT),

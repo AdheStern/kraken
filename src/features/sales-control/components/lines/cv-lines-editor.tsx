@@ -159,6 +159,7 @@ export function CvLinesEditor({
         }
         issues={detailLine ? (details.get(detailLine.key)?.issues ?? []) : []}
         areas={options.areas}
+        projects={options.projects}
         canEdit={canEdit}
         onChange={(patch) =>
           detailKey && dispatch({ type: "updateLine", key: detailKey, patch })

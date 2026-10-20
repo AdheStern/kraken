@@ -22,6 +22,7 @@ const OPTIONS: CvGridOptions = {
     { id: "t-huawei", label: "Huawei" },
   ],
   units: [{ id: "u-pieza", label: "PIEZA", hint: "Pieza", isHours: false }],
+  projects: [],
   products: [
     {
       id: "p-1",

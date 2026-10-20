@@ -36,6 +36,7 @@ export type CvEditorHeader = {
   versionLabel: string;
   status: CvVersionStatus;
   cityName: string;
+  customerId: string;
   customerName: string;
   title: string;
   issuedOn: string;
@@ -108,6 +109,8 @@ export type CvGridOptions = {
   technologies: Option[];
   units: (Option & { isHours: boolean })[];
   products: ProductOption[];
+  // POR QUÉ: proyectos activos del cliente del CV, para el alcance PROYECTO de una bolsa (§2.4).
+  projects: Option[];
 };
 
 export type CvComparisonData = {

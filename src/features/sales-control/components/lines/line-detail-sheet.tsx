@@ -27,6 +27,7 @@ type Props = {
   needsHourBag: boolean;
   issues: LineIssue[];
   areas: Option[];
+  projects: Option[];
   canEdit: boolean;
   onChange: (patch: Partial<CvLineDraft>) => void;
   onClose: () => void;
@@ -38,6 +39,7 @@ export function LineDetailSheet({
   needsHourBag,
   issues,
   areas,
+  projects,
   canEdit,
   onChange,
   onClose,
@@ -130,6 +132,7 @@ export function LineDetailSheet({
                     <HourBagFields
                       value={line.hourBag}
                       areas={areas}
+                      projects={projects}
                       disabled={disabled}
                       onChange={(hourBag) => onChange({ hourBag })}
                     />

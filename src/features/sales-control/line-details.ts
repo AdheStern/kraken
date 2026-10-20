@@ -133,7 +133,7 @@ function hourBagIssues(
     issues.push({
       field: "hourBag",
       message:
-        "El alcance por proyecto llega con los proyectos; usa área o general.",
+        "Elige el proyecto de la bolsa; si el cliente no tiene, créalo en Tickets → Proyectos.",
     });
   }
   return issues;

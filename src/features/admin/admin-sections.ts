@@ -9,6 +9,7 @@ export type AdminSectionKey =
   | "productos"
   | "areas"
   | "ciudades"
+  | "almacenes"
   | "calendario"
   | "sla"
   | "tecnologias"
@@ -73,6 +74,13 @@ export const ADMIN_GROUPS: readonly AdminGroup[] = [
         "Ciudades",
         "Correlativo de CV, horario, feriados y almacén de cada ciudad.",
         "/admin/catalogos/ciudades",
+        "system",
+      ),
+      section(
+        "almacenes",
+        "Almacenes",
+        "Uno físico por ciudad, el de tránsito y los de demostración o repuestos.",
+        "/admin/almacenes",
         "system",
       ),
       section(

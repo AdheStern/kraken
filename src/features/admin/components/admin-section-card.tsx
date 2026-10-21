@@ -17,6 +17,7 @@ import {
   Timer,
   Truck,
   Users,
+  Warehouse,
   Wrench,
 } from "lucide-react";
 import Link from "next/link";
@@ -28,6 +29,7 @@ const ICONS: Record<AdminSectionKey, LucideIcon> = {
   productos: Package,
   areas: Layers,
   ciudades: MapPin,
+  almacenes: Warehouse,
   calendario: CalendarDays,
   sla: Timer,
   tecnologias: Cpu,

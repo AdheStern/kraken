@@ -52,15 +52,7 @@ export function KardexTable({ entries }: { entries: KardexEntry[] }) {
                 <td className="text-muted-foreground tabular-nums md:px-4 md:py-3 md:whitespace-nowrap">
                   {dateTime.format(new Date(entry.createdAt))}
                 </td>
-                <td
-                  className={cn(
-                    "text-right font-medium tabular-nums md:px-4 md:py-3",
-                    isIn ? "text-success" : "text-foreground",
-                  )}
-                >
-                  {signed(entry.quantity)}
-                </td>
-                <td className="font-medium md:px-4 md:py-3">
+                <td className="font-medium max-md:order-3 md:px-4 md:py-3">
                   {MOVEMENT_KIND_LABELS[entry.movementKind]}
                   {entry.receiptOrigin && (
                     <span className="font-normal text-muted-foreground">
@@ -73,21 +65,29 @@ export function KardexTable({ entries }: { entries: KardexEntry[] }) {
                     {entry.serial ? ` · serial ${entry.serial}` : ""}
                   </span>
                 </td>
-                <td className="text-right text-muted-foreground tabular-nums md:px-4 md:py-3 md:whitespace-nowrap">
+                <td
+                  className={cn(
+                    "text-right font-medium tabular-nums max-md:order-2 md:px-4 md:py-3",
+                    isIn ? "text-success" : "text-foreground",
+                  )}
+                >
+                  {signed(entry.quantity)}
+                </td>
+                <td className="text-right text-muted-foreground tabular-nums max-md:order-4 md:px-4 md:py-3 md:whitespace-nowrap">
                   <span className="md:hidden">a </span>
                   {formatAmount(entry.unitCostUsd)}
                 </td>
-                <td className="text-right tabular-nums md:px-4 md:py-3 md:whitespace-nowrap">
+                <td className="text-right tabular-nums max-md:order-5 md:px-4 md:py-3 md:whitespace-nowrap">
                   <span className="text-muted-foreground md:hidden">
                     saldo{" "}
                   </span>
                   {formatQuantity(entry.balanceQuantity)}
                 </td>
-                <td className="text-right text-muted-foreground tabular-nums md:px-4 md:py-3 md:whitespace-nowrap">
+                <td className="text-right text-muted-foreground tabular-nums max-md:order-6 md:px-4 md:py-3 md:whitespace-nowrap">
                   <span className="md:hidden">USD </span>
                   {formatAmount(entry.balanceValueUsd)}
                 </td>
-                <td className="col-span-2 text-muted-foreground md:px-4 md:py-3">
+                <td className="col-span-2 text-muted-foreground max-md:order-7 md:px-4 md:py-3">
                   <Origin entry={entry} />
                   <span className="block text-xs">{entry.actorName}</span>
                 </td>

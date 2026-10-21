@@ -1,11 +1,14 @@
 // src/app/(app)/inventario/page.tsx
 // Stock por almacén con lo reservado para los CV aprobados y lo disponible; buscable por código o serial
 // (AGENTS.md §2.8, §5 navegación "Inventario"). Costos y kardex solo para quien los ve (§2.9).
+import { PackagePlus } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
+import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StockSearch } from "@/features/inventory/components/stock-search";
 import { StockTable } from "@/features/inventory/components/stock-table";
@@ -61,7 +64,18 @@ async function InventoryResults({
   return (
     <>
       <WarehouseTabs tabs={tabs} activeCode={active.code} search={search} />
-      <StockSearch warehouseCode={active.code} defaultValue={search} />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <StockSearch warehouseCode={active.code} defaultValue={search} />
+        {canOperateInventory(user) && active.kind !== "TRANSITO" && (
+          <Link
+            href={`/inventario/ingresos/nuevo?almacen=${encodeURIComponent(active.code)}`}
+            className={buttonVariants()}
+          >
+            <PackagePlus aria-hidden="true" />
+            Registrar ingreso
+          </Link>
+        )}
+      </div>
       {rows.length > 0 ? (
         <StockTable
           rows={rows}

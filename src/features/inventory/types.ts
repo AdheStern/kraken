@@ -117,6 +117,7 @@ export type TransferRow = {
 };
 
 export type TransferLineView = {
+  productId: string;
   id: string;
   productCode: string;
   description: string;
@@ -131,9 +132,30 @@ export type TransferDetail = Omit<
   TransferRow,
   "sentQuantity" | "pendingQuantity"
 > & {
+  transitWarehouseId: string;
   notes: string | null;
   createdByName: string;
   sentAt: string | null;
   receivedAt: string | null;
   lines: TransferLineView[];
+};
+
+export type AdjustmentRequestView = {
+  id: string;
+  status: "PENDIENTE" | "APROBADO" | "RECHAZADO";
+  origin: "MANUAL" | "CONTEO" | "TRASPASO";
+  warehouseName: string;
+  areaName: string | null;
+  reason: string;
+  requestedByName: string;
+  createdAt: string;
+  decidedByName: string | null;
+  decisionComment: string | null;
+  canDecide: boolean;
+  lines: {
+    productCode: string;
+    description: string;
+    delta: string;
+    serials: string[];
+  }[];
 };

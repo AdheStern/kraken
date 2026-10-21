@@ -6,7 +6,10 @@ import {
   proportionalValue,
   valueAtAverage,
 } from "@/domain/inventory/stock-valuation";
-import { settledTransferStatus } from "@/domain/inventory/transfer-pending";
+import {
+  pendingQuantity,
+  settledTransferStatus,
+} from "@/domain/inventory/transfer-pending";
 import { roundHalfUp2 } from "@/domain/pricing/money";
 import type { Tx } from "@/server/db";
 import { notify } from "@/server/notifications/notify";
@@ -129,6 +132,11 @@ async function outboundLines(
   transfer?: TransferLineState,
 ): Promise<InvLineInput[]> {
   const quantity = new Decimal(line.delta).abs();
+  // REGLA: al aprobar se revalida lo pendiente; dos bajas del mismo traspaso no dan de baja dos veces (§2.8).
+  if (transfer && quantity.greaterThan(pendingQuantity(transfer)))
+    throw new InventoryStateError(
+      "Lo que falta de ese traspaso ya llegó o ya se dio de baja; rechaza esta solicitud.",
+    );
   if (transfer?.sentValueUsd)
     return [
       {

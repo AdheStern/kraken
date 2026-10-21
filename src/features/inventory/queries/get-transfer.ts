@@ -32,21 +32,23 @@ export async function getTransfer(
         orderBy: { id: "asc" },
         select: {
           id: true,
-          product: { select: { code: true, description: true } },
+          product: { select: { id: true, code: true, description: true } },
           serialUnit: { select: { serial: true } },
         },
       },
     },
   });
   if (!transfer) return null;
+  const transitWarehouseId = await findTransitWarehouse(prisma);
   const progress = await loadTransferLines(
     prisma,
     transferId,
-    await findTransitWarehouse(prisma),
+    transitWarehouseId,
   );
   return {
     id: transfer.id,
     number: transfer.number,
+    transitWarehouseId,
     status: transfer.status,
     notes: transfer.notes,
     originName: transfer.originWarehouse.name,
@@ -59,6 +61,7 @@ export async function getTransfer(
       const p = progress.find((l) => l.id === line.id);
       return {
         id: line.id,
+        productId: line.product.id,
         productCode: line.product.code,
         description: line.product.description,
         serial: line.serialUnit?.serial ?? null,

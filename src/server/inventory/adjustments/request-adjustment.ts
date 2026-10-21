@@ -31,7 +31,10 @@ export async function requestAdjustment(
     throw new InventoryStateError(
       "Explica el motivo del ajuste (mínimo 5 caracteres).",
     );
-  const lines = adjustmentLinesSchema.parse(input.lines);
+  const parsed = adjustmentLinesSchema.safeParse(input.lines);
+  if (!parsed.success)
+    throw new InventoryStateError(parsed.error.issues[0].message);
+  const lines = parsed.data;
   const warehouse = await tx.warehouse.findUniqueOrThrow({
     where: { id: input.warehouseId },
     select: { kind: true, isActive: true, name: true },

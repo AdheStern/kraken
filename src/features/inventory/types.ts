@@ -1,6 +1,10 @@
 // src/features/inventory/types.ts
 // Tipos de presentación del módulo de inventario (nunca entidades Prisma completas).
-import type { WarehouseKind } from "@/generated/prisma/enums";
+import type {
+  InvMovementKind,
+  ReceiptOrigin,
+  WarehouseKind,
+} from "@/generated/prisma/enums";
 
 export type CityOption = { id: string; code: string; name: string };
 
@@ -13,4 +17,56 @@ export type WarehouseAdminView = {
   cityName: string | null;
   isActive: boolean;
   productsInStock: number;
+};
+
+export type WarehouseTab = {
+  id: string;
+  code: string;
+  name: string;
+  kind: WarehouseKind;
+};
+
+// REGLA: valueUsd y averageCostUsd solo llegan a quien ve costos; para los demás son null (regla 12).
+// Cantidades y montos como texto para no pasar por number.
+export type StockRow = {
+  productId: string;
+  productCode: string;
+  description: string;
+  isSerialized: boolean;
+  quantity: string;
+  reservedQuantity: string;
+  availableQuantity: string;
+  valueUsd: string | null;
+  averageCostUsd: string | null;
+};
+
+export type KardexDocument =
+  | { kind: "CV"; label: string; href: string }
+  | { kind: "TICKET"; label: string; href: string }
+  | { kind: "TRASPASO"; label: string }
+  | { kind: "AJUSTE"; label: string }
+  | { kind: "DOCUMENTO"; label: string };
+
+export type KardexEntry = {
+  lineId: string;
+  createdAt: string;
+  movementNumber: number;
+  movementKind: InvMovementKind;
+  receiptOrigin: ReceiptOrigin | null;
+  quantity: string;
+  unitCostUsd: string;
+  valueUsd: string;
+  balanceQuantity: string;
+  balanceValueUsd: string;
+  serial: string | null;
+  document: KardexDocument | null;
+  notes: string | null;
+  actorName: string;
+};
+
+export type KardexView = {
+  warehouse: WarehouseTab;
+  product: { id: string; code: string; description: string };
+  stock: StockRow;
+  entries: KardexEntry[];
 };

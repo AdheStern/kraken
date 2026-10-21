@@ -8,6 +8,7 @@ import { canDecideApproval } from "@/server/authz/cv-permissions";
 import type { SessionUser } from "@/server/authz/roles";
 import type { Tx } from "@/server/db";
 import { applyVersionBags } from "@/server/hours/apply-version-bags";
+import { applyVersionReservations } from "@/server/inventory/apply-version-reservations";
 import { notify } from "@/server/notifications/notify";
 import { lockVersion } from "./approvers";
 
@@ -81,14 +82,21 @@ export async function decideRequest(
       where: { id: version.id },
       data: { status: "APROBADA", approvedAt: now },
     });
-    // REGLA: al aprobarse se generan las bolsas de horas (§2.3, §2.4); si su plan es inviable, applyVersionBags
-    // lanza y la decisión entera se revierte. LIMITACIÓN: las reservas de stock (F4) se enganchan aquí.
+    // REGLA: al aprobarse se generan las bolsas de horas y las reservas de stock (§2.3, §2.4, §2.8); si el plan de
+    // bolsas es inviable, applyVersionBags lanza y la decisión entera se revierte. Las reservas nunca lanzan.
+    const versionLabel = toCvVersionLabel(version.cv.code, version.number);
     await applyVersionBags(tx, {
       cvId: version.cvId,
       versionId: version.id,
       actorId: user.id,
-      label: toCvVersionLabel(version.cv.code, version.number),
+      label: versionLabel,
       reason: version.reason,
+    });
+    await applyVersionReservations(tx, {
+      cvId: version.cvId,
+      versionId: version.id,
+      actorId: user.id,
+      label: versionLabel,
     });
   } else if (outcome.round === "OBSERVADA") {
     await tx.cvVersion.update({

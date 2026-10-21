@@ -9,6 +9,7 @@ import { canEditCvDraft } from "@/server/authz/cv-permissions";
 import type { SessionUser } from "@/server/authz/roles";
 import type { Tx } from "@/server/db";
 import { closeCvBags } from "@/server/hours/close-cv-bags";
+import { releaseCvReservations } from "@/server/inventory/release-cv-reservations";
 import { notify } from "@/server/notifications/notify";
 import { lockVersion } from "./approvers";
 import { loadCvAccess } from "./cv-access";
@@ -54,12 +55,11 @@ export async function voidLatestVersion(
     where: { id: latest.id },
     data: { status: "ANULADA", voidedAt: now },
   });
-  if (latest.status === "APROBADA")
-    await closeCvBags(tx, {
-      cvId,
-      actorId: user.id,
-      reason: `CV anulado · ${reason.trim()}`,
-    });
+  if (latest.status === "APROBADA") {
+    const why = `CV anulado · ${reason.trim()}`;
+    await closeCvBags(tx, { cvId, actorId: user.id, reason: why });
+    await releaseCvReservations(tx, { cvId, actorId: user.id, reason: why });
+  }
   const stillApproved = await tx.cvVersion.count({
     where: { cvId, status: "APROBADA" },
   });

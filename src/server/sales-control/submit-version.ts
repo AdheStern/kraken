@@ -11,6 +11,10 @@ import type { SessionUser } from "@/server/authz/roles";
 import type { Tx } from "@/server/db";
 import { findBagPlanProblem } from "@/server/hours/bag-plan-problem";
 import { planBagsForVersion } from "@/server/hours/version-bag-plan";
+import {
+  findReservationPlanProblem,
+  planReservationsForVersion,
+} from "@/server/inventory/version-reservation-plan";
 import { notify } from "@/server/notifications/notify";
 import { findApprovers, lockVersion } from "./approvers";
 import { loadCvAccess } from "./cv-access";
@@ -46,12 +50,18 @@ export async function submitVersion(
       "Agrega al menos una línea antes de enviar.",
     );
 
-  // REGLA: una reducción de horas que dejaría una bolsa en negativo no se puede enviar (§2.4).
+  // REGLA: una reducción de horas que dejaría una bolsa en negativo no se puede enviar (§2.4), ni una versión que
+  // baje de lo ya despachado o tenga una línea de stock sin producto (§2.8).
   const bagProblem = findBagPlanProblem(
     await planBagsForVersion(tx, versionId),
     toBusinessDate(now),
   );
   if (bagProblem) return actionError(bagProblem.code, bagProblem.message);
+  const reservationProblem = findReservationPlanProblem(
+    await planReservationsForVersion(tx, versionId),
+  );
+  if (reservationProblem)
+    return actionError("INVALID_STATE", reservationProblem);
 
   const areaIds = version.lines.flatMap((line) =>
     line.areaId ? [line.areaId] : [],

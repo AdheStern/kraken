@@ -1,7 +1,7 @@
 // src/app/(app)/inventario/page.tsx
 // Stock por almacén con lo reservado para los CV aprobados y lo disponible; buscable por código o serial
 // (AGENTS.md §2.8, §5 navegación "Inventario"). Costos y kardex solo para quien los ve (§2.9).
-import { PackagePlus, ScanLine } from "lucide-react";
+import { ArrowLeftRight, PackagePlus, ScanLine } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -68,6 +68,13 @@ async function InventoryResults({
         <StockSearch warehouseCode={active.code} defaultValue={search} />
         {canOperateInventory(user) && active.kind !== "TRANSITO" && (
           <div className="flex gap-2">
+            <Link
+              href="/inventario/traspasos"
+              className={buttonVariants({ variant: "outline" })}
+            >
+              <ArrowLeftRight aria-hidden="true" />
+              Traspasos
+            </Link>
             <Link
               href={`/inventario/pos?almacen=${encodeURIComponent(active.code)}`}
               className={buttonVariants({ variant: "outline" })}

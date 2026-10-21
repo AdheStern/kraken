@@ -1,7 +1,13 @@
 // src/features/inventory/components/inventory-actions.tsx
 // Accesos del inventario según lo que el usuario puede hacer (AGENTS.md §2.9): traspasos, ajustes, POS e
 // ingresos; en TRANSITO no hay salidas ni ingresos.
-import { ArrowLeftRight, PackagePlus, ScaleIcon, ScanLine } from "lucide-react";
+import {
+  ArrowLeftRight,
+  ClipboardCheck,
+  PackagePlus,
+  ScaleIcon,
+  ScanLine,
+} from "lucide-react";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -36,6 +42,10 @@ export function InventoryActions({
       )}
       {canOperate && !isTransit && (
         <>
+          <Link href={`/inventario/conteo?almacen=${code}`} className={outline}>
+            <ClipboardCheck aria-hidden="true" />
+            Conteo
+          </Link>
           <Link href={`/inventario/pos?almacen=${code}`} className={outline}>
             <ScanLine aria-hidden="true" />
             POS

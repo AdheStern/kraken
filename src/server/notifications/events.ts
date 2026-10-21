@@ -21,6 +21,8 @@ export const NOTIFICATION_EVENTS = {
   RESERVA_SIN_ALMACEN: "Un CV aprobado no pudo reservar stock",
   TRASPASO_ENVIADO: "Un traspaso de inventario va en camino",
   TRASPASO_CON_DIFERENCIAS: "Un traspaso llegó con diferencias",
+  AJUSTE_SOLICITADO: "Un ajuste de inventario espera tu decisión",
+  AJUSTE_DECIDIDO: "Se decidió tu ajuste de inventario",
   TICKET_ASIGNADO: "Te asignaron un ticket o una subtarea",
   CONTADOR_OLVIDADO: "Un contador lleva más de 10 h corriendo",
   SLA_ALERTA: "Un ticket se acerca a su SLA o lo superó",

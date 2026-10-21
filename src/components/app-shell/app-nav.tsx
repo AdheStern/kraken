@@ -6,6 +6,7 @@
 "use client";
 
 import {
+  Boxes,
   FileSpreadsheet,
   Hourglass,
   House,
@@ -34,6 +35,7 @@ const ITEMS: Record<NavKey, { href: string; label: string; icon: LucideIcon }> =
     cv: { href: "/cv", label: "Control de Venta", icon: FileSpreadsheet },
     tickets: { href: "/tickets", label: "Tickets", icon: Ticket },
     horas: { href: "/horas", label: "Bolsas de horas", icon: Hourglass },
+    inventario: { href: "/inventario", label: "Inventario", icon: Boxes },
     aprobaciones: { href: "/aprobaciones", label: "Aprobaciones", icon: Stamp },
     admin: {
       href: "/admin",

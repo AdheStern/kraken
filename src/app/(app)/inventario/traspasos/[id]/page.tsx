@@ -13,6 +13,7 @@ import { TransferLinesTable } from "@/features/inventory/components/transfer-lin
 import { TransferReceiveForm } from "@/features/inventory/components/transfer-receive-form";
 import { TransferStatusBadge } from "@/features/inventory/components/transfer-status-badge";
 import { TransferSteps } from "@/features/inventory/components/transfer-steps";
+import { TransferWriteOffDialog } from "@/features/inventory/components/transfer-write-off-dialog";
 import { getTransfer } from "@/features/inventory/queries/get-transfer";
 import { requireUser } from "@/server/session";
 
@@ -86,6 +87,9 @@ async function Transfer({
           transferId={transfer.id}
           lines={transfer.lines}
         />
+      )}
+      {transfer.status === "RECIBIDO_CON_DIFERENCIAS" && (
+        <TransferWriteOffDialog transfer={transfer} />
       )}
       {transfer.status === "RECIBIDO_CON_DIFERENCIAS" && (
         <p className="rounded-lg bg-warning/10 px-3 py-2 text-sm text-warning">

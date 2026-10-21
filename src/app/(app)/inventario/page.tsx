@@ -1,21 +1,20 @@
 // src/app/(app)/inventario/page.tsx
 // Stock por almacén con lo reservado para los CV aprobados y lo disponible; buscable por código o serial
 // (AGENTS.md §2.8, §5 navegación "Inventario"). Costos y kardex solo para quien los ve (§2.9).
-import { ArrowLeftRight, PackagePlus, ScanLine } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
-import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { InventoryActions } from "@/features/inventory/components/inventory-actions";
 import { StockSearch } from "@/features/inventory/components/stock-search";
 import { StockTable } from "@/features/inventory/components/stock-table";
 import { WarehouseTabs } from "@/features/inventory/components/warehouse-tabs";
 import { listStock } from "@/features/inventory/queries/list-stock";
 import { listWarehouseTabs } from "@/features/inventory/queries/list-warehouse-tabs";
 import {
+  canDecideAdjustments,
   canOperateInventory,
   canSeeInventory,
   canSeeInventoryCosts,
@@ -66,31 +65,12 @@ async function InventoryResults({
       <WarehouseTabs tabs={tabs} activeCode={active.code} search={search} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <StockSearch warehouseCode={active.code} defaultValue={search} />
-        {canOperateInventory(user) && active.kind !== "TRANSITO" && (
-          <div className="flex gap-2">
-            <Link
-              href="/inventario/traspasos"
-              className={buttonVariants({ variant: "outline" })}
-            >
-              <ArrowLeftRight aria-hidden="true" />
-              Traspasos
-            </Link>
-            <Link
-              href={`/inventario/pos?almacen=${encodeURIComponent(active.code)}`}
-              className={buttonVariants({ variant: "outline" })}
-            >
-              <ScanLine aria-hidden="true" />
-              POS
-            </Link>
-            <Link
-              href={`/inventario/ingresos/nuevo?almacen=${encodeURIComponent(active.code)}`}
-              className={buttonVariants()}
-            >
-              <PackagePlus aria-hidden="true" />
-              Registrar ingreso
-            </Link>
-          </div>
-        )}
+        <InventoryActions
+          warehouseCode={active.code}
+          isTransit={active.kind === "TRANSITO"}
+          canOperate={canOperateInventory(user)}
+          canDecide={canDecideAdjustments(user)}
+        />
       </div>
       {rows.length > 0 ? (
         <StockTable

@@ -1,0 +1,54 @@
+// src/features/inventory/components/inventory-actions.tsx
+// Accesos del inventario según lo que el usuario puede hacer (AGENTS.md §2.9): traspasos, ajustes, POS e
+// ingresos; en TRANSITO no hay salidas ni ingresos.
+import { ArrowLeftRight, PackagePlus, ScaleIcon, ScanLine } from "lucide-react";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+
+type Props = {
+  warehouseCode: string;
+  isTransit: boolean;
+  canOperate: boolean;
+  canDecide: boolean;
+};
+
+export function InventoryActions({
+  warehouseCode,
+  isTransit,
+  canOperate,
+  canDecide,
+}: Props) {
+  const code = encodeURIComponent(warehouseCode);
+  const outline = buttonVariants({ variant: "outline" });
+  return (
+    <div className="flex flex-wrap gap-2">
+      {canOperate && (
+        <Link href="/inventario/traspasos" className={outline}>
+          <ArrowLeftRight aria-hidden="true" />
+          Traspasos
+        </Link>
+      )}
+      {(canOperate || canDecide) && (
+        <Link href="/inventario/ajustes" className={outline}>
+          <ScaleIcon aria-hidden="true" />
+          Ajustes
+        </Link>
+      )}
+      {canOperate && !isTransit && (
+        <>
+          <Link href={`/inventario/pos?almacen=${code}`} className={outline}>
+            <ScanLine aria-hidden="true" />
+            POS
+          </Link>
+          <Link
+            href={`/inventario/ingresos/nuevo?almacen=${code}`}
+            className={buttonVariants()}
+          >
+            <PackagePlus aria-hidden="true" />
+            Registrar ingreso
+          </Link>
+        </>
+      )}
+    </div>
+  );
+}

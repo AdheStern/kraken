@@ -42,6 +42,34 @@ export function applyOutbound(
   const valueUsd = quantity.equals(balance.quantity)
     ? balance.valueUsd
     : valueAtAverage(balance, quantity);
+  return outboundEntry(balance, quantity, valueUsd);
+}
+
+// POR QUÉ: lo que sale de TRANSITO vale lo que su traspaso envió (proportionalValue), no el promedio del almacén
+// lógico, que mezcla traspasos de orígenes con costos distintos (§2.8).
+export function applyOutboundAtValue(
+  balance: StockBalance,
+  quantity: Decimal,
+  valueUsd: Decimal,
+): ValuedEntry {
+  assertQuantity(quantity);
+  if (quantity.greaterThan(balance.quantity))
+    throw new RangeError("La salida supera el stock.");
+  const leavesAll = quantity.equals(balance.quantity);
+  if (
+    valueUsd.isNegative() ||
+    valueUsd.greaterThan(balance.valueUsd) ||
+    (leavesAll && !valueUsd.equals(balance.valueUsd))
+  )
+    throw new RangeError("El valor de la salida no cuadra con el del stock.");
+  return outboundEntry(balance, quantity, valueUsd);
+}
+
+function outboundEntry(
+  balance: StockBalance,
+  quantity: Decimal,
+  valueUsd: Decimal,
+): ValuedEntry {
   return {
     quantity: quantity.negated(),
     valueUsd: valueUsd.negated(),

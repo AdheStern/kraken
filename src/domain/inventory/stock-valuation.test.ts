@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   applyInbound,
   applyOutbound,
+  applyOutboundAtValue,
   averageUnitCostUsd,
   proportionalValue,
   type StockBalance,
@@ -67,6 +68,35 @@ describe("applyOutbound", () => {
       quantity: "1.00",
       valueUsd: "0.00",
     });
+  });
+});
+
+describe("applyOutboundAtValue", () => {
+  // TRANSITO con dos traspasos: 1 u. enviada a 100 y 1 u. enviada a 120.
+  const transit = { quantity: d(2), valueUsd: d(220) };
+
+  it("sale al valor de su traspaso y no al promedio", () => {
+    const entry = applyOutboundAtValue(transit, d(1), d(120));
+    expect(entry.valueUsd.toFixed(2)).toBe("-120.00");
+    expect(asText(entry.balance)).toEqual({
+      quantity: "1.00",
+      valueUsd: "100.00",
+    });
+  });
+
+  it("rechaza un valor que deja el stock descuadrado", () => {
+    expect(() => applyOutboundAtValue(transit, d(1), d(230))).toThrow(
+      RangeError,
+    );
+    expect(() => applyOutboundAtValue(transit, d(2), d(200))).toThrow(
+      RangeError,
+    );
+    expect(() => applyOutboundAtValue(transit, d(1), d(-1))).toThrow(
+      RangeError,
+    );
+    expect(() => applyOutboundAtValue(transit, d(3), d(220))).toThrow(
+      "La salida supera el stock.",
+    );
   });
 });
 

@@ -3,11 +3,10 @@
 // comprobante. Una columna; el campo de escaneo vuelve a tener el foco tras cada lectura.
 "use client";
 
-import { LoaderCircle, ScanLine } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { OptionSelect } from "@/components/ui/option-select";
 import { dispatchItems } from "../actions/dispatch-items";
 import type {
@@ -19,6 +18,7 @@ import { applyScan, type CartLine, lineQuantity } from "./pos-cart";
 import { PosCartList } from "./pos-cart-list";
 import { type PosDestination, PosDestinationPicker } from "./pos-destination";
 import { PosDone } from "./pos-done";
+import { PosScanner } from "./pos-scanner";
 
 const STORED_WAREHOUSE = "kraken.pos.almacen";
 
@@ -38,12 +38,6 @@ export function PosScreen({
   isDefaultWarehouse,
 }: Props) {
   const router = useRouter();
-  const scanRef = useRef<HTMLInputElement>(null);
-  const [scan, setScan] = useState("");
-  const [feedback, setFeedback] = useState<{
-    ok: boolean;
-    text: string;
-  } | null>(null);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [destination, setDestination] = useState<PosDestination>({
     kind: "CV",
@@ -80,12 +74,10 @@ export function PosScreen({
   );
   const canConfirm = cart.length > 0 && isReady(destination) && !isPending;
 
-  function onScan() {
-    const result = applyScan(cart, catalog, scan);
-    setFeedback({ ok: result.ok, text: result.message });
+  function onScan(text: string) {
+    const result = applyScan(cart, catalog, text);
     if (result.ok) setCart(result.cart);
-    setScan("");
-    scanRef.current?.focus();
+    return result;
   }
 
   async function confirm() {
@@ -112,7 +104,6 @@ export function PosScreen({
     setCart([]);
     setDestination({ kind: "CV", reservationId: null });
     setIdempotencyKey(crypto.randomUUID());
-    setFeedback(null);
     setDone(null);
   }
 
@@ -129,39 +120,7 @@ export function PosScreen({
         }
         className="h-12 w-full text-base"
       />
-      <form
-        className="grid gap-1.5"
-        onSubmit={(e) => {
-          e.preventDefault();
-          onScan();
-        }}
-      >
-        <div className="relative">
-          <ScanLine
-            className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted-foreground"
-            aria-hidden="true"
-          />
-          <Input
-            ref={scanRef}
-            autoFocus
-            value={scan}
-            onChange={(e) => setScan(e.target.value)}
-            placeholder="Escanea el serial o el código"
-            aria-label="Escanear serial o código"
-            className="h-14 pl-12 font-mono text-lg"
-          />
-        </div>
-        <p
-          aria-live="polite"
-          className={
-            feedback?.ok === false
-              ? "min-h-5 text-sm text-destructive"
-              : "min-h-5 text-sm text-muted-foreground"
-          }
-        >
-          {feedback?.text}
-        </p>
-      </form>
+      <PosScanner onScan={onScan} />
       {cart.length > 0 && <PosCartList cart={cart} onChange={setCart} />}
       {cart.length > 0 && (
         <PosDestinationPicker

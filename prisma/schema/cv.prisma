@@ -110,18 +110,19 @@ model CvVersion {
   replacedAt           DateTime?       @map("reemplazada_en") @db.Timestamptz
   voidedAt             DateTime?       @map("anulada_en") @db.Timestamptz
 
-  cv               Cv                  @relation(fields: [cvId], references: [id], onDelete: Cascade)
-  presales         UserProfile?        @relation("CvVersionPresales", fields: [presalesId], references: [userId])
-  postsales        UserProfile?        @relation("CvVersionPostsales", fields: [postsalesId], references: [userId])
-  createdBy        UserProfile         @relation("CvVersionCreator", fields: [createdById], references: [userId])
-  mainTechnology   Technology?         @relation(fields: [mainTechnologyId], references: [id])
-  serviceType      ServiceType?        @relation(fields: [serviceTypeId], references: [id])
-  endCustomer      Customer?           @relation(fields: [endCustomerId], references: [id])
+  cv               Cv                    @relation(fields: [cvId], references: [id], onDelete: Cascade)
+  presales         UserProfile?          @relation("CvVersionPresales", fields: [presalesId], references: [userId])
+  postsales        UserProfile?          @relation("CvVersionPostsales", fields: [postsalesId], references: [userId])
+  createdBy        UserProfile           @relation("CvVersionCreator", fields: [createdById], references: [userId])
+  mainTechnology   Technology?           @relation(fields: [mainTechnologyId], references: [id])
+  serviceType      ServiceType?          @relation(fields: [serviceTypeId], references: [id])
+  endCustomer      Customer?             @relation(fields: [endCustomerId], references: [id])
   sellers          CvVersionSeller[]
   groups           CvGroup[]
   lines            CvLine[]
   leasingLines     CvLeasingLine[]
   approvalRequests CvApprovalRequest[]
+  reservationLog   ReservationMovement[]
   attachments      CvAttachment[]
 
   @@unique([cvId, number])

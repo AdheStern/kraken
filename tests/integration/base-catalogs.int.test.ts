@@ -13,10 +13,28 @@ const seed = () => db.$transaction((tx) => seedBaseCatalogs(tx));
 describe("seedBaseCatalogs", () => {
   it("crea lo que falta, respeta lo editado y la segunda corrida no crea nada", async () => {
     await db.technology.create({ data: { name: "Cisco" } });
-    await db.city.create({ data: { code: "LP", name: "La Paz (editada)" } });
+    const lpCity = await db.city.create({
+      data: { code: "LP", name: "La Paz (editada)" },
+    });
+    await db.warehouse.create({
+      data: {
+        code: "ALM-LP",
+        name: "Central",
+        kind: "FISICO",
+        cityId: lpCity.id,
+      },
+    });
 
     expect(await seed()).toBeGreaterThan(0);
     expect(await seed()).toBe(0);
+
+    expect(await db.warehouse.count({ where: { code: "LP" } })).toBe(0);
+    const sc = await db.warehouse.findUniqueOrThrow({
+      where: { code: "SC" },
+      include: { city: true },
+    });
+    expect(sc.city?.code).toBe("SC");
+    expect(await db.warehouse.count({ where: { kind: "TRANSITO" } })).toBe(1);
 
     const cisco = await db.technology.findMany({
       where: { name: { equals: "CISCO", mode: "insensitive" } },

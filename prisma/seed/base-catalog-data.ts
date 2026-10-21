@@ -10,6 +10,14 @@ export const CITIES = [
   { code: "CB", name: "Cochabamba" },
 ];
 
+// REGLA: cada ciudad tiene su almacén físico, más un TRANSITO lógico para los traspasos (AGENTS.md §2.8).
+export const WAREHOUSES = [
+  { code: "LP", name: "Almacén La Paz", kind: "FISICO", cityCode: "LP" },
+  { code: "SC", name: "Almacén Santa Cruz", kind: "FISICO", cityCode: "SC" },
+  { code: "CB", name: "Almacén Cochabamba", kind: "FISICO", cityCode: "CB" },
+  { code: "TRANSITO", name: "En tránsito", kind: "TRANSITO", cityCode: null },
+] as const;
+
 export const AREAS = [
   { code: "DIMASOFT", name: "Software y licenciamiento" },
   { code: "DIMANET", name: "Redes, infraestructura y seguridad" },

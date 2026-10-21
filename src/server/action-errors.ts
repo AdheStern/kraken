@@ -8,10 +8,17 @@ import {
   BagStateError,
   InsufficientBalanceError,
 } from "@/server/hours/hour-errors";
+import {
+  InsufficientStockError,
+  InventoryStateError,
+} from "@/server/inventory/inventory-errors";
 import { logInRequest } from "@/server/request-log";
 
 // POR QUÉ: los triggers de cv (ADR-11) responden con check_violation y estos textos; se reportan como estado inválido.
-const LOCKED_VERSION = /no admite cambios|es inmutable/;
+// TRAMPA: anclado a «La versión»; los libros de horas e inventario también dicen «es inmutable».
+const LOCKED_VERSION = /La versión .* (no admite cambios|es inmutable)/;
+// REGLA: el CHECK de stock es la última red contra el sobregiro (ADR-03); llegar a él es falta de stock.
+const STOCK_CHECK = /stock_cantidad_ck/;
 
 export function toActionError<T>(
   error: unknown,
@@ -36,14 +43,23 @@ export function toActionError<T>(
       "El almacén de archivos no respondió. Intenta de nuevo en unos minutos.",
     );
   }
-  if (error instanceof BagStateError) {
+  if (error instanceof BagStateError || error instanceof InventoryStateError) {
     return actionError("INVALID_STATE", error.message);
+  }
+  if (error instanceof InsufficientStockError) {
+    return actionError("INSUFFICIENT_STOCK", error.message);
   }
   const message = error instanceof Error ? error.message : String(error);
   if (LOCKED_VERSION.test(message)) {
     return actionError(
       "INVALID_STATE",
       "Esta versión ya no está en borrador. Crea una versión nueva para modificarla.",
+    );
+  }
+  if (STOCK_CHECK.test(message)) {
+    return actionError(
+      "INSUFFICIENT_STOCK",
+      "Otro movimiento se llevó ese stock. Recarga la página y revisa las cantidades.",
     );
   }
   if (hasCode(error, "P2002")) {

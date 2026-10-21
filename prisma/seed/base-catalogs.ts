@@ -13,6 +13,7 @@ export async function seedBaseCatalogs(tx: Tx): Promise<number> {
     await tx.city.create({ data: city });
     created++;
   }
+  created += await seedWarehouses(tx);
   for (const area of data.AREAS) {
     if (await tx.area.findUnique({ where: { code: area.code } })) continue;
     await tx.area.create({ data: area });
@@ -36,6 +37,27 @@ export async function seedBaseCatalogs(tx: Tx): Promise<number> {
     if (await tx.slaPolicy.findUnique({ where: { modality_priority: key } }))
       continue;
     await tx.slaPolicy.create({ data: policy });
+    created++;
+  }
+  return created;
+}
+
+// TRAMPA: el administrador puede haber creado el almacén de una ciudad con otro código; se respeta el suyo.
+async function seedWarehouses(tx: Tx): Promise<number> {
+  let created = 0;
+  for (const { cityCode, ...warehouse } of data.WAREHOUSES) {
+    if (await tx.warehouse.findUnique({ where: { code: warehouse.code } }))
+      continue;
+    const city = cityCode
+      ? await tx.city.findUnique({ where: { code: cityCode } })
+      : null;
+    const taken = await tx.warehouse.findFirst({
+      where: city
+        ? { kind: "FISICO", cityId: city.id, isActive: true }
+        : { kind: warehouse.kind },
+    });
+    if (taken || (cityCode && !city)) continue;
+    await tx.warehouse.create({ data: { ...warehouse, cityId: city?.id } });
     created++;
   }
   return created;

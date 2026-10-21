@@ -19,6 +19,8 @@ export const NOTIFICATION_EVENTS = {
   RESERVA_FALTANTE: "Una reserva de stock no tiene stock suficiente",
   RESERVA_RECORTADA: "Un CV pide menos de lo ya despachado",
   RESERVA_SIN_ALMACEN: "Un CV aprobado no pudo reservar stock",
+  TRASPASO_ENVIADO: "Un traspaso de inventario va en camino",
+  TRASPASO_CON_DIFERENCIAS: "Un traspaso llegó con diferencias",
   TICKET_ASIGNADO: "Te asignaron un ticket o una subtarea",
   CONTADOR_OLVIDADO: "Un contador lleva más de 10 h corriendo",
   SLA_ALERTA: "Un ticket se acerca a su SLA o lo superó",

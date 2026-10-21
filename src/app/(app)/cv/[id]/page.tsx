@@ -9,6 +9,8 @@ import { Suspense } from "react";
 import { NodeMark } from "@/components/app-shell/node-mark";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getVersionBagEffects } from "@/features/hours/queries/get-version-bag-effects";
+import { StockEffectsNote } from "@/features/inventory/components/stock-effects-note";
+import { getVersionStockEffects } from "@/features/inventory/queries/get-version-stock-effects";
 import { CvHoursView } from "@/features/sales-control/components/cv-hours-view";
 import { CvStatusBadge } from "@/features/sales-control/components/cv-status-badge";
 import { CvHeaderForm } from "@/features/sales-control/components/header/cv-header-form";
@@ -83,6 +85,7 @@ async function CvEditor({
     maxFxDeviationPct,
     thresholdUsd,
     bagEffects,
+    stockEffects,
   ] = await Promise.all([
     getCvFormOptions(),
     getCvGridOptions(header.customerId),
@@ -93,6 +96,9 @@ async function CvEditor({
     // REGLA: el aviso solo aplica al borrador que se puede enviar; lo aprobado ya movió sus bolsas (§2.4).
     header.status === "BORRADOR" && editor.canEdit
       ? getVersionBagEffects(header.versionId)
+      : null,
+    header.status === "BORRADOR" && editor.canEdit
+      ? getVersionStockEffects(header.versionId)
       : null,
   ]);
 
@@ -118,6 +124,7 @@ async function CvEditor({
         )}
       </header>
       {bagEffects && <BagEffectsNote effects={bagEffects} />}
+      {stockEffects && <StockEffectsNote effects={stockEffects} />}
       <ApprovalPanel approvals={editor.approvals} />
       <CvHeaderForm
         header={header}

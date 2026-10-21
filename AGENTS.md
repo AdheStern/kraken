@@ -245,14 +245,16 @@ Con el ticket abierto, la interfaz muestra el **consumo proyectado** con el mism
 - Cumplimiento reportado por cliente, área, ingeniero y periodo. Alerta al encargado y a los coordinadores del área al 75% del SLA (parámetro `sla.alerta_pct`), una sola vez por medición.
 
 ### 2.8 Inventario y POS interno
-- **Almacenes** por ciudad (LP, SC, CB) más almacenes lógicos: `TRANSITO` y, opcionalmente, demostración o repuestos.
-- **Productos**: el mismo catálogo que los CV. Serializados o no.
-- **Movimientos inmutables:** `INGRESO` (compra local o importación, con PO), `SALIDA` (entrega por CV o uso interno), `TRASPASO`, `AJUSTE` (requiere aprobación del gerente de área o de administración) y `DEVOLUCION`.
-- **Traspaso en dos pasos:** el origen envía (el stock pasa a `TRANSITO`) y el destino recibe y confirma cantidades y seriales. Las diferencias se registran.
-- **Reserva:** una línea de CV aprobado con `STOCK_DIMA` reserva stock; el despacho la consume.
-- **Kardex** por producto y almacén con saldo, costo y documento de origen.
-- **POS interno:** almacén → escanear o buscar código/serial → destino (CV, ticket, uso interno) → confirmar → comprobante PDF.
-- Valoración: costo promedio ponderado por producto y almacén. **[CONFIRMAR]**
+- **Almacenes** por ciudad (LP, SC, CB) más almacenes lógicos: `TRANSITO` y, opcionalmente, demostración o repuestos. Un solo físico activo por ciudad (ahí se reserva) y un solo `TRANSITO`; los gestiona el administrador del sistema en `/admin/almacenes`.
+- **Productos**: el mismo catálogo que los CV. Serializados o no (`producto.serializado`): un serializado se mueve de a una unidad con su serial. Un código que no existe al registrar un ingreso crea el producto «por revisar» (`creado_desde_inventario`) para Administración.
+- **Movimientos inmutables:** `INGRESO` (compra local, importación o inventario inicial, con PO), `SALIDA` (a una línea de CV, a un ticket abierto o a uso interno con motivo), `TRASPASO`, `AJUSTE` (requiere aprobación) y `DEVOLUCION` (de una salida previa, total o parcial). Cada movimiento afecta un solo almacén; cada línea guarda cantidad y valor con signo y el saldo tras ella (es el kardex). Una clave de idempotencia impide registrar dos veces el mismo comprobante.
+- **Traspaso en dos pasos:** el origen envía (sale al promedio, solo lo disponible, y entra a `TRANSITO` con ese valor, que queda en la línea) y el destino recibe y confirma cantidades y seriales, en una o varias recepciones. Lo que no llega queda en `TRANSITO` como diferencia hasta que llega o se da de baja con un ajuste aprobado; se valoriza siempre contra lo que envió su línea, nunca contra el promedio de `TRANSITO` (decisión de 2026-10-21).
+- **Reserva:** al aprobarse una versión, sus líneas `STOCK_DIMA` (con producto del catálogo) crean, ajustan, re-enlazan o liberan su reserva por linaje en el almacén físico de la ciudad del CV; el despacho la consume y una devolución la reabre. Si falta stock se reserva igual (el disponible queda negativo, «faltante») y se avisa a Almacén y al comercial; el editor lo advierte sin bloquear. Al aprobar nunca se lanza por inventario: sin almacén en la ciudad no se reserva y se avisa; si ya se despachó más de lo que pide la versión, se recorta y se avisa. Al enviar, una versión no baja de lo despachado. Lo reservado tiene su propio libro inmutable (`inv.reserva_movimiento`, regla 6). Un CV de saldo inicial no reserva.
+- **Ajuste:** se pide (`MANUAL`, `CONTEO` o `TRASPASO`) y entra al libro solo al aprobarse, revalidado contra el stock del momento; lo decide el gerente del área de la solicitud, Administración o el GG, nunca quien lo pidió. Lo que entra vale al promedio vigente o, sin stock, al costo indicado.
+- **Conteo físico:** completo (lo no contado es faltante) o parcial; se compara con la foto del sistema reconstruida desde el libro al empezar y pide un ajuste por el delta (en serializados, por seriales). Sin diferencias no pide nada: es la verificación del criterio de salida.
+- **Kardex** por producto y almacén con saldo, costo y documento de origen. Costos y kardex solo para Almacén, Administración, GG y gerente de área; comercial e ingeniero consultan cantidades.
+- **POS interno:** almacén → escanear o buscar código/serial → destino (CV, ticket, uso interno) → confirmar → comprobante PDF (sin costos). Quien solo tiene el rol Almacén entra directo al POS.
+- Valoración: costo promedio ponderado por producto y almacén, llevado como cantidad + valor total (`NUMERIC(18,2)`); el promedio se deriva y la última unidad que sale se lleva el resto, sin centavos huérfanos. **[CONFIRMAR]**
 
 ### 2.9 Roles y permisos
 Roles asignados por grupos de Entra ID, más **excepciones por usuario** gestionadas por el administrador: roles asignados a mano.
@@ -338,7 +340,7 @@ Prisma 7: `prisma.config.ts` en la raíz (esquema multiarchivo en `prisma/schema
 | `cv` | `numerador`, `cv`, `version`, `version_vendedor` (vendedores N–N), `grupo`, `linea`, `linea_serial`, `leasing_linea`, `solicitud_aprobacion`, `adjunto` |
 | `horas` | `bolsa`, `bolsa_area`, `movimiento`, `pendiente_sin_bolsa` |
 | `tickets` | `proyecto`, `proyecto_area`, `ticket`, `ticket_area`, `ticket_bolsa` (con `prioridad`), `subtarea`, `registro_tiempo`, `evento_contador`, `evento_estado` (historial inmutable de estados), `comentario`, `adjunto`, `sla_politica`, `sla_medicion` |
-| `inv` | `almacen`, `stock`, `unidad_serial`, `movimiento`, `movimiento_linea`, `traspaso`, `traspaso_linea`, `solicitud_ajuste` (el AJUSTE se inserta en el libro solo al aprobarse), `reserva` |
+| `inv` | `almacen`, `stock` (cantidad, reservado y valor: caché de los libros), `unidad_serial`, `movimiento`, `movimiento_linea` (valor y saldo tras la línea), `traspaso`, `traspaso_linea` (valor enviado), `solicitud_ajuste` (el AJUSTE se inserta en el libro solo al aprobarse), `reserva`, `reserva_movimiento` (libro inmutable de lo reservado) |
 | `notif` | `salida` (outbox), `bandeja`, `preferencia` |
 | `audit` | `evento` |
 | `dash` | Vistas SQL de los tableros (sección 6) |
@@ -457,6 +459,7 @@ model HourMovement {
 | Decimales | `Prisma.Decimal` |
 | Jobs | pg-boss en un proceso `worker` |
 | Excel | ExcelJS |
+| PDF (comprobante del POS) | pdf-lib (fuentes estándar embebidas; solo genera) |
 | Correo | Cliente de Microsoft Graph app-only |
 | Paquetes | pnpm |
 
@@ -573,11 +576,11 @@ type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { code: Error
 - CV: `createCv`, `duplicateCv`, `updateCvHeader`, `upsertCvLines`, `upsertCvLeasing`, `submitCvVersion`, `decideApproval`, `createCvVersion`, `voidCv`. El factor por lote o tecnología se aplica en el editor (`applyFactorToDrafts`) y lo recalcula y valida `upsertCvLines` al guardar.
 - Horas: `adjustHourBag`, `closeHourBag`, `applyPendingHours`
 - Tickets: `createTicket`, `assignOwner`, `setTicketBags`, `createSubtask`, `updateSubtask`, `addComment`, `createProject`, `startTimer`, `pauseTimer`, `resumeTimer`, `stopTimer`, `addManualTimeEntry`, `deleteTimeEntry`, `changeTicketStatus`, `closeTicket`, `reopenTicket`, `setProjectStatus`, `uploadTicketAttachment`, `deleteTicketAttachment`
-- Inventario: `registerReceipt`, `dispatchItems`, `createTransfer`, `sendTransfer`, `receiveTransfer`, `requestAdjustment`, `decideAdjustment`
+- Inventario: `registerReceipt`, `dispatchItems`, `returnItems`, `findDispatchTicket`, `createTransfer`, `sendTransfer`, `receiveTransfer`, `cancelTransfer`, `requestAdjustment`, `requestManualAdjustment`, `decideAdjustment`, `submitInventoryCount`; almacenes: `upsertWarehouse`, `setWarehouseActive`
 - Administración: CRUD de catálogos (`upsertSimpleCatalogItem` y `setSimpleCatalogItemActive` para áreas, ciudades, tecnologías, unidades, tipos de servicio y proveedores; `upsertCustomer`, `upsertCustomerContact`, `upsertProduct`, `markProductReviewed` y sus bajas), usuarios (`updateUserProfile`, `setUserActive`, `grantUserRole`, `revokeUserRole`), `mapEntraGroup`, `unmapEntraGroup`, `setParameter`, `setManualFxRate`, `sendTestMail`, `retryOutboxMessage`, `upsertSlaPolicy`
 - Notificaciones: `markInboxRead`
 
-**Route handlers:** `GET /api/cv/[versionId]/export.xlsx` (con authz) · `GET /api/tickets/attachments/[id]` (con authz) · `GET /api/inventory/receipts/[id].pdf` · `GET /api/health/live` · `GET /api/health/ready` (BD y, si los adjuntos van a `FILES_ROOT`, su carpeta; HAProxy saca el nodo si falla) · `/api/auth/*`.
+**Route handlers:** `GET /api/cv/[versionId]/export.xlsx` (con authz) · `GET /api/tickets/attachments/[id]` (con authz) · `GET /api/inventory/receipts/[id].pdf` (con authz; carpeta `[file]`) · `GET /api/health/live` · `GET /api/health/ready` (BD y, si los adjuntos van a `FILES_ROOT`, su carpeta; HAProxy saca el nodo si falla) · `/api/auth/*`.
 
 **Jobs:**
 | Job | Cuándo | Qué hace |
@@ -603,7 +606,9 @@ Viven en `src/domain/*/state-machine.ts`. La interfaz muestra solo las transicio
 - **Ticket:** `NUEVO → ASIGNADO → EN_PROGRESO ⇄ EN_ESPERA_CLIENTE` (SLA en pausa) · `EN_PROGRESO → RESUELTO` · `RESUELTO → EN_PROGRESO` (no conforme) · `RESUELTO → CERRADO` (descuento de horas) · `CERRADO → EN_PROGRESO` (reabrir con REVERSO) · `NUEVO | ASIGNADO → CANCELADO`.
 - **Contador:** `CORRIENDO ⇄ PAUSADO` · `CORRIENDO | PAUSADO → TERMINADO`. Cada transición se guarda en `tickets.evento_contador` con hora del servidor.
 - **Bolsa:** `ACTIVA → AGOTADA` (saldo 0) · `AGOTADA → ACTIVA` (ajuste o versión con más horas) · `ACTIVA | AGOTADA → VENCIDA` · `ACTIVA | AGOTADA → CERRADA` (manual o línea quitada en una versión). `VENCIDA` y `CERRADA` son terminales.
-- **Traspaso:** `BORRADOR → EN_TRANSITO → RECIBIDO | RECIBIDO_CON_DIFERENCIAS` · `BORRADOR → CANCELADO`.
+- **Traspaso:** `BORRADOR → EN_TRANSITO → RECIBIDO | RECIBIDO_CON_DIFERENCIAS` · `RECIBIDO_CON_DIFERENCIAS → RECIBIDO` (llega lo que faltaba o se da de baja) · `BORRADOR → CANCELADO`.
+- **Reserva:** `ACTIVA ⇄ CONSUMIDA` (despacho o devolución, ajuste por versión) · `ACTIVA → LIBERADA` (línea quitada, otro producto o CV anulado); con despachos, liberar recorta a lo despachado (`CONSUMIDA`).
+- **Solicitud de ajuste:** `PENDIENTE → APROBADO | RECHAZADO` (rechazar exige comentario).
 
 ---
 
@@ -809,10 +814,11 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - *Sale cuando:* los ingenieros registran todo en tickets y gerencia valida el descuento contra un cálculo manual en al menos 10 tickets reales.
 
 **F4 · Inventario y POS (~3–4 semanas)**
-- Esquema `inv`, libro, costo promedio, seriales, reservas [OPUS]
-- Ingresos, salidas, traspasos en dos pasos, ajustes con aprobación, kardex [SONNET]
-- POS para tablet con lector y comprobante PDF [SONNET]
-- Toma de inventario inicial [operación]
+- Esquema `inv`, libro, costo promedio, seriales, reservas [OPUS] — hecho (valor total + promedio derivado; libro de reservas; `lockStocks` en un solo orden)
+- Ingresos, salidas, traspasos en dos pasos, ajustes con aprobación, kardex [SONNET] — hecho (`/inventario`, kardex, `/inventario/ingresos/nuevo` con pegar desde Excel, traspasos, ajustes, devoluciones, `/admin/almacenes`)
+- POS para tablet con lector y comprobante PDF [SONNET] — hecho (`/inventario/pos`, `/api/inventory/receipts/{id}.pdf`)
+- Toma de inventario inicial [operación] — herramientas listas: ingreso de origen «inventario inicial» y conteo físico (`/inventario/conteo`); falta cargar el inventario real
+- E2E del recorrido ingreso → traspaso → reserva → POS → comprobante (`tests/e2e/inventory.spec.ts`, proyecto tablet) — hecho
 - *Sale cuando:* el stock del sistema coincide con el conteo físico en los tres almacenes.
 
 **F5 · Tableros y KPIs (~2–3 semanas)**
@@ -859,7 +865,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - **F1:** significado del sufijo `-DS`; confirmar que un rechazo cierra la ronda; valor inicial del umbral del GG; % de desvío del TC que dispara la advertencia.
 - **F2:** horario real de cada ciudad (¿con pausa de mediodía?) y feriados departamentales y de traslado: los carga el administrador en `/admin/calendario`. *Confirmado por DIMA (2026-10-14):* multiplicador 2 fuera de horario en 8x5, umbrales de alerta 80% y 100%, aviso de vencimiento a 30 días, y los miembros de un área ven todas sus bolsas. *Resuelto:* las bolsas vigentes se cargan con un "CV de saldo inicial" por cliente (`es_saldo_inicial`, solo horas de servicio con costo y venta 0), aprobado por su gerente.
 - **F3:** *Resuelto (2026-10-19):* el redondeo que no cabe en ninguna bolsa se perdona; al reabrir, el consumo en bolsas vencidas o cerradas queda firme; cierran y reabren coordinador, gerente de área y GG. *Resuelto (2026-10-19, tareas 3–5):* crean tickets coordinador, gerente de área y GG; historial inmutable de estados como base del SLA; el paso de redondeo es el parámetro `horas.redondeo_minutos`; adjuntos en SharePoint (ADR-16; faltan las credenciales del registro de app y el id de la biblioteca). *Confirmado por DIMA (2026-10-20):* el redondeo es siempre hacia arriba, los tiempos de SLA de §2.7 y que el tiempo de personas distintas en paralelo se suma.
-- **F4:** método de valoración (propuesto: costo promedio ponderado); productos que exigen serial; almacenes exactos.
+- **F4:** método de valoración: costo promedio ponderado como cantidad + valor total, implementado y aún [CONFIRMAR] por DIMA. Qué productos exigen serial (se marca en el catálogo) y si se usan almacenes de demostración o repuestos (se crean en `/admin/almacenes`): los define DIMA. *Decidido (2026-10-21):* sobre-reservar con aviso si falta stock; el rol Almacén opera todos los almacenes; las diferencias de traspaso quedan en `TRANSITO` valorizadas por traspaso; carga inicial por ingreso pegado desde Excel más conteo físico (completo o parcial) que ajusta por delta; costos visibles para Almacén, Administración, GG y gerente de área; devolución de una salida al costo de esa salida; el costo del ingreso es obligatorio y admite 0; un código desconocido en un ingreso crea el producto por revisar; PDF con pdf-lib. *Limitación:* el ticket todavía no muestra los materiales que se le despacharon.
 - **F5:** KPIs, KGIs y metas definitivas.
 
 ---

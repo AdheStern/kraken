@@ -70,3 +70,30 @@ export type KardexView = {
   stock: StockRow;
   entries: KardexEntry[];
 };
+
+// POR QUÉ: el POS nunca necesita costos; viaja solo lo que se puede despachar (regla 12).
+export type PosCatalogItem = {
+  productId: string;
+  code: string;
+  description: string;
+  isSerialized: boolean;
+  availableQuantity: string;
+  serials: string[];
+};
+
+export type PendingReservation = {
+  reservationId: string;
+  cvLabel: string;
+  customerName: string;
+  productId: string;
+  productCode: string;
+  lineDescription: string;
+  pendingQuantity: string;
+};
+
+export type DispatchTicket = {
+  id: string;
+  number: number;
+  title: string;
+  customerName: string;
+};

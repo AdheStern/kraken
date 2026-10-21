@@ -179,4 +179,9 @@ export const DEV_USERS = [
     role: "INGENIERO" as const,
     areaCode: "DIMANET",
   },
+  {
+    email: "almacen@dima.local",
+    name: "Gina Almacén (demo)",
+    role: "ALMACEN" as const,
+  },
 ];

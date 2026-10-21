@@ -7,6 +7,8 @@ export const E2E_USERS = {
   comercial: "comercial@dima.local",
   coordinador: "coordinador@dima.local",
   ingeniero: "ingeniero@dima.local",
+  almacen: "almacen@dima.local",
+  administracion: "administracion@dima.local",
 } as const;
 
 export function storageFor(role: keyof typeof E2E_USERS): string {

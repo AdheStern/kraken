@@ -1,9 +1,12 @@
 // src/features/home/queries/get-home-summary.ts
 // Lo que espera al usuario en Inicio según sus roles: aprobaciones, bolsas en riesgo, CV en borrador y, para el
-// ingeniero, sus tickets y contadores abiertos; cada uno por la consulta con alcance de su módulo (regla 7);
+// ingeniero, sus tickets y contadores abiertos; para inventario, traspasos en camino y ajustes por decidir; cada uno por la consulta con alcance de su módulo (regla 7);
 // null cuando el rol no tiene ese módulo.
+
 import { listHourBags } from "@/features/hours/queries/list-hour-bags";
 import type { BagSummary } from "@/features/hours/types";
+import { countPendingAdjustments } from "@/features/inventory/queries/count-pending-adjustments";
+import { countTransfersInTransit } from "@/features/inventory/queries/count-transfers-in-transit";
 import { listCvs } from "@/features/sales-control/queries/list-cvs";
 import { listPendingApprovals } from "@/features/sales-control/queries/list-pending-approvals";
 import type { PendingApprovalItem } from "@/features/sales-control/types";
@@ -12,6 +15,10 @@ import { listTickets } from "@/features/tickets/queries/list-tickets";
 import type { TimerView } from "@/features/tickets/types";
 import { canApproveCvs, canCreateCv } from "@/server/authz/cv-permissions";
 import { canSeeHourBags } from "@/server/authz/hour-bag-permissions";
+import {
+  canDecideAdjustments,
+  canOperateInventory,
+} from "@/server/authz/inventory-permissions";
 import { hasRole, type SessionUser } from "@/server/authz/roles";
 
 export type HomeSummary = {
@@ -22,19 +29,24 @@ export type HomeSummary = {
   drafts: number | null;
   myTickets: number | null;
   timers: TimerView[] | null;
+  transfersInTransit: number | null;
+  adjustmentsToDecide: number | null;
 };
 
 const FINISHED = ["CERRADO", "CANCELADO"];
 
 export async function getHomeSummary(user: SessionUser): Promise<HomeSummary> {
   const isEngineer = hasRole(user, "INGENIERO");
-  const [approvals, bags, drafts, tickets, timers] = await Promise.all([
-    canApproveCvs(user) ? listPendingApprovals(user) : null,
-    canSeeHourBags(user) ? listHourBags(user) : null,
-    canCreateCv(user) ? listCvs(user, { status: "BORRADOR" }) : null,
-    isEngineer ? listTickets(user, { mine: true }) : null,
-    isEngineer ? listOpenTimers(user.id) : null,
-  ]);
+  const [approvals, bags, drafts, tickets, timers, transfers, adjustments] =
+    await Promise.all([
+      canApproveCvs(user) ? listPendingApprovals(user) : null,
+      canSeeHourBags(user) ? listHourBags(user) : null,
+      canCreateCv(user) ? listCvs(user, { status: "BORRADOR" }) : null,
+      isEngineer ? listTickets(user, { mine: true }) : null,
+      isEngineer ? listOpenTimers(user.id) : null,
+      canOperateInventory(user) ? countTransfersInTransit(user) : null,
+      canDecideAdjustments(user) ? countPendingAdjustments(user) : null,
+    ]);
   return {
     firstName: user.name.split(/\s+/)[0] ?? user.name,
     approvals,
@@ -44,5 +56,7 @@ export async function getHomeSummary(user: SessionUser): Promise<HomeSummary> {
     myTickets:
       tickets?.filter((t) => !FINISHED.includes(t.status)).length ?? null,
     timers,
+    transfersInTransit: transfers,
+    adjustmentsToDecide: adjustments,
   };
 }

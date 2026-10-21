@@ -2,6 +2,7 @@
 // Inicio: el centro de la red. Saludo, lo que espera al usuario según su rol como nodos vivos y, debajo, las
 // aprobaciones pendientes y las bolsas en riesgo (AGENTS.md §5 Navegación; tableros por rol en F5).
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toBusinessDate } from "@/domain/calendar/business-date";
@@ -40,6 +41,9 @@ export default function HomePage() {
 
 async function Home() {
   const user = await requireUser();
+  // REGLA: el inicio del almacenero es el POS (§5 navegación).
+  if (user.roles.length > 0 && user.roles.every((r) => r.code === "ALMACEN"))
+    redirect("/inventario/pos");
   const summary = await getHomeSummary(user);
   const now = systemClock.now();
   const today = dayFormat.format(new Date(`${toBusinessDate(now)}T00:00:00Z`));
@@ -84,6 +88,25 @@ function toNodes(s: HomeSummary): HomeNode[] {
       value: s.approvals.length,
       href: "/aprobaciones",
       isAlert: s.approvals.length > 0,
+    });
+  // POR QUÉ: los nodos de inventario solo aparecen cuando hay algo; la red tiene tres lugares.
+  if (s.adjustmentsToDecide)
+    nodes.push({
+      key: "ajustes",
+      label: "Ajustes",
+      hint: "de inventario por decidir",
+      value: s.adjustmentsToDecide,
+      href: "/inventario/ajustes",
+      isAlert: true,
+    });
+  if (s.transfersInTransit)
+    nodes.push({
+      key: "traspasos",
+      label: "Traspasos",
+      hint: "con algo en camino",
+      value: s.transfersInTransit,
+      href: "/inventario/traspasos",
+      isAlert: false,
     });
   if (s.bagsAtRisk)
     nodes.push({

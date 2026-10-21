@@ -27,8 +27,20 @@ export default defineConfig({
   projects: [
     {
       name: "escritorio",
+      // POR QUÉ: el recorrido de inventario consume el stock del seed (un serial se despacha una vez); corre solo en tablet.
+      testIgnore: /inventory\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
+        ...(isCi ? {} : { channel: "msedge" }),
+      },
+    },
+    {
+      name: "tablet",
+      testMatch: /inventory\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 820, height: 1180 },
+        hasTouch: true,
         ...(isCi ? {} : { channel: "msedge" }),
       },
     },

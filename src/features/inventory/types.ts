@@ -97,3 +97,43 @@ export type DispatchTicket = {
   title: string;
   customerName: string;
 };
+
+export type TransferStatusCode =
+  | "BORRADOR"
+  | "EN_TRANSITO"
+  | "RECIBIDO"
+  | "RECIBIDO_CON_DIFERENCIAS"
+  | "CANCELADO";
+
+export type TransferRow = {
+  id: string;
+  number: number;
+  status: TransferStatusCode;
+  originName: string;
+  destinationName: string;
+  createdAt: string;
+  sentQuantity: string;
+  pendingQuantity: string;
+};
+
+export type TransferLineView = {
+  id: string;
+  productCode: string;
+  description: string;
+  serial: string | null;
+  sentQuantity: string;
+  receivedQuantity: string;
+  writtenOffQuantity: string;
+  pendingQuantity: string;
+};
+
+export type TransferDetail = Omit<
+  TransferRow,
+  "sentQuantity" | "pendingQuantity"
+> & {
+  notes: string | null;
+  createdByName: string;
+  sentAt: string | null;
+  receivedAt: string | null;
+  lines: TransferLineView[];
+};

@@ -39,7 +39,7 @@ export function ProductTable({ products, search, onlyToReview }: Props) {
             {ITEM_TYPE_LABELS[p.itemType]}
           </span>
           <span className="flex justify-end gap-1.5">
-            {p.createdFromCv && p.isActive && (
+            {(p.createdFromCv || p.createdFromInventory) && p.isActive && (
               <Tag tone="warning">Por revisar</Tag>
             )}
             {p.isSerialized && <Tag>Serial</Tag>}

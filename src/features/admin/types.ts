@@ -54,6 +54,7 @@ export type ProductRow = {
   itemType: ItemTypeCode;
   isSerialized: boolean;
   createdFromCv: boolean;
+  createdFromInventory: boolean;
   isActive: boolean;
 };
 
@@ -66,6 +67,7 @@ export type ProductDetail = {
   itemType: ItemTypeCode;
   isSerialized: boolean;
   createdFromCv: boolean;
+  createdFromInventory: boolean;
   isActive: boolean;
 };
 

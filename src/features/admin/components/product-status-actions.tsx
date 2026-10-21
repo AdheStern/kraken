@@ -1,5 +1,5 @@
 // src/features/admin/components/product-status-actions.tsx
-// Acciones de estado de un producto en su ficha: darlo por revisado (si vino de un CV) y baja o reactivación.
+// Acciones de estado de un producto en su ficha: darlo por revisado (si vino de un CV o un ingreso) y baja o reactivación.
 "use client";
 
 import { Check, LoaderCircle } from "lucide-react";
@@ -8,14 +8,14 @@ import { markProductReviewed } from "../actions/mark-product-reviewed";
 import { setProductActive } from "../actions/set-product-active";
 import { useAdminAction } from "./use-admin-action";
 
-type Props = { id: string; isActive: boolean; createdFromCv: boolean };
+type Props = { id: string; isActive: boolean; isToReview: boolean };
 
-export function ProductStatusActions({ id, isActive, createdFromCv }: Props) {
+export function ProductStatusActions({ id, isActive, isToReview }: Props) {
   const { isPending, error, run } = useAdminAction();
   return (
     <div className="flex flex-col items-end gap-1">
       <div className="flex gap-2">
-        {createdFromCv && isActive && (
+        {isToReview && isActive && (
           <Button
             size="sm"
             disabled={isPending}

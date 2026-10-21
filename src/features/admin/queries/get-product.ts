@@ -16,6 +16,7 @@ export function getProduct(id: string): Promise<ProductDetail | null> {
       itemType: true,
       isSerialized: true,
       createdFromCv: true,
+      createdFromInventory: true,
       isActive: true,
     },
   });

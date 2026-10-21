@@ -1,11 +1,17 @@
 // src/features/admin/queries/list-products.ts
-// Productos del catálogo con búsqueda por código o descripción, y el filtro de los creados desde un CV que
+// Productos del catálogo con búsqueda por código o descripción, y el filtro de los creados desde un CV o un ingreso que
 // esperan revisión (AGENTS.md §2.1, §14 catálogos sucios).
 // LIMITACIÓN: sin alcance por usuario; la página solo se abre con canManageCommercialCatalogs.
 import { prisma } from "@/server/db";
 import type { ProductRow } from "../types";
 
 const LIMIT = 300;
+
+// REGLA: por revisar = creado desde un CV o desde un ingreso de inventario, y todavía activo (§2.8, §14).
+const TO_REVIEW = {
+  isActive: true,
+  OR: [{ createdFromCv: true }, { createdFromInventory: true }],
+};
 
 export type ProductList = { rows: ProductRow[]; toReview: number };
 
@@ -17,7 +23,7 @@ export async function listProducts(
   const [rows, toReview] = await Promise.all([
     prisma.product.findMany({
       where: {
-        ...(onlyToReview ? { createdFromCv: true, isActive: true } : {}),
+        ...(onlyToReview ? TO_REVIEW : {}),
         ...(q
           ? {
               OR: [
@@ -36,12 +42,13 @@ export async function listProducts(
         itemType: true,
         isSerialized: true,
         createdFromCv: true,
+        createdFromInventory: true,
         isActive: true,
         technology: { select: { name: true } },
         unit: { select: { code: true } },
       },
     }),
-    prisma.product.count({ where: { createdFromCv: true, isActive: true } }),
+    prisma.product.count({ where: TO_REVIEW }),
   ]);
   return {
     toReview,

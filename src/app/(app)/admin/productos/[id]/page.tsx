@@ -50,7 +50,7 @@ async function Product({
           <ProductStatusActions
             id={product.id}
             isActive={product.isActive}
-            createdFromCv={product.createdFromCv}
+            isToReview={product.createdFromCv || product.createdFromInventory}
           />
         }
       />
@@ -59,10 +59,16 @@ async function Product({
   );
 }
 
-function statusText(p: { isActive: boolean; createdFromCv: boolean }) {
+function statusText(p: {
+  isActive: boolean;
+  createdFromCv: boolean;
+  createdFromInventory: boolean;
+}) {
   if (!p.isActive)
     return "Dado de baja: no se ofrece en la grilla del CV. Reactívalo para volver a usarlo.";
   if (p.createdFromCv)
     return "Creado desde el editor de un CV. Revisa código, tecnología y unidad, y dalo por revisado.";
+  if (p.createdFromInventory)
+    return "Creado por Almacén al registrar un ingreso. Revisa descripción, tipo, tecnología, unidad y si lleva serial, y dalo por revisado.";
   return "Activo: se ofrece en la grilla del CV.";
 }

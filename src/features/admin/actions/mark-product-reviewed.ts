@@ -12,7 +12,7 @@ import {
   productReviewSchema,
 } from "../schemas/product-schemas";
 
-// LIMITACIÓN: la marca "creado desde CV" es la misma que "por revisar"; al revisarlo se pierde su origen.
+// LIMITACIÓN: las marcas "creado desde CV" e "inventario" son las de "por revisar"; al revisarlo se pierde su origen.
 export async function markProductReviewed(
   input: ProductReviewInput,
 ): Promise<ActionResult<null>> {
@@ -25,15 +25,15 @@ export async function markProductReviewed(
     await runInTransaction(async (tx) => {
       await tx.product.update({
         where: { id: parsed.data.id },
-        data: { createdFromCv: false },
+        data: { createdFromCv: false, createdFromInventory: false },
       });
       await recordAudit(tx, {
         actorId: user.id,
         entity: "core.producto",
         entityId: parsed.data.id,
         action: "REVISAR",
-        before: { createdFromCv: true },
-        after: { createdFromCv: false },
+        before: { toReview: true },
+        after: { toReview: false },
       });
     });
     return actionOk(null);

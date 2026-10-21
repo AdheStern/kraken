@@ -106,17 +106,19 @@ model ServiceType {
 }
 
 model Product {
-  id            String   @id @default(uuid(7)) @db.Uuid
-  code          String   @map("codigo")
-  description   String   @map("descripcion")
-  technologyId  String?  @map("tecnologia_id") @db.Uuid
-  unitId        String?  @map("unidad_id") @db.Uuid
-  itemType      ItemType @map("tipo_item")
-  isSerialized  Boolean  @default(false) @map("serializado")
-  createdFromCv Boolean  @default(false) @map("creado_desde_cv")
-  isActive      Boolean  @default(true) @map("activo")
-  createdAt     DateTime @default(now()) @map("creado_en") @db.Timestamptz
-  updatedAt     DateTime @updatedAt @map("actualizado_en") @db.Timestamptz
+  id                   String   @id @default(uuid(7)) @db.Uuid
+  code                 String   @map("codigo")
+  description          String   @map("descripcion")
+  technologyId         String?  @map("tecnologia_id") @db.Uuid
+  unitId               String?  @map("unidad_id") @db.Uuid
+  itemType             ItemType @map("tipo_item")
+  isSerialized         Boolean  @default(false) @map("serializado")
+  createdFromCv        Boolean  @default(false) @map("creado_desde_cv")
+  // POR QUÉ: Almacén crea el producto al ingresar un código que no existe; Administración lo revisa (§2.8, §2.9).
+  createdFromInventory Boolean  @default(false) @map("creado_desde_inventario")
+  isActive             Boolean  @default(true) @map("activo")
+  createdAt            DateTime @default(now()) @map("creado_en") @db.Timestamptz
+  updatedAt            DateTime @updatedAt @map("actualizado_en") @db.Timestamptz
 
   technology    Technology?       @relation(fields: [technologyId], references: [id])
   unit          Unit?             @relation(fields: [unitId], references: [id])

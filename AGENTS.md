@@ -34,6 +34,7 @@ pnpm dev                      # app en desarrollo
 pnpm worker:dev               # worker pg-boss
 pnpm worker:migrate           # instala/actualiza el esquema pgboss con MIGRATION_DATABASE_URL y da DML al rol de DATABASE_URL
 pnpm migrate:deploy           # despliegue: prisma migrate deploy + worker:migrate + db:seed:base (lo corre deploy.sh)
+pnpm typecheck                # next typegen + tsc (los tipos de rutas de Next se generan antes)
 pnpm test                     # dominio y unitarios (Vitest)
 pnpm test:int                 # integración con Postgres (Testcontainers)
 pnpm build && pnpm test:e2e   # Playwright sobre el build (puerto 3100); sesiones por rol emitidas en la base

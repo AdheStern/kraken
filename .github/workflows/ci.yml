@@ -28,7 +28,11 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+      # POR QUÉ: postinstall corre prisma generate, que lee prisma.config.ts y exige la URL de migraciones aunque
+      # no se conecte (igual que en el Dockerfile). Testcontainers da su propia base a los tests de integración.
       - run: pnpm install --frozen-lockfile
+        env:
+          MIGRATION_DATABASE_URL: postgresql://build@localhost/build
       - run: pnpm biome ci
       - run: pnpm tsc --noEmit
       - run: pnpm test

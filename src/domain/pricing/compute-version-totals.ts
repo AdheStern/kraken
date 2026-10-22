@@ -3,7 +3,7 @@
 // margen y servicios propios por separado (AGENTS.md §2.2 y §15.1).
 import Decimal from "decimal.js";
 import type { LineTotals } from "./compute-line-totals";
-import { roundHalfUp2 } from "./money";
+import { computeMargin } from "./compute-margin";
 
 export type VersionTotals = {
   totalCostUsd: Decimal;
@@ -24,23 +24,12 @@ export function computeVersionTotals(
 ): VersionTotals {
   const costed = lines.filter((line) => line.totalCostUsd.greaterThan(0));
   const ownServices = lines.filter((line) => line.totalCostUsd.isZero());
-  const costedCost = sum(costed, "totalCostUsd");
-  const costedSale = sum(costed, "totalSaleUsd");
-  const marginUsd = costedSale.minus(costedCost);
-
   return {
     totalCostUsd: sum(lines, "totalCostUsd"),
     totalSaleUsd: sum(lines, "totalSaleUsd"),
     totalCostBs: sum(lines, "totalCostBs"),
     totalSaleBs: sum(lines, "totalSaleBs"),
-    // REGLA: el factor del CV solo considera líneas con costo > 0; los servicios propios van aparte (§2.2).
-    factor: costedCost.isZero()
-      ? null
-      : roundHalfUp2(costedSale.dividedBy(costedCost)),
-    marginUsd,
-    marginPct: costedSale.isZero()
-      ? null
-      : roundHalfUp2(marginUsd.dividedBy(costedSale).times(100)),
+    ...computeMargin(sum(costed, "totalSaleUsd"), sum(costed, "totalCostUsd")),
     ownServicesSaleUsd: sum(ownServices, "totalSaleUsd"),
   };
 }

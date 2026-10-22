@@ -34,7 +34,9 @@ jobs:
         env:
           MIGRATION_DATABASE_URL: postgresql://build@localhost/build
       - run: pnpm biome ci
-      - run: pnpm tsc --noEmit
+      # POR QUÉ: PageProps, LayoutProps y RouteContext los genera Next en .next/types; sin build previo hay que
+      # generarlos antes de tsc (next-env.d.ts y .next no se versionan).
+      - run: pnpm typecheck
       - run: pnpm test
       # Testcontainers levanta su propio Postgres; necesita Docker en el runner.
       - run: pnpm test:int

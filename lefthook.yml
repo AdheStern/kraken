@@ -12,6 +12,6 @@ pre-push:
   parallel: true
   jobs:
     - name: typecheck
-      run: pnpm tsc --noEmit
+      run: pnpm typecheck
     - name: test
       run: pnpm test

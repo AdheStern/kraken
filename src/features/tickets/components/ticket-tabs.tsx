@@ -1,20 +1,27 @@
 // src/features/tickets/components/ticket-tabs.tsx
-// Pestañas de trabajo del detalle: subtareas, registros de tiempo, bolsas con su jerarquía, comentarios, adjuntos e
-// historial (AGENTS.md §5 "Detalle del ticket").
+// Pestañas de trabajo del detalle: subtareas, registros de tiempo, bolsas con su jerarquía, materiales, comentarios,
+// adjuntos e historial (AGENTS.md §5 "Detalle del ticket").
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { TicketMaterials } from "@/features/inventory/queries/list-ticket-materials";
 import type { TicketBagsPanel, TicketDetail, TicketTime } from "../types";
 import { AttachmentsPanel } from "./attachments-panel";
 import { CommentsPanel } from "./comments-panel";
 import { HistoryPanel } from "./history-panel";
+import { MaterialsPanel } from "./materials-panel";
 import { SubtasksPanel } from "./subtasks-panel";
 import { TicketBagsTab } from "./ticket-bags-tab";
 import { TimeEntriesPanel } from "./time-entries-panel";
 
-type Props = { detail: TicketDetail; bags: TicketBagsPanel; time: TicketTime };
+type Props = {
+  detail: TicketDetail;
+  bags: TicketBagsPanel;
+  time: TicketTime;
+  materials: TicketMaterials;
+};
 
-export function TicketTabs({ detail, bags, time }: Props) {
+export function TicketTabs({ detail, bags, time, materials }: Props) {
   const isFinished =
     detail.ticket.status === "CERRADO" || detail.ticket.status === "CANCELADO";
   return (
@@ -29,6 +36,9 @@ export function TicketTabs({ detail, bags, time }: Props) {
         </TabsTrigger>
         <TabsTrigger value="bolsas">
           Bolsas <Count value={bags.hierarchy.length} />
+        </TabsTrigger>
+        <TabsTrigger value="materiales">
+          Materiales <Count value={materials.items.length} />
         </TabsTrigger>
         <TabsTrigger value="comentarios">
           Comentarios <Count value={detail.comments.length} />
@@ -57,6 +67,9 @@ export function TicketTabs({ detail, bags, time }: Props) {
           canManage={detail.permissions.canManage && !isFinished}
           canApplyPending={detail.permissions.canClose}
         />
+      </TabsContent>
+      <TabsContent value="materiales">
+        <MaterialsPanel materials={materials} />
       </TabsContent>
       <TabsContent value="comentarios">
         <CommentsPanel

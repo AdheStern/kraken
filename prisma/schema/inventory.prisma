@@ -172,6 +172,7 @@ model InvMovement {
   lines             InvMovementLine[]
 
   @@index([warehouseId, createdAt])
+  @@index([ticketId])
   @@map("movimiento")
   @@schema("inv")
 }

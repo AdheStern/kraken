@@ -7,6 +7,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { listTicketMaterials } from "@/features/inventory/queries/list-ticket-materials";
 import { TicketActions } from "@/features/tickets/components/ticket-actions";
 import { TicketHeader } from "@/features/tickets/components/ticket-header";
 import { TicketTabs } from "@/features/tickets/components/ticket-tabs";
@@ -38,12 +39,13 @@ export default function TicketPage({ params }: PageProps<"/tickets/[id]">) {
 async function Ticket({ params }: Pick<PageProps<"/tickets/[id]">, "params">) {
   const { id } = await params;
   const user = await requireUser();
-  const [detail, bags, time] = await Promise.all([
+  const [detail, bags, time, materials] = await Promise.all([
     getTicketDetail(user, id),
     getTicketBags(user, id),
     getTicketTime(user, id),
+    listTicketMaterials(user, id),
   ]);
-  if (!detail || !bags || !time) notFound();
+  if (!detail || !bags || !time || !materials) notFound();
   return (
     <>
       <TicketHeader
@@ -57,7 +59,12 @@ async function Ticket({ params }: Pick<PageProps<"/tickets/[id]">, "params">) {
         }
       />
       <TicketTimer ticketId={detail.ticket.id} time={time} />
-      <TicketTabs detail={detail} bags={bags} time={time} />
+      <TicketTabs
+        detail={detail}
+        bags={bags}
+        time={time}
+        materials={materials}
+      />
     </>
   );
 }

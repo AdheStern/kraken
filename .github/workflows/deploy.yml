@@ -2,14 +2,12 @@
 # Entrega (AGENTS.md §10 CI/CD): cuando CI pasa en main, imágenes app y worker en GHCR con el sha del commit →
 # staging (migraciones + nodo) → aprobación manual del entorno "production" → producción nodo por nodo.
 # Los despliegues corren en el runner autoalojado de ops-01: es el único que llega a la red interna.
+# LIMITACIÓN: mientras ops-01 no exista solo se dispara a mano; al tenerlo, volver a agregar el disparo
+# workflow_run (workflows: [CI], types: [completed], branches: [main]) (AGENTS.md §10).
 
 name: Deploy
 
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
 
 concurrency:

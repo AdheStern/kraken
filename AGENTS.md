@@ -680,7 +680,7 @@ Orden interno de un archivo: cabecera → imports (externos, `@/`, del propio m�
 - **Fronteras**: `src/domain` no importa `src/server`, `src/features` ni `@prisma/client`. Un módulo de `features` no importa internals de otro; usa sus `queries/`.
 - **Errores**: ninguna excepción silenciada; las actions devuelven `ActionResult`.
 - **Migraciones**: solo con `prisma migrate`; el SQL adicional va en la misma migración; siempre compatibles hacia atrás con la versión anterior de la app (despliegue nodo a nodo).
-- **Git**: trunk-based, ramas `feat/…` y `fix/…`, Conventional Commits, PRs < 400 líneas netas.
+- **Git**: trunk-based, ramas `feat/…` y `fix/…`, Conventional Commits, PRs < 400 líneas netas. Cada rama corre CI al subirla y entra a `main` por fast-forward solo con el CI en verde; nunca force push.
 - **Dependencias**: justificadas en el PR; versiones fijadas con el lockfile de pnpm.
 
 ### Checklist antes de entregar

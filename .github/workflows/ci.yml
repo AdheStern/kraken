@@ -1,13 +1,14 @@
 # .github/workflows/ci.yml
-# Integración continua de cada PR y de main (AGENTS.md §10 CI/CD): Biome, tipos, dominio, integración con
+# Integración continua de cada rama, PR y main (AGENTS.md §10 CI/CD): Biome, tipos, dominio, integración con
 # Postgres (Testcontainers), build y E2E. Corre en el runner de ops-01 cuando exista (variable CI_RUNNER).
+# REGLA: una rama feat/ o fix/ entra a main (fast-forward) solo con este CI en verde (§9 Git).
 
 name: CI
 
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, "feat/**", "fix/**"]
 
 concurrency:
   group: ci-${{ github.ref }}

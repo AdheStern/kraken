@@ -37,6 +37,7 @@ async function Board({
       <DashboardHeader
         context={context}
         active="inventario"
+        exportHref={`/api/dashboards/inventario/export.xlsx?${context.query}`}
         description="Lo que vale el stock, lo que salió y cuántas veces rotó en el periodo."
         showArea={false}
       />

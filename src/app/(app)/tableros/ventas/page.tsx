@@ -53,6 +53,7 @@ async function SalesBoard({
       <DashboardHeader
         context={context}
         active="ventas"
+        exportHref={`/api/dashboards/ventas/export.xlsx?${context.query}&desglose=${context.filters.dimension.toLowerCase()}`}
         description="Lo aprobado en el periodo con su margen, contra el periodo anterior y la meta."
       />
       <SalesKpis board={board} />

@@ -40,6 +40,7 @@ async function OperationsBoard({
       <DashboardHeader
         context={context}
         active="operacion"
+        exportHref={`/api/dashboards/operacion/export.xlsx?${context.query}`}
         description={`Horas, tickets y SLA de ${board.periodLabel}; las bolsas en riesgo son las de hoy.`}
       />
       <OperationsKpis board={board} />

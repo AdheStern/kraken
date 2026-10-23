@@ -47,3 +47,37 @@ export type SalesDashboard = {
   monthly: SalesMonth[];
   breakdown: { dimension: SalesDimension; rows: SalesBreakdownRow[] };
 };
+
+export type PipelineStage = {
+  status: "BORRADOR" | "EN_APROBACION" | "OBSERVADA";
+  cvCount: number;
+  saleUsd: string;
+};
+
+export type RenewalItem = {
+  lineId: string;
+  cvId: string;
+  cvLabel: string;
+  customerName: string;
+  description: string;
+  coverageEnd: string;
+  daysLeft: number;
+  saleUsd: string;
+};
+
+export type RenewalsView = {
+  bands: { days: 30 | 60 | 90; count: number; saleUsd: string }[];
+  items: RenewalItem[];
+};
+
+export type ApprovalTimes = {
+  approvedCount: number;
+  medianMinutes: number | null;
+  oldestPending: {
+    cvId: string;
+    versionLabel: string;
+    customerName: string;
+    requestLabel: string;
+    waitingMinutes: number;
+  } | null;
+};

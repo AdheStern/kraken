@@ -1,16 +1,20 @@
 // src/features/dashboards/queries/load-sale-facts.ts
 // Hechos de venta de un intervalo: una fila por línea ITEM de la versión aprobada vigente de cada CV cerrado en
 // él, con sus montos del dominio de precios (AGENTS.md §6). Pasa por scopeSalesLineQuery (regla 7).
-import Decimal from "decimal.js";
 import { toBusinessDate } from "@/domain/calendar/business-date";
 import { toSaleAmounts } from "@/domain/dashboards/sale-amounts";
 import type { SaleFact } from "@/domain/dashboards/sales-breakdown";
 import { toBagMinutes } from "@/domain/hours/to-bag-minutes";
-import { computeLineTotals } from "@/domain/pricing/compute-line-totals";
 import type { Prisma } from "@/generated/prisma/client";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeSalesLineQuery } from "@/server/authz/scope-sales-line-query";
 import { prisma } from "@/server/db";
+import {
+  dec,
+  LINE_AMOUNTS_SELECT,
+  lineTotalsOf,
+  VERSION_FX_SELECT,
+} from "./line-totals";
 
 export type SaleFactFilters = {
   start: Date;
@@ -18,8 +22,6 @@ export type SaleFactFilters = {
   areaId: string | null;
   cityId: string | null;
 };
-
-const ZERO = new Decimal(0);
 
 export async function loadSaleFacts(
   user: SessionUser,
@@ -79,16 +81,13 @@ function lineFilters(filters: SaleFactFilters): Prisma.CvLineWhereInput {
 const LINE_SELECT = {
   areaId: true,
   technologyId: true,
-  quantity: true,
-  unitCostUsd: true,
-  unitSaleUsd: true,
+  ...LINE_AMOUNTS_SELECT,
   hourBagSpec: true,
   version: {
     select: {
       cvId: true,
       mainTechnologyId: true,
-      costFxRate: true,
-      saleFxRate: true,
+      ...VERSION_FX_SELECT,
       sellers: { select: { userId: true } },
       cv: { select: { cityId: true, customerId: true } },
     },
@@ -100,17 +99,7 @@ type Line = Prisma.CvLineGetPayload<{ select: typeof LINE_SELECT }>;
 function toFact(line: Line, closedOn: Map<string, string>): SaleFact {
   const { version } = line;
   const quantity = dec(line.quantity);
-  const totals = computeLineTotals(
-    {
-      quantity,
-      unitCostUsd: dec(line.unitCostUsd),
-      unitSaleUsd: dec(line.unitSaleUsd),
-    },
-    {
-      costFxRate: dec(version.costFxRate),
-      saleFxRate: dec(version.saleFxRate),
-    },
-  );
+  const totals = lineTotalsOf(line, version);
   // REGLA: las horas vendidas son las de las líneas con bolsa, en minutos enteros (regla 4).
   const hoursMinutes = line.hourBagSpec ? (toBagMinutes(quantity) ?? 0) : 0;
   return {
@@ -123,8 +112,4 @@ function toFact(line: Line, closedOn: Map<string, string>): SaleFact {
     sellerIds: version.sellers.map((s) => s.userId),
     amounts: toSaleAmounts(totals, hoursMinutes),
   };
-}
-
-function dec(value: { toString(): string } | null): Decimal {
-  return value ? new Decimal(value.toString()) : ZERO;
 }

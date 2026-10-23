@@ -5,6 +5,7 @@
 
 export type NavKey =
   | "inicio"
+  | "tableros"
   | "cv"
   | "tickets"
   | "horas"

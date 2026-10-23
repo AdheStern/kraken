@@ -55,7 +55,7 @@ export function DashboardFilterBar({
 
   return (
     <div
-      className="flex flex-col gap-2 sm:flex-row sm:flex-wrap"
+      className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap"
       data-pending={isPending || undefined}
     >
       <FilterSelect
@@ -116,7 +116,7 @@ function FilterSelect({
   return (
     <Select value={value} onValueChange={(v) => onChange(String(v))}>
       <SelectTrigger
-        className={`h-9 ${className}`}
+        className={`h-9 w-full ${className}`}
         aria-label={`Filtrar por ${label.toLowerCase()}`}
       >
         <SelectValue>{(v: string) => labelOf(v)}</SelectValue>

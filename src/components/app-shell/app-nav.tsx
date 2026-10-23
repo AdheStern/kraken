@@ -7,6 +7,7 @@
 
 import {
   Boxes,
+  ChartColumn,
   FileSpreadsheet,
   Hourglass,
   House,
@@ -32,6 +33,7 @@ import type { NavEntry, NavKey } from "./nav-entries";
 const ITEMS: Record<NavKey, { href: string; label: string; icon: LucideIcon }> =
   {
     inicio: { href: "/inicio", label: "Inicio", icon: House },
+    tableros: { href: "/tableros", label: "Tableros", icon: ChartColumn },
     cv: { href: "/cv", label: "Control de Venta", icon: FileSpreadsheet },
     tickets: { href: "/tickets", label: "Tickets", icon: Ticket },
     horas: { href: "/horas", label: "Bolsas de horas", icon: Hourglass },

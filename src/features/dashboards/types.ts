@@ -131,3 +131,5 @@ export type InventoryDashboard = {
   turnover: string | null;
   transit: { transfers: number; valueUsd: string };
 };
+
+export type BoardKey = "ventas" | "operacion" | "inventario" | "metas";

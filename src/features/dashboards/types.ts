@@ -113,3 +113,21 @@ export type OperationsDashboard = {
   outsideHoursPct: number | null;
   utilization: UtilizationRow[];
 };
+
+export type WarehouseValue = {
+  id: string;
+  name: string;
+  kind: string;
+  valueUsd: string;
+};
+
+export type InventoryDashboard = {
+  periodLabel: string;
+  totalValueUsd: string;
+  warehouses: WarehouseValue[];
+  outboundUsd: string;
+  openingUsd: string;
+  closingUsd: string;
+  turnover: string | null;
+  transit: { transfers: number; valueUsd: string };
+};

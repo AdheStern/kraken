@@ -41,3 +41,13 @@ export function variationPct(
     .toDecimalPlaces(1, Decimal.ROUND_HALF_UP)
     .toNumber();
 }
+
+// Participación de una parte en el total, con un decimal; sin total no hay participación.
+export function sharePctOf(part: Decimal, whole: Decimal): number | null {
+  if (!whole.greaterThan(0)) return null;
+  return part
+    .dividedBy(whole)
+    .times(100)
+    .toDecimalPlaces(1, Decimal.ROUND_HALF_UP)
+    .toNumber();
+}

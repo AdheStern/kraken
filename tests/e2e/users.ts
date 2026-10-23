@@ -3,6 +3,7 @@
 
 export const E2E_USERS = {
   gg: "gg@dima.local",
+  gerenteNet: "gerente.dimanet@dima.local",
   admin: "admin@dima.local",
   comercial: "comercial@dima.local",
   coordinador: "coordinador@dima.local",

@@ -62,17 +62,23 @@ describe("splitByBusinessHours (propiedades)", () => {
     );
   });
 
-  it("cada minuto cae del lado que dice el oráculo", () => {
-    fc.assert(
-      fc.property(calendarArb, intervalArb, (calendar, interval) =>
-        splitByBusinessHours(interval, calendar).every((s) => {
-          for (let t = s.start.getTime(); t < s.end.getTime(); t += MINUTE)
-            if (isInsideAt(t, calendar) !== s.isInside) return false;
-          return true;
-        }),
-      ),
-    );
-  });
+  // POR QUÉ: recorre cada minuto de cada tramo; con la máquina cargada (gancho de push en paralelo a un build)
+  // supera los 5 s por defecto sin estar mal.
+  it(
+    "cada minuto cae del lado que dice el oráculo",
+    { timeout: 30_000 },
+    () => {
+      fc.assert(
+        fc.property(calendarArb, intervalArb, (calendar, interval) =>
+          splitByBusinessHours(interval, calendar).every((s) => {
+            for (let t = s.start.getTime(); t < s.end.getTime(); t += MINUTE)
+              if (isInsideAt(t, calendar) !== s.isInside) return false;
+            return true;
+          }),
+        ),
+      );
+    },
+  );
 });
 
 // POR QUÉ: el oráculo usa el desfase fijo UTC−4 de La Paz (sin horario de verano, ADR-15) en lugar de

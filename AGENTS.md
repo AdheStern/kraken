@@ -43,7 +43,7 @@ pnpm prisma migrate dev       # migraciones en desarrollo
 pnpm db:seed:admin            # crea/actualiza la cuenta de emergencia ADMIN_SISTEMA desde SUPERADMIN_*
 pnpm db:seed:base             # catálogos base (ciudades, áreas, roles, parámetros y la hoja "Listas"); apto para producción,
                               # solo crea lo que falta
-pnpm db:seed:dev              # SOLO desarrollo: catálogos base + datos y usuarios demo (gg@, gerente.dimanet@, comercial@, comercial2@, administracion@, coordinador@, ingeniero@, ingeniero2@dima.local; tickets de ejemplo)
+pnpm db:seed:dev              # SOLO desarrollo: catálogos base + datos y usuarios demo (gg@, gerente.dimanet@, comercial@, comercial2@, administracion@, coordinador@, ingeniero@, ingeniero2@dima.local; tickets de ejemplo; ventas y metas demo para los tableros)
                               # con DEV_SEED_PASSWORD; entrar con contraseña exige AUTH_DEV_PASSWORD_LOGIN=true
 pnpm skills:install           # restaura las skills de agentes desde skills-lock.json
 docker compose -f deploy/compose.dev.yml up -d   # Postgres + correo falso
@@ -581,8 +581,9 @@ type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { code: Error
 - Inventario: `registerReceipt`, `dispatchItems`, `returnItems`, `findDispatchTicket`, `createTransfer`, `sendTransfer`, `receiveTransfer`, `cancelTransfer`, `requestAdjustment`, `requestManualAdjustment`, `decideAdjustment`, `submitInventoryCount`; almacenes: `upsertWarehouse`, `setWarehouseActive`
 - Administración: CRUD de catálogos (`upsertSimpleCatalogItem` y `setSimpleCatalogItemActive` para áreas, ciudades, tecnologías, unidades, tipos de servicio y proveedores; `upsertCustomer`, `upsertCustomerContact`, `upsertProduct`, `markProductReviewed` y sus bajas), usuarios (`updateUserProfile`, `setUserActive`, `grantUserRole`, `revokeUserRole`), `mapEntraGroup`, `unmapEntraGroup`, `setParameter`, `setManualFxRate`, `sendTestMail`, `retryOutboxMessage`, `upsertSlaPolicy`
 - Notificaciones: `markInboxRead`
+- Tableros: `upsertGoal` (meta mensual por área o de la empresa; vacía la quita)
 
-**Route handlers:** `GET /api/cv/[versionId]/export.xlsx` (con authz) · `GET /api/tickets/attachments/[id]` (con authz) · `GET /api/inventory/receipts/[id].pdf` (con authz; carpeta `[file]`) · `GET /api/health/live` · `GET /api/health/ready` (BD y, si los adjuntos van a `FILES_ROOT`, su carpeta; HAProxy saca el nodo si falla) · `/api/auth/*`.
+**Route handlers:** `GET /api/cv/[versionId]/export.xlsx` (con authz) · `GET /api/tickets/attachments/[id]` (con authz) · `GET /api/inventory/receipts/[id].pdf` (con authz; carpeta `[file]`) · `GET /api/dashboards/[board]/export.xlsx` (ventas, operación o inventario, con los filtros y la authz del tablero) · `GET /api/health/live` · `GET /api/health/ready` (BD y, si los adjuntos van a `FILES_ROOT`, su carpeta; HAProxy saca el nodo si falla) · `/api/auth/*`.
 
 **Jobs:**
 | Job | Cuándo | Qué hace |
@@ -824,9 +825,9 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - *Sale cuando:* el stock del sistema coincide con el conteo físico en los tres almacenes.
 
 **F5 · Tableros y KPIs (~2–3 semanas)**
-- Taller con gerencia: KPIs, KGIs y metas [negocio]
-- Vistas `dash.*` con tests de cálculo [OPUS]
-- Tableros por rol, filtros, exportación [SONNET]
+- Taller con gerencia: KPIs, KGIs y metas [negocio] — gerencia dejó la definición al equipo (2026-10-22): v1 con la propuesta de §6, se ajusta con el uso
+- Vistas `dash.*` con tests de cálculo [OPUS] — hecho como funciones puras (`src/domain/dashboards`) sobre queries con alcance, sin vistas (§6); `dash.meta` para las metas
+- Tableros por rol, filtros, exportación [SONNET] — hecho (`/tableros/ventas`, `/tableros/operacion`, `/tableros/inventario`, `/tableros/metas`, franja «Este mes» en `/inicio`, exportación a Excel; Recharts; datos demo en `db:seed:dev`; E2E `tests/e2e/dashboards.spec.ts`)
 - *Sale cuando:* cada gerente usa su tablero en la reunión semanal.
 
 **F6 · Endurecimiento y continuidad (~2 semanas)**
@@ -868,7 +869,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - **F2:** horario real de cada ciudad (¿con pausa de mediodía?) y feriados departamentales y de traslado: los carga el administrador en `/admin/calendario`. *Confirmado por DIMA (2026-10-14):* multiplicador 2 fuera de horario en 8x5, umbrales de alerta 80% y 100%, aviso de vencimiento a 30 días, y los miembros de un área ven todas sus bolsas. *Resuelto:* las bolsas vigentes se cargan con un "CV de saldo inicial" por cliente (`es_saldo_inicial`, solo horas de servicio con costo y venta 0), aprobado por su gerente.
 - **F3:** *Resuelto (2026-10-19):* el redondeo que no cabe en ninguna bolsa se perdona; al reabrir, el consumo en bolsas vencidas o cerradas queda firme; cierran y reabren coordinador, gerente de área y GG. *Resuelto (2026-10-19, tareas 3–5):* crean tickets coordinador, gerente de área y GG; historial inmutable de estados como base del SLA; el paso de redondeo es el parámetro `horas.redondeo_minutos`; adjuntos en SharePoint (ADR-16; faltan las credenciales del registro de app y el id de la biblioteca). *Confirmado por DIMA (2026-10-20):* el redondeo es siempre hacia arriba, los tiempos de SLA de §2.7 y que el tiempo de personas distintas en paralelo se suma.
 - **F4:** *Confirmado por DIMA (2026-10-22):* costo promedio ponderado como cantidad + valor total; el inventario real se carga al desplegar. Qué productos exigen serial (se marca en el catálogo) y si se usan almacenes de demostración o repuestos (se crean en `/admin/almacenes`): los define DIMA. *Decidido (2026-10-21):* sobre-reservar con aviso si falta stock; el rol Almacén opera todos los almacenes; las diferencias de traspaso quedan en `TRANSITO` valorizadas por traspaso; carga inicial por ingreso pegado desde Excel más conteo físico (completo o parcial) que ajusta por delta; costos visibles para Almacén, Administración, GG y gerente de área; devolución de una salida al costo de esa salida; el costo del ingreso es obligatorio y admite 0; un código desconocido en un ingreso crea el producto por revisar; PDF con pdf-lib; el ticket muestra sus materiales despachados con el alcance del ticket.
-- **F5:** KPIs, KGIs y metas definitivas.
+- **F5:** *Decidido (2026-10-22/23):* KPIs y metas a criterio del equipo sobre la propuesta de §6, ajustables con el uso; venta fechada en la primera aprobación del CV con los montos de la versión vigente; varios vendedores en partes iguales; metas mensuales por área o de la empresa, las define el GG (todas) y el gerente de área (las suyas); Inicio conserva su red y suma la franja «Este mes»; gráficos con Recharts. *Abierto:* validar con gerencia el set definitivo de indicadores tras las primeras reuniones semanales.
 
 ---
 

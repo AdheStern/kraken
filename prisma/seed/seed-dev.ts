@@ -5,6 +5,7 @@ import { prisma } from "@/server/db";
 import { seedBaseCatalogs } from "./base-catalogs";
 import { upsertCredentialUser } from "./credential-user";
 import * as data from "./dev-catalog-data";
+import { seedDevDashboards } from "./dev-dashboards";
 import { seedDevInventory } from "./dev-inventory";
 import { seedDevTickets } from "./dev-tickets";
 import { seedCalendar } from "./seed-calendar";
@@ -33,6 +34,7 @@ async function main() {
       }
       await seedDevTickets(tx, new Date());
       await seedDevInventory(tx, new Date());
+      await seedDevDashboards(tx, new Date());
     },
     { timeout: 60_000 },
   );

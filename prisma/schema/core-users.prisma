@@ -42,6 +42,7 @@ model UserProfile {
   adjustmentsDecided      AdjustmentRequest[]      @relation("AdjustmentDecider")
   inboxItems              InboxItem[]
   notificationPreferences NotificationPreference[]
+  goalsUpdated            Goal[]
 
   @@map("usuario_perfil")
   @@schema("core")

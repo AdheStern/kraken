@@ -274,8 +274,9 @@ Roles asignados por grupos de Entra ID, más **excepciones por usuario** gestion
 | Bolsas: ver saldo | De sus CV | De su área | Todas | De su área y de sus tickets | Todas |
 | Bolsas: ajuste manual | No | Su área, con motivo | Todas, con motivo | No | No |
 | Inventario | Consulta de stock | Consulta + aprobar ajustes de su área | Todo | Consulta de stock | Todo |
+| Tableros | Ventas propias | Ventas, operación e inventario de su área; metas de su área | Todo; todas las metas y la de la empresa | Operación propia (sin montos) | Ventas aprobadas, inventario y metas (sin editarlas) |
 
-Almacén opera inventario y POS. El coordinador gestiona los tickets de su área y, como el gerente de área, los cierra y reabre. **Catálogos:** clientes, contactos, proveedores y productos los gestionan Administración y el administrador del sistema; áreas, ciudades, calendario, tecnologías, unidades, tipos de servicio, usuarios, parámetros y TC, solo el administrador del sistema. **Bolsas:** todo usuario con un rol asignado a un área (ingeniero, coordinador, preventa, gerente…) ve todas las bolsas de esa área, en cualquier estado y con su libro; ajustarlas o cerrarlas sigue siendo solo del gerente del área y del GG. El administrador del sistema gestiona usuarios, permisos y parámetros pero **no** ve montos por ese rol. **Cada fila de esta tabla es un test.**
+Almacén opera inventario y POS y ve el tablero de inventario; el coordinador ve el operativo de su área. El coordinador gestiona los tickets de su área y, como el gerente de área, los cierra y reabre. **Catálogos:** clientes, contactos, proveedores y productos los gestionan Administración y el administrador del sistema; áreas, ciudades, calendario, tecnologías, unidades, tipos de servicio, usuarios, parámetros y TC, solo el administrador del sistema. **Bolsas:** todo usuario con un rol asignado a un área (ingeniero, coordinador, preventa, gerente…) ve todas las bolsas de esa área, en cualquier estado y con su libro; ajustarlas o cerrarlas sigue siendo solo del gerente del área y del GG. El administrador del sistema gestiona usuarios, permisos y parámetros pero **no** ve montos por ese rol. **Cada fila de esta tabla es un test.**
 
 ---
 
@@ -344,7 +345,7 @@ Prisma 7: `prisma.config.ts` en la raíz (esquema multiarchivo en `prisma/schema
 | `inv` | `almacen`, `stock` (cantidad, reservado y valor: caché de los libros), `unidad_serial`, `movimiento`, `movimiento_linea` (valor y saldo tras la línea), `traspaso`, `traspaso_linea` (valor enviado), `solicitud_ajuste` (el AJUSTE se inserta en el libro solo al aprobarse), `reserva`, `reserva_movimiento` (libro inmutable de lo reservado) |
 | `notif` | `salida` (outbox), `bandeja`, `preferencia` |
 | `audit` | `evento` |
-| `dash` | Vistas SQL de los tableros (sección 6) |
+| `dash` | `meta` (metas mensuales por área o de la empresa); los indicadores se calculan en `src/domain/dashboards` (sección 6) |
 
 **Relaciones clave:** Cliente 1–N CV · CV 1–N Versión · Versión 1–N Línea · Versión 1–N SolicitudAprobación · Línea N–1 Área · Línea 1–0..1 Bolsa (por linaje: `linea_origen_id`) · Bolsa 1–N MovimientoHoras · Ticket 1–N TicketBolsa (prioridad) N–1 Bolsa · Ticket 1–N Subtarea · Ticket/Subtarea 1–N RegistroTiempo · Proyecto 1–N Ticket · Línea 1–N Reserva · Almacén 1–N Stock · Stock 1–N MovimientoInv.
 
@@ -551,7 +552,7 @@ Cada indicador tiene **una sola definición** (en `src/domain` o en una vista `d
 
 **Operativos:** horas vendidas vs consumidas (ponderadas y reales) · bolsas en riesgo (más del 80% o vencen en menos de 30 días) · horas vencidas sin usar · horas pendientes sin bolsa · utilización por ingeniero · % de consumo fuera de horario en 8x5 · cumplimiento de SLA · tickets abiertos y mediana de resolución · % de registros tardíos · valor y rotación de inventario, traspasos en tránsito.
 
-Las vistas `dash.*` se construyen sobre los libros mayores; se materializan solo si una consulta lo exige.
+En v1 no hay vistas `dash.*`: cada indicador es una función pura de `src/domain/dashboards` sobre filas que cargan queries con alcance (`scopeSalesLineQuery` por línea, `scopeEngineerQuery`, `scopeGoalQuery` y los alcances existentes), porque los montos de línea ya tienen su única definición en `src/domain/pricing`. Una vista se crea, y se materializa, solo si una consulta lo exige. La venta del periodo es la versión aprobada vigente fechada en la primera aprobación del CV; con varios vendedores se acredita en partes iguales (decisión 2026-10-22). Las metas son mensuales (`dash.meta`); un trimestre o un año suma sus meses.
 
 ---
 

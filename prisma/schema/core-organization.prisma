@@ -39,6 +39,7 @@ model Area {
   projects           ProjectArea[]
   tickets            TicketArea[]
   adjustmentRequests AdjustmentRequest[]
+  goals              Goal[]
 
   @@map("area")
   @@schema("core")

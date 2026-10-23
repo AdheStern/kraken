@@ -1,0 +1,33 @@
+// prisma/schema/dashboards.prisma
+// Esquema dash: metas (KGI) mensuales por área o de la empresa (AGENTS.md §6). Los indicadores se calculan en
+// src/domain/dashboards sobre los libros; aquí solo vive lo que se carga a mano.
+
+enum GoalIndicator {
+  VENTAS_USD
+  MARGEN_USD
+  HORAS_VENDIDAS
+
+  @@schema("dash")
+}
+
+// REGLA: area_id nulo = meta de la empresa; montos en USD o tiempo en minutos según el indicador (CHECK en
+// prisma/sql/dashboards.sql). La meta de un trimestre o un año es la suma de sus meses.
+model Goal {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  areaId      String?       @map("area_id") @db.Uuid
+  indicator   GoalIndicator @map("indicador")
+  year        Int           @map("anio")
+  month       Int           @map("mes")
+  valueUsd    Decimal?      @map("valor_usd") @db.Decimal(18, 2)
+  minutes     Int?          @map("minutos")
+  updatedById String        @map("actualizado_por")
+  updatedAt   DateTime      @updatedAt @map("actualizado_en") @db.Timestamptz
+
+  // POR QUÉ: sin Restrict, borrar un área convertiría su meta en la de la empresa.
+  area      Area?       @relation(fields: [areaId], references: [id], onDelete: Restrict)
+  updatedBy UserProfile @relation(fields: [updatedById], references: [userId])
+
+  @@unique([areaId, indicator, year, month], map: "meta_unica")
+  @@map("meta")
+  @@schema("dash")
+}

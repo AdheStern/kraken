@@ -13,6 +13,7 @@ type Props = {
   active: BoardKey;
   description: string;
   showCity?: boolean;
+  showArea?: boolean;
 };
 
 export function DashboardHeader({
@@ -20,6 +21,7 @@ export function DashboardHeader({
   active,
   description,
   showCity,
+  showArea = true,
 }: Props) {
   return (
     <>
@@ -40,7 +42,7 @@ export function DashboardHeader({
         periods={context.periods}
         kind={context.filters.period.kind}
         period={periodToken(context.filters.period)}
-        areas={context.options.areas}
+        areas={showArea ? context.options.areas : []}
         cities={context.options.cities}
         showCity={showCity}
       />

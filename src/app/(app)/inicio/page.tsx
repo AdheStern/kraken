@@ -1,11 +1,12 @@
 // src/app/(app)/inicio/page.tsx
 // Inicio: el centro de la red. Saludo, lo que espera al usuario según su rol como nodos vivos y, debajo, las
-// aprobaciones pendientes y las bolsas en riesgo (AGENTS.md §5 Navegación; tableros por rol en F5).
+// cifras del mes de su tablero y las aprobaciones pendientes y bolsas en riesgo (AGENTS.md §5 Navegación, §6).
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toBusinessDate } from "@/domain/calendar/business-date";
+import { MonthStrip } from "@/features/dashboards/components/month-strip";
 import {
   HomeNetwork,
   type HomeNode,
@@ -54,6 +55,9 @@ async function Home() {
         subtitle={`${today[0].toUpperCase()}${today.slice(1)} · ${headline(summary)}`}
         nodes={toNodes(summary)}
       />
+      <Suspense fallback={<Skeleton className="h-28 w-full rounded-xl" />}>
+        <MonthStrip user={user} />
+      </Suspense>
       {summary.timers && summary.timers.length > 0 && (
         <TimersPanel timers={summary.timers} />
       )}

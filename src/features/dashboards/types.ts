@@ -2,6 +2,7 @@
 // Tipos de presentación de los tableros (nunca entidades Prisma completas). Montos como texto con 2 decimales
 // para no pasar por number (regla 3); tiempo en minutos enteros (regla 4).
 import type { SalesDimension } from "@/domain/dashboards/sales-breakdown";
+import type { BagSummary } from "@/features/hours/types";
 
 export type MoneyKpi = {
   valueUsd: string;
@@ -80,4 +81,35 @@ export type ApprovalTimes = {
     requestLabel: string;
     waitingMinutes: number;
   } | null;
+};
+
+export type HoursFlowView = {
+  soldMinutes: number;
+  consumedWeightedMinutes: number;
+  consumedRealMinutes: number;
+  expiredMinutes: number;
+  surchargeMinutes: number;
+  pendingMinutes: number;
+};
+
+export type SlaView = { met: number; missed: number; pct: number | null };
+
+export type UtilizationRow = {
+  userId: string;
+  name: string;
+  loggedMinutes: number;
+  capacityMinutes: number | null;
+  pct: number | null;
+};
+
+export type OperationsDashboard = {
+  periodLabel: string;
+  hours: HoursFlowView;
+  bagsAtRisk: { count: number; top: BagSummary[] };
+  sla: { firstResponse: SlaView; resolution: SlaView };
+  openTickets: { status: string; count: number }[];
+  medianResolutionMinutes: number | null;
+  lateEntriesPct: number | null;
+  outsideHoursPct: number | null;
+  utilization: UtilizationRow[];
 };

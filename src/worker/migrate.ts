@@ -1,11 +1,13 @@
 // src/worker/migrate.ts
-// `pnpm worker:migrate`: instala o actualiza el esquema pgboss con el usuario de migraciones y da al usuario
-// de la app solo permisos DML (ADR-07, §4: el usuario de la app no tiene DDL). Paso del despliegue.
+// `pnpm worker:migrate`: instala o actualiza el esquema pgboss con el usuario de migraciones, da al usuario
+// de la app solo permisos DML (ADR-07, §4: el usuario de la app no tiene DDL) y renueva la lectura de
+// kraken_lectura sin el esquema auth. Paso del despliegue.
 import { readFileSync } from "node:fs";
 import { PgBoss } from "pg-boss";
 
 const SCHEMA = "pgboss";
 const GRANTS_SQL = "deploy/sql/pgboss-grants.sql";
+const READ_GRANTS_SQL = "deploy/sql/lectura-grants.sql";
 
 async function main() {
   const migrationUrl = process.env.MIGRATION_DATABASE_URL;
@@ -31,6 +33,7 @@ async function main() {
       `"${appRole.replaceAll('"', '""')}"`,
     );
     await boss.getDb().executeSql(sql);
+    await boss.getDb().executeSql(readFileSync(READ_GRANTS_SQL, "utf8"));
   }
   await boss.stop({ graceful: false });
   console.log(

@@ -7,8 +7,10 @@ scope: kraken
 name: <NODO>                     # db-01 | db-02 | db-03
 
 restapi:
-  listen: 0.0.0.0:8008
+  listen: <IP_NODO>:8008
   connect_address: <IP_NODO>:8008
+  # REGLA: conmutar, reiniciar o reconfigurar exige credenciales (PATRONI_RESTAPI_USERNAME y
+  # PATRONI_RESTAPI_PASSWORD en patroni.env); los GET de salud que usa HAProxy siguen abiertos.
 
 etcd3:
   hosts: <IP_DB_01>:2379,<IP_DB_02>:2379,<IP_DB_03>:2379
@@ -21,7 +23,9 @@ bootstrap:
     maximum_lag_on_failover: 1048576
     # REGLA: ninguna pérdida de información (§10): el primario confirma solo cuando una réplica tiene el WAL.
     synchronous_mode: true
-    synchronous_mode_strict: false
+    # POR QUÉ: sin modo estricto, si ninguna réplica responde el primario sigue en asíncrono y se puede perder
+    # lo último confirmado; con dos réplicas basta una viva para seguir escribiendo (RPO 0, §10).
+    synchronous_mode_strict: true
     postgresql:
       use_pg_rewind: true
       parameters:
@@ -61,7 +65,8 @@ postgresql:
     - local all all peer
     - host replication replicador <RED_DATOS> scram-sha-256
     - host all all <RED_DATOS> scram-sha-256
-    - host all all <RED_APP> scram-sha-256
+    # REGLA: desde la VLAN de aplicación solo los roles de la app y de migraciones, nunca postgres.
+    - host kraken kraken_app,kraken_migra <RED_APP> scram-sha-256
     - host all all 0.0.0.0/0 reject
   create_replica_methods:
     - pgbackrest

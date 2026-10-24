@@ -23,7 +23,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE kraken_migra
 ALTER DEFAULT PRIVILEGES FOR ROLE kraken_migra GRANT EXECUTE ON FUNCTIONS TO kraken_app;
 
 -- Lectura para las restauraciones de prueba y los tableros de operación (sin escritura).
+-- REGLA: nunca el esquema auth (sesiones vivas, tokens, hash de la cuenta de emergencia); los permisos se dan por
+-- esquema en deploy/sql/lectura-grants.sql, que aplica `pnpm worker:migrate` después de cada migración.
 CREATE ROLE kraken_lectura LOGIN PASSWORD '<CLAVE_LECTURA>';
 GRANT CONNECT ON DATABASE kraken TO kraken_lectura;
-ALTER DEFAULT PRIVILEGES FOR ROLE kraken_migra GRANT USAGE ON SCHEMAS TO kraken_lectura;
-ALTER DEFAULT PRIVILEGES FOR ROLE kraken_migra GRANT SELECT ON TABLES TO kraken_lectura;

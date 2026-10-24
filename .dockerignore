@@ -14,5 +14,7 @@ tests/e2e/.auth
 .impeccable
 .agents
 .claude
-deploy
+# TRAMPA: deploy/sql sí entra: worker:migrate aplica sus permisos en el despliegue.
+deploy/*
+!deploy/sql
 *.log

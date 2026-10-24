@@ -36,6 +36,9 @@ services:
     image: ${KRAKEN_REGISTRY:-ghcr.io/adhestern}/kraken-worker:${KRAKEN_TAG:?define KRAKEN_TAG}
     restart: "no"
     profiles: [migrate]
+    # REGLA: solo este servicio recibe la clave del dueño del esquema (DDL). La app y el worker corren con
+    # kraken_app (solo DML): un fallo en la app no puede desactivar triggers ni borrar tablas (AGENTS.md §4).
+    env_file: [/etc/kraken/app.env, /etc/kraken/migrate.env]
     command: ["pnpm", "migrate:deploy"]
 
   haproxy:

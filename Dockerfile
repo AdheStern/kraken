@@ -44,5 +44,7 @@ COPY --from=prod-deps --chown=node:node /app ./
 COPY --chown=node:node tsconfig.json ./
 COPY --chown=node:node src ./src
 COPY --chown=node:node --from=build /app/src/generated ./src/generated
+# POR QUÉ: worker:migrate (paso de `pnpm migrate:deploy`) lee los permisos de pgboss y de kraken_lectura de aquí.
+COPY --chown=node:node deploy/sql ./deploy/sql
 USER node
 CMD ["node", "--import", "tsx", "src/worker/index.ts"]

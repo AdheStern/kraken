@@ -14,7 +14,7 @@ decisiones: [AGENTS.md §3 y §10](../AGENTS.md). Objetivo no negociable: **ning
 | app-01, app-02 | `app/compose.yml` | Next.js, worker, HAProxy y Alloy (logs) |
 | app-01, app-02 | `app/haproxy.cfg` | Web → los dos Next (sale el que falle `/api/health/ready`); `:5000` → primario de Patroni |
 | app-01, app-02 | `app/keepalived.conf` | IP virtual (en el sistema operativo, no en Docker) |
-| app-01, app-02 | `app/*.env.example` | Plantillas de `/etc/kraken/app.env` y `haproxy.env` |
+| app-01, app-02 | `app/*.env.example` | Plantillas de `/etc/kraken/app.env`, `migrate.env` (solo el servicio `migrate`: dueño del esquema) y `haproxy.env` |
 | db-01..03 | `db/compose.yml`, `db/patroni.yml`, `db/Dockerfile.patroni` | etcd + PostgreSQL 16 + Patroni (réplica síncrona) + pgBackRest |
 | db-01..03 | `backup/pgbackrest.db.conf` | Empuja el WAL a ops-01 por TLS |
 | ops-01 | `backup/pgbackrest.repo.conf` | Repositorio: NAS (repo1) y Azure inmutable (repo2), cifrados |
@@ -23,6 +23,7 @@ decisiones: [AGENTS.md §3 y §10](../AGENTS.md). Objetivo no negociable: **ning
 | stg-01 | `scripts/restore-test.sh` + `backup/systemd/kraken-restore-test*` | Restauración de prueba mensual |
 | ops-01 (runner) | `scripts/deploy.sh`, `hosts/*` | Despliegue nodo por nodo |
 | Primera vez | `sql/roles.sql` | Roles `kraken_migra` (DDL), `kraken_app` (solo DML), `kraken_lectura` |
+| Cada despliegue | `sql/pgboss-grants.sql`, `sql/lectura-grants.sql` | Los aplica `worker:migrate`: DML de pg-boss para la app; lectura sin el esquema `auth` |
 
 ## Valores que pone DIMANET
 
@@ -40,12 +41,15 @@ para los adjuntos con un registro de app `Sites.Selected` (escritura solo en ese
    `/etc/kraken/tls` (bases) y `/etc/pgbackrest/tls` (ops-01). El CN de cada certificado es el nombre del nodo.
 3. **Base de datos.** En cada db-0X: construir `kraken-patroni:16`, copiar `patroni.yml` (con su nombre e IP),
    `patroni.env`, `pgbackrest.conf` y levantar `db/compose.yml`. Verificar: `curl http://<db>:8008/cluster`
-   muestra un líder y dos réplicas, una síncrona.
+   muestra un líder y dos réplicas, una síncrona. `patroni.env` lleva también `PATRONI_RESTAPI_USERNAME` y
+   `PATRONI_RESTAPI_PASSWORD`: sin ellas cualquiera en la red podría conmutar el primario.
 4. **Roles.** En el primario, como `postgres`: `psql -f sql/roles.sql` (con las claves reemplazadas).
 5. **Respaldos.** En ops-01: pgBackRest con `pgbackrest.repo.conf`, `pgbackrest --stanza=kraken stanza-create`
    y `pgbackrest --stanza=kraken check`; instalar y habilitar los timers de `backup/systemd`.
 6. **Nodos de aplicación.** En cada app-0X: `/opt/kraken` con `app/compose.yml`, `haproxy.cfg`, `alloy.river`
-   y un `.env` con `NODE_IP`; `/etc/kraken/app.env` y `haproxy.env` (permisos 600); keepalived en el sistema.
+   y un `.env` con `NODE_IP`; `/etc/kraken/app.env`, `migrate.env` y `haproxy.env` (permisos 600, con
+   `STATS_BIND_IP` = IP de operación del nodo); keepalived en el sistema. `MIGRATION_DATABASE_URL` va solo en
+   `migrate.env`: la app y el worker nunca reciben la clave del dueño del esquema.
 7. **Operación.** En ops-01: `ops/compose.yml`. En Uptime Kuma, monitores de `https://<dominio>/api/health/ready`
    y de cada nodo, con avisos por correo y Teams.
 8. **CI/CD.** Runner autoalojado de GitHub en ops-01 con la etiqueta `ops-01`; usuario `deploy` con su clave

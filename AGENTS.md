@@ -751,6 +751,7 @@ PR → biome · typecheck · tests de dominio · integración con Postgres · bu
 |---|---|
 | `DATABASE_URL`, `MIGRATION_DATABASE_URL` | Usuario de la app (sin DDL) y usuario de migraciones |
 | `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` | Sesiones |
+| `TRUSTED_PROXIES` | IP o rangos CIDR de FortiGate/Radware y HAProxy: la IP real del cliente para el límite de intentos de login (guardado en `auth.rate_limit`, compartido entre nodos) y la auditoría |
 | `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET` | Inicio de sesión (permisos delegados). URI de redirección en Entra: `{BETTER_AUTH_URL}/api/auth/callback/microsoft`. Configuración de token: notificación `groups` (grupos de seguridad, token de id, Id. de grupo); cada grupo se mapea a rol + área en `/admin/grupos-entra` y los roles de origen ENTRA se recalculan en cada inicio de sesión (`src/server/entra/sync-entra-roles.ts`) |
 | `SUPERADMIN_EMAIL`, `SUPERADMIN_PASSWORD` | Solo los lee `pnpm db:seed:admin` (contraseña de 12+ caracteres); la app nunca los usa |
 | `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, `MAIL_SENDER` | Correo (registro de app separado, solo `Mail.Send`, limitado al buzón) |

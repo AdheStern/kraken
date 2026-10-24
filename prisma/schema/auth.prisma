@@ -69,3 +69,14 @@ model Verification {
   @@map("verification")
   @@schema("auth")
 }
+
+// POR QUÉ: el límite de intentos de login se guarda en la base para que lo compartan los dos nodos (ADR-05).
+model RateLimit {
+  id          String @id
+  key         String @unique
+  count       Int
+  lastRequest BigInt
+
+  @@map("rate_limit")
+  @@schema("auth")
+}

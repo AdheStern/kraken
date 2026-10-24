@@ -3,6 +3,7 @@
 // Se llama dentro de la transacción de la action, para que el cambio y su rastro se confirmen juntos.
 import { headers } from "next/headers";
 import type { Prisma } from "@/generated/prisma/client";
+import { clientIpFrom, trustedProxiesFromEnv } from "@/server/client-ip";
 import type { Tx } from "@/server/db";
 
 export type AuditEntry = {
@@ -36,9 +37,10 @@ export async function recordAudit(
 async function requestOrigin() {
   try {
     const h = await headers();
-    const forwarded = h.get("x-forwarded-for")?.split(",")[0]?.trim();
     return {
-      ip: forwarded || h.get("x-real-ip") || null,
+      ip:
+        clientIpFrom(h.get("x-forwarded-for"), trustedProxiesFromEnv()) ??
+        h.get("x-real-ip"),
       requestId: h.get("x-request-id"),
     };
   } catch {

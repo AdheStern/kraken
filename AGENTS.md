@@ -265,7 +265,7 @@ Roles asignados por grupos de Entra ID, más **excepciones por usuario** gestion
 | CV: ver | Propios (vendedor o creador) | Con al menos una línea de su área | Todos | Solo cabecera y líneas de horas de los CV de sus tickets | Aprobados |
 | CV: crear y editar borrador | Propios | Propios | Todos | No | No |
 | CV: aprobar | No | Parte de su área | Sobre el umbral | No | No |
-| CV: costos y margen | Propios | Su área | Todos | **Nunca** | Aprobados |
+| CV: costos y margen | Propios | De todo el CV si tiene una línea de su área (decisión 2026-10-24) | Todos | **Nunca** | Solo versiones aprobadas o reemplazadas (y solo esas versiones ve) |
 | CV: exportar Excel | Propios | Su área | Todos | No | Aprobados |
 | Tickets: ver | De clientes de sus CV | De su área | Todos | Asignados o con subtarea suya | No |
 | Tickets: registrar tiempo | No | Su área | No | Sus subtareas y tickets a cargo | No |

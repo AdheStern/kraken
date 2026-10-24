@@ -55,6 +55,18 @@ export async function uploadTicketAttachment(
   );
   try {
     return await runInTransaction(async (tx) => {
+      // TRAMPA: el ticket pudo cancelarse o el usuario perder el acceso mientras subía; se revalida aquí.
+      const current = await tx.ticket.findUnique({
+        where: { id: ticketId },
+        select: { status: true },
+      });
+      const currentAccess = await loadTicketAccess(tx, ticketId);
+      if (!current || !currentAccess || !canCommentTicket(user, currentAccess))
+        throw new AttachmentRejected("Ya no puedes adjuntar en este ticket.");
+      if (current.status === "CANCELADO")
+        throw new AttachmentRejected(
+          "El ticket está cancelado; no admite adjuntos.",
+        );
       const attachment = await tx.ticketAttachment.create({
         data: {
           ticketId,
@@ -88,9 +100,13 @@ export async function uploadTicketAttachment(
         error: String(e),
       }),
     );
+    if (error instanceof AttachmentRejected)
+      return actionError("INVALID_STATE", error.message);
     throw error;
   }
 }
+
+class AttachmentRejected extends Error {}
 
 // TRAMPA: el nombre llega del navegador; se quitan rutas y caracteres que SharePoint o Windows rechazan.
 function toSafeName(name: string): string {

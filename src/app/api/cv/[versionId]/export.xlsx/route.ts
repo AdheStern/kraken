@@ -31,7 +31,7 @@ export async function GET(
   const access = version ? await loadCvAccess(version.cvId, versionId) : null;
   if (!version || !access)
     return new Response("No encontramos ese CV.", { status: 404 });
-  if (!canExportCvVersion(user, access, version.status)) {
+  if (!canExportCvVersion(user, access)) {
     return new Response("No tienes permiso para exportar esta versión.", {
       status: 403,
     });

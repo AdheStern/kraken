@@ -10,6 +10,7 @@ import {
   canEditCvDraft,
   canExportCvVersion,
   canSeeCvCosts,
+  seesOnlyApprovedVersions,
 } from "@/server/authz/cv-permissions";
 import type { SessionUser } from "@/server/authz/roles";
 
@@ -30,24 +31,24 @@ const ownCv: CvAccessFacts = {
   createdById: "yo",
   sellerIds: [],
   lineAreaIds: [AREA_TEL],
-  hasApprovedVersion: false,
+  isApprovedVersion: false,
 };
 const sellerCv: CvAccessFacts = {
   createdById: "otro",
   sellerIds: ["yo"],
   lineAreaIds: [AREA_TEL],
-  hasApprovedVersion: false,
+  isApprovedVersion: false,
 };
 const foreignNetCv: CvAccessFacts = {
   createdById: "otro",
   sellerIds: ["otro"],
   lineAreaIds: [AREA_NET],
-  hasApprovedVersion: false,
+  isApprovedVersion: false,
 };
 const foreignApprovedCv: CvAccessFacts = {
   ...foreignNetCv,
   lineAreaIds: [AREA_TEL],
-  hasApprovedVersion: true,
+  isApprovedVersion: true,
 };
 
 describe("§2.9 CV: crear y editar borrador", () => {
@@ -188,7 +189,43 @@ describe("§2.9 CV: exportar Excel", () => {
       false,
     ],
   ])("%s → %s", (_, u, cv, status, expected) => {
-    expect(canExportCvVersion(u, cv, status)).toBe(expected);
+    const isApprovedVersion = status === "APROBADA" || status === "REEMPLAZADA";
+    expect(canExportCvVersion(u, { ...cv, isApprovedVersion })).toBe(expected);
+  });
+});
+
+describe("§2.9 CV: ver (versiones de Administración)", () => {
+  it("quien entra solo por Administración ve solo las versiones aprobadas", () => {
+    expect(
+      seesOnlyApprovedVersions(user(["ADMINISTRACION"]), foreignApprovedCv),
+    ).toBe(true);
+  });
+
+  it.each<[string, SessionUser, CvAccessFacts]>([
+    [
+      "administración y vendedor",
+      user(["ADMINISTRACION"], ["COMERCIAL"]),
+      sellerCv,
+    ],
+    [
+      "administración y gerente del área",
+      user(["ADMINISTRACION"], ["GERENTE_AREA", AREA_NET]),
+      foreignNetCv,
+    ],
+    [
+      "administración y preventa",
+      user(["ADMINISTRACION"], ["PREVENTA"]),
+      foreignNetCv,
+    ],
+    ["comercial", user(["COMERCIAL"]), ownCv],
+    ["gerente general", user(["GERENTE_GENERAL"]), foreignNetCv],
+  ])("%s ve todas las versiones", (_, u, cv) => {
+    expect(seesOnlyApprovedVersions(u, cv)).toBe(false);
+  });
+
+  it("el gerente de área ve los costos de todo el CV si tiene una línea de su área (decisión 2026-10-24)", () => {
+    const mixed = { ...foreignNetCv, lineAreaIds: [AREA_NET, AREA_TEL] };
+    expect(canSeeCvCosts(user(["GERENTE_AREA", AREA_NET]), mixed)).toBe(true);
   });
 });
 

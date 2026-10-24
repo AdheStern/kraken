@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import { scopeTicketQuery } from "@/server/authz/scope-ticket-query";
 import { prisma } from "@/server/db";
+import { safeContentType } from "@/server/files/safe-content-type";
 import { selectFileStore } from "@/server/files/select-file-store";
 import { log } from "@/server/log";
 import { getSessionUser } from "@/server/session";
@@ -26,10 +27,12 @@ export async function GET(
     const data = await store.get(attachment.storagePath);
     return new NextResponse(Buffer.from(data), {
       headers: {
-        "content-type": attachment.mimeType,
+        "content-type": safeContentType(attachment.mimeType),
         "content-disposition": `attachment; filename*=UTF-8''${encodeURIComponent(attachment.fileName)}`,
         "cache-control": "private, no-store",
         "x-content-type-options": "nosniff",
+        // POR QUÉ: si el navegador igual lo abre, no ejecuta scripts ni accede a nuestro origen.
+        "content-security-policy": "sandbox",
       },
     });
   } catch (error) {

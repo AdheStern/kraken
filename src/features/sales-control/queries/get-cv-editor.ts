@@ -7,6 +7,7 @@ import {
   canEditCvDraft,
   canExportCvVersion,
   canSeeCvCosts,
+  seesOnlyApprovedVersions,
 } from "@/server/authz/cv-permissions";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeCvQuery } from "@/server/authz/scope-cv-query";
@@ -15,6 +16,8 @@ import { loadCvAccess } from "@/server/sales-control/cv-access";
 import { approvalRequestLabel } from "../approval-request-label";
 import type { CvApprovalItem, CvEditorData, CvVersionSummary } from "../types";
 import { toEditorHeader } from "./editor-header";
+
+const APPROVED: string[] = ["APROBADA", "REEMPLAZADA"];
 
 export async function getCvEditor(
   user: SessionUser,
@@ -39,8 +42,14 @@ export async function getCvEditor(
     },
   });
   const latest = cv?.versions[0];
-  const shown = cv?.versions.find((v) => v.number === versionNumber) ?? latest;
-  if (!cv || !latest || !shown) return null;
+  if (!cv || !latest) return null;
+  const latestAccess = await loadCvAccess(cv.id, latest.id);
+  if (!latestAccess) return null;
+  const visible = seesOnlyApprovedVersions(user, latestAccess)
+    ? cv.versions.filter((v) => APPROVED.includes(v.status))
+    : cv.versions;
+  const shown = visible.find((v) => v.number === versionNumber) ?? visible[0];
+  if (!shown) return null;
 
   const version = await prisma.cvVersion.findUniqueOrThrow({
     where: { id: shown.id },
@@ -55,15 +64,12 @@ export async function getCvEditor(
       },
     },
   });
-  const [latestAccess, shownAccess] = await Promise.all([
-    loadCvAccess(cv.id, latest.id),
-    loadCvAccess(cv.id, shown.id),
-  ]);
-  if (!latestAccess || !shownAccess) return null;
+  const shownAccess = await loadCvAccess(cv.id, shown.id);
+  if (!shownAccess) return null;
   const canManage = canEditCvDraft(user, latestAccess);
   const isLatest = shown.id === latest.id;
 
-  const versions: CvVersionSummary[] = cv.versions.map((v) => ({
+  const versions: CvVersionSummary[] = visible.map((v) => ({
     id: v.id,
     number: v.number,
     label: toCvVersionLabel(cv.code, v.number),
@@ -91,7 +97,7 @@ export async function getCvEditor(
     header: toEditorHeader(cv, version),
     canEdit: isLatest && version.status === "BORRADOR" && canManage,
     canSeeCosts: canSeeCvCosts(user, shownAccess),
-    canExport: canExportCvVersion(user, shownAccess, version.status),
+    canExport: canExportCvVersion(user, shownAccess),
     versionNumber: version.number,
     isLatest,
     latestStatus: latest.status,

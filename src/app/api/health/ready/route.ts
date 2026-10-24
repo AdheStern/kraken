@@ -7,5 +7,15 @@ import { log } from "@/server/log";
 export async function GET() {
   const result = await checkReadiness(prisma, process.env.FILES_ROOT);
   if (!result.ready) log("warn", "nodo no disponible", result.checks);
-  return Response.json(result, { status: result.ready ? 200 : 503 });
+  // POR QUÉ: la ruta es pública para HAProxy; el detalle del error (host de la base, carpetas) queda en el log.
+  const checks = Object.fromEntries(
+    Object.entries(result.checks).map(([name, state]) => [
+      name,
+      state === "ok" ? "ok" : "falla",
+    ]),
+  );
+  return Response.json(
+    { ready: result.ready, checks },
+    { status: result.ready ? 200 : 503 },
+  );
 }

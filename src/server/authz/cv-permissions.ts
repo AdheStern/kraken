@@ -7,7 +7,7 @@ export type CvAccessFacts = {
   createdById: string;
   sellerIds: readonly string[];
   lineAreaIds: readonly string[];
-  hasApprovedVersion: boolean;
+  isApprovedVersion: boolean;
 };
 
 export function canCreateCv(user: SessionUser): boolean {
@@ -41,19 +41,27 @@ export function canSeeCvCosts(user: SessionUser, cv: CvAccessFacts): boolean {
   const managedAreaIds = areaIdsWithRole(user, "GERENTE_AREA");
   if (cv.lineAreaIds.some((areaId) => managedAreaIds.includes(areaId)))
     return true;
-  return hasRole(user, "ADMINISTRACION") && cv.hasApprovedVersion;
+  return hasRole(user, "ADMINISTRACION") && cv.isApprovedVersion;
 }
 
-// REGLA: "CV: exportar Excel" sigue a "costos y margen", pero Administración exporta solo la versión
+// REGLA: "CV: exportar Excel" sigue a "costos y margen" de la versión; Administración exporta solo la versión
 // aprobada (o reemplazada), no un borrador posterior (§2.9).
 export function canExportCvVersion(
   user: SessionUser,
   cv: CvAccessFacts,
-  versionStatus: string,
 ): boolean {
-  const isApproved =
-    versionStatus === "APROBADA" || versionStatus === "REEMPLAZADA";
-  return canSeeCvCosts(user, { ...cv, hasApprovedVersion: isApproved });
+  return canSeeCvCosts(user, cv);
+}
+
+// REGLA: quien ve el CV solo por Administración ve solo sus versiones aprobadas o reemplazadas (§2.9 "CV: ver").
+// TRAMPA: la preventa ve el CV por otra vía (scopeCvQuery) y conserva todas las versiones.
+export function seesOnlyApprovedVersions(
+  user: SessionUser,
+  cv: CvAccessFacts,
+): boolean {
+  if (!hasRole(user, "ADMINISTRACION") || hasRole(user, "PREVENTA"))
+    return false;
+  return !canSeeCvCosts(user, { ...cv, isApprovedVersion: false });
 }
 
 function isOwnCv(user: SessionUser, cv: CvAccessFacts): boolean {

@@ -1,5 +1,6 @@
 // src/server/sales-control/cv-access.ts
-// Hechos mínimos de un CV para decidir permisos (creador, vendedores, áreas de líneas, si hay aprobada).
+// Hechos mínimos de un CV y una de sus versiones para decidir permisos (creador, vendedores, áreas de líneas y
+// si esa versión está aprobada).
 import type { CvAccessFacts } from "@/server/authz/cv-permissions";
 import type { Tx } from "@/server/db";
 import { prisma } from "@/server/db";
@@ -11,16 +12,13 @@ export async function loadCvAccess(
 ): Promise<CvAccessFacts | null> {
   const cv = await db.cv.findUnique({
     where: { id: cvId },
-    select: {
-      createdById: true,
-      versions: {
-        where: { status: "APROBADA" },
-        select: { id: true },
-        take: 1,
-      },
-    },
+    select: { createdById: true },
   });
-  if (!cv) return null;
+  const version = await db.cvVersion.findFirst({
+    where: { id: versionId, cvId },
+    select: { status: true },
+  });
+  if (!cv || !version) return null;
   // TRAMPA: en serie; dentro de una transacción el cliente usa una sola conexión y pg@9 rechaza consultas en paralelo.
   const sellers = await db.cvVersionSeller.findMany({
     where: { versionId },
@@ -35,6 +33,8 @@ export async function loadCvAccess(
     createdById: cv.createdById,
     sellerIds: sellers.map((s) => s.userId),
     lineAreaIds: lines.flatMap((l) => (l.areaId ? [l.areaId] : [])),
-    hasApprovedVersion: cv.versions.length > 0,
+    // REGLA: Administración ve costos solo de lo aprobado, versión por versión (§2.9).
+    isApprovedVersion:
+      version.status === "APROBADA" || version.status === "REEMPLAZADA",
   };
 }

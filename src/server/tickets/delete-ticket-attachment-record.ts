@@ -3,7 +3,10 @@
 // Devuelve la referencia para borrar el archivo del FileStore después de confirmar la transacción.
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import type { SessionUser } from "@/server/authz/roles";
-import { canCloseTicket } from "@/server/authz/ticket-permissions";
+import {
+  canCloseTicket,
+  canCommentTicket,
+} from "@/server/authz/ticket-permissions";
 import type { Tx } from "@/server/db";
 import { loadTicketAccess } from "./load-ticket-access";
 
@@ -26,9 +29,11 @@ export async function deleteTicketAttachmentRecord(
   });
   if (!attachment) return actionError("NOT_FOUND", "El adjunto ya no existe.");
   const access = await loadTicketAccess(tx, attachment.ticketId);
+  // REGLA: quien lo subió lo quita mientras siga trabajando en el ticket; quien lo cierra, siempre (§2.6).
   const allowed =
-    attachment.uploadedById === user.id ||
-    (access !== null && canCloseTicket(user, access));
+    access !== null &&
+    ((attachment.uploadedById === user.id && canCommentTicket(user, access)) ||
+      canCloseTicket(user, access));
   if (!allowed)
     return actionError(
       "FORBIDDEN",

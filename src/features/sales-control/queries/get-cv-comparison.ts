@@ -8,7 +8,10 @@ import {
 } from "@/domain/sales-control/compare-versions";
 import { toCvVersionLabel } from "@/domain/sales-control/cv-code";
 import type { Prisma } from "@/generated/prisma/client";
-import { canSeeCvCosts } from "@/server/authz/cv-permissions";
+import {
+  canSeeCvCosts,
+  seesOnlyApprovedVersions,
+} from "@/server/authz/cv-permissions";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeCvQuery } from "@/server/authz/scope-cv-query";
 import { prisma } from "@/server/db";
@@ -41,8 +44,15 @@ export async function getCvComparison(
   const before = versions.find((v) => v.number === numbers.from);
   const after = versions.find((v) => v.number === numbers.to);
   if (!before || !after) return null;
-  const access = await loadCvAccess(cv.id, after.id);
-  const withCosts = access !== null && canSeeCvCosts(user, access);
+  const beforeAccess = await loadCvAccess(cv.id, before.id);
+  const afterAccess = await loadCvAccess(cv.id, after.id);
+  if (!beforeAccess || !afterAccess) return null;
+  // REGLA: Administración compara solo versiones aprobadas; los costos se muestran si ambas los permiten (§2.9).
+  const isHidden = (access: typeof beforeAccess) =>
+    seesOnlyApprovedVersions(user, access) && !access.isApprovedVersion;
+  if (isHidden(beforeAccess) || isHidden(afterAccess)) return null;
+  const withCosts =
+    canSeeCvCosts(user, beforeAccess) && canSeeCvCosts(user, afterAccess);
 
   return {
     cvId: cv.id,

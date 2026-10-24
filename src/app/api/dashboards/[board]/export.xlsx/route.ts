@@ -68,7 +68,8 @@ export async function GET(
     return new Response("Tu sesión expiró. Vuelve a iniciar sesión.", {
       status: 401,
     });
-  const spec = BOARDS[board];
+  // TRAMPA: un objeto literal también "tiene" constructor o __proto__; solo cuentan sus claves propias.
+  const spec = Object.hasOwn(BOARDS, board) ? BOARDS[board] : undefined;
   if (!spec) return new Response("No existe ese tablero.", { status: 404 });
   const params = Object.fromEntries(request.nextUrl.searchParams);
   const { filters } = await loadDashboardContext(user, params);

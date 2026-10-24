@@ -25,6 +25,21 @@ test("la salud del nodo responde para HAProxy", async ({ request }) => {
     .toBe(true);
 });
 
+test("las páginas llevan las cabeceras de seguridad y no delatan el framework", async ({
+  request,
+}) => {
+  const response = await request.get("/login");
+  const headers = response.headers();
+  expect(headers["content-security-policy"]).toContain(
+    "frame-ancestors 'none'",
+  );
+  expect(headers["x-frame-options"]).toBe("DENY");
+  expect(headers["x-content-type-options"]).toBe("nosniff");
+  expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+  expect(headers["strict-transport-security"]).toContain("max-age=31536000");
+  expect(headers["x-powered-by"]).toBeUndefined();
+});
+
 test.describe("gerente general", () => {
   test.use({ storageState: storageFor("gg") });
 

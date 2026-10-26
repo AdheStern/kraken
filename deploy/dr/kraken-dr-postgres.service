@@ -1,0 +1,19 @@
+# deploy/dr/kraken-dr-postgres.service
+# PostgreSQL restaurado en la VM de recuperación (AGENTS.md §10 DR), fuera de Patroni y del clúster del paquete.
+[Unit]
+Description=Kraken DR: PostgreSQL 16 restaurado del repo2
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+User=postgres
+ExecStart=/usr/lib/postgresql/16/bin/postgres -D /var/lib/kraken/pgdata -c config_file=/etc/kraken/dr/postgresql.conf
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+KillSignal=SIGINT
+TimeoutSec=infinity
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

@@ -19,6 +19,8 @@ decisiones: [AGENTS.md §3 y §10](../AGENTS.md). Objetivo no negociable: **ning
 | db-01..03 | `backup/pgbackrest.db.conf` | Empuja el WAL a ops-01 por TLS |
 | ops-01 | `backup/pgbackrest.repo.conf` | Repositorio: NAS (repo1) y Azure inmutable (repo2), cifrados |
 | Azure (una vez) | `azure/backup.bicep` | Storage del repo2 con inmutabilidad por versión y Key Vault de recuperación, con bloqueos |
+| Azure (desastre o ensayo) | `azure/dr.bicep`, `azure/dr-cloud-init.yaml` | VM de recuperación: red, IP pública, Postgres 16, pgBackRest, Docker, lectura del Key Vault |
+| VM de recuperación | `scripts/dr-restore.sh`, `dr/*` | Restaura el repo2 y levanta Postgres y la app en un nodo; informe con el RTO |
 | ops-01, app-0X | `scripts/escrow-secrets.sh` | Custodia en el Key Vault la configuración de pgBackRest y los env (sin ellos, el repo2 no sirve) |
 | ops-01 | `backup/systemd/kraken-backup*` | Completo domingo 02:00, diferencial diario 02:00 (los adjuntos viven en SharePoint, ADR-16) |
 | ops-01 | `ops/compose.yml`, `ops/prometheus.yml` | Prometheus, Loki, Grafana, Uptime Kuma |
@@ -85,10 +87,35 @@ para los adjuntos con un registro de app `Sites.Selected` (escritura solo en ese
 
 ## Recuperación ante desastre en Azure (en frío)
 
-Si cae el host o el NAS: crear en Azure una VM con Docker y pgBackRest, restaurar desde **repo2** hasta el
-último WAL (`pgbackrest --stanza=kraken --repo=2 restore`), levantar Postgres, desplegar las mismas imágenes de
-GHCR con `app/compose.yml` (un solo nodo, `haproxy.env` apuntando a la base local) y cambiar el DNS. Objetivo:
-**4 h**. Se ensaya dos veces al año; medir y anotar el tiempo real.
+Si cae el host o el NAS. Objetivo: **4 h** desde el incidente hasta que el dominio responde (AGENTS.md §10).
+Se ensaya dos veces al año con el modo `ensayo`, y cada informe se guarda junto al acta del ensayo.
+
+**Antes, en tiempos normales:** TTL de 300 s en el registro DNS del dominio; los secretos custodiados (paso 6),
+también `ghcr-pull` (`usuario:token` de lectura de paquetes) si las imágenes de GHCR son privadas.
+
+1. **Declarar el desastre** (GG con DIMANET) y anotar la hora: es el inicio del RTO. En un ensayo no se declara
+   nada y producción sigue intacta.
+2. **VM.** `az deployment group create -g <grupo> -f azure/dr.bicep -p prefix=<…> keyVaultName=<vault>
+   adminCidr=<mi-ip>/32 sshPublicKey="$(cat ~/.ssh/id_ed25519.pub)"`. Si el storage tiene `allowedIps`, sumar
+   la IP pública de la salida: `az storage account network-rule add -g <grupo> --account-name <…> --ip-address
+   <ip>`. Esperar a cloud-init: `ssh kraken@<ip> cloud-init status --wait`.
+3. **Restaurar.** `sudo /opt/kraken/deploy/scripts/dr-restore.sh desastre <vault> <sha-en-producción>
+   <inicio-ISO-UTC>` (o `ensayo` sin la hora). Trae los secretos, restaura el repo2 hasta el último WAL, levanta
+   Postgres (`kraken-dr-postgres`) y la app de un nodo con TLS en HAProxy, y escribe el informe en
+   `/var/log/kraken-dr/` con la duración de cada paso y hasta cuándo llegan los datos.
+4. **DNS** (solo en un desastre). Apuntar el registro A del dominio a la IP pública de la VM. Entra ID, Graph y
+   SharePoint no cambian: la URL es la misma. Anotar en el informe cuándo responde
+   `https://<dominio>/api/health/ready` desde fuera: ese es el RTO real.
+5. **Verificar.** Iniciar sesión, abrir un CV y una bolsa, revisar que la bandeja de correo salga. En un ensayo,
+   entrar desde un equipo con el dominio apuntado a la VM en su archivo `hosts`; el worker no corre (no envía
+   correos ni corre jobs) y la base no archiva.
+6. **Durante el desastre** la base archiva al repo2 en una línea de tiempo nueva y saca un completo al terminar
+   el paso 3 (`/var/log/kraken-dr/primer-completo.log`). **El regreso** se planifica con DIMANET: ventana de
+   corte, respaldo completo desde Azure restaurado en db-01, Patroni reconstruye las réplicas, DNS de vuelta.
+7. **Al terminar un ensayo:** `az vm delete` y los recursos `<prefijo>-dr-*` del grupo (el storage y el Key
+   Vault tienen bloqueo y no se tocan).
+
+LIMITACIÓN: en Azure no hay WAF ni réplica; es un nodo para sostener la operación mientras vuelve el sitio.
 
 ## Qué está validado
 
@@ -101,7 +128,8 @@ GHCR con `app/compose.yml` (un solo nodo, `haproxy.env` apuntando a la base loca
 | CI (`.github/workflows/ci.yml`) | Por validar | Primer PR en GitHub |
 | Patroni + etcd, conmutación del primario | **No validado** | Requiere las tres VMs de base |
 | pgBackRest (TLS, NAS, Azure), timers | **No validado** | Requiere ops-01, NAS y cuenta de Azure |
-| `azure/backup.bicep` | Validado (compilación) | `az bicep build`; sin desplegar |
+| `azure/backup.bicep`, `azure/dr.bicep` | Validado (compilación) | `az bicep build`; sin desplegar |
+| `dr/haproxy.dr.cfg`, `dr/compose.dr.yml` | Validado (sintaxis) | `haproxy -c` con certificado de prueba; `docker compose config` con el override |
 | keepalived, despliegue nodo por nodo | **No validado** | Requiere app-01 y app-02 |
 | Restauración en staging | **No validado** | Requiere stg-01 y un primer respaldo |
 | DR en Azure | **No validado** | Primer ensayo con DIMANET |

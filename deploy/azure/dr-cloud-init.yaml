@@ -1,0 +1,20 @@
+#cloud-config
+# deploy/azure/dr-cloud-init.yaml
+# Prepara la VM de dr.bicep (AGENTS.md §10 DR): PostgreSQL 16 y pgBackRest del sistema (sin el clúster por
+# defecto), Docker, Azure CLI y el repositorio en /opt/kraken. No restaura nada: eso es dr-restore.sh.
+package_update: true
+packages:
+  - postgresql-16
+  - pgbackrest
+  - docker.io
+  - docker-compose-v2
+  - git
+  - curl
+runcmd:
+  # POR QUÉ: el clúster vacío del paquete ocuparía el 5432; la base restaurada vive en /var/lib/kraken/pgdata.
+  - pg_dropcluster --stop 16 main
+  - curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+  - git clone --depth 1 https://github.com/AdheStern/kraken.git /opt/kraken
+  - install -d -m 750 -o postgres -g postgres /var/lib/kraken /var/spool/pgbackrest /var/log/pgbackrest
+  - install -d -m 750 /etc/kraken /var/log/kraken-dr
+  - touch /var/lib/cloud/kraken-dr-ready

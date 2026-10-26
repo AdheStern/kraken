@@ -3,7 +3,7 @@
 # Custodia en el Key Vault de backup.bicep los secretos sin los que no hay recuperación (AGENTS.md §10): la
 # configuración de pgBackRest (claves de cifrado y SAS) y los env de la app. Se corre tras cada cambio.
 #   escrow-secrets.sh <vault> pgbackrest-conf=/etc/pgbackrest/pgbackrest.conf app-env=/etc/kraken/app.env …
-# Nombres esperados por dr-restore.sh: pgbackrest-conf, app-env, migrate-env, tls-pem.
+# Nombres que lee dr-restore.sh: pgbackrest-conf, app-env, migrate-env, tls-pem y ghcr-pull (si GHCR es privado).
 # Requiere `az login` de una cuenta del grupo de recuperación (rol Key Vault Secrets Officer).
 set -euo pipefail
 

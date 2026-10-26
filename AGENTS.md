@@ -738,7 +738,7 @@ Operación conjunta: **DIMANET** (virtualización, red, seguridad perimetral, NA
 | Corrupción o borrado por error | 0 (PITR) | 1–2 h |
 | Cae el host o el NAS | Segundos (último WAL en Azure) | 4 h (levantar en Azure) |
 
-**DR en Azure (en frío):** procedimiento ensayado (Terraform o Bicep + script): crear VM con Postgres, restaurar al último WAL, levantar la app con las mismas imágenes y cambiar el DNS. Se ensaya dos veces al año.
+**DR en Azure (en frío):** procedimiento ensayado con Bicep y un script (`deploy/azure/dr.bicep`, `deploy/scripts/dr-restore.sh`; runbook en `deploy/README.md`): crear la VM, traer los secretos del Key Vault, restaurar el repo2 al último WAL, levantar la app de un nodo con las mismas imágenes y cambiar el DNS; el script deja un informe con la duración de cada paso. Se ensaya dos veces al año en modo `ensayo` (sin archivar WAL ni correr el worker, para no tocar producción).
 
 ### CI/CD
 PR → biome · typecheck · tests de dominio · integración con Postgres · build · E2E (`.github/workflows/ci.yml`) → merge a `main` (rama troncal) → imágenes `app` y `worker` en GHCR etiquetadas con el commit → staging (`pnpm migrate:deploy` + nodo) → aprobación manual del entorno `production` → producción: migración compatible hacia atrás → drenar `app-01`, actualizar, verificar → drenar `app-02`, actualizar, verificar (`.github/workflows/deploy.yml` y `deploy/scripts/deploy.sh`). Ganchos locales con lefthook: Biome antes de cada commit; tipos y tests antes de cada push. **Limitación actual:** hasta que exista el runner de `ops-01`, `deploy.yml` solo corre a mano (`workflow_dispatch`); CI corre en cada PR y en cada push a `main`.

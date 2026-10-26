@@ -45,6 +45,9 @@ services:
     image: haproxy:3.0-alpine
     restart: unless-stopped
     network_mode: host
+    # TRAMPA: con la red del host, el usuario de la imagen (uid 99) no puede abrir puertos < 1024; arranca como
+    # root, abre los puertos y lee el certificado, y baja a haproxy (user/group en global de haproxy.cfg).
+    user: root
     env_file: /etc/kraken/haproxy.env
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro

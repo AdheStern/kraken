@@ -9,6 +9,7 @@ import {
   Boxes,
   ChartColumn,
   FileSpreadsheet,
+  FolderOpen,
   Hourglass,
   House,
   type LucideIcon,
@@ -38,6 +39,11 @@ const ITEMS: Record<NavKey, { href: string; label: string; icon: LucideIcon }> =
     tickets: { href: "/tickets", label: "Tickets", icon: Ticket },
     horas: { href: "/horas", label: "Bolsas de horas", icon: Hourglass },
     inventario: { href: "/inventario", label: "Inventario", icon: Boxes },
+    documentacion: {
+      href: "/documentacion",
+      label: "Documentación",
+      icon: FolderOpen,
+    },
     aprobaciones: { href: "/aprobaciones", label: "Aprobaciones", icon: Stamp },
     admin: {
       href: "/admin",

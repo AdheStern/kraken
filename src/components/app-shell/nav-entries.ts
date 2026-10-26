@@ -10,6 +10,7 @@ export type NavKey =
   | "tickets"
   | "horas"
   | "inventario"
+  | "documentacion"
   | "aprobaciones"
   | "admin";
 

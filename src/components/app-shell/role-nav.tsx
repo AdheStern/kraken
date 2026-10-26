@@ -1,5 +1,5 @@
 // src/components/app-shell/role-nav.tsx
-// Navegación según el rol: Tableros, Tickets, Bolsas de horas e Inventario para quien los ve (§2.9) y Aprobaciones solo para quien aprueba,
+// Navegación según el rol: Tableros, Tickets, Bolsas de horas, Inventario y Documentación para quien los ve (§2.9, §2.10) y Aprobaciones solo para quien aprueba,
 // con el número de solicitudes pendientes.
 // Va dentro de un <Suspense> porque lee la sesión.
 import { visibleBoards } from "@/features/dashboards/queries/load-dashboard-context";
@@ -7,6 +7,7 @@ import { countPendingAdjustments } from "@/features/inventory/queries/count-pend
 import { listPendingApprovals } from "@/features/sales-control/queries/list-pending-approvals";
 import { canOpenAdmin } from "@/server/authz/admin-permissions";
 import { canApproveCvs } from "@/server/authz/cv-permissions";
+import { canUseDocumentation } from "@/server/authz/documentation-permissions";
 import { canSeeHourBags } from "@/server/authz/hour-bag-permissions";
 import { canSeeInventory } from "@/server/authz/inventory-permissions";
 import { canSeeTickets } from "@/server/authz/ticket-permissions";
@@ -26,6 +27,7 @@ export async function RoleNav() {
       key: "inventario",
       badge: await countPendingAdjustments(user),
     });
+  if (canUseDocumentation(user)) entries.push({ key: "documentacion" });
   if (canApproveCvs(user)) {
     const pending = await listPendingApprovals(user);
     entries.push({ key: "aprobaciones", badge: pending.length });

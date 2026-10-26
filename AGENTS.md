@@ -284,7 +284,7 @@ Almacén opera inventario y POS y ve el tablero de inventario; el coordinador ve
 Además del CV y del soporte, DIMA documenta sus proyectos por **fases**. No se profundiza como en CV o tickets: en cada fase solo se suben documentos.
 - **Fases:** catálogo `doc.fase` con orden, que gestiona el administrador del sistema en `/admin/fases-documentacion` (crear, renombrar, ordenar, dar de baja). Sin carga inicial: hoy son 4 y las define DIMA. Una fase dada de baja no admite subidas; si tiene documentos, se siguen viendo.
 - **Proyecto de documentación** (`doc.proyecto`, distinto de `tickets.proyecto`): nombre y una cabecera con cliente (catálogo), contacto (un contacto del cliente prellena nombre, correo y teléfono, que quedan editables), tecnologías (catálogo, varias) y encargado (usuario). Sin montos, sin estado ni correlativo.
-- **Documentos:** cada uno pertenece a un proyecto y a una fase; las fases son carpetas, el proyecto no «avanza» de fase. Hasta 20 MB, en SharePoint (ADR-16) bajo `documentacion/{cliente}/{proyecto}/{n}. {fase}/`, con nombres legibles para navegar la biblioteca; un nombre repetido en la misma fase se guarda como `nombre (2).ext`. Renombrar un proyecto o una fase no mueve lo ya subido (el enlace es el id del elemento).
+- **Documentos:** cada uno pertenece a un proyecto y a una fase; las fases son carpetas, el proyecto no «avanza» de fase. Hasta 20 MB, en SharePoint (ADR-16) bajo `documentacion/{cliente}/{proyecto}/{fase}/`, con nombres legibles para navegar la biblioteca; un nombre repetido en la misma fase (o en la misma carpeta) se guarda como `nombre (2).ext` y el `FileStore` nunca pisa un archivo. Renombrar un proyecto o una fase no mueve lo ya subido (el enlace es el id del elemento).
 - **Permisos:** la información es pública dentro de DIMA. Todo usuario con al menos un rol ve, crea proyectos, edita la cabecera y sube; quitar un documento es de quien lo subió o del administrador del sistema. Los listados pasan igual por `scopeDocProjectQuery` (regla 7). Crear, editar, subir, quitar y los cambios de fases se auditan.
 
 ---
@@ -850,10 +850,10 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - *Sale cuando:* el sistema se recupera en Azure dentro del RTO y gerencia firma la aceptación.
 
 **F7 · Documentación por proyecto (~1 semana)**
-- Esquema `doc`, permisos y catálogo de fases en `/admin/fases-documentacion` [SONNET]
-- Proyectos con su cabecera: listado, alta y edición (`/documentacion`) [SONNET]
-- Documentos por fase en SharePoint: subir, descargar y quitar [SONNET]
-- Credenciales de SharePoint (registro de app con `Sites.Selected`, permiso de escritura sobre el sitio, id de la biblioteca): guía en `deploy/README.md` [DIMANET]
+- Esquema `doc`, permisos y catálogo de fases en `/admin/fases-documentacion` [SONNET] — hecho
+- Proyectos con su cabecera: listado, alta y edición (`/documentacion`) [SONNET] — hecho
+- Documentos por fase en SharePoint: subir, descargar y quitar [SONNET] — hecho (E2E `tests/e2e/documentation.spec.ts`)
+- Credenciales de SharePoint (registro de app con `Sites.Selected`, permiso de escritura sobre el sitio, id de la biblioteca): guía en `deploy/README.md` («SharePoint para adjuntos y documentación») [DIMANET]
 - *Sale cuando:* los proyectos en curso tienen su documentación por fase en Kraken y se ve en la biblioteca de SharePoint.
 
 ---

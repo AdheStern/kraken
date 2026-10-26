@@ -47,6 +47,8 @@ export default defineConfig({
   ],
   webServer: {
     command: "pnpm start -p 3100",
+    // POR QUÉ: el build corre en modo producción, donde sin SharePoint ni FILES_ROOT no hay adjuntos (ADR-16).
+    env: { FILES_ROOT: process.env.FILES_ROOT || "test-results/files" },
     url: `${baseURL}/api/health/live`,
     reuseExistingServer: !isCi,
     timeout: 120_000,

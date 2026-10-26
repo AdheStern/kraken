@@ -1,5 +1,6 @@
 // src/app/(app)/documentacion/[id]/page.tsx
-// Detalle de un proyecto de documentación: su cabecera editable, como la del CV (AGENTS.md §2.10).
+// Detalle de un proyecto de documentación: su cabecera editable, como la del CV, y una carpeta por fase con sus
+// documentos (AGENTS.md §2.10).
 // Fuera del alcance del usuario responde 404.
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
@@ -8,9 +9,11 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DocPhaseSections } from "@/features/documentation/components/doc-phase-sections";
 import { DocProjectForm } from "@/features/documentation/components/doc-project-form";
 import { getDocProject } from "@/features/documentation/queries/get-doc-project";
 import { getDocProjectFormOptions } from "@/features/documentation/queries/get-doc-project-form-options";
+import { getDocProjectPhases } from "@/features/documentation/queries/get-doc-project-phases";
 import { canUseDocumentation } from "@/server/authz/documentation-permissions";
 import { requireUser } from "@/server/session";
 
@@ -46,6 +49,7 @@ async function Project({
     getDocProjectFormOptions(),
   ]);
   if (!project) notFound();
+  const phases = await getDocProjectPhases(user, project.id);
   const { projectId, ...values } = project.header;
   return (
     <>
@@ -75,6 +79,7 @@ async function Project({
           />
         </div>
       </details>
+      <DocPhaseSections projectId={project.id} data={phases} />
     </>
   );
 }

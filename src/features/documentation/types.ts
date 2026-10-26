@@ -44,3 +44,24 @@ export type DocProjectDetail = {
   technologies: string[];
   header: UpdateDocProjectInput;
 };
+
+export type DocumentView = {
+  id: string;
+  fileName: string;
+  sizeBytes: number;
+  uploadedBy: string;
+  uploadedAt: string;
+  canDelete: boolean;
+};
+
+export type DocPhaseView = {
+  id: string;
+  name: string;
+  isActive: boolean;
+  documents: DocumentView[];
+};
+
+export type DocProjectPhases = {
+  filesEnabled: boolean;
+  phases: DocPhaseView[];
+};

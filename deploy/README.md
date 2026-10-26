@@ -35,7 +35,37 @@ decisiones: [AGENTS.md §3 y §10](../AGENTS.md). Objetivo no negociable: **ning
 IPs de la VLAN de aplicación (app-01, app-02, IP virtual) y de datos (db-01..03, ops-01) · interfaz de red
 para keepalived · ruta NFS del NAS para pgBackRest (`/mnt/nas/pgbackrest`) ·
 suscripción y grupo de recursos de Azure para `azure/backup.bicep` y el grupo de Entra que custodia los secretos · nombre DNS y certificado público en el FortiGate/Radware · sitio de SharePoint
-para los adjuntos con un registro de app `Sites.Selected` (escritura solo en ese sitio) y el id de su biblioteca.
+para los adjuntos y la documentación con un registro de app `Sites.Selected` (escritura solo en ese sitio) y el id de
+su biblioteca (ver «SharePoint para adjuntos y documentación»).
+
+## SharePoint para adjuntos y documentación
+
+Los adjuntos de tickets y los documentos de proyecto (AGENTS.md §2.10, ADR-16) van a una biblioteca de SharePoint
+por Microsoft Graph. Sin estas variables, en producción no se puede subir nada (en desarrollo se usa `./.files`).
+
+1. **Sitio.** El administrador de SharePoint crea un sitio, por ejemplo `https://<tenant>.sharepoint.com/sites/Kraken`.
+   Se usa su biblioteca «Documentos»; la carpeta `SHAREPOINT_FOLDER` (`Kraken`) se crea con la primera subida.
+2. **Registro de app** (Entra → Registros de aplicaciones → Nuevo registro): `Kraken SharePoint`, solo este
+   inquilino, sin URI de redirección. El id de aplicación va en `SHAREPOINT_CLIENT_ID`; el inquilino es el mismo
+   `ENTRA_TENANT_ID` del inicio de sesión.
+3. **Permiso:** Permisos de API → Microsoft Graph → permiso de **aplicación** `Sites.Selected` → conceder
+   consentimiento de administrador. Por sí solo no da acceso a ningún sitio.
+4. **Secreto:** Certificados y secretos → nuevo secreto (24 meses). Su **valor** (no el id) va en
+   `SHAREPOINT_CLIENT_SECRET`; anotar el vencimiento para rotarlo antes.
+5. **Escritura solo sobre el sitio de Kraken**, en Graph Explorer con una cuenta de administrador que consienta
+   `Sites.FullControl.All` delegado:
+   - `GET https://graph.microsoft.com/v1.0/sites/<tenant>.sharepoint.com:/sites/Kraken` → `id` del sitio.
+   - `POST https://graph.microsoft.com/v1.0/sites/{site-id}/permissions` con
+     `{"roles":["write"],"grantedToIdentities":[{"application":{"id":"<SHAREPOINT_CLIENT_ID>","displayName":"Kraken SharePoint"}}]}`.
+6. **Biblioteca:** `GET https://graph.microsoft.com/v1.0/sites/{site-id}/drives` → el `id` de «Documentos»
+   (empieza con `b!`) va en `SHAREPOINT_DRIVE_ID`.
+7. **Variables** en `app/app.env` de cada nodo (permisos 600) y en el Key Vault (`scripts/escrow-secrets.sh`);
+   reiniciar la app.
+8. **Verificar:** subir un documento a un proyecto en `/documentacion` → aparece en
+   `Documentos/Kraken/documentacion/{cliente}/{proyecto}/{fase}/` y se descarga desde Kraken.
+
+A las personas se les da, si se quiere, **solo lectura** en el sitio: un archivo borrado o movido desde SharePoint
+deja de descargarse en Kraken. Subir y quitar se hace siempre desde Kraken.
 
 ## Puesta en marcha (orden)
 

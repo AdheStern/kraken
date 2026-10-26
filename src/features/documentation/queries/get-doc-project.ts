@@ -1,5 +1,6 @@
 // src/features/documentation/queries/get-doc-project.ts
 // Un proyecto de documentación con su cabecera lista para editar (AGENTS.md §2.10); null si no existe o no se ve.
+import { z } from "zod";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeDocProjectQuery } from "@/server/authz/scope-doc-project-query";
 import { prisma } from "@/server/db";
@@ -9,6 +10,7 @@ export async function getDocProject(
   user: SessionUser,
   projectId: string,
 ): Promise<DocProjectDetail | null> {
+  if (!z.uuid().safeParse(projectId).success) return null;
   const row = await prisma.docProject.findFirst({
     where: { AND: [{ id: projectId }, scopeDocProjectQuery(user)] },
     include: {

@@ -1,6 +1,7 @@
 // deploy/app/alloy.river
-// Grafana Alloy en cada nodo de app: lee los logs JSON de los contenedores de Kraken (app y worker) y los
-// manda a Loki en ops-01 con la etiqueta del servicio (AGENTS.md §10 Observabilidad). Reemplazar <IP_OPS_01>.
+// Grafana Alloy en cada nodo de app y en staging: lee los logs JSON de los contenedores de Kraken (app y worker)
+// y los manda a Loki con la etiqueta del servicio (AGENTS.md §10 Observabilidad).
+// LIMITACIÓN: Loki aún no tiene destino; el servicio alloy solo arranca con --profile logs. Reemplazar <URL_LOKI>.
 
 discovery.docker "kraken" {
   host = "unix:///var/run/docker.sock"
@@ -26,7 +27,7 @@ loki.source.docker "kraken" {
 
 loki.write "ops" {
   endpoint {
-    url = "http://<IP_OPS_01>:3100/loki/api/v1/push"
+    url = "<URL_LOKI>/loki/api/v1/push"
   }
   external_labels = { nodo = constants.hostname }
 }

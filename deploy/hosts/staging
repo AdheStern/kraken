@@ -1,3 +1,4 @@
 # deploy/hosts/staging
-# Nodos de staging (AGENTS.md §10): un solo nodo con todo.
-stg-01
+# Nodo de staging (AGENTS.md §10): uno solo con app, worker, Postgres y HAProxy (deploy/staging/compose.yml).
+# Nombre SSH que resuelve el ~/.ssh/config del usuario deploy en lpzvmkrkops01.
+lpzvmkrkstg01

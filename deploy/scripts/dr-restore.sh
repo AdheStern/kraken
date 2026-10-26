@@ -40,8 +40,9 @@ install -d -m 750 -o root -g postgres "$CONF"
 } >"$CONF/pgbackrest.conf"
 secret app-env >/etc/kraken/app.env
 secret migrate-env >/etc/kraken/migrate.env
-secret tls-pem >/etc/kraken/tls.pem
-chmod 600 /etc/kraken/*.env /etc/kraken/tls.pem
+mkdir -p /etc/kraken/tls
+secret tls-pem >/etc/kraken/tls/kraken.pem
+chmod 600 /etc/kraken/*.env /etc/kraken/tls/kraken.pem
 chmod 640 "$CONF/pgbackrest.conf" && chown root:postgres "$CONF/pgbackrest.conf"
 install -m 644 "$DEPLOY/dr/postgresql.conf" "$DEPLOY/dr/pg_hba.conf" "$CONF/"
 if [[ "$MODE" == ensayo ]]; then echo "archive_mode = off" >"$CONF/modo.conf"; else : >"$CONF/modo.conf"; fi

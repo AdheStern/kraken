@@ -1,6 +1,6 @@
 # deploy/dr/compose.dr.yml
 # Override de app/compose.yml para la VM de recuperación (AGENTS.md §10 DR): un nodo, HAProxy con TLS y base
-# local, sin Alloy (no hay Loki). Las rutas relativas parten de deploy/app (el primer archivo).
+# local; Alloy no arranca (perfil logs de app/compose.yml). Las rutas relativas parten de deploy/app (el primer archivo).
 #   NODE_IP=127.0.0.1 KRAKEN_TAG=<sha> docker compose -f app/compose.yml -f dr/compose.dr.yml up -d
 
 services:
@@ -12,8 +12,6 @@ services:
   haproxy:
     env_file: !reset []
     volumes:
+      # El certificado se monta desde app/compose.yml (/etc/kraken/tls/kraken.pem, lo escribe dr-restore.sh).
       - ../dr/haproxy.dr.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-      - /etc/kraken/tls.pem:/etc/kraken/tls.pem:ro
 
-  alloy:
-    profiles: [sin-loki]

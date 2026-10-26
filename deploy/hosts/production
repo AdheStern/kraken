@@ -1,4 +1,6 @@
 # deploy/hosts/production
-# Nodos de aplicación de producción, en el orden en que se actualizan (AGENTS.md §10).
-app-01
-app-02
+# Nodos de aplicación de producción, en el orden en que se actualizan (AGENTS.md §10). Son nombres SSH: el
+# ~/.ssh/config del usuario deploy en lpzvmkrkops01 los resuelve a su IP (ver deploy/README.md). Deben ser
+# iguales a los nombres de los servidores de `backend app` en deploy/app/haproxy.cfg.
+lpzvmkrkapp01
+# lpzvmkrkapp02

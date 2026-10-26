@@ -1,7 +1,7 @@
 // tests/e2e/inventory.spec.ts
 // Recorrido de la F4 (AGENTS.md §11) con el almacenero: entra al POS, ingresa un producto nuevo pegando desde
 // Excel, lo traspasa a Santa Cruz con una diferencia, despacha al CV demo que reservó un FortiGate y descarga el
-// comprobante; Administración ve el ingreso con costos y el comercial no.
+// comprobante, registra la devolución de esa salida; Administración ve el ingreso con costos y el comercial no.
 import { type Browser, expect, type Page, test } from "@playwright/test";
 import { storageFor } from "./users";
 
@@ -90,6 +90,16 @@ test("despacha el FortiGate reservado por el CV demo y el comprobante es un PDF"
   const response = await page.request.get(href ?? "");
   expect(response.status()).toBe(200);
   expect(response.headers()["content-type"]).toBe("application/pdf");
+
+  // El equipo vuelve: devolución de esa salida por el número de su comprobante.
+  const heading = await page
+    .getByText(/Salida N\.º \d+ registrada/)
+    .innerText();
+  const number = heading.match(/\d+/)?.[0];
+  await page.goto(`/inventario/devoluciones/nueva?salida=${number}`);
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Registrar devolución" }).click();
+  await expect(page.getByText(/Devolución N\.º \d+ registrada/)).toBeVisible();
 });
 
 test("Administración ve el costo del ingreso y el comercial solo cantidades", async ({

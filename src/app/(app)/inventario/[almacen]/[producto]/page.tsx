@@ -12,6 +12,7 @@ import { formatQuantity } from "@/features/inventory/components/inventory-labels
 import { KardexTable } from "@/features/inventory/components/kardex-table";
 import { getKardex } from "@/features/inventory/queries/get-kardex";
 import { formatAmount } from "@/lib/format-amount";
+import { canOperateInventory } from "@/server/authz/inventory-permissions";
 import { requireUser } from "@/server/session";
 
 export const metadata: Metadata = { title: "Kardex" };
@@ -71,7 +72,7 @@ async function Kardex({ params }: { params: Params }) {
         />
       </dl>
       {entries.length > 0 ? (
-        <KardexTable entries={entries} />
+        <KardexTable entries={entries} canReturn={canOperateInventory(user)} />
       ) : (
         <KrakenEmpty
           compact

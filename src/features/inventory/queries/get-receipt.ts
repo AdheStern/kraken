@@ -71,7 +71,7 @@ export async function getReceipt(
   };
 }
 
-function destinationText(m: {
+export function destinationText(m: {
   ticket: { number: number; title: string } | null;
   cvLine: {
     description: string;

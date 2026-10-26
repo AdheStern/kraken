@@ -24,7 +24,9 @@ function signed(value: string): string {
     : `+${formatQuantity(value)}`;
 }
 
-export function KardexTable({ entries }: { entries: KardexEntry[] }) {
+type Props = { entries: KardexEntry[]; canReturn?: boolean };
+
+export function KardexTable({ entries, canReturn = false }: Props) {
   return (
     <div className="kr-solid overflow-hidden rounded-xl">
       <table className="w-full text-sm">
@@ -63,6 +65,17 @@ export function KardexTable({ entries }: { entries: KardexEntry[] }) {
                   <span className="block text-xs font-normal text-muted-foreground tabular-nums">
                     N.º {entry.movementNumber}
                     {entry.serial ? ` · serial ${entry.serial}` : ""}
+                    {canReturn && entry.movementKind === "SALIDA" && (
+                      <>
+                        {" · "}
+                        <Link
+                          href={`/inventario/devoluciones/nueva?salida=${entry.movementNumber}`}
+                          className="text-primary underline-offset-4 hover:underline"
+                        >
+                          Devolver
+                        </Link>
+                      </>
+                    )}
                   </span>
                 </td>
                 <td

@@ -159,3 +159,20 @@ export type AdjustmentRequestView = {
     serials: string[];
   }[];
 };
+
+// Salida que se puede devolver: lo despachado por línea, lo ya devuelto y lo que queda, sin costos (regla 12).
+export type ReturnSource = {
+  movementId: string;
+  number: number;
+  issuedAt: string;
+  warehouse: string;
+  destination: string;
+  lines: {
+    lineId: string;
+    code: string;
+    description: string;
+    serial: string | null;
+    shipped: string;
+    remaining: string;
+  }[];
+};

@@ -5,7 +5,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { FileStoreError } from "./file-store";
+import { FileConflictError, FileStoreError } from "./file-store";
 import { LocalFileStore } from "./local-file-store";
 import { selectFileStore } from "./select-file-store";
 import { SharePointFileStore } from "./sharepoint-file-store";
@@ -46,6 +46,17 @@ describe("LocalFileStore", () => {
     await expect(
       store.put("../fuera.txt", new Uint8Array([1]), "text/plain"),
     ).rejects.toThrow(FileStoreError);
+    await rm(root, { recursive: true, force: true });
+  });
+
+  it("no pisa un archivo que ya existe", async () => {
+    const root = await mkdtemp(join(tmpdir(), "kraken-files-"));
+    const store = new LocalFileStore(root);
+    await store.put("doc/a.txt", new Uint8Array([1]), "text/plain");
+    await expect(
+      store.put("doc/a.txt", new Uint8Array([2]), "text/plain"),
+    ).rejects.toThrow(FileConflictError);
+    expect(Array.from(await store.get("doc/a.txt"))).toEqual([1]);
     await rm(root, { recursive: true, force: true });
   });
 });
@@ -129,6 +140,16 @@ describe("SharePointFileStore", () => {
     );
     expect(Array.from(await store().get("item-1"))).toEqual([1, 2, 3]);
     await expect(store().remove("item-1")).resolves.toBeUndefined();
+  });
+
+  it("pide fallar si el nombre existe y traduce el 409 a FileConflictError", async () => {
+    const calls = mockFetch(() => new Response("existe", { status: 409 }));
+    await expect(
+      store().put("doc/a.pdf", new Uint8Array(10), "application/pdf"),
+    ).rejects.toThrow(FileConflictError);
+    expect(calls.find((c) => c.init?.method === "PUT")?.url).toContain(
+      "conflictBehavior=fail",
+    );
   });
 
   it("convierte una respuesta fallida en FileStoreError", async () => {

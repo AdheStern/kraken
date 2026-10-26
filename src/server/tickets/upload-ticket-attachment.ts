@@ -11,6 +11,7 @@ import {
   type FileStore,
   MAX_ATTACHMENT_BYTES,
 } from "@/server/files/file-store";
+import { toSafeFileName } from "@/server/files/safe-file-name";
 import { log } from "@/server/log";
 import { loadTicketAccess } from "./load-ticket-access";
 
@@ -46,7 +47,7 @@ export async function uploadTicketAttachment(
     );
 
   const data = new Uint8Array(await file.arrayBuffer());
-  const fileName = toSafeName(file.name);
+  const fileName = toSafeFileName(file.name);
   const mimeType = file.type || "application/octet-stream";
   const stored = await store.put(
     `tickets/${ticket.number}/${randomUUID()}-${fileName}`,
@@ -107,10 +108,3 @@ export async function uploadTicketAttachment(
 }
 
 class AttachmentRejected extends Error {}
-
-// TRAMPA: el nombre llega del navegador; se quitan rutas y caracteres que SharePoint o Windows rechazan.
-function toSafeName(name: string): string {
-  const base = name.split(/[\\/]/).pop() ?? "archivo";
-  const clean = base.replace(/[:*?"<>|#%]/g, "_").trim();
-  return (clean || "archivo").slice(-150);
-}

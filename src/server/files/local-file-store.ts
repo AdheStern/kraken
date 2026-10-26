@@ -2,7 +2,12 @@
 // Adjuntos en una carpeta local (FILES_ROOT): solo desarrollo y pruebas, o un montaje si DIMA lo prefiere (ADR-16).
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join, normalize, sep } from "node:path";
-import { type FileStore, FileStoreError, type StoredFile } from "./file-store";
+import {
+  FileConflictError,
+  type FileStore,
+  FileStoreError,
+  type StoredFile,
+} from "./file-store";
 
 export class LocalFileStore implements FileStore {
   readonly name = "local" as const;
@@ -17,7 +22,11 @@ export class LocalFileStore implements FileStore {
   ): Promise<StoredFile> {
     const target = this.resolve(path);
     await mkdir(dirname(target), { recursive: true });
-    await writeFile(target, data);
+    await writeFile(target, data, { flag: "wx" }).catch((error: unknown) => {
+      if ((error as NodeJS.ErrnoException).code === "EEXIST")
+        throw new FileConflictError(path);
+      throw error;
+    });
     return { storagePath: path };
   }
 

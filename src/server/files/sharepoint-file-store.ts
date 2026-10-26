@@ -2,7 +2,12 @@
 // Adjuntos en una biblioteca de SharePoint por Microsoft Graph con credenciales de aplicación (ADR-16). Sin SDK:
 // cuatro llamadas HTTP no justifican la dependencia (AGENTS.md §0.14). Permiso: Sites.Selected con escritura
 // solo sobre el sitio de Kraken.
-import { type FileStore, FileStoreError, type StoredFile } from "./file-store";
+import {
+  FileConflictError,
+  type FileStore,
+  FileStoreError,
+  type StoredFile,
+} from "./file-store";
 
 export type SharePointConfig = {
   tenantId: string;
@@ -17,6 +22,7 @@ const SIMPLE_UPLOAD_MAX = 4 * 1024 * 1024;
 // POR QUÉ: Graph exige trozos múltiplos de 320 KiB en una sesión de subida; 5 MiB = 16 × 320 KiB.
 const CHUNK_BYTES = 16 * 320 * 1024;
 const TOKEN_MARGIN_MS = 60_000;
+const FAIL_ON_CONFLICT = "@microsoft.graph.conflictBehavior=fail";
 
 export class SharePointFileStore implements FileStore {
   readonly name = "sharepoint" as const;
@@ -31,14 +37,18 @@ export class SharePointFileStore implements FileStore {
     mimeType: string,
   ): Promise<StoredFile> {
     const item = `${GRAPH_URL}/drives/${this.config.driveId}/root:/${encodePath(`${this.config.folder}/${path}`)}`;
-    const uploaded =
-      data.byteLength <= SIMPLE_UPLOAD_MAX
-        ? await this.call(`${item}:/content`, {
-            method: "PUT",
-            body: Buffer.from(data),
-            headers: { "content-type": mimeType },
-          })
-        : await this.uploadInChunks(`${item}:/createUploadSession`, data);
+    const uploaded = await (data.byteLength <= SIMPLE_UPLOAD_MAX
+      ? this.call(`${item}:/content?${FAIL_ON_CONFLICT}`, {
+          method: "PUT",
+          body: Buffer.from(data),
+          headers: { "content-type": mimeType },
+        })
+      : this.uploadInChunks(`${item}:/createUploadSession`, data)
+    ).catch((error: unknown) => {
+      throw error instanceof ConflictResponse
+        ? new FileConflictError(path)
+        : error;
+    });
     const { id } = (await uploaded.json()) as { id: string };
     return { storagePath: id };
   }
@@ -64,7 +74,7 @@ export class SharePointFileStore implements FileStore {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        item: { "@microsoft.graph.conflictBehavior": "rename" },
+        item: { "@microsoft.graph.conflictBehavior": "fail" },
       }),
     });
     const { uploadUrl } = (await session.json()) as { uploadUrl: string };
@@ -79,6 +89,7 @@ export class SharePointFileStore implements FileStore {
         },
         body: Buffer.from(data.subarray(start, end)),
       });
+      if (last.status === 409) throw new ConflictResponse();
       if (!last.ok && last.status !== 202)
         throw await toError("La subida a SharePoint", last);
     }
@@ -99,6 +110,7 @@ export class SharePointFileStore implements FileStore {
       },
     });
     if (response.status === 401) this.token = null;
+    if (response.status === 409) throw new ConflictResponse();
     if (!response.ok && !okStatuses.includes(response.status))
       throw await toError("SharePoint", response);
     return response;
@@ -132,6 +144,8 @@ export class SharePointFileStore implements FileStore {
     return this.token.value;
   }
 }
+
+class ConflictResponse extends Error {}
 
 function encodePath(path: string): string {
   return path.split("/").map(encodeURIComponent).join("/");

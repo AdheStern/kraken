@@ -1,0 +1,77 @@
+// prisma/schema/documentation.prisma
+// Esquema doc: proyectos de documentación con su cabecera y los documentos de cada fase (AGENTS.md §2.10).
+// Los archivos viven en SharePoint (ADR-16); aquí solo su nombre, hash, tamaño y el id del elemento.
+
+// POR QUÉ: las fases son un catálogo con orden que gestiona el administrador del sistema, no constantes (§2.10).
+model DocPhase {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  name      String   @unique @map("nombre")
+  order     Int      @map("orden")
+  isActive  Boolean  @default(true) @map("activo")
+  createdAt DateTime @default(now()) @map("creado_en") @db.Timestamptz
+
+  documents DocDocument[]
+
+  @@map("fase")
+  @@schema("doc")
+}
+
+// POR QUÉ: el contacto del catálogo solo prellena; nombre, correo y teléfono quedan editables en el proyecto.
+model DocProject {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  name         String   @map("nombre")
+  customerId   String   @map("cliente_id") @db.Uuid
+  contactId    String?  @map("contacto_id") @db.Uuid
+  contactName  String?  @map("contacto_nombre")
+  contactEmail String?  @map("contacto_correo")
+  contactPhone String?  @map("contacto_telefono")
+  ownerId      String   @map("encargado_id")
+  createdById  String   @map("creado_por_id")
+  createdAt    DateTime @default(now()) @map("creado_en") @db.Timestamptz
+  updatedAt    DateTime @updatedAt @map("actualizado_en") @db.Timestamptz
+
+  customer     Customer               @relation(fields: [customerId], references: [id])
+  contact      CustomerContact?       @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  owner        UserProfile            @relation("DocProjectOwner", fields: [ownerId], references: [userId])
+  createdBy    UserProfile            @relation("DocProjectCreator", fields: [createdById], references: [userId])
+  technologies DocProjectTechnology[]
+  documents    DocDocument[]
+
+  @@index([customerId])
+  @@map("proyecto")
+  @@schema("doc")
+}
+
+model DocProjectTechnology {
+  projectId    String @map("proyecto_id") @db.Uuid
+  technologyId String @map("tecnologia_id") @db.Uuid
+
+  project    DocProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  technology Technology @relation(fields: [technologyId], references: [id])
+
+  @@id([projectId, technologyId])
+  @@map("proyecto_tecnologia")
+  @@schema("doc")
+}
+
+// POR QUÉ: Restrict sobre la fase; una fase con documentos se da de baja, nunca se borra.
+model DocDocument {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  projectId    String   @map("proyecto_id") @db.Uuid
+  phaseId      String   @map("fase_id") @db.Uuid
+  fileName     String   @map("nombre_archivo")
+  storagePath  String   @map("ruta")
+  sha256       String   @map("hash_sha256")
+  sizeBytes    Int      @map("tamano_bytes")
+  mimeType     String   @map("tipo_mime")
+  uploadedById String   @map("subido_por_id")
+  createdAt    DateTime @default(now()) @map("creado_en") @db.Timestamptz
+
+  project    DocProject  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phase      DocPhase    @relation(fields: [phaseId], references: [id], onDelete: Restrict)
+  uploadedBy UserProfile @relation(fields: [uploadedById], references: [userId])
+
+  @@index([projectId, phaseId])
+  @@map("documento")
+  @@schema("doc")
+}

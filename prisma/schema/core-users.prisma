@@ -43,6 +43,9 @@ model UserProfile {
   inboxItems              InboxItem[]
   notificationPreferences NotificationPreference[]
   goalsUpdated            Goal[]
+  docProjectsOwned        DocProject[]             @relation("DocProjectOwner")
+  docProjectsCreated      DocProject[]             @relation("DocProjectCreator")
+  docDocuments            DocDocument[]
 
   @@map("usuario_perfil")
   @@schema("core")

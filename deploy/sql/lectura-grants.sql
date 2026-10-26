@@ -8,7 +8,7 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'kraken_lectura') THEN
     RETURN;
   END IF;
-  FOREACH esquema IN ARRAY ARRAY['core', 'fx', 'cv', 'horas', 'tickets', 'inv', 'notif', 'audit', 'dash'] LOOP
+  FOREACH esquema IN ARRAY ARRAY['core', 'fx', 'cv', 'horas', 'tickets', 'inv', 'notif', 'audit', 'dash', 'doc'] LOOP
     IF EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = esquema) THEN
       EXECUTE format('GRANT USAGE ON SCHEMA %I TO kraken_lectura', esquema);
       EXECUTE format('GRANT SELECT ON ALL TABLES IN SCHEMA %I TO kraken_lectura', esquema);

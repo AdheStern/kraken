@@ -22,6 +22,9 @@ export const AUDIT_ENTITY_LABELS: Record<string, string> = {
   "core.grupo_entra_rol": "Grupo de Entra ID",
   "core.parametro": "Parámetro",
   "fx.tipo_cambio": "Tipo de cambio",
+  "doc.fase": "Fase de documentación",
+  "doc.proyecto": "Proyecto de documentación",
+  "doc.documento": "Documento",
 };
 
 export const AUDIT_ACTION_LABELS: Record<string, string> = {
@@ -45,6 +48,9 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   DESMAPEAR: "quitó el mapeo de",
   ASIGNAR_HORARIO: "cambió el horario de",
   CARGA_MANUAL: "cargó a mano",
+  ORDENAR: "cambió el orden de",
+  SUBIR: "subió",
+  QUITAR: "quitó",
 };
 
 export function auditEntityLabel(entity: string): string {

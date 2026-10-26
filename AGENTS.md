@@ -100,7 +100,7 @@ La Paz `LP`, Santa Cruz `SC`, Cochabamba `CB`. Cada una tiene su correlativo de 
 Una persona puede tener varios roles; los permisos se suman.
 
 ### Módulos
-Control de Venta · Horas, tickets y proyectos · Inventario y POS interno · Tableros · Administración · Notificaciones.
+Control de Venta · Horas, tickets y proyectos · Inventario y POS interno · Documentación por proyecto · Tableros · Administración · Notificaciones.
 
 ### Fuera de alcance en v1 (YAGNI)
 Portal de clientes · integración con ERP, contabilidad o facturación · migración de los CV de ejemplo (fueron solo material de análisis) · delegación de aprobaciones (regla de negocio: si el gerente está ausente, no se aprueba) · app móvil nativa · Kubernetes y microservicios · multimoneda.
@@ -275,8 +275,17 @@ Roles asignados por grupos de Entra ID, más **excepciones por usuario** gestion
 | Bolsas: ajuste manual | No | Su área, con motivo | Todas, con motivo | No | No |
 | Inventario | Consulta de stock | Consulta + aprobar ajustes de su área | Todo | Consulta de stock | Todo |
 | Tableros | Ventas propias | Ventas, operación e inventario de su área; metas de su área | Todo; todas las metas y la de la empresa | Operación propia (sin montos) | Ventas aprobadas, inventario y metas (sin editarlas) |
+| Documentación: ver, crear proyectos, editar cabecera y subir | Todos | Todos | Todos | Todos | Todos |
+| Documentación: quitar un documento | Los que subió | Los que subió | Los que subió | Los que subió | Los que subió |
 
-Almacén opera inventario y POS y ve el tablero de inventario; el coordinador ve el operativo de su área. El coordinador gestiona los tickets de su área y, como el gerente de área, los cierra y reabre. **Catálogos:** clientes, contactos, proveedores y productos los gestionan Administración y el administrador del sistema; áreas, ciudades, calendario, tecnologías, unidades, tipos de servicio, usuarios, parámetros y TC, solo el administrador del sistema. **Bolsas:** todo usuario con un rol asignado a un área (ingeniero, coordinador, preventa, gerente…) ve todas las bolsas de esa área, en cualquier estado y con su libro; ajustarlas o cerrarlas sigue siendo solo del gerente del área y del GG. El administrador del sistema gestiona usuarios, permisos y parámetros pero **no** ve montos por ese rol. **Cada fila de esta tabla es un test.**
+Almacén opera inventario y POS y ve el tablero de inventario; el coordinador ve el operativo de su área. El coordinador gestiona los tickets de su área y, como el gerente de área, los cierra y reabre. **Catálogos:** clientes, contactos, proveedores y productos los gestionan Administración y el administrador del sistema; áreas, ciudades, calendario, tecnologías, unidades, tipos de servicio, usuarios, parámetros y TC, solo el administrador del sistema. **Bolsas:** todo usuario con un rol asignado a un área (ingeniero, coordinador, preventa, gerente…) ve todas las bolsas de esa área, en cualquier estado y con su libro; ajustarlas o cerrarlas sigue siendo solo del gerente del área y del GG. El administrador del sistema gestiona usuarios, permisos y parámetros pero **no** ve montos por ese rol; también gestiona las fases de documentación y quita cualquier documento (2.10). **Cada fila de esta tabla es un test.**
+
+### 2.10 Documentación por proyecto
+Además del CV y del soporte, DIMA documenta sus proyectos por **fases**. No se profundiza como en CV o tickets: en cada fase solo se suben documentos.
+- **Fases:** catálogo `doc.fase` con orden, que gestiona el administrador del sistema en `/admin/fases-documentacion` (crear, renombrar, ordenar, dar de baja). Sin carga inicial: hoy son 4 y las define DIMA. Una fase dada de baja no admite subidas; si tiene documentos, se siguen viendo.
+- **Proyecto de documentación** (`doc.proyecto`, distinto de `tickets.proyecto`): nombre y una cabecera con cliente (catálogo), contacto (un contacto del cliente prellena nombre, correo y teléfono, que quedan editables), tecnologías (catálogo, varias) y encargado (usuario). Sin montos, sin estado ni correlativo.
+- **Documentos:** cada uno pertenece a un proyecto y a una fase; las fases son carpetas, el proyecto no «avanza» de fase. Hasta 20 MB, en SharePoint (ADR-16) bajo `documentacion/{cliente}/{proyecto}/{n}. {fase}/`, con nombres legibles para navegar la biblioteca; un nombre repetido en la misma fase se guarda como `nombre (2).ext`. Renombrar un proyecto o una fase no mueve lo ya subido (el enlace es el id del elemento).
+- **Permisos:** la información es pública dentro de DIMA. Todo usuario con al menos un rol ve, crea proyectos, edita la cabecera y sube; quitar un documento es de quien lo subió o del administrador del sistema. Los listados pasan igual por `scopeDocProjectQuery` (regla 7). Crear, editar, subir, quitar y los cambios de fases se auditan.
 
 ---
 
@@ -346,6 +355,7 @@ Prisma 7: `prisma.config.ts` en la raíz (esquema multiarchivo en `prisma/schema
 | `notif` | `salida` (outbox), `bandeja`, `preferencia` |
 | `audit` | `evento` |
 | `dash` | `meta` (metas mensuales por área o de la empresa); los indicadores se calculan en `src/domain/dashboards` (sección 6) |
+| `doc` | `fase` (catálogo con orden), `proyecto` (cabecera), `proyecto_tecnologia`, `documento` (archivo en SharePoint por fase) |
 
 **Relaciones clave:** Cliente 1–N CV · CV 1–N Versión · Versión 1–N Línea · Versión 1–N SolicitudAprobación · Línea N–1 Área · Línea 1–0..1 Bolsa (por linaje: `linea_origen_id`) · Bolsa 1–N MovimientoHoras · Ticket 1–N TicketBolsa (prioridad) N–1 Bolsa · Ticket 1–N Subtarea · Ticket/Subtarea 1–N RegistroTiempo · Proyecto 1–N Ticket · Línea 1–N Reserva · Almacén 1–N Stock · Stock 1–N MovimientoInv.
 
@@ -474,7 +484,7 @@ dima-hub/
 │  └─ sql/               # triggers, CHECK, exclusiones
 ├─ prisma.config.ts      # configuración del CLI de Prisma 7
 ├─ src/
-│  ├─ app/               # (auth), (app)/inicio, cv, tickets, horas, inventario, tableros, admin
+│  ├─ app/               # (auth), (app)/inicio, cv, tickets, horas, inventario, documentacion, tableros, admin
 │  ├─ domain/            # PURO (ADR-10)
 │  │  ├─ pricing/        # factor ↔ precio, totales, Bs
 │  │  ├─ calendar/       # partir intervalos por horario y feriados
@@ -513,6 +523,7 @@ Inicio de sesión (Entra ID) → inicio según rol: GG → tablero ejecutivo; ge
 - **Control de Venta:** listado → editor → historial y comparador; bandeja de aprobaciones.
 - **Horas y tickets:** kanban → detalle del ticket → bolsas del cliente → libro de la bolsa; proyectos.
 - **Inventario:** stock por almacén → kardex; traspasos; POS interno.
+- **Documentación:** proyectos → cabecera y una carpeta por fase con sus documentos.
 - **Tableros:** tablero por rol → detalle por indicador.
 - **Administración:** catálogos, usuarios y permisos, parámetros (umbral, horarios, feriados, SLA, alertas, metas), tipo de cambio, auditoría.
 
@@ -582,8 +593,9 @@ type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { code: Error
 - Administración: CRUD de catálogos (`upsertSimpleCatalogItem` y `setSimpleCatalogItemActive` para áreas, ciudades, tecnologías, unidades, tipos de servicio y proveedores; `upsertCustomer`, `upsertCustomerContact`, `upsertProduct`, `markProductReviewed` y sus bajas), usuarios (`updateUserProfile`, `setUserActive`, `grantUserRole`, `revokeUserRole`), `mapEntraGroup`, `unmapEntraGroup`, `setParameter`, `setManualFxRate`, `sendTestMail`, `retryOutboxMessage`, `upsertSlaPolicy`
 - Notificaciones: `markInboxRead`
 - Tableros: `upsertGoal` (meta mensual por área o de la empresa; vacía la quita)
+- Documentación: `createDocProject`, `updateDocProjectHeader`, `uploadDocument`, `deleteDocument`; fases: `upsertDocPhase`, `setDocPhaseActive`, `moveDocPhase`
 
-**Route handlers:** `GET /api/cv/[versionId]/export.xlsx` (con authz) · `GET /api/tickets/attachments/[id]` (con authz) · `GET /api/inventory/receipts/[id].pdf` (con authz; carpeta `[file]`) · `GET /api/dashboards/[board]/export.xlsx` (ventas, operación o inventario, con los filtros y la authz del tablero) · `GET /api/health/live` · `GET /api/health/ready` (BD y, si los adjuntos van a `FILES_ROOT`, su carpeta; HAProxy saca el nodo si falla) · `/api/auth/*`.
+**Route handlers:** `GET /api/cv/[versionId]/export.xlsx` (con authz) · `GET /api/tickets/attachments/[id]` (con authz) · `GET /api/documentation/documents/[id]` (con authz) · `GET /api/inventory/receipts/[id].pdf` (con authz; carpeta `[file]`) · `GET /api/dashboards/[board]/export.xlsx` (ventas, operación o inventario, con los filtros y la authz del tablero) · `GET /api/health/live` · `GET /api/health/ready` (BD y, si los adjuntos van a `FILES_ROOT`, su carpeta; HAProxy saca el nodo si falla) · `/api/auth/*`.
 
 **Jobs:**
 | Job | Cuándo | Qué hace |
@@ -837,6 +849,13 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - Manuales cortos por rol y videos [SONNET] — manuales hechos dentro de la app (`/ayuda`, uno por rol en `src/features/help/manuals`); los videos se graban con los datos demo cuando gerencia valide los manuales
 - *Sale cuando:* el sistema se recupera en Azure dentro del RTO y gerencia firma la aceptación.
 
+**F7 · Documentación por proyecto (~1 semana)**
+- Esquema `doc`, permisos y catálogo de fases en `/admin/fases-documentacion` [SONNET]
+- Proyectos con su cabecera: listado, alta y edición (`/documentacion`) [SONNET]
+- Documentos por fase en SharePoint: subir, descargar y quitar [SONNET]
+- Credenciales de SharePoint (registro de app con `Sites.Selected`, permiso de escritura sobre el sitio, id de la biblioteca): guía en `deploy/README.md` [DIMANET]
+- *Sale cuando:* los proyectos en curso tienen su documentación por fase en Kraken y se ve en la biblioteca de SharePoint.
+
 ---
 
 ## 13. Cómo trabajar en este repositorio (agentes)
@@ -871,6 +890,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - **F3:** *Resuelto (2026-10-19):* el redondeo que no cabe en ninguna bolsa se perdona; al reabrir, el consumo en bolsas vencidas o cerradas queda firme; cierran y reabren coordinador, gerente de área y GG. *Resuelto (2026-10-19, tareas 3–5):* crean tickets coordinador, gerente de área y GG; historial inmutable de estados como base del SLA; el paso de redondeo es el parámetro `horas.redondeo_minutos`; adjuntos en SharePoint (ADR-16; faltan las credenciales del registro de app y el id de la biblioteca). *Confirmado por DIMA (2026-10-20):* el redondeo es siempre hacia arriba, los tiempos de SLA de §2.7 y que el tiempo de personas distintas en paralelo se suma.
 - **F4:** *Confirmado por DIMA (2026-10-22):* costo promedio ponderado como cantidad + valor total; el inventario real se carga al desplegar. Qué productos exigen serial (se marca en el catálogo) y si se usan almacenes de demostración o repuestos (se crean en `/admin/almacenes`): los define DIMA. *Decidido (2026-10-21):* sobre-reservar con aviso si falta stock; el rol Almacén opera todos los almacenes; las diferencias de traspaso quedan en `TRANSITO` valorizadas por traspaso; carga inicial por ingreso pegado desde Excel más conteo físico (completo o parcial) que ajusta por delta; costos visibles para Almacén, Administración, GG y gerente de área; devolución de una salida al costo de esa salida; el costo del ingreso es obligatorio y admite 0; un código desconocido en un ingreso crea el producto por revisar; PDF con pdf-lib; el ticket muestra sus materiales despachados con el alcance del ticket.
 - **F5:** *Decidido (2026-10-22/23):* KPIs y metas a criterio del equipo sobre la propuesta de §6, ajustables con el uso; venta fechada en la primera aprobación del CV con los montos de la versión vigente; varios vendedores en partes iguales; metas mensuales por área o de la empresa, las define el GG (todas) y el gerente de área (las suyas); Inicio conserva su red y suma la franja «Este mes»; gráficos con Recharts. *Abierto:* validar con gerencia el set definitivo de indicadores tras las primeras reuniones semanales.
+- **F7:** *Decidido (2026-10-26):* las fases son carpetas del proyecto (no etapas), administrables y sin carga inicial; el proyecto de documentación es una entidad propia (`doc.proyecto`) con cliente, contacto, tecnologías y encargado; la documentación es pública para todo usuario con rol y quitar es de quien subió o del administrador del sistema. *Supuestos a validar:* nombre obligatorio del proyecto sin estado ni correlativo; el administrador del sistema gestiona las fases. *Abierto:* nombres de las 4 fases; si más adelante hace falta restringir la visibilidad (cambia solo `scopeDocProjectQuery`).
 - **F6:** *Decidido (2026-10-24):* el gerente de área ve los costos de todo el CV si tiene una línea de su área; la infraestructura de DR se escribe en Bicep; los manuales viven dentro de la app. *Abierto (DIMANET):* desplegar `backup.bicep` y custodiar los secretos, primer ensayo de DR con su RTO medido, bloquear la política de inmutabilidad tras el ensayo, TLS y autenticación de etcd.
 
 ---

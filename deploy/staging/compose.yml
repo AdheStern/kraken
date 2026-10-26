@@ -1,0 +1,88 @@
+# deploy/staging/compose.yml
+# Staging en un solo nodo (lpzvmkrkstg01, 172.22.12.117; AGENTS.md §10): las mismas imágenes que producción (app,
+# worker y migrate), PostgreSQL 18 propio sin puertos publicados y HAProxy solo para web con TLS. Mismo nombre de
+# proyecto que producción: deploy.sh usa /opt/kraken/compose.yml igual en los dos entornos.
+# En el nodo: /opt/kraken/{compose.yml, haproxy.cfg, alloy.river, initdb/}; secretos en /etc/kraken/{app,migrate,
+# postgres}.env (permisos 600) y el certificado en /etc/kraken/tls/kraken.pem.
+#   KRAKEN_TAG=<sha> docker compose -f /opt/kraken/compose.yml up -d
+#   KRAKEN_TAG=<sha> docker compose -f /opt/kraken/compose.yml --profile migrate run --rm migrate
+
+name: kraken
+
+x-image: &image-defaults
+  restart: unless-stopped
+  env_file: /etc/kraken/app.env
+  # POR QUÉ: la app y el worker llegan a la base por la red de compose (postgres:5432), sin el :5000 de producción.
+  depends_on:
+    postgres:
+      condition: service_healthy
+  logging:
+    driver: json-file
+    options: { max-size: "20m", max-file: "5" }
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    # POSTGRES_PASSWORD (superusuario), KRAKEN_MIGRATOR_PASSWORD y KRAKEN_APP_PASSWORD: los lee initdb/ al crear la base.
+    env_file: /etc/kraken/postgres.env
+    volumes:
+      # TRAMPA: desde la 18 la imagen guarda los datos en /var/lib/postgresql/18/docker; el volumen va en la carpeta
+      # de arriba, nunca en .../data.
+      - pgdata:/var/lib/postgresql
+      # Solo corre con el volumen vacío: roles, base kraken y privilegios por defecto (= deploy/sql/roles.sql).
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    # POR QUÉ: por TCP; durante initdb el servidor temporal solo escucha en el socket y no debe darse por listo.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d kraken"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "5" }
+
+  app:
+    <<: *image-defaults
+    image: ${KRAKEN_REGISTRY:-ghcr.io/adhestern}/kraken-app:${KRAKEN_TAG:?define KRAKEN_TAG}
+    ports:
+      # Solo en la IP del nodo: la usa el HAProxy del host (y deploy.sh para esperar /api/health/ready).
+      - "172.22.12.117:3000:3000"
+
+  worker:
+    <<: *image-defaults
+    image: ${KRAKEN_REGISTRY:-ghcr.io/adhestern}/kraken-worker:${KRAKEN_TAG:?define KRAKEN_TAG}
+    stop_grace_period: 30s
+
+  migrate:
+    <<: *image-defaults
+    image: ${KRAKEN_REGISTRY:-ghcr.io/adhestern}/kraken-worker:${KRAKEN_TAG:?define KRAKEN_TAG}
+    restart: "no"
+    profiles: [migrate]
+    # REGLA: solo este servicio recibe la clave del dueño del esquema (DDL), como en producción (AGENTS.md §4).
+    env_file: [/etc/kraken/app.env, /etc/kraken/migrate.env]
+    command: ["pnpm", "migrate:deploy"]
+
+  haproxy:
+    image: haproxy:3.0-alpine
+    restart: unless-stopped
+    network_mode: host
+    # TRAMPA: con la red del host, el usuario de la imagen no puede abrir puertos < 1024; arranca como root, abre los
+    # puertos y lee el certificado, y baja a haproxy (user/group en global de haproxy.cfg).
+    user: root
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - /etc/kraken/tls/kraken.pem:/etc/kraken/tls/kraken.pem:ro
+
+  # LIMITACIÓN: Loki aún no tiene destino; arranca solo con --profile logs (ver alloy.river).
+  alloy:
+    image: grafana/alloy:v1.9.1
+    restart: unless-stopped
+    profiles: [logs]
+    command: ["run", "/etc/alloy/config.alloy"]
+    volumes:
+      - ./alloy.river:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+volumes:
+  pgdata:

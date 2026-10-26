@@ -727,9 +727,9 @@ Operación conjunta: **DIMANET** (virtualización, red, seguridad perimetral, NA
 | Adjuntos (SharePoint) | Versionado y retención de M365 | SharePoint | Según la política de retención de DIMA |
 | Snapshot de VMware | Antes de cada actualización | Datastore | Se borra tras validar (no es respaldo) |
 
-- Azure Blob con **inmutabilidad (WORM)**; credenciales solo en `ops-01`, sin permiso de borrado.
-- Respaldos cifrados (clave fuera del NAS).
-- **Restauración de prueba mensual** automatizada en `stg-01`, verificando conteos y el último movimiento.
+- Azure Blob con **inmutabilidad por versión** (`deploy/azure/backup.bicep`): pgBackRest reescribe sus índices y su `expire` borra, y cada versión anterior queda protegida 12 meses; credencial de escritura solo en `ops-01`, sin permiso de borrar versiones.
+- Respaldos cifrados (clave fuera del NAS). Las claves de cifrado, las SAS y los env de la app se **custodian en un Key Vault** con protección de purga (`deploy/scripts/escrow-secrets.sh`): sin ellos, el respaldo en Azure no se puede usar si se pierde el host.
+- **Restauración de prueba mensual** automatizada en `stg-01` desde el NAS y desde Azure, verificando conteos y el último movimiento, y midiendo cuánto tarda.
 
 | Escenario | RPO | RTO |
 |---|---|---|

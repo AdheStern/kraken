@@ -1,7 +1,9 @@
 # deploy/backup/systemd/kraken-restore-test.service
-# Restauración de prueba en stg-01 (AGENTS.md §10): si falla, el timer lo registra y Uptime Kuma avisa.
+# Restauración de prueba en stg-01 (AGENTS.md §10): primero del NAS (repo1) y después de Azure (repo2), el que
+# usaría la recuperación en Azure. Cada corrida anota su duración en /var/lib/kraken/restore-test.log; si
+# falla, el timer lo registra y Uptime Kuma avisa.
 [Unit]
-Description=Kraken: restauración de prueba del respaldo
+Description=Kraken: restauración de prueba del respaldo (NAS y Azure)
 Wants=network-online.target
 After=network-online.target
 
@@ -9,3 +11,4 @@ After=network-online.target
 Type=oneshot
 User=postgres
 ExecStart=/opt/kraken/deploy/scripts/restore-test.sh 1
+ExecStart=/opt/kraken/deploy/scripts/restore-test.sh 2

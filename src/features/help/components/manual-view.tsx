@@ -11,7 +11,7 @@ export function ManualView({ choice }: { choice: ManualChoice }) {
   return (
     <>
       <nav aria-label="Manuales por rol" className="-mx-1 overflow-x-auto px-1">
-        <ul className="flex w-max gap-1 rounded-xl bg-muted/60 p-1">
+        <ul className="flex w-max gap-1 rounded-xl bg-muted/60 p-1 md:w-auto md:flex-wrap">
           {tabs.map((tab) => (
             <li key={tab.role}>
               <Link

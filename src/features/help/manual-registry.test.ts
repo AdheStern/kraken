@@ -16,12 +16,13 @@ describe("chooseManual", () => {
     expect(choice.manual).toBe(MANUALS.COMERCIAL);
   });
 
-  it("ignora un rol desconocido o sin manual", () => {
+  it("ignora un rol desconocido", () => {
     expect(chooseManual(["COMERCIAL"], "__proto__").role).toBe("COMERCIAL");
     expect(chooseManual(["COMERCIAL"], "NO_EXISTE").role).toBe("COMERCIAL");
   });
 
-  it("sin roles con manual, abre el primero del orden", () => {
+  it("ofrece los nueve manuales y, sin roles, abre el primero del orden", () => {
+    expect(chooseManual([], undefined).tabs).toHaveLength(9);
     expect(chooseManual([], undefined).role).toBe("GERENTE_GENERAL");
   });
 

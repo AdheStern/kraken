@@ -1,5 +1,6 @@
 // tests/e2e/smoke.spec.ts
-// Recorrido de humo de la F0 (AGENTS.md §11, §12): cada rol entra, ve sus módulos y no ve los ajenos.
+// Recorrido de humo de la F0 (AGENTS.md §11, §12): cada rol entra, ve sus módulos y no ve los ajenos; la ayuda
+// abre el manual de su rol (F6).
 // El recorrido de tickets (bolsa → contador → cierre con descuento) está en tickets.spec.ts.
 import { expect, test } from "@playwright/test";
 import { storageFor } from "./users";
@@ -100,6 +101,24 @@ test.describe("comercial", () => {
     ).toHaveCount(0);
     await expect(
       page.getByRole("link", { name: "Ir al inicio" }),
+    ).toBeVisible();
+  });
+});
+
+test.describe("ayuda", () => {
+  test.use({ storageState: storageFor("comercial") });
+
+  test("abre el manual de su rol desde el riel y deja consultar otro", async ({
+    page,
+  }) => {
+    await page.goto("/inicio");
+    await page.getByRole("link", { name: "Ayuda" }).click();
+    await expect(
+      page.getByRole("heading", { name: "Crear un CV" }),
+    ).toBeVisible();
+    await page.getByRole("link", { name: "Ingeniero" }).click();
+    await expect(
+      page.getByRole("heading", { name: "Registrar tiempo con el contador" }),
     ).toBeVisible();
   });
 });

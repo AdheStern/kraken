@@ -832,9 +832,9 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - *Sale cuando:* cada gerente usa su tablero en la reunión semanal.
 
 **F6 · Endurecimiento y continuidad (~2 semanas)**
-- Revisión de seguridad (authz, cabeceras, sesiones, permisos de Graph y de BD) [OPUS]
-- Ensayo completo de DR en Azure midiendo el RTO real [OPUS + DIMANET]
-- Manuales cortos por rol y videos [SONNET]
+- Revisión de seguridad (authz, cabeceras, sesiones, permisos de Graph y de BD) [OPUS] — hecho (límite de login por IP real detrás de los proxies y guardado en la base, tokens OAuth cifrados y alcances mínimos, CSP y cabeceras, bordes de authz de Administración y adjuntos, `migrate.env` separado, `kraken_lectura` sin `auth`, Patroni con autenticación y réplica síncrona estricta, `pnpm audit` sin avisos altos en runtime salvo los aceptados en `pnpm-workspace.yaml`)
+- Ensayo completo de DR en Azure midiendo el RTO real [OPUS + DIMANET] — herramientas listas (`deploy/azure/*.bicep`, `deploy/scripts/dr-restore.sh` con informe de RTO, custodia de secretos en Key Vault, prueba mensual también desde Azure); el ensayo lo ejecuta DIMANET
+- Manuales cortos por rol y videos [SONNET] — manuales hechos dentro de la app (`/ayuda`, uno por rol en `src/features/help/manuals`); los videos se graban con los datos demo cuando gerencia valide los manuales
 - *Sale cuando:* el sistema se recupera en Azure dentro del RTO y gerencia firma la aceptación.
 
 ---
@@ -871,6 +871,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - **F3:** *Resuelto (2026-10-19):* el redondeo que no cabe en ninguna bolsa se perdona; al reabrir, el consumo en bolsas vencidas o cerradas queda firme; cierran y reabren coordinador, gerente de área y GG. *Resuelto (2026-10-19, tareas 3–5):* crean tickets coordinador, gerente de área y GG; historial inmutable de estados como base del SLA; el paso de redondeo es el parámetro `horas.redondeo_minutos`; adjuntos en SharePoint (ADR-16; faltan las credenciales del registro de app y el id de la biblioteca). *Confirmado por DIMA (2026-10-20):* el redondeo es siempre hacia arriba, los tiempos de SLA de §2.7 y que el tiempo de personas distintas en paralelo se suma.
 - **F4:** *Confirmado por DIMA (2026-10-22):* costo promedio ponderado como cantidad + valor total; el inventario real se carga al desplegar. Qué productos exigen serial (se marca en el catálogo) y si se usan almacenes de demostración o repuestos (se crean en `/admin/almacenes`): los define DIMA. *Decidido (2026-10-21):* sobre-reservar con aviso si falta stock; el rol Almacén opera todos los almacenes; las diferencias de traspaso quedan en `TRANSITO` valorizadas por traspaso; carga inicial por ingreso pegado desde Excel más conteo físico (completo o parcial) que ajusta por delta; costos visibles para Almacén, Administración, GG y gerente de área; devolución de una salida al costo de esa salida; el costo del ingreso es obligatorio y admite 0; un código desconocido en un ingreso crea el producto por revisar; PDF con pdf-lib; el ticket muestra sus materiales despachados con el alcance del ticket.
 - **F5:** *Decidido (2026-10-22/23):* KPIs y metas a criterio del equipo sobre la propuesta de §6, ajustables con el uso; venta fechada en la primera aprobación del CV con los montos de la versión vigente; varios vendedores en partes iguales; metas mensuales por área o de la empresa, las define el GG (todas) y el gerente de área (las suyas); Inicio conserva su red y suma la franja «Este mes»; gráficos con Recharts. *Abierto:* validar con gerencia el set definitivo de indicadores tras las primeras reuniones semanales.
+- **F6:** *Decidido (2026-10-24):* el gerente de área ve los costos de todo el CV si tiene una línea de su área; la infraestructura de DR se escribe en Bicep; los manuales viven dentro de la app. *Abierto (DIMANET):* desplegar `backup.bicep` y custodiar los secretos, primer ensayo de DR con su RTO medido, bloquear la política de inmutabilidad tras el ensayo, TLS y autenticación de etcd.
 
 ---
 

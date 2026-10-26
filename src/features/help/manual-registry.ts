@@ -2,17 +2,28 @@
 // Registro de los manuales por rol y elección del que se muestra (AGENTS.md §12 F6, §9 patrón Registry).
 // POR QUÉ: los manuales son públicos para cualquier usuario con sesión; no traen datos, solo cómo se usa la app.
 import type { RoleCode } from "@/generated/prisma/enums";
+import { ADMINISTRATION_MANUAL } from "./manuals/administration";
 import { AREA_MANAGER_MANUAL } from "./manuals/area-manager";
 import { ENGINEER_MANUAL } from "./manuals/engineer";
 import { GENERAL_MANAGER_MANUAL } from "./manuals/general-manager";
+import { PRESALES_MANUAL } from "./manuals/presales";
 import { SALES_MANUAL } from "./manuals/sales";
+import { SUPPORT_COORDINATOR_MANUAL } from "./manuals/support-coordinator";
+import { SYSTEM_ADMIN_MANUAL } from "./manuals/system-admin";
+import { WAREHOUSE_MANUAL } from "./manuals/warehouse";
 import type { Manual } from "./types";
 
-export const MANUALS: Partial<Record<RoleCode, Manual>> = {
+// REGLA: un manual por rol; un rol nuevo en el enum no compila hasta tener el suyo.
+export const MANUALS: Record<RoleCode, Manual> = {
   GERENTE_GENERAL: GENERAL_MANAGER_MANUAL,
   GERENTE_AREA: AREA_MANAGER_MANUAL,
   COMERCIAL: SALES_MANUAL,
+  PREVENTA: PRESALES_MANUAL,
   INGENIERO: ENGINEER_MANUAL,
+  COORDINADOR_SOPORTE: SUPPORT_COORDINATOR_MANUAL,
+  ALMACEN: WAREHOUSE_MANUAL,
+  ADMINISTRACION: ADMINISTRATION_MANUAL,
+  ADMIN_SISTEMA: SYSTEM_ADMIN_MANUAL,
 };
 
 const ORDER: readonly RoleCode[] = [
@@ -39,18 +50,17 @@ export function chooseManual(
   requested: string | undefined,
 ): ManualChoice {
   const own = new Set(userRoles);
-  const available = ORDER.filter((role) => MANUALS[role]);
   const sorted = [
-    ...available.filter((role) => own.has(role)),
-    ...available.filter((role) => !own.has(role)),
+    ...ORDER.filter((role) => own.has(role)),
+    ...ORDER.filter((role) => !own.has(role)),
   ];
   const role = sorted.find((r) => r === requested) ?? sorted[0];
   return {
     role,
-    manual: MANUALS[role] as Manual,
+    manual: MANUALS[role],
     tabs: sorted.map((r) => ({
       role: r,
-      title: (MANUALS[r] as Manual).title,
+      title: MANUALS[r].title,
       isOwn: own.has(r),
     })),
   };

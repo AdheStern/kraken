@@ -8,3 +8,9 @@ allowBuilds:
   sharp: false
   ssh2: false
   unrs-resolver: false
+# POR QUÉ: correcciones de seguridad dentro de la misma versión mayor que sus dependientes (F6, pnpm audit).
+# Riesgo aceptado, sin forzar la mayor: deepmerge-ts 7 (solo mezcla la configuración de Prisma) y uuid 8 de
+# exceljs (usa v4; el aviso es de v3/v5/v6).
+overrides:
+  fast-uri: ">=3.1.9 <4"
+  mysql2: ">=3.23.1 <4"

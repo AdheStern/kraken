@@ -716,21 +716,28 @@ Operación conjunta: **DIMANET** (virtualización, red, seguridad perimetral, NA
 
 > **Limitación actual:** un solo host ESXi y un solo NAS (con RAID, nivel por confirmar). No hay alta disponibilidad real ante la caída del host o del NAS. La redundancia interna protege contra fallas de VM, sistema operativo o proceso, y permite actualizar sin cortar el servicio. **La garantía de no perder datos es el respaldo continuo e inmutable en Azure desde el primer día.** Primera mejora recomendada: un segundo host.
 
-### Topología
-| VM | Recursos | Contenido |
-|---|---|---|
-| `app-01`, `app-02` | 4 vCPU · 8 GB · 60 GB | Docker Compose: Next.js, worker, HAProxy, keepalived (IP virtual) |
-| `db-01` a `db-03` | 4 vCPU · 8 GB · 200 GB | PostgreSQL 16 + Patroni + etcd, `synchronous_mode: true` |
-| `ops-01` | 2 vCPU · 4 GB · 300 GB | pgBackRest (NAS + Azure), Prometheus, Grafana, Loki, Uptime Kuma, runner de CI |
-| `stg-01` | 4 vCPU · 8 GB · 100 GB | Staging completo con datos anonimizados |
+### Topología (infraestructura real)
+Ubuntu Server 26.04 en todas las VMs, red `172.22.12.0/24`, relojes en UTC. Docker usa `10.250.0.0/24` (docker0) y `10.251.0.0/16` (redes de compose). Dominio `kraken.dima.com.bo`; staging `stg-kraken.dima.com.bo` (solo red interna). Runbook y plantillas en `deploy/` (`deploy/README.md`).
 
-- Aplicación activo-activo; HAProxy revisa `/api/health/ready`.
-- Patroni elige y cambia el primario; la aplicación siempre se conecta por el HAProxy de BD.
-- Discos de BD en datastores o LUNs distintos si es posible.
-- Internet: el FortiGate o Radware publica solo el 443 hacia la IP virtual, termina TLS con certificado público y actúa como WAF. BD y operaciones no están expuestas. Acceso condicional de Entra con MFA fuera de la red.
-- VLAN de aplicación y VLAN de datos separadas; solo los nodos de app y `ops-01` llegan al 5432.
+| VM | IP | Contenido |
+|---|---|---|
+| `lpzvmkrkapp01` | 172.22.12.112 | Docker Compose (`deploy/app/compose.yml`): Next.js, worker, HAProxy (TLS en :443, base por :5000), keepalived en el sistema. Aún no creada |
+| `lpzvmkrkapp02` | por definir | Igual que app01; después |
+| IP virtual | 172.22.12.206 | keepalived entre los nodos de app |
+| `lpzvmkrkdb01` | 172.22.12.114 | PostgreSQL 18.6 **nativo** con Patroni 4.1.5 y etcd, clúster `kraken`; API de Patroni en :8008 |
+| `lpzvmkrkdb02` | por definir | Réplica del clúster; después. No habrá db03 por ahora |
+| `lpzvmkrkops01` | 172.22.12.116 | pgBackRest por SSH con cron, monitoreo propio en `/opt/monitoring` (Prometheus, Alertmanager, Grafana), runner de GitHub |
+| `lpzvmkrkstg01` | 172.22.12.117 | Staging en un solo nodo (`deploy/staging/compose.yml`): mismas imágenes, Postgres 18 propio |
+
+- Base `kraken`: `kraken_migrator` es el dueño (DDL; solo lo usa el servicio `migrate`) y `kraken_app` solo DML; `kraken_lectura` es opcional. `btree_gist` y `pg_stat_statements` ya están en `public`.
+- Aplicación activo-activo cuando exista app02; HAProxy revisa `/api/health/ready`. Los nombres de los servidores del backend `app` son los de `deploy/hosts/production` (el despliegue los drena por nombre).
+- Patroni elige y cambia el primario; la aplicación siempre se conecta por el HAProxy del nodo (`:5000`, chequeo `/primary` en :8008).
+- Internet: el FortiGate publica solo el 443 hacia la IP virtual y el HAProxy del nodo termina TLS (`/etc/kraken/tls/kraken.pem`). BD y operaciones no están expuestas. Acceso condicional de Entra con MFA fuera de la red.
+- Logs: Alloy está en el perfil `logs` de los compose hasta que Loki tenga destino.
 
 ### Respaldos
+> **Pendiente de adaptar:** la infraestructura real usa pgBackRest por SSH con cron desde `lpzvmkrkops01`; `deploy/backup/`, `deploy/scripts/restore-test.sh` y la recuperación en Azure (`deploy/azure/dr*`, `deploy/dr/`) se escribieron para TLS, timers de systemd y Postgres 16. Las metas de abajo siguen vigentes.
+
 | Mecanismo | Frecuencia | Destino | Retención |
 |---|---|---|---|
 | WAL continuo (pgBackRest `archive-async`) | Segundos | NAS + Azure Blob | Toda la ventana de retención (PITR) |
@@ -754,16 +761,16 @@ Operación conjunta: **DIMANET** (virtualización, red, seguridad perimetral, NA
 
 ### CI/CD
 PR → biome · typecheck · tests de dominio · integración con Postgres · build · E2E (`.github/workflows/ci.yml`) → merge a `main` (rama troncal) → imágenes `app` y `worker` en GHCR etiquetadas con el commit → staging (`pnpm migrate:deploy` + nodo) → aprobación manual del entorno `production` → producción: migración compatible hacia atrás → drenar `app-01`, actualizar, verificar → drenar `app-02`, actualizar, verificar (`.github/workflows/deploy.yml` y `deploy/scripts/deploy.sh`). Ganchos locales con lefthook: Biome antes de cada commit; tipos y tests antes de cada push. **Limitación actual:** hasta que exista el runner de `ops-01`, `deploy.yml` solo corre a mano (`workflow_dispatch`); CI corre en cada PR y en cada push a `main`.
-- Runner autoalojado en `ops-01` (sin puertos de entrada).
+- Runner autoalojado en `lpzvmkrkops01` con la etiqueta `ops-01` (sin puertos de entrada). `deploy.sh` entra por SSH a los nombres de `deploy/hosts/<entorno>`; el `~/.ssh/config` del usuario `deploy` en ops01 los resuelve a su IP.
 - Entornos: desarrollo (Compose local con Postgres y correo falso), staging y producción.
-- Observabilidad: logs JSON a Loki con `requestId`; métricas en Prometheus/Grafana; Uptime Kuma avisa por correo y Teams.
+- Observabilidad: logs JSON con `requestId` (a Loki cuando tenga destino); métricas de HAProxy en `:8404/metrics` para el Prometheus de `/opt/monitoring`.
 
 ### Secretos
 | Variable | Uso |
 |---|---|
 | `DATABASE_URL`, `MIGRATION_DATABASE_URL` | Usuario de la app (sin DDL) y usuario de migraciones |
 | `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` | Sesiones |
-| `TRUSTED_PROXIES` | IP o rangos CIDR de FortiGate/Radware y HAProxy: la IP real del cliente para el límite de intentos de login (guardado en `auth.rate_limit`, compartido entre nodos) y la auditoría |
+| `TRUSTED_PROXIES` | IP o rangos CIDR de los proxies propios: la IP del FortiGate, las IPs de los nodos de app y los rangos de Docker `10.250.0.0/24` y `10.251.0.0/16` (el HAProxy local llega al contenedor desde la red de Docker). Da la IP real del cliente para el límite de intentos de login (guardado en `auth.rate_limit`, compartido entre nodos) y la auditoría |
 | `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET` | Inicio de sesión (permisos delegados). URI de redirección en Entra: `{BETTER_AUTH_URL}/api/auth/callback/microsoft`. Configuración de token: notificación `groups` (grupos de seguridad, token de id, Id. de grupo); cada grupo se mapea a rol + área en `/admin/grupos-entra` y los roles de origen ENTRA se recalculan en cada inicio de sesión (`src/server/entra/sync-entra-roles.ts`) |
 | `SUPERADMIN_EMAIL`, `SUPERADMIN_PASSWORD` | Solo los lee `pnpm db:seed:admin` (contraseña de 12+ caracteres); la app nunca los usa |
 | `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, `MAIL_SENDER` | Correo (registro de app separado, solo `Mail.Send`, limitado al buzón) |

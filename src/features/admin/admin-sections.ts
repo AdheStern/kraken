@@ -15,6 +15,7 @@ export type AdminSectionKey =
   | "tecnologias"
   | "unidades"
   | "tipos-servicio"
+  | "fases-documentacion"
   | "usuarios"
   | "grupos-entra"
   | "parametros"
@@ -116,6 +117,13 @@ export const ADMIN_GROUPS: readonly AdminGroup[] = [
         "Tipos de servicio",
         "Clasificación de la cabecera del CV.",
         "/admin/catalogos/tipos-servicio",
+        "system",
+      ),
+      section(
+        "fases-documentacion",
+        "Fases de documentación",
+        "Las carpetas por fase de cada proyecto de documentación, en su orden.",
+        "/admin/fases-documentacion",
         "system",
       ),
     ],

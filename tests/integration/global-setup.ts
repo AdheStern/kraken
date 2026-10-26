@@ -1,5 +1,5 @@
 // tests/integration/global-setup.ts
-// Levanta PostgreSQL 16 en un contenedor, aplica las migraciones y comparte la URL con los tests.
+// Levanta PostgreSQL 18 en un contenedor, aplica las migraciones y comparte la URL con los tests.
 import { execSync } from "node:child_process";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import type { TestProject } from "vitest/node";
@@ -11,7 +11,7 @@ declare module "vitest" {
 }
 
 export default async function setup(project: TestProject) {
-  const container = await new PostgreSqlContainer("postgres:16-alpine").start();
+  const container = await new PostgreSqlContainer("postgres:18-alpine").start();
   const databaseUrl = container.getConnectionUri();
 
   // TRAMPA: prisma.config.ts carga .env, pero no pisa variables ya definidas; las del contenedor ganan.

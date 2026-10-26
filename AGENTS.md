@@ -339,7 +339,7 @@ Usuarios ─HTTPS→ FortiGate/Radware (WAF + TLS) → IP virtual (keepalived)
 
 ## 4. Modelo de datos
 
-PostgreSQL 16 + Prisma. Un esquema por dominio, PK `uuid` v7, `timestamptz` en UTC, borrado lógico solo en catálogos. Tablas y columnas en español `snake_case` vía `@@map`/`@map`; modelos Prisma en inglés.
+PostgreSQL 18 + Prisma. Un esquema por dominio, PK `uuid` v7, `timestamptz` en UTC, borrado lógico solo en catálogos. Tablas y columnas en español `snake_case` vía `@@map`/`@map`; modelos Prisma en inglés.
 
 Prisma 7: `prisma.config.ts` en la raíz (esquema multiarchivo en `prisma/schema/`, URL de migraciones `MIGRATION_DATABASE_URL`); el cliente se genera en `src/generated/prisma` (no versionado) y se usa solo vía `src/server/db.ts` con `@prisma/adapter-pg`. **Toda FK a una persona apunta a `core.usuario_perfil.usuario_id`** (texto, = id de Better Auth), nunca a `auth.user`.
 

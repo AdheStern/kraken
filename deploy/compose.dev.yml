@@ -1,10 +1,10 @@
 # deploy/compose.dev.yml
-# Entorno de desarrollo: PostgreSQL 16 y correo falso (Mailpit). Ver AGENTS.md §0 Comandos.
+# Entorno de desarrollo: PostgreSQL 18 y correo falso (Mailpit). Ver AGENTS.md §0 Comandos.
 name: dima-hub-dev
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     environment:
       POSTGRES_USER: dima
       POSTGRES_PASSWORD: dima
@@ -12,7 +12,9 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      # TRAMPA: desde la 18 la imagen guarda los datos en /var/lib/postgresql/18/docker y rechaza un volumen en
+      # .../data. Volumen nuevo: el de la 16 (pgdata) queda intacto y no se mezclan versiones.
+      - pgdata18:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U dima -d dima_hub"]
       interval: 5s
@@ -26,4 +28,4 @@ services:
       - "8025:8025"
 
 volumes:
-  pgdata:
+  pgdata18:

@@ -17,7 +17,7 @@ inventario y tableros. Reemplaza los Excel con los que hoy se maneja el negocio.
 ```bash
 pnpm install                                   # dependencias, cliente Prisma y ganchos de git (lefthook)
 cp .env.example .env                           # y completa los valores (ver AGENTS.md §10)
-docker compose -f deploy/compose.dev.yml up -d # Postgres 16 y Mailpit (correo falso en http://localhost:8025)
+docker compose -f deploy/compose.dev.yml up -d # Postgres 18 y Mailpit (correo falso en http://localhost:8025)
 pnpm prisma migrate dev                        # esquema de la base
 pnpm db:seed:dev                               # catálogos base, datos demo y usuarios demo
 pnpm db:seed:admin                             # cuenta de emergencia del administrador del sistema

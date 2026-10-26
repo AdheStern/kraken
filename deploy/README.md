@@ -10,7 +10,7 @@ decisiones: [AGENTS.md §3 y §10](../AGENTS.md). Objetivo no negociable: **ning
 
 | Dónde corre | Archivo | Qué es |
 |---|---|---|
-| Desarrollo | `compose.dev.yml` | Postgres 16 y Mailpit |
+| Desarrollo | `compose.dev.yml` | Postgres 18 y Mailpit |
 | app-01, app-02 | `app/compose.yml` | Next.js, worker, HAProxy y Alloy (logs) |
 | app-01, app-02 | `app/haproxy.cfg` | Web → los dos Next (sale el que falle `/api/health/ready`); `:5000` → primario de Patroni |
 | app-01, app-02 | `app/keepalived.conf` | IP virtual (en el sistema operativo, no en Docker) |

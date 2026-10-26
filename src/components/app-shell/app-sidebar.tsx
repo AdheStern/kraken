@@ -1,11 +1,16 @@
 // src/components/app-shell/app-sidebar.tsx
-// Riel de navegación de la app sobre el campo azul DIMA: marca, módulos y usuario (DESIGN.md, Blue Field Rule).
+// Riel de navegación de la app sobre el campo azul DIMA: marca, módulos, ayuda y usuario (DESIGN.md, Blue Field Rule).
+import { CircleHelp } from "lucide-react";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
 
@@ -26,7 +31,17 @@ export function AppSidebar({ mark, nav, user }: Props) {
         </div>
       </SidebarHeader>
       <SidebarContent>{nav}</SidebarContent>
-      <SidebarFooter>{user}</SidebarFooter>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton render={<Link href="/ayuda" />} tooltip="Ayuda">
+              <CircleHelp aria-hidden="true" />
+              <span>Ayuda</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+        {user}
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

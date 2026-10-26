@@ -27,7 +27,7 @@ decisiones: [AGENTS.md §3 y §10](../AGENTS.md). Objetivo no negociable: **ning
 | stg-01 | `scripts/restore-test.sh` + `backup/systemd/kraken-restore-test*` | Restauración de prueba mensual de los dos repos, con duración |
 | stg-01 | `backup/pgbackrest.restore.conf` | pgBackRest de solo lectura (NAS montado y SAS `rl` de Azure) |
 | ops-01 (runner) | `scripts/deploy.sh`, `hosts/*` | Despliegue nodo por nodo |
-| Primera vez | `sql/roles.sql` | Roles `kraken_migra` (DDL), `kraken_app` (solo DML), `kraken_lectura` |
+| Primera vez | `sql/roles.sql` | Roles `kraken_migrator` (dueño, DDL), `kraken_app` (solo DML), `kraken_lectura` (opcional) y `btree_gist` |
 | Cada despliegue | `sql/pgboss-grants.sql`, `sql/lectura-grants.sql` | Los aplica `worker:migrate`: DML de pg-boss para la app; lectura sin el esquema `auth` |
 
 ## Valores que pone DIMANET

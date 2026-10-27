@@ -26,7 +26,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 
 FROM node:24-alpine AS app
-LABEL org.opencontainers.image.source=https://github.com/aclaure-dima/kraken
+LABEL org.opencontainers.image.source=https://github.com/AdheStern/kraken
 WORKDIR /app
 ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0 NEXT_TELEMETRY_DISABLED=1
 # TRAMPA: un volumen con nombre copia el dueño de la carpeta de la imagen; sin ella nace de root y el usuario node no
@@ -42,7 +42,7 @@ HEALTHCHECK --interval=15s --timeout=3s --retries=3 \
 CMD ["node", "server.js"]
 
 FROM node:24-alpine AS worker
-LABEL org.opencontainers.image.source=https://github.com/aclaure-dima/kraken
+LABEL org.opencontainers.image.source=https://github.com/AdheStern/kraken
 RUN corepack enable
 WORKDIR /app
 ENV NODE_ENV=production

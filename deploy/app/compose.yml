@@ -24,7 +24,7 @@ x-image: &image-defaults
 services:
   app:
     <<: *image-defaults
-    image: ${KRAKEN_REGISTRY:-ghcr.io/aclaure-dima}/kraken-app:${KRAKEN_TAG:?define KRAKEN_TAG}
+    image: ${KRAKEN_REGISTRY:-ghcr.io/adhestern}/kraken-app:${KRAKEN_TAG:?define KRAKEN_TAG}
     ports:
       # Solo en la IP del nodo en 172.22.12.0/24 (NODE_IP en /opt/kraken/.env): la usan los HAProxy de los nodos.
       - "${NODE_IP:?define NODE_IP}:3000:3000"
@@ -32,12 +32,12 @@ services:
 
   worker:
     <<: *image-defaults
-    image: ${KRAKEN_REGISTRY:-ghcr.io/aclaure-dima}/kraken-worker:${KRAKEN_TAG:?define KRAKEN_TAG}
+    image: ${KRAKEN_REGISTRY:-ghcr.io/adhestern}/kraken-worker:${KRAKEN_TAG:?define KRAKEN_TAG}
     stop_grace_period: 30s
 
   migrate:
     <<: *image-defaults
-    image: ${KRAKEN_REGISTRY:-ghcr.io/aclaure-dima}/kraken-worker:${KRAKEN_TAG:?define KRAKEN_TAG}
+    image: ${KRAKEN_REGISTRY:-ghcr.io/adhestern}/kraken-worker:${KRAKEN_TAG:?define KRAKEN_TAG}
     restart: "no"
     profiles: [migrate]
     # REGLA: solo este servicio recibe la clave del dueño del esquema (DDL). La app y el worker corren con

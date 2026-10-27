@@ -86,7 +86,7 @@ sudo chown root:deploy /etc/kraken/*.env && sudo chmod 640 /etc/kraken/*.env
 sudo chown root:root /etc/kraken/tls/kraken.pem && sudo chmod 600 /etc/kraken/tls/kraken.pem
 ```
 `/opt/kraken/.env` (dueño `deploy`) lleva `NODE_IP` en producción y, solo si las imágenes no están en
-`ghcr.io/aclaure-dima`, `KRAKEN_REGISTRY`. Nunca se copia desde el repositorio.
+`ghcr.io/adhestern`, `KRAKEN_REGISTRY`. Nunca se copia desde el repositorio.
 
 1. **Base de datos** (hecho por DIMANET). Si se recrea: `psql -f sql/roles.sql` como `postgres` en el primario, con
    las claves reemplazadas (las extensiones ya existentes no se tocan).

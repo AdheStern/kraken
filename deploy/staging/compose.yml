@@ -1,11 +1,13 @@
 # deploy/staging/compose.yml
 # Staging en un solo nodo (lpzvmkrkstg01, 172.22.12.117; AGENTS.md §10): las mismas imágenes que producción (app,
-# worker y migrate), PostgreSQL 18 propio sin puertos publicados y HAProxy solo para web con TLS. Mismo nombre de
-# proyecto que producción: deploy.sh usa /opt/kraken/compose.yml igual en los dos entornos.
-# En el nodo: /opt/kraken/{compose.yml, haproxy.cfg, alloy.river, initdb/}; secretos en /etc/kraken/{app,migrate,
-# postgres}.env (permisos 600) y el certificado en /etc/kraken/tls/kraken.pem.
-#   KRAKEN_TAG=<sha> docker compose -f /opt/kraken/compose.yml up -d
-#   KRAKEN_TAG=<sha> docker compose -f /opt/kraken/compose.yml --profile migrate run --rm migrate
+# worker y migrate), PostgreSQL 18 propio sin puertos publicados, HAProxy solo para web con TLS y Mailpit en lugar
+# de Graph. Con APP_ENV=staging los correos van a Mailpit y los adjuntos al volumen files (FILES_ROOT), nunca a
+# Microsoft 365. Mismo nombre de proyecto que producción: deploy.sh usa /opt/kraken/compose.yml en los dos entornos.
+# En el nodo: deploy.sh copia a /opt/kraken/ compose.yml, haproxy.cfg e initdb/ y escribe KRAKEN_TAG en
+# /opt/kraken/.env; los secretos van en /etc/kraken/{app,migrate,postgres}.env (dueño root:deploy, permisos 640:
+# docker compose los lee como deploy) y el certificado en /etc/kraken/tls/kraken.pem (root, 600).
+#   docker compose -f /opt/kraken/compose.yml up -d
+#   docker compose -f /opt/kraken/compose.yml --profile migrate run --rm migrate
 
 name: kraken
 
@@ -44,24 +46,38 @@ services:
 
   app:
     <<: *image-defaults
-    image: ${KRAKEN_REGISTRY:-ghcr.io/adhestern}/kraken-app:${KRAKEN_TAG:?define KRAKEN_TAG}
+    image: ${KRAKEN_REGISTRY:-ghcr.io/aclaure-dima}/kraken-app:${KRAKEN_TAG:?define KRAKEN_TAG}
     ports:
       # Solo en la IP del nodo: la usa el HAProxy del host (y deploy.sh para esperar /api/health/ready).
       - "172.22.12.117:3000:3000"
+    volumes:
+      # FILES_ROOT=/var/lib/kraken/files en app.env; la carpeta existe en la imagen con dueño node (Dockerfile).
+      - files:/var/lib/kraken/files
 
   worker:
     <<: *image-defaults
-    image: ${KRAKEN_REGISTRY:-ghcr.io/adhestern}/kraken-worker:${KRAKEN_TAG:?define KRAKEN_TAG}
+    image: ${KRAKEN_REGISTRY:-ghcr.io/aclaure-dima}/kraken-worker:${KRAKEN_TAG:?define KRAKEN_TAG}
     stop_grace_period: 30s
 
   migrate:
     <<: *image-defaults
-    image: ${KRAKEN_REGISTRY:-ghcr.io/adhestern}/kraken-worker:${KRAKEN_TAG:?define KRAKEN_TAG}
+    image: ${KRAKEN_REGISTRY:-ghcr.io/aclaure-dima}/kraken-worker:${KRAKEN_TAG:?define KRAKEN_TAG}
     restart: "no"
     profiles: [migrate]
     # REGLA: solo este servicio recibe la clave del dueño del esquema (DDL), como en producción (AGENTS.md §4).
     env_file: [/etc/kraken/app.env, /etc/kraken/migrate.env]
     command: ["pnpm", "migrate:deploy"]
+
+  # Correo falso de staging: el worker envía por su API (MAILPIT_URL=http://mailpit:8025) y la interfaz web se ve solo
+  # desde la red interna. LIMITACIÓN: sin autenticación ni persistencia; los mensajes se pierden al recrearlo.
+  mailpit:
+    image: axllent/mailpit:v1.27.0
+    restart: unless-stopped
+    ports:
+      - "172.22.12.117:8025:8025"
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "5" }
 
   haproxy:
     image: haproxy:3.0-alpine
@@ -74,7 +90,8 @@ services:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
       - /etc/kraken/tls/kraken.pem:/etc/kraken/tls/kraken.pem:ro
 
-  # LIMITACIÓN: Loki aún no tiene destino; arranca solo con --profile logs (ver alloy.river).
+  # LIMITACIÓN: Loki aún no tiene destino; arranca solo con --profile logs. deploy.sh no copia alloy.river a staging:
+  # al activarlo, copiar deploy/app/alloy.river a /opt/kraken/ con su URL de Loki.
   alloy:
     image: grafana/alloy:v1.9.1
     restart: unless-stopped
@@ -86,3 +103,4 @@ services:
 
 volumes:
   pgdata:
+  files:

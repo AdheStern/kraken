@@ -1,8 +1,10 @@
 // src/app/layout.tsx
-// Layout raíz: fuentes, estilos globales y proveedor de tema para toda la app.
+// Layout raíz: fuentes, estilos globales, proveedor de tema y el aviso de staging para toda la app.
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Nunito } from "next/font/google";
+import { Suspense } from "react";
+import { StagingBanner } from "@/components/app-shell/staging-banner";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import "./globals.css";
 
@@ -43,6 +45,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           enableSystem
           disableTransitionOnChange
         >
+          <Suspense fallback={null}>
+            <StagingBanner />
+          </Suspense>
           {children}
         </ThemeProvider>
       </body>

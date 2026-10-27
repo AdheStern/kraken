@@ -33,9 +33,9 @@ Ubuntu Server 26.04 en todas las VMs, red `172.22.12.0/24`, relojes en UTC. Dock
 | app01, app02 | `app/haproxy.cfg` | `:443` TLS → Next de los nodos (sale el que falle `/api/health/ready`); `:80` redirige; `:5000` → primario de Patroni; stats en `STATS_BIND_IP` y `127.0.0.1:8404` |
 | app01, app02 | `app/keepalived.conf` | IP virtual 172.22.12.206 (en el sistema operativo, no en Docker) |
 | app01, app02 | `app/*.env.example`, `app/alloy.river` | Plantillas de `/etc/kraken/app.env`, `migrate.env` (solo el servicio `migrate`) y `haproxy.env`; Alloy sin destino aún |
-| stg01 | `staging/compose.yml`, `staging/haproxy.cfg`, `staging/initdb/` | Staging completo: mismas imágenes, Postgres 18 propio, HAProxy solo web con TLS |
+| stg01 | `staging/compose.yml`, `staging/haproxy.cfg`, `staging/initdb/` | Staging completo: mismas imágenes, Postgres 18 propio, HAProxy solo web con TLS, Mailpit (interfaz en `172.22.12.117:8025`) y adjuntos en el volumen `files` |
 | stg01 | `staging/*.env.example` | Plantillas de `/etc/kraken/app.env` (de `staging.env.example`), `migrate.env` y `postgres.env` |
-| ops01 (runner) | `scripts/deploy.sh`, `hosts/*` | Despliegue nodo por nodo por SSH |
+| ops01 (runner) | `scripts/deploy.sh`, `hosts/*` | Copia los archivos del entorno a `/opt/kraken/` (rsync), escribe `KRAKEN_TAG` en `/opt/kraken/.env`, migra y despliega nodo por nodo por SSH |
 | Primera vez | `sql/roles.sql` | Roles `kraken_migrator` (dueño, DDL), `kraken_app` (solo DML), `kraken_lectura` (opcional) y `btree_gist` |
 | Cada despliegue | `sql/pgboss-grants.sql`, `sql/lectura-grants.sql` | Los aplica `worker:migrate`: DML de pg-boss para la app; lectura sin el esquema `auth` |
 | Azure (una vez) | `azure/backup.bicep` | Storage del repo2 con inmutabilidad por versión y Key Vault de recuperación, con bloqueos |
@@ -65,8 +65,8 @@ por Microsoft Graph. Sin estas variables, en producción no se puede subir nada 
      `{"roles":["write"],"grantedToIdentities":[{"application":{"id":"<SHAREPOINT_CLIENT_ID>","displayName":"Kraken SharePoint"}}]}`.
 6. **Biblioteca:** `GET https://graph.microsoft.com/v1.0/sites/{site-id}/drives` → el `id` de «Documentos»
    (empieza con `b!`) va en `SHAREPOINT_DRIVE_ID`.
-7. **Variables** en `app/app.env` de cada nodo (permisos 600) y en el Key Vault (`scripts/escrow-secrets.sh`);
-   reiniciar la app.
+7. **Variables** en `/etc/kraken/app.env` de cada nodo de producción (dueño `root:deploy`, permisos 640) y en el
+   Key Vault (`scripts/escrow-secrets.sh`); reiniciar la app.
 8. **Verificar:** subir un documento a un proyecto en `/documentacion` → aparece en
    `Documentos/Kraken/documentacion/{cliente}/{proyecto}/{fase}/` y se descarga desde Kraken.
 
@@ -74,6 +74,19 @@ A las personas se les da, si se quiere, **solo lectura** en el sitio: un archivo
 deja de descargarse en Kraken. Subir y quitar se hace siempre desde Kraken.
 
 ## Puesta en marcha (orden)
+
+**Archivos de cada nodo.** `deploy.sh` copia en cada despliegue los archivos del repositorio a `/opt/kraken/` y
+escribe `KRAKEN_TAG=<sha>` en `/opt/kraken/.env` sin tocar sus otras líneas; lo demás es del nodo y se prepara una
+vez. Los `.env` de `/etc/kraken` los lee `docker compose`, que corre como `deploy`:
+```
+sudo install -d -o deploy -g deploy -m 755 /opt/kraken
+sudo install -d -o root -g deploy -m 750 /etc/kraken
+sudo install -d -o root -g root -m 700 /etc/kraken/tls
+sudo chown root:deploy /etc/kraken/*.env && sudo chmod 640 /etc/kraken/*.env
+sudo chown root:root /etc/kraken/tls/kraken.pem && sudo chmod 600 /etc/kraken/tls/kraken.pem
+```
+`/opt/kraken/.env` (dueño `deploy`) lleva `NODE_IP` en producción y, solo si las imágenes no están en
+`ghcr.io/aclaure-dima`, `KRAKEN_REGISTRY`. Nunca se copia desde el repositorio.
 
 1. **Base de datos** (hecho por DIMANET). Si se recrea: `psql -f sql/roles.sql` como `postgres` en el primario, con
    las claves reemplazadas (las extensiones ya existentes no se tocan).
@@ -94,22 +107,28 @@ deja de descargarse en Kraken. Subir y quitar se hace siempre desde Kraken.
    `socat` (el socket de HAProxy). Probar con `ssh lpzvmkrkstg01 docker ps` desde ops01.
 3. **Certificado.** PEM con el certificado de `kraken.dima.com.bo` (o `stg-kraken.dima.com.bo`), su cadena y la clave
    en `/etc/kraken/tls/kraken.pem` (permisos 600, dueño root) de cada nodo.
-4. **Staging (lpzvmkrkstg01).** En `/opt/kraken`: `staging/compose.yml` como `compose.yml`, `staging/haproxy.cfg`,
-   `staging/initdb/` (con el permiso de ejecución) y `app/alloy.river`. En `/etc/kraken`: `app.env` (de
-   `staging.env.example`), `migrate.env` y `postgres.env`, permisos 600. Las claves de `postgres.env` tienen que
-   coincidir con las de las URL de `app.env` y `migrate.env`: `initdb/` crea los roles con ellas en el primer
-   arranque (volumen vacío). En Entra, agregar la URI de redirección
+4. **Staging (lpzvmkrkstg01).** `deploy.sh` copia a `/opt/kraken` `staging/compose.yml`, `staging/haproxy.cfg` y
+   `staging/initdb/`. En `/etc/kraken`: `app.env` (de `staging.env.example`, con `APP_ENV=staging`), `migrate.env` y
+   `postgres.env`, dueño `root:deploy` y permisos 640. Con `APP_ENV=staging` el correo va al Mailpit del compose
+   (interfaz en `http://172.22.12.117:8025`, solo red interna), los adjuntos al volumen `files` (`FILES_ROOT`) y la
+   interfaz muestra «Entorno de pruebas»: staging no necesita Graph ni SharePoint. Las claves de `postgres.env`
+   tienen que coincidir con las de las URL de `app.env` y `migrate.env`: `initdb/` crea los roles con ellas en el
+   primer arranque (volumen vacío). En Entra, agregar la URI de redirección
    `https://stg-kraken.dima.com.bo/api/auth/callback/microsoft`.
-5. **Producción (lpzvmkrkapp01).** En `/opt/kraken`: `app/compose.yml` como `compose.yml`, `app/haproxy.cfg`,
-   `app/alloy.river` y un `.env` con `NODE_IP=172.22.12.112`. En `/etc/kraken`: `app.env`, `migrate.env` y
-   `haproxy.env` (con `STATS_BIND_IP=172.22.12.112`), permisos 600. keepalived en el sistema con `app/keepalived.conf`
-   (interfaz y clave VRRP reemplazadas). `MIGRATION_DATABASE_URL` va solo en `migrate.env`.
+5. **Producción (lpzvmkrkapp01).** `deploy.sh` copia a `/opt/kraken` `app/compose.yml`, `app/haproxy.cfg` y
+   `app/alloy.river`; a mano, un `/opt/kraken/.env` con `NODE_IP=172.22.12.112`. En `/etc/kraken`: `app.env` (con
+   `APP_ENV=production`), `migrate.env` y `haproxy.env` (con `STATS_BIND_IP=172.22.12.112`), dueño `root:deploy` y
+   permisos 640. `MIGRATION_DATABASE_URL` va solo en `migrate.env`. keepalived en el sistema con `app/keepalived.conf`
+   (`state BACKUP` con `nopreempt`, `virtual_router_id 206`, IP virtual en `ens33`, unicast sin autenticación y el
+   chequeo como `keepalived_script`). Su `unicast_peer` lleva desde ya la IP reservada para lpzvmkrkapp02: vacío,
+   keepalived vuelve a multicast. Su `track_script` se descomenta **recién con HAProxy corriendo** en el nodo,
+   después del primer despliegue: antes, el chequeo fallaría y soltaría la IP virtual.
    **`TRUSTED_PROXIES`** lleva la IP del FortiGate, las IPs de los nodos de app y los rangos `10.250.0.0/24` y
    `10.251.0.0/16`: el HAProxy local llega al contenedor desde la red de Docker.
 6. **lpzvmkrkapp02 (después).** Descomentar su servidor en `app/haproxy.cfg` (en los dos nodos) y en
-   `hosts/production`, el `unicast_peer` de keepalived en ambos (app02 como BACKUP, prioridad 100), su `Host` en
-   `~/.ssh/config` de ops01 y sumar su IP a `TRUSTED_PROXIES`. Al sumar lpzvmkrkdb02, descomentar su servidor en
-   `backend pg_primary`.
+   `hosts/production`, keepalived en app02 (`priority 100`, `unicast_src_ip` con su IP y `unicast_peer` con
+   172.22.12.112), su `Host` en `~/.ssh/config` de ops01 y sumar su IP a `TRUSTED_PROXIES`. Al sumar lpzvmkrkdb02,
+   descomentar su servidor en `backend pg_primary`.
 7. **CI/CD.** Runner autoalojado de GitHub en lpzvmkrkops01 con la etiqueta `ops-01`. En GitHub: entornos `staging` y
    `production` (este con aprobación obligatoria) y la variable `CI_RUNNER=ops-01` si CI debe correr ahí.
 8. **Primer despliegue.** Desde GitHub, *Deploy → Run workflow*. El script migra (`pnpm migrate:deploy`: Prisma,
@@ -128,6 +147,9 @@ deja de descargarse en Kraken. Subir y quitar se hace siempre desde Kraken.
 - **Cambio de primario:** `patronictl -c /etc/patroni/patroni.yml switchover` en lpzvmkrkdb01 (Patroni nativo).
   HAProxy corta las conexiones al viejo primario y la app reconecta sola.
 - **Estado del HAProxy:** `curl -s http://127.0.0.1:8404/` en el nodo.
+- **Cambio en `haproxy.cfg`:** `deploy.sh` lo copia, pero el contenedor sigue con el anterior (rsync lo reemplaza
+  por un archivo nuevo). Aplicarlo con `docker compose -f /opt/kraken/compose.yml restart haproxy`, de a un nodo
+  (en producción, sin la IP virtual o con el otro nodo en servicio).
 - **Respaldos y restauración de prueba:** los opera DIMANET con pgBackRest por SSH y cron desde ops01; los archivos
   de `backup/` y `scripts/restore-test.sh` están **pendientes de adaptar** a ese esquema.
 
@@ -176,6 +198,8 @@ LIMITACIÓN: en Azure no hay WAF ni réplica; es un nodo para sostener la operac
 | `staging/initdb/10-kraken-roles.sh` | Validado | `postgres:18-alpine` vacío → roles, base, `btree_gist`; `pnpm migrate:deploy` como `kraken_migrator`; `kraken_app` con DML y sin DDL |
 | PostgreSQL 18 | Validado | `pnpm test:int` completo sobre `postgres:18-alpine` |
 | `scripts/*.sh` | Validado (sintaxis) | `bash -n` |
-| keepalived, TLS real, despliegue por SSH | **No validado** | Requiere lpzvmkrkapp01, el certificado y el `~/.ssh/config` de ops01 |
+| `scripts/deploy.sh` | Validado (simulado) | `ssh` y `rsync` falsos: archivos por entorno, orden copia → migración → nodos, `KRAKEN_TAG` agregado o reemplazado sin tocar las demás líneas de `.env`, entorno o tag inválidos rechazados |
+| `app/keepalived.conf` | Validado (sintaxis) | `keepalived --config-test` 2.3.1 en Alpine con `eth0` en lugar de `ens33`; con un peer, BACKUP → MASTER por unicast |
+| keepalived en la VM, TLS real, despliegue por SSH | **No validado** | Requiere lpzvmkrkapp01, el certificado y el `~/.ssh/config` de ops01 |
 | Staging de punta a punta | **No validado** | Requiere lpzvmkrkstg01 con los env y el primer despliegue |
 | Respaldos, restauración de prueba y DR | **Pendiente de adaptar** | pgBackRest por SSH y cron; Postgres 18 |

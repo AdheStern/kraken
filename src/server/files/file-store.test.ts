@@ -29,6 +29,34 @@ describe("selectFileStore", () => {
   it("en producción sin configuración deshabilita los adjuntos", () => {
     expect(selectFileStore({ NODE_ENV: "production" })).toBeNull();
   });
+
+  it("en staging con FILES_ROOT usa la carpeta aunque SharePoint esté configurado", () => {
+    const env = {
+      ...SHAREPOINT_ENV,
+      NODE_ENV: "production",
+      APP_ENV: "staging",
+      FILES_ROOT: "/var/lib/kraken/files",
+    };
+    expect(selectFileStore(env)?.name).toBe("local");
+    expect(selectFileStore({ ...env, FILES_ROOT: undefined })?.name).toBe(
+      "sharepoint",
+    );
+  });
+
+  it("en producción SharePoint sigue ganándole a FILES_ROOT", () => {
+    for (const APP_ENV of [undefined, "production", "Staging"]) {
+      const env = {
+        ...SHAREPOINT_ENV,
+        NODE_ENV: "production",
+        APP_ENV,
+        FILES_ROOT: "/mnt/nas",
+      };
+      expect(selectFileStore(env)?.name).toBe("sharepoint");
+    }
+    expect(
+      selectFileStore({ NODE_ENV: "production", APP_ENV: "production" }),
+    ).toBeNull();
+  });
 });
 
 describe("LocalFileStore", () => {

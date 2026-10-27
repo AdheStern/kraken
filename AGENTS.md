@@ -775,12 +775,13 @@ PR → biome · typecheck · tests de dominio · integración con Postgres · bu
 | `SUPERADMIN_EMAIL`, `SUPERADMIN_PASSWORD` | Solo los lee `pnpm db:seed:admin` (contraseña de 12+ caracteres); la app nunca los usa |
 | `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`, `MAIL_SENDER` | Correo (registro de app separado, solo `Mail.Send`, limitado al buzón) |
 | `FX_API_URL` | API del tipo de cambio |
-| `MAILPIT_URL` | Solo desarrollo: Mailpit (por defecto `http://localhost:8025`) cuando Graph no está configurado |
+| `APP_ENV` | `production` (por defecto, también si falta o tiene otro valor) o `staging`. Las dos imágenes corren con `NODE_ENV=production`; solo con `staging` el correo va a Mailpit (`MAILPIT_URL`) y los adjuntos a `FILES_ROOT` aunque haya Graph o SharePoint configurados, y la interfaz muestra «Entorno de pruebas» (`src/server/app-env.ts`). En producción nada cambia: sin Graph el worker no arranca |
+| `MAILPIT_URL` | Desarrollo: Mailpit (por defecto `http://localhost:8025`) cuando Graph no está configurado. Staging: el servicio `mailpit` del compose (`http://mailpit:8025`) |
 | `E2E_BASE_URL` | Solo pruebas: servidor bajo prueba de Playwright (por defecto `http://localhost:3100`) |
 | `SHAREPOINT_CLIENT_ID`, `SHAREPOINT_CLIENT_SECRET`, `SHAREPOINT_DRIVE_ID`, `SHAREPOINT_FOLDER` | Adjuntos en SharePoint (registro de app separado con `Sites.Selected`, escritura solo sobre el sitio de Kraken; usa `ENTRA_TENANT_ID`) |
-| `FILES_ROOT` | Alternativa a SharePoint: carpeta o montaje de adjuntos; en desarrollo, sin nada configurado, `./.files` |
+| `FILES_ROOT` | Alternativa a SharePoint: carpeta o montaje de adjuntos; en staging, el volumen `files` del compose (`/var/lib/kraken/files`); en desarrollo, sin nada configurado, `./.files` |
 
-Nunca en el repositorio (`.env.example` documentado). En los servidores: archivos con permisos 600 fuera del proyecto o Docker secrets. Los secretos de Entra se rotan con una alerta 30 días antes de vencer.
+Nunca en el repositorio (`.env.example` documentado). En los servidores: `/etc/kraken/*.env`, fuera del proyecto, con dueño `root:deploy` y permisos 640 (`deploy.sh` corre `docker compose` como `deploy`, que lee los `env_file`); el certificado `/etc/kraken/tls/kraken.pem`, `root` y 600. `deploy.sh` copia a `/opt/kraken/` solo los archivos del compose del entorno y escribe `KRAKEN_TAG` en `/opt/kraken/.env`; nunca toca `/etc/kraken`. Los secretos de Entra se rotan con una alerta 30 días antes de vencer.
 
 ---
 

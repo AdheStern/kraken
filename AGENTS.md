@@ -722,7 +722,7 @@ Ubuntu Server 26.04 en todas las VMs, red `172.22.12.0/24`, relojes en UTC. Dock
 | VM | IP | Contenido |
 |---|---|---|
 | `lpzvmkrkapp01` | 172.22.12.112 | Docker Compose (`deploy/app/compose.yml`): Next.js, worker, HAProxy (TLS en :443, base por :5000), keepalived en el sistema. Aún no creada |
-| `lpzvmkrkapp02` | por definir | Igual que app01; después |
+| `lpzvmkrkapp02` | 172.22.12.113 (reservada) | Igual que app01; después |
 | IP virtual | 172.22.12.206 | keepalived entre los nodos de app |
 | `lpzvmkrkdb01` | 172.22.12.114 | PostgreSQL 18.6 **nativo** con Patroni 4.1.5 y etcd, clúster `kraken`; API de Patroni en :8008 |
 | `lpzvmkrkdb02` | por definir | Réplica del clúster; después. No habrá db03 por ahora |

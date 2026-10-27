@@ -14,7 +14,7 @@ Ubuntu Server 26.04 en todas las VMs, red `172.22.12.0/24`, relojes en UTC. Dock
 | VM | IP | Qué corre |
 |---|---|---|
 | `lpzvmkrkapp01` | 172.22.12.112 | Docker Compose (`app/compose.yml`): Next.js, worker, HAProxy (TLS y base por `:5000`); keepalived en el sistema. **Aún no creada** |
-| `lpzvmkrkapp02` | (por definir) | Igual que app01. Después |
+| `lpzvmkrkapp02` | 172.22.12.113 (reservada) | Igual que app01. Después |
 | IP virtual | 172.22.12.206 | keepalived; el FortiGate publica el 443 de `kraken.dima.com.bo` hacia esta IP |
 | `lpzvmkrkdb01` | 172.22.12.114 | PostgreSQL 18.6 **nativo** con Patroni 4.1.5 y etcd, clúster `kraken`; API de Patroni en `:8008` (`/primary` = 200 solo en el primario). Base `kraken` |
 | `lpzvmkrkdb02` | (por definir) | Réplica del clúster. Después; no habrá db03 por ahora |
@@ -98,7 +98,7 @@ sudo chown root:root /etc/kraken/tls/kraken.pem && sudo chmod 600 /etc/kraken/tl
    Host lpzvmkrkapp01
      HostName 172.22.12.112
    # Host lpzvmkrkapp02
-   #   HostName <IP_APP02>
+   #   HostName 172.22.12.113
    Host lpzvmkrk*
      User deploy
      IdentityFile ~/.ssh/id_ed25519
@@ -120,15 +120,15 @@ sudo chown root:root /etc/kraken/tls/kraken.pem && sudo chmod 600 /etc/kraken/tl
    `APP_ENV=production`), `migrate.env` y `haproxy.env` (con `STATS_BIND_IP=172.22.12.112`), dueño `root:deploy` y
    permisos 640. `MIGRATION_DATABASE_URL` va solo en `migrate.env`. keepalived en el sistema con `app/keepalived.conf`
    (`state BACKUP` con `nopreempt`, `virtual_router_id 206`, IP virtual en `ens33`, unicast sin autenticación y el
-   chequeo como `keepalived_script`). Su `unicast_peer` lleva desde ya la IP reservada para lpzvmkrkapp02: vacío,
-   keepalived vuelve a multicast. Su `track_script` se descomenta **recién con HAProxy corriendo** en el nodo,
+   chequeo como `keepalived_script`). Su `unicast_peer` lleva desde ya 172.22.12.113, la IP reservada para
+   lpzvmkrkapp02: vacío, keepalived vuelve a multicast. Su `track_script` se descomenta **recién con HAProxy corriendo** en el nodo,
    después del primer despliegue: antes, el chequeo fallaría y soltaría la IP virtual.
    **`TRUSTED_PROXIES`** lleva la IP del FortiGate, las IPs de los nodos de app y los rangos `10.250.0.0/24` y
    `10.251.0.0/16`: el HAProxy local llega al contenedor desde la red de Docker.
-6. **lpzvmkrkapp02 (después).** Descomentar su servidor en `app/haproxy/haproxy.cfg` (el despliegue lo lleva a los
-   dos nodos) y en
-   `hosts/production`, keepalived en app02 (`priority 100`, `unicast_src_ip` con su IP y `unicast_peer` con
-   172.22.12.112), su `Host` en `~/.ssh/config` de ops01 y sumar su IP a `TRUSTED_PROXIES`. Al sumar lpzvmkrkdb02,
+6. **lpzvmkrkapp02 (172.22.12.113, después).** Descomentar su servidor en `app/haproxy/haproxy.cfg` (el despliegue
+   lo lleva a los dos nodos) y en `hosts/production`, keepalived en app02 (`priority 100`, `unicast_src_ip
+   172.22.12.113` y `unicast_peer` 172.22.12.112), su `Host` en `~/.ssh/config` de ops01 y sumar 172.22.12.113 a
+   `TRUSTED_PROXIES`. Al sumar lpzvmkrkdb02,
    descomentar su servidor en `backend pg_primary`.
 7. **CI/CD.** Runner autoalojado de GitHub en lpzvmkrkops01 con la etiqueta `ops-01`. En GitHub: entornos `staging` y
    `production` (este con aprobación obligatoria) y la variable `CI_RUNNER=ops-01` si CI debe correr ahí.

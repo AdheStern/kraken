@@ -12,6 +12,7 @@ services:
   haproxy:
     env_file: !reset []
     volumes:
-      # El certificado se monta desde app/compose.yml (/etc/kraken/tls/kraken.pem, lo escribe dr-restore.sh).
-      - ../dr/haproxy.dr.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      # El certificado se monta desde app/compose.yml (/etc/kraken/tls/kraken.pem, lo escribe dr-restore.sh). Mismo
+      # destino que la carpeta de app/compose.yml: compose reemplaza ese montaje por este.
+      - ../dr/haproxy:/usr/local/etc/haproxy:ro
 

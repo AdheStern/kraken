@@ -3,7 +3,7 @@
 # worker y migrate), PostgreSQL 18 propio sin puertos publicados, HAProxy solo para web con TLS y Mailpit en lugar
 # de Graph. Con APP_ENV=staging los correos van a Mailpit y los adjuntos al volumen files (FILES_ROOT), nunca a
 # Microsoft 365. Mismo nombre de proyecto que producción: deploy.sh usa /opt/kraken/compose.yml en los dos entornos.
-# En el nodo: deploy.sh copia a /opt/kraken/ compose.yml, haproxy.cfg e initdb/ y escribe KRAKEN_TAG en
+# En el nodo: deploy.sh copia a /opt/kraken/ compose.yml, haproxy/ e initdb/ y escribe KRAKEN_TAG en
 # /opt/kraken/.env; los secretos van en /etc/kraken/{app,migrate,postgres}.env (dueño root:deploy, permisos 640:
 # docker compose los lee como deploy) y el certificado en /etc/kraken/tls/kraken.pem (root, 600).
 #   docker compose -f /opt/kraken/compose.yml up -d
@@ -84,10 +84,12 @@ services:
     restart: unless-stopped
     network_mode: host
     # TRAMPA: con la red del host, el usuario de la imagen no puede abrir puertos < 1024; arranca como root, abre los
-    # puertos y lee el certificado, y baja a haproxy (user/group en global de haproxy.cfg).
+    # puertos y lee el certificado, y baja a haproxy (user/group en global de haproxy/haproxy.cfg).
     user: root
     volumes:
-      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      # TRAMPA: se monta la carpeta, no el archivo: rsync reemplaza haproxy.cfg por un archivo nuevo (otro inodo) y con
+      # el archivo montado la recarga seguiría leyendo el anterior. La carpeta tapa la errors/ de la imagen (sin uso).
+      - ./haproxy:/usr/local/etc/haproxy:ro
       - /etc/kraken/tls/kraken.pem:/etc/kraken/tls/kraken.pem:ro
 
   # LIMITACIÓN: Loki aún no tiene destino; arranca solo con --profile logs. deploy.sh no copia alloy.river a staging:

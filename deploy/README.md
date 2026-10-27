@@ -30,10 +30,10 @@ Ubuntu Server 26.04 en todas las VMs, red `172.22.12.0/24`, relojes en UTC. Dock
 |---|---|---|
 | Desarrollo | `compose.dev.yml` | Postgres 18 y Mailpit |
 | app01, app02 | `app/compose.yml` | Next.js, worker, `migrate` (perfil), HAProxy y Alloy (perfil `logs`) |
-| app01, app02 | `app/haproxy.cfg` | `:443` TLS → Next de los nodos (sale el que falle `/api/health/ready`); `:80` redirige; `:5000` → primario de Patroni; stats en `STATS_BIND_IP` y `127.0.0.1:8404` |
+| app01, app02 | `app/haproxy/haproxy.cfg` | `:443` TLS → Next de los nodos (sale el que falle `/api/health/ready`); `:80` redirige; `:5000` → primario de Patroni; stats en `STATS_BIND_IP` y `127.0.0.1:8404` |
 | app01, app02 | `app/keepalived.conf` | IP virtual 172.22.12.206 (en el sistema operativo, no en Docker) |
 | app01, app02 | `app/*.env.example`, `app/alloy.river` | Plantillas de `/etc/kraken/app.env`, `migrate.env` (solo el servicio `migrate`) y `haproxy.env`; Alloy sin destino aún |
-| stg01 | `staging/compose.yml`, `staging/haproxy.cfg`, `staging/initdb/` | Staging completo: mismas imágenes, Postgres 18 propio, HAProxy solo web con TLS, Mailpit (interfaz en `172.22.12.117:8025`) y adjuntos en el volumen `files` |
+| stg01 | `staging/compose.yml`, `staging/haproxy/`, `staging/initdb/` | Staging completo: mismas imágenes, Postgres 18 propio, HAProxy solo web con TLS, Mailpit (interfaz en `172.22.12.117:8025`) y adjuntos en el volumen `files` |
 | stg01 | `staging/*.env.example` | Plantillas de `/etc/kraken/app.env` (de `staging.env.example`), `migrate.env` y `postgres.env` |
 | ops01 (runner) | `scripts/deploy.sh`, `hosts/*` | Copia los archivos del entorno a `/opt/kraken/` (rsync), escribe `KRAKEN_TAG` en `/opt/kraken/.env`, migra y despliega nodo por nodo por SSH |
 | Primera vez | `sql/roles.sql` | Roles `kraken_migrator` (dueño, DDL), `kraken_app` (solo DML), `kraken_lectura` (opcional) y `btree_gist` |
@@ -107,7 +107,7 @@ sudo chown root:root /etc/kraken/tls/kraken.pem && sudo chmod 600 /etc/kraken/tl
    `socat` (el socket de HAProxy). Probar con `ssh lpzvmkrkstg01 docker ps` desde ops01.
 3. **Certificado.** PEM con el certificado de `kraken.dima.com.bo` (o `stg-kraken.dima.com.bo`), su cadena y la clave
    en `/etc/kraken/tls/kraken.pem` (permisos 600, dueño root) de cada nodo.
-4. **Staging (lpzvmkrkstg01).** `deploy.sh` copia a `/opt/kraken` `staging/compose.yml`, `staging/haproxy.cfg` y
+4. **Staging (lpzvmkrkstg01).** `deploy.sh` copia a `/opt/kraken` `staging/compose.yml`, `staging/haproxy/` y
    `staging/initdb/`. En `/etc/kraken`: `app.env` (de `staging.env.example`, con `APP_ENV=staging`), `migrate.env` y
    `postgres.env`, dueño `root:deploy` y permisos 640. Con `APP_ENV=staging` el correo va al Mailpit del compose
    (interfaz en `http://172.22.12.117:8025`, solo red interna), los adjuntos al volumen `files` (`FILES_ROOT`) y la
@@ -115,7 +115,7 @@ sudo chown root:root /etc/kraken/tls/kraken.pem && sudo chmod 600 /etc/kraken/tl
    tienen que coincidir con las de las URL de `app.env` y `migrate.env`: `initdb/` crea los roles con ellas en el
    primer arranque (volumen vacío). En Entra, agregar la URI de redirección
    `https://stg-kraken.dima.com.bo/api/auth/callback/microsoft`.
-5. **Producción (lpzvmkrkapp01).** `deploy.sh` copia a `/opt/kraken` `app/compose.yml`, `app/haproxy.cfg` y
+5. **Producción (lpzvmkrkapp01).** `deploy.sh` copia a `/opt/kraken` `app/compose.yml`, `app/haproxy/` y
    `app/alloy.river`; a mano, un `/opt/kraken/.env` con `NODE_IP=172.22.12.112`. En `/etc/kraken`: `app.env` (con
    `APP_ENV=production`), `migrate.env` y `haproxy.env` (con `STATS_BIND_IP=172.22.12.112`), dueño `root:deploy` y
    permisos 640. `MIGRATION_DATABASE_URL` va solo en `migrate.env`. keepalived en el sistema con `app/keepalived.conf`
@@ -125,7 +125,8 @@ sudo chown root:root /etc/kraken/tls/kraken.pem && sudo chmod 600 /etc/kraken/tl
    después del primer despliegue: antes, el chequeo fallaría y soltaría la IP virtual.
    **`TRUSTED_PROXIES`** lleva la IP del FortiGate, las IPs de los nodos de app y los rangos `10.250.0.0/24` y
    `10.251.0.0/16`: el HAProxy local llega al contenedor desde la red de Docker.
-6. **lpzvmkrkapp02 (después).** Descomentar su servidor en `app/haproxy.cfg` (en los dos nodos) y en
+6. **lpzvmkrkapp02 (después).** Descomentar su servidor en `app/haproxy/haproxy.cfg` (el despliegue lo lleva a los
+   dos nodos) y en
    `hosts/production`, keepalived en app02 (`priority 100`, `unicast_src_ip` con su IP y `unicast_peer` con
    172.22.12.112), su `Host` en `~/.ssh/config` de ops01 y sumar su IP a `TRUSTED_PROXIES`. Al sumar lpzvmkrkdb02,
    descomentar su servidor en `backend pg_primary`.
@@ -147,9 +148,28 @@ sudo chown root:root /etc/kraken/tls/kraken.pem && sudo chmod 600 /etc/kraken/tl
 - **Cambio de primario:** `patronictl -c /etc/patroni/patroni.yml switchover` en lpzvmkrkdb01 (Patroni nativo).
   HAProxy corta las conexiones al viejo primario y la app reconecta sola.
 - **Estado del HAProxy:** `curl -s http://127.0.0.1:8404/` en el nodo.
-- **Cambio en `haproxy.cfg`:** `deploy.sh` lo copia, pero el contenedor sigue con el anterior (rsync lo reemplaza
-  por un archivo nuevo). Aplicarlo con `docker compose -f /opt/kraken/compose.yml restart haproxy`, de a un nodo
-  (en producción, sin la IP virtual o con el otro nodo en servicio).
+- **Cambios en `haproxy.cfg`:** los aplica el despliegue. `deploy.sh` compara el sha256 del archivo nuevo con el de
+  cada nodo y, si cambió, guarda el anterior en `/opt/kraken/haproxy.cfg.bak`, valida el nuevo en **todos** los nodos
+  (`haproxy -c` con la imagen del compose y el certificado real) y recién entonces lo recarga nodo por nodo con
+  `docker compose kill -s HUP haproxy`: el master carga la configuración y los workers viejos terminan sus
+  conexiones abiertas, sin corte. Verifica en el log del contenedor que la carga fue exitosa, que el contenedor
+  sigue arriba, que `:443` responde y, en producción, el socket de administración. Si la validación o una recarga
+  falla, restaura el `.bak` en todos los nodos (y recarga los que ya había recargado) y aborta antes de migraciones,
+  imágenes y contenedores: ningún nodo queda con un `haproxy.cfg` distinto de los demás.
+  TRAMPA: los compose montan la **carpeta** `/opt/kraken/haproxy/`, no el archivo; con el archivo montado, el
+  contenedor seguiría viendo el anterior después del rsync (otro inodo). El `/opt/kraken/haproxy.cfg` suelto que dejó
+  la versión anterior se puede borrar.
+- **Recarga a mano (emergencia):** editar `/opt/kraken/haproxy/haproxy.cfg` en el nodo, validarlo
+  (`docker run --rm --user root -v /opt/kraken/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro -v
+  /etc/kraken/tls/kraken.pem:/etc/kraken/tls/kraken.pem:ro haproxy:3.0-alpine haproxy -c -f
+  /usr/local/etc/haproxy/haproxy.cfg`, más `--env-file /etc/kraken/haproxy.env` en producción) y recargar con
+  `docker compose -f /opt/kraken/compose.yml kill -s HUP haproxy`. El próximo despliegue lo vuelve a dejar como
+  en el repositorio: el cambio tiene que llegar también a `app/haproxy/` o `staging/haproxy/`.
+- **Cambios en el servicio `haproxy` de `compose.yml`** (imagen, montajes): `up -d` recrea el contenedor y ese nodo
+  deja de atender unos segundos; el despliegue lo hace nodo por nodo y lo deja en el log. Con dos nodos y el
+  `track_script` de keepalived activo, la IP virtual pasa al otro mientras tanto; **con un solo nodo (hoy
+  lpzvmkrkapp01 y staging) hay un corte de unos segundos.**
+- **keepalived:** el despliegue no lo toca; su configuración es manual (paso 5 de la puesta en marcha).
 - **Respaldos y restauración de prueba:** los opera DIMANET con pgBackRest por SSH y cron desde ops01; los archivos
   de `backup/` y `scripts/restore-test.sh` están **pendientes de adaptar** a ese esquema.
 
@@ -193,12 +213,13 @@ LIMITACIÓN: en Azure no hay WAF ni réplica; es un nodo para sostener la operac
 | Pieza | Estado | Cómo |
 |---|---|---|
 | Imágenes `app` y `worker` | Validado | `docker build --target app` y `--target worker` |
-| `app/haproxy.cfg`, `staging/haproxy.cfg`, `dr/haproxy.dr.cfg` | Validado (sintaxis) | `haproxy -c` en `haproxy:3.0-alpine` con un certificado autofirmado temporal |
+| `app/haproxy/`, `staging/haproxy/`, `dr/haproxy/` | Validado (sintaxis) | `haproxy -c` en `haproxy:3.0-alpine` con un certificado autofirmado temporal |
 | `app/compose.yml`, `staging/compose.yml`, `compose.dev.yml`, override de DR | Validado (sintaxis) | `docker compose config` |
 | `staging/initdb/10-kraken-roles.sh` | Validado | `postgres:18-alpine` vacío → roles, base, `btree_gist`; `pnpm migrate:deploy` como `kraken_migrator`; `kraken_app` con DML y sin DDL |
 | PostgreSQL 18 | Validado | `pnpm test:int` completo sobre `postgres:18-alpine` |
 | `scripts/*.sh` | Validado (sintaxis) | `bash -n` |
-| `scripts/deploy.sh` | Validado (simulado) | `ssh` y `rsync` falsos: archivos por entorno, orden copia → migración → nodos, `KRAKEN_TAG` agregado o reemplazado sin tocar las demás líneas de `.env`, entorno o tag inválidos rechazados |
+| `scripts/deploy.sh` | Validado (simulado) | `ssh`, `rsync` y `docker` falsos sobre dos nodos: archivos por entorno, `KRAKEN_TAG` sin tocar las demás líneas de `.env`, `haproxy.cfg` sin cambios no toca HAProxy, cambio válido se recarga en ambos, inválido o recarga fallida restauran todos y abortan antes de migrar, recreación de `haproxy` en el log |
+| Recarga de HAProxy | Validado | `haproxy:3.0-alpine` con la carpeta montada: rsync-like (renombrado) + HUP sirve la configuración nueva sin cortar al worker anterior; un archivo roto da `Loading failure` y sigue el anterior |
 | `app/keepalived.conf` | Validado (sintaxis) | `keepalived --config-test` 2.3.1 en Alpine con `eth0` en lugar de `ens33`; con un peer, BACKUP → MASTER por unicast |
 | keepalived en la VM, TLS real, despliegue por SSH | **No validado** | Requiere lpzvmkrkapp01, el certificado y el `~/.ssh/config` de ops01 |
 | Staging de punta a punta | **No validado** | Requiere lpzvmkrkstg01 con los env y el primer despliegue |

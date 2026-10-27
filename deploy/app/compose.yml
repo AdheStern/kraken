@@ -4,7 +4,7 @@
 # necesita la red del host y privilegios (ver keepalived.conf). Alloy (logs a Loki) va en el perfil "logs" hasta
 # que Loki tenga destino. Secretos en /etc/kraken/*.env (dueño root:deploy, permisos 640: docker compose los lee
 # como deploy; fuera del repositorio); certificado en /etc/kraken/tls/kraken.pem (root, 600). Imágenes en GHCR por
-# commit: deploy.sh copia a /opt/kraken/ compose.yml, haproxy.cfg y alloy.river y escribe KRAKEN_TAG en
+# commit: deploy.sh copia a /opt/kraken/ compose.yml, haproxy/ y alloy.river y escribe KRAKEN_TAG en
 # /opt/kraken/.env (junto a NODE_IP y, si cambia, KRAKEN_REGISTRY).
 #   docker compose -f /opt/kraken/compose.yml up -d
 #   docker compose -f /opt/kraken/compose.yml --profile migrate run --rm migrate
@@ -50,11 +50,13 @@ services:
     restart: unless-stopped
     network_mode: host
     # TRAMPA: con la red del host, el usuario de la imagen (uid 99) no puede abrir puertos < 1024; arranca como
-    # root, abre los puertos y lee el certificado, y baja a haproxy (user/group en global de haproxy.cfg).
+    # root, abre los puertos y lee el certificado, y baja a haproxy (user/group en global de haproxy/haproxy.cfg).
     user: root
     env_file: /etc/kraken/haproxy.env
     volumes:
-      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      # TRAMPA: se monta la carpeta, no el archivo: rsync reemplaza haproxy.cfg por un archivo nuevo (otro inodo) y con
+      # el archivo montado la recarga seguiría leyendo el anterior. La carpeta tapa la errors/ de la imagen (sin uso).
+      - ./haproxy:/usr/local/etc/haproxy:ro
       # Socket de administración: el despliegue drena y habilita nodos por aquí.
       - /run/haproxy:/run/haproxy
       # PEM con el certificado del dominio, su cadena y la clave (permisos 600, dueño root).

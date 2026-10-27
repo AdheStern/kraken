@@ -12,6 +12,13 @@ export interface FileStore {
   // POR QUÉ: `path` es una ruta lógica ("tickets/12/…"); cada adaptador devuelve la referencia que sabe leer.
   // REGLA: nunca reemplaza un archivo existente; si la ruta ya existe lanza FileConflictError.
   put(path: string, data: Uint8Array, mimeType: string): Promise<StoredFile>;
+  // POR QUÉ: reemplazar es explícito y por referencia (una lección aprendida editada); SharePoint conserva la
+  // versión anterior en su historial y el elemento mantiene su id.
+  replace(
+    storagePath: string,
+    data: Uint8Array,
+    mimeType: string,
+  ): Promise<void>;
   get(storagePath: string): Promise<Uint8Array>;
   remove(storagePath: string): Promise<void>;
 }

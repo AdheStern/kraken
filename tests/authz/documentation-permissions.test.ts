@@ -34,7 +34,9 @@ function user(...roles: RoleCode[]): SessionUser {
 }
 
 describe("§2.10 Documentación", () => {
-  it.each(ALL_ROLES)("%s ve todos los proyectos y sube documentos", (role) => {
+  it.each(
+    ALL_ROLES,
+  )("%s ve todos los proyectos, sube documentos y escribe o edita lecciones", (role) => {
     expect(canUseDocumentation(user(role))).toBe(true);
     expect(scopeDocProjectQuery(user(role))).toEqual({});
   });

@@ -54,22 +54,35 @@ model DocProjectTechnology {
   @@schema("doc")
 }
 
+// POR QUÉ: una lección aprendida es un .txt más de la fase (Markdown en texto), escrito en el editor de Kraken.
+enum DocDocumentKind {
+  ARCHIVO
+  LECCION
+
+  @@schema("doc")
+}
+
 // POR QUÉ: Restrict sobre la fase; una fase con documentos se da de baja, nunca se borra.
 model DocDocument {
-  id           String   @id @default(uuid(7)) @db.Uuid
-  projectId    String   @map("proyecto_id") @db.Uuid
-  phaseId      String   @map("fase_id") @db.Uuid
-  fileName     String   @map("nombre_archivo")
-  storagePath  String   @map("ruta")
-  sha256       String   @map("hash_sha256")
-  sizeBytes    Int      @map("tamano_bytes")
-  mimeType     String   @map("tipo_mime")
-  uploadedById String   @map("subido_por_id")
-  createdAt    DateTime @default(now()) @map("creado_en") @db.Timestamptz
+  id           String          @id @default(uuid(7)) @db.Uuid
+  projectId    String          @map("proyecto_id") @db.Uuid
+  phaseId      String          @map("fase_id") @db.Uuid
+  kind         DocDocumentKind @default(ARCHIVO) @map("tipo")
+  title        String?         @map("titulo")
+  fileName     String          @map("nombre_archivo")
+  storagePath  String          @map("ruta")
+  sha256       String          @map("hash_sha256")
+  sizeBytes    Int             @map("tamano_bytes")
+  mimeType     String          @map("tipo_mime")
+  uploadedById String          @map("subido_por_id")
+  updatedById  String?         @map("editado_por_id")
+  createdAt    DateTime        @default(now()) @map("creado_en") @db.Timestamptz
+  updatedAt    DateTime?       @map("editado_en") @db.Timestamptz
 
-  project    DocProject  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  phase      DocPhase    @relation(fields: [phaseId], references: [id], onDelete: Restrict)
-  uploadedBy UserProfile @relation(fields: [uploadedById], references: [userId])
+  project    DocProject   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phase      DocPhase     @relation(fields: [phaseId], references: [id], onDelete: Restrict)
+  uploadedBy UserProfile  @relation("DocDocumentUploader", fields: [uploadedById], references: [userId])
+  updatedBy  UserProfile? @relation("DocDocumentEditor", fields: [updatedById], references: [userId])
 
   @@index([projectId, phaseId])
   @@map("documento")

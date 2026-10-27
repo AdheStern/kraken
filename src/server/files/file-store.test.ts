@@ -87,6 +87,18 @@ describe("LocalFileStore", () => {
     expect(Array.from(await store.get("doc/a.txt"))).toEqual([1]);
     await rm(root, { recursive: true, force: true });
   });
+
+  it("reemplaza un archivo existente y no crea uno que no existe", async () => {
+    const root = await mkdtemp(join(tmpdir(), "kraken-files-"));
+    const store = new LocalFileStore(root);
+    await store.put("doc/a.txt", new Uint8Array([1, 2, 3]), "text/plain");
+    await store.replace("doc/a.txt", new Uint8Array([9]), "text/plain");
+    expect(Array.from(await store.get("doc/a.txt"))).toEqual([9]);
+    await expect(
+      store.replace("doc/b.txt", new Uint8Array([1]), "text/plain"),
+    ).rejects.toThrow();
+    await rm(root, { recursive: true, force: true });
+  });
 });
 
 describe("SharePointFileStore", () => {
@@ -178,6 +190,26 @@ describe("SharePointFileStore", () => {
     expect(calls.find((c) => c.init?.method === "PUT")?.url).toContain(
       "conflictBehavior=fail",
     );
+  });
+
+  it("reemplaza el contenido por el id del elemento, y uno grande por sesión con conflictBehavior=replace", async () => {
+    const calls = mockFetch((url) =>
+      url.endsWith("createUploadSession")
+        ? Response.json({ uploadUrl: "https://upload.example/s" })
+        : Response.json({ id: "item-1" }),
+    );
+    await store().replace("item-1", new Uint8Array(10), "text/plain");
+    expect(calls.find((c) => c.init?.method === "PUT")?.url).toBe(
+      "https://graph.microsoft.com/v1.0/drives/d/items/item-1/content",
+    );
+    await store().replace(
+      "item-1",
+      new Uint8Array(5 * 1024 * 1024),
+      "text/plain",
+    );
+    const session = calls.find((c) => c.url.endsWith("createUploadSession"));
+    expect(session?.url).toContain("/drives/d/items/item-1/");
+    expect(String(session?.init?.body)).toContain('"replace"');
   });
 
   it("convierte una respuesta fallida en FileStoreError", async () => {

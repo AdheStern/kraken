@@ -45,7 +45,8 @@ model UserProfile {
   goalsUpdated            Goal[]
   docProjectsOwned        DocProject[]             @relation("DocProjectOwner")
   docProjectsCreated      DocProject[]             @relation("DocProjectCreator")
-  docDocuments            DocDocument[]
+  docDocuments            DocDocument[]            @relation("DocDocumentUploader")
+  docDocumentsEdited      DocDocument[]            @relation("DocDocumentEditor")
 
   @@map("usuario_perfil")
   @@schema("core")

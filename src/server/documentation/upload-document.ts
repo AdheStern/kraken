@@ -1,5 +1,6 @@
 // src/server/documentation/upload-document.ts
-// Sube un documento a una fase de un proyecto de documentación y lo registra con su hash (AGENTS.md §2.10, ADR-16).
+// Sube un documento a una fase de un proyecto de documentación y lo registra con su hash; también el .txt de una
+// lección aprendida nueva (AGENTS.md §2.10, ADR-16).
 // POR QUÉ: la subida va fuera de la transacción; si el registro falla se borra el archivo para no dejar huérfanos.
 import { createHash } from "node:crypto";
 import { toUniqueFileName } from "@/domain/documentation/unique-file-name";
@@ -23,6 +24,7 @@ import { log } from "@/server/log";
 
 type Target = { projectId: string; phaseId: string };
 type Uploaded = { documentId: string; fileName: string };
+type Lesson = { title: string };
 
 const MAX_NAME_ATTEMPTS = 5;
 
@@ -31,6 +33,7 @@ export async function uploadDocument(
   target: Target,
   file: File,
   store: FileStore,
+  lesson?: Lesson,
 ): Promise<ActionResult<Uploaded>> {
   if (file.size === 0)
     return actionError("VALIDATION", "El archivo está vacío.");
@@ -84,6 +87,7 @@ export async function uploadDocument(
       const document = await tx.docDocument.create({
         data: {
           ...target,
+          ...(lesson && { kind: "LECCION" as const, title: lesson.title }),
           fileName: put.fileName,
           storagePath: put.stored.storagePath,
           sha256: createHash("sha256").update(data).digest("hex"),
@@ -100,6 +104,7 @@ export async function uploadDocument(
         action: "SUBIR",
         after: {
           ...target,
+          kind: lesson ? "LECCION" : "ARCHIVO",
           fileName: put.fileName,
           sizeBytes: data.byteLength,
           store: store.name,

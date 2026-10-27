@@ -53,6 +53,21 @@ export class SharePointFileStore implements FileStore {
     return { storagePath: id };
   }
 
+  async replace(
+    storagePath: string,
+    data: Uint8Array,
+    mimeType: string,
+  ): Promise<void> {
+    const item = this.itemUrl(storagePath);
+    await (data.byteLength <= SIMPLE_UPLOAD_MAX
+      ? this.call(`${item}/content`, {
+          method: "PUT",
+          body: Buffer.from(data),
+          headers: { "content-type": mimeType },
+        })
+      : this.uploadInChunks(`${item}/createUploadSession`, data, "replace"));
+  }
+
   async get(storagePath: string): Promise<Uint8Array> {
     const response = await this.call(`${this.itemUrl(storagePath)}/content`);
     return new Uint8Array(await response.arrayBuffer());
@@ -69,12 +84,13 @@ export class SharePointFileStore implements FileStore {
   private async uploadInChunks(
     sessionUrl: string,
     data: Uint8Array,
+    conflictBehavior: "fail" | "replace" = "fail",
   ): Promise<Response> {
     const session = await this.call(sessionUrl, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        item: { "@microsoft.graph.conflictBehavior": "fail" },
+        item: { "@microsoft.graph.conflictBehavior": conflictBehavior },
       }),
     });
     const { uploadUrl } = (await session.json()) as { uploadUrl: string };

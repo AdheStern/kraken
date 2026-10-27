@@ -1,6 +1,6 @@
 // src/server/files/local-file-store.ts
 // Adjuntos en una carpeta local (FILES_ROOT): solo desarrollo y pruebas, o un montaje si DIMA lo prefiere (ADR-16).
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join, normalize, sep } from "node:path";
 import {
   FileConflictError,
@@ -28,6 +28,17 @@ export class LocalFileStore implements FileStore {
       throw error;
     });
     return { storagePath: path };
+  }
+
+  async replace(
+    storagePath: string,
+    data: Uint8Array,
+    _mimeType?: string,
+  ): Promise<void> {
+    const target = this.resolve(storagePath);
+    // TRAMPA: reemplazar nunca crea un archivo; la referencia tiene que existir.
+    await access(target);
+    await writeFile(target, data);
   }
 
   async get(storagePath: string): Promise<Uint8Array> {

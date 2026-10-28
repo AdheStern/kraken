@@ -474,6 +474,7 @@ model HourMovement {
 | Jobs | pg-boss en un proceso `worker` |
 | Excel | ExcelJS |
 | PDF (comprobante del POS) | pdf-lib (fuentes estándar embebidas; solo genera) |
+| Texto enriquecido (lecciones aprendidas) | Tiptap (`@tiptap/react`, `starter-kit`, `markdown`) con una barra propia de botones shadcn; shadcn no trae editor |
 | Correo | Cliente de Microsoft Graph app-only |
 | Paquetes | pnpm |
 

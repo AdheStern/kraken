@@ -533,7 +533,7 @@ Inicio de sesión (Entra ID) → inicio según rol: GG → tablero ejecutivo; ge
 ### Pantallas clave
 - **Editor de CV:** cabecera plegable; grilla tipo planilla agrupable por lote, con teclado y pegado desde Excel. Panel lateral fijo con totales en USD y Bs, factor global, margen, áreas involucradas y aprobadores que se generarán. Indicador FACTOR/PRECIO por línea.
 - **Bandeja de aprobaciones:** pendientes con antigüedad, monto y áreas; el detalle resalta su área; comparador si es v2 o más; Aprobar / Rechazar con comentario.
-- **Detalle del ticket:** encargado, SLA restante (semáforo), estado. Pestañas: subtareas, registros, bolsas (jerarquía arrastrable, saldo, consumo proyectado), comentarios, adjuntos. Contador grande.
+- **Detalle del ticket:** encargado, SLA restante (semáforo), estado. Cerrado, abre en un **resumen** tipo tablero (horas trabajadas reales y descontadas, sin bolsa, duración, actividad y desglose por persona, subtarea y bolsa). Pestañas: subtareas, registros, bolsas (jerarquía arrastrable, saldo, consumo proyectado), comentarios, adjuntos. Contador grande.
 - **Bolsas de un cliente:** tarjetas con anillo de consumo, modalidad, alcance y vencimiento; el libro enlaza al ticket que originó cada movimiento.
 - **Panel de TC:** TC del día, vigencia, fuente, variación, serie de 90 días, TC promedio del mes.
 - **POS interno:** una sola columna, pensado para tablet.

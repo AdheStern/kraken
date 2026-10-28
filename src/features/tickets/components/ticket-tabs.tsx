@@ -1,10 +1,11 @@
 // src/features/tickets/components/ticket-tabs.tsx
-// Pestañas de trabajo del detalle: subtareas, registros de tiempo, bolsas con su jerarquía, materiales, comentarios,
-// adjuntos e historial (AGENTS.md §5 "Detalle del ticket").
+// Pestañas de trabajo del detalle: resumen (solo cerrado, y abre en él), subtareas, registros de tiempo, bolsas
+// con su jerarquía, materiales, comentarios, adjuntos e historial (AGENTS.md §5 "Detalle del ticket").
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { TicketMaterials } from "@/features/inventory/queries/list-ticket-materials";
+import type { TicketSummary } from "../queries/get-ticket-summary";
 import type { TicketBagsPanel, TicketDetail, TicketTime } from "../types";
 import { AttachmentsPanel } from "./attachments-panel";
 import { CommentsPanel } from "./comments-panel";
@@ -12,6 +13,7 @@ import { HistoryPanel } from "./history-panel";
 import { MaterialsPanel } from "./materials-panel";
 import { SubtasksPanel } from "./subtasks-panel";
 import { TicketBagsTab } from "./ticket-bags-tab";
+import { TicketSummaryPanel } from "./ticket-summary-panel";
 import { TimeEntriesPanel } from "./time-entries-panel";
 
 type Props = {
@@ -19,15 +21,17 @@ type Props = {
   bags: TicketBagsPanel;
   time: TicketTime;
   materials: TicketMaterials;
+  summary: TicketSummary | null;
 };
 
-export function TicketTabs({ detail, bags, time, materials }: Props) {
+export function TicketTabs({ detail, bags, time, materials, summary }: Props) {
   const isFinished =
     detail.ticket.status === "CERRADO" || detail.ticket.status === "CANCELADO";
   return (
-    <Tabs defaultValue="subtareas" className="gap-4">
+    <Tabs defaultValue={summary ? "resumen" : "subtareas"} className="gap-4">
       {/* TRAMPA: una lista centrada que desborda corta la primera pestaña; en el móvil se alinea al inicio. */}
       <TabsList className="w-full justify-start overflow-x-auto sm:w-fit">
+        {summary && <TabsTrigger value="resumen">Resumen</TabsTrigger>}
         <TabsTrigger value="subtareas">
           Subtareas <Count value={detail.subtasks.length} />
         </TabsTrigger>
@@ -48,6 +52,11 @@ export function TicketTabs({ detail, bags, time, materials }: Props) {
         </TabsTrigger>
         <TabsTrigger value="historial">Historial</TabsTrigger>
       </TabsList>
+      {summary && (
+        <TabsContent value="resumen">
+          <TicketSummaryPanel summary={summary} />
+        </TabsContent>
+      )}
       <TabsContent value="subtareas">
         <SubtasksPanel
           ticketId={detail.ticket.id}

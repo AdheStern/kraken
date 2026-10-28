@@ -15,6 +15,7 @@ import { TicketTabs } from "@/features/tickets/components/ticket-tabs";
 import { TicketTimer } from "@/features/tickets/components/ticket-timer";
 import { getTicketBags } from "@/features/tickets/queries/get-ticket-bags";
 import { getTicketDetail } from "@/features/tickets/queries/get-ticket-detail";
+import { getTicketSummary } from "@/features/tickets/queries/get-ticket-summary";
 import { getTicketTime } from "@/features/tickets/queries/get-ticket-time";
 import { requireUser } from "@/server/session";
 
@@ -40,11 +41,12 @@ export default function TicketPage({ params }: PageProps<"/tickets/[id]">) {
 async function Ticket({ params }: Pick<PageProps<"/tickets/[id]">, "params">) {
   const { id } = await params;
   const user = await requireUser();
-  const [detail, bags, time, materials] = await Promise.all([
+  const [detail, bags, time, materials, summary] = await Promise.all([
     getTicketDetail(user, id),
     getTicketBags(user, id),
     getTicketTime(user, id),
     listTicketMaterials(user, id),
+    getTicketSummary(user, id),
   ]);
   if (!detail || !bags || !time || !materials) notFound();
   return (
@@ -66,6 +68,7 @@ async function Ticket({ params }: Pick<PageProps<"/tickets/[id]">, "params">) {
         bags={bags}
         time={time}
         materials={materials}
+        summary={summary}
       />
     </>
   );

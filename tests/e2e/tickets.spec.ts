@@ -1,7 +1,7 @@
 // tests/e2e/tickets.spec.ts
 // Recorrido de la F3 (AGENTS.md §11): el coordinador crea un ticket y le suma la bolsa del CV de saldo inicial
 // aprobado del seed; la ingeniera trabaja con el contador y lo resuelve; el coordinador lo cierra y ve el descuento
-// redondeado a 30 min (§2.6).
+// redondeado a 30 min y el resumen del ticket cerrado (§2.6).
 import { type Browser, expect, type Page, test } from "@playwright/test";
 import { storageFor } from "./users";
 
@@ -111,4 +111,6 @@ test("el coordinador cierra y ve el descuento redondeado", async ({
   await expect(
     page.locator('[data-slot="badge"]', { hasText: /^Cerrado$/ }),
   ).toBeVisible();
+  await page.getByRole("tab", { name: "Resumen" }).click();
+  await expect(page.getByText("Horas descontadas")).toBeVisible();
 });

@@ -25,6 +25,7 @@ export const AUDIT_ENTITY_LABELS: Record<string, string> = {
   "doc.fase": "Fase de documentación",
   "doc.proyecto": "Proyecto de documentación",
   "doc.documento": "Documento",
+  "tickets.solicitud": "Solicitud de ticket",
 };
 
 export const AUDIT_ACTION_LABELS: Record<string, string> = {
@@ -51,6 +52,7 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   ORDENAR: "cambió el orden de",
   SUBIR: "subió",
   QUITAR: "quitó",
+  DESCARTAR: "descartó",
 };
 
 export function auditEntityLabel(entity: string): string {

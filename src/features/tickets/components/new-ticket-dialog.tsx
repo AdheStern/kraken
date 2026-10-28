@@ -1,5 +1,6 @@
 // src/features/tickets/components/new-ticket-dialog.tsx
-// Diálogo para crear un ticket; al crearlo abre su detalle y el siguiente alta empieza en blanco (AGENTS.md §2.6, §5).
+// Diálogo para crear un ticket; al crearlo abre su detalle y el siguiente alta empieza en blanco. Desde una solicitud
+// abre prellenado con ella (AGENTS.md §2.6, §5).
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,15 +38,28 @@ const DEFAULTS: CreateTicketInput = {
   title: "",
   description: "",
   ownerId: null,
+  requestId: null,
 };
 
-export function NewTicketDialog({ options }: { options: TicketFormOptions }) {
+type Props = {
+  options: TicketFormOptions;
+  // POR QUÉ: la solicitud aporta asunto, descripción, área, ciudad y su id; el resto lo decide quien atiende.
+  initialValues?: Partial<CreateTicketInput>;
+  triggerLabel?: string;
+};
+
+export function NewTicketDialog({
+  options,
+  initialValues,
+  triggerLabel = "Nuevo ticket",
+}: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const defaults = { ...DEFAULTS, ...initialValues };
   const form = useForm<CreateTicketInput>({
     resolver: zodResolver(createTicketSchema),
-    defaultValues: DEFAULTS,
+    defaultValues: defaults,
   });
   const { isSubmitting } = form.formState;
   // TRAMPA: con Cache Components la página no se desmonta al navegar (<Activity>); sin esto, al volver el
@@ -56,16 +70,18 @@ export function NewTicketDialog({ options }: { options: TicketFormOptions }) {
     setServerError(null);
     const result = await createTicket(values);
     if (!result.ok) return setServerError(result.error.message);
-    form.reset(DEFAULTS);
+    form.reset(defaults);
     setOpen(false);
     router.push(`/tickets/${result.data.ticketId}`);
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button />}>
+      <DialogTrigger
+        render={<Button size={initialValues ? "sm" : "default"} />}
+      >
         <Plus aria-hidden="true" />
-        Nuevo ticket
+        {triggerLabel}
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>

@@ -24,6 +24,8 @@ export const createTicketSchema = z.object({
     .min(1, "Describe el pedido del cliente.")
     .max(4000, "La descripción admite hasta 4000 caracteres."),
   ownerId: userId.nullable(),
+  // POR QUÉ: el ticket que nace de una solicitud la deja atendida en la misma transacción (§2.6).
+  requestId: z.uuid().nullable(),
 });
 
 export const assignOwnerSchema = z.object({

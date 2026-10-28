@@ -1,10 +1,16 @@
 // tests/integration/ticket-requests.int.test.ts
 // Solicitudes de ticket contra la base (AGENTS.md §2.6 «Solicitudes de ticket»): alta, aviso a quienes la
-// atienden y restricciones de coherencia.
+// atienden, ticket que nace de ella, descarte y restricciones de coherencia.
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
+import { createTicketRecord } from "@/server/tickets/create-ticket-record";
 import { createTicketRequestRecord } from "@/server/tickets/create-ticket-request-record";
-import { createTestPrisma, createUserWithRoles } from "./test-db";
+import { discardTicketRequestRecord } from "@/server/tickets/discard-ticket-request-record";
+import {
+  createHourBagFixture,
+  createTestPrisma,
+  createUserWithRoles,
+} from "./test-db";
 
 const db = createTestPrisma();
 afterAll(() => db.$disconnect());
@@ -90,6 +96,155 @@ describe("createTicketRequestRecord", () => {
       createTicketRequestRecord(tx, nobody, request(area.id), NOW),
     );
     expect(result).toMatchObject({ ok: false, error: { code: "FORBIDDEN" } });
+  });
+});
+
+async function pendingRequest() {
+  const f = await createHourBagFixture(db);
+  const requester = await createUserWithRoles(db, "Vendedora", [
+    { code: "COMERCIAL" },
+  ]);
+  const coordinator = await createUserWithRoles(db, "Coordinadora", [
+    { code: "COORDINADOR_SOPORTE", areaId: f.area.id },
+  ]);
+  const created = await db.$transaction((tx) =>
+    createTicketRequestRecord(tx, requester, request(f.area.id), NOW),
+  );
+  if (!created.ok) throw new Error(created.error.message);
+  const ticketInput = (areaIds = [f.area.id]) => ({
+    kind: "SOPORTE" as const,
+    customerId: f.customer.id,
+    cityId: f.city.id,
+    areaIds,
+    projectId: null,
+    bagId: null,
+    priority: "MEDIA" as const,
+    slaModality: "H8X5" as const,
+    title: "No puedo entrar a la VPN",
+    description: "Desde hoy en la mañana.",
+    ownerId: null,
+    requestId: created.data.requestId,
+  });
+  return {
+    f,
+    requester,
+    coordinator,
+    requestId: created.data.requestId,
+    ticketInput,
+  };
+}
+
+const statusInbox = (userId: string) =>
+  db.inboxItem.findMany({
+    where: {
+      userId,
+      eventType: { in: ["SOLICITUD_ESTADO", "SOLICITUD_DESCARTADA"] },
+    },
+  });
+
+describe("ticket que nace de una solicitud", () => {
+  it("la deja ATENDIDA, enlazada y avisa al solicitante", async () => {
+    const { requester, coordinator, requestId, ticketInput } =
+      await pendingRequest();
+    const result = await db.$transaction((tx) =>
+      createTicketRecord(tx, coordinator, ticketInput(), NOW),
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const saved = await db.ticketRequest.findUniqueOrThrow({
+      where: { id: requestId },
+    });
+    expect(saved).toMatchObject({
+      status: "ATENDIDA",
+      ticketId: result.data.ticketId,
+      handledById: coordinator.id,
+    });
+    expect(await statusInbox(requester.id)).toHaveLength(1);
+  });
+
+  it("una solicitud ya atendida no crea un segundo ticket", async () => {
+    const { coordinator, ticketInput } = await pendingRequest();
+    await db.$transaction((tx) =>
+      createTicketRecord(tx, coordinator, ticketInput(), NOW),
+    );
+    const second = await db.$transaction((tx) =>
+      createTicketRecord(tx, coordinator, ticketInput(), NOW),
+    );
+    expect(second).toMatchObject({ ok: false, error: { code: "CONFLICT" } });
+    expect(
+      await db.ticket.count({ where: { createdById: coordinator.id } }),
+    ).toBe(1);
+  });
+
+  it("el ticket debe incluir el área de la solicitud", async () => {
+    const { coordinator, ticketInput } = await pendingRequest();
+    const other = await db.area.create({
+      data: { code: `B${randomUUID().slice(0, 6)}`, name: "Otra" },
+    });
+    await db.userRole.create({
+      data: {
+        userId: coordinator.id,
+        roleId: (
+          await db.role.findUniqueOrThrow({
+            where: { code: "COORDINADOR_SOPORTE" },
+          })
+        ).id,
+        areaId: other.id,
+        source: "MANUAL",
+      },
+    });
+    const withOther = {
+      ...coordinator,
+      roles: [
+        ...coordinator.roles,
+        { code: "COORDINADOR_SOPORTE" as const, areaId: other.id },
+      ],
+    };
+    const result = await db.$transaction((tx) =>
+      createTicketRecord(tx, withOther, ticketInput([other.id]), NOW),
+    );
+    expect(result).toMatchObject({ ok: false, error: { code: "VALIDATION" } });
+  });
+
+  it("un coordinador de otra área no la atiende", async () => {
+    const { requestId } = await pendingRequest();
+    const other = await db.area.create({
+      data: { code: `C${randomUUID().slice(0, 6)}`, name: "Otra" },
+    });
+    const outsider = await createUserWithRoles(db, "Ajeno", [
+      { code: "COORDINADOR_SOPORTE", areaId: other.id },
+    ]);
+    const result = await db.$transaction((tx) =>
+      discardTicketRequestRecord(
+        tx,
+        outsider,
+        { requestId, reason: "No va" },
+        NOW,
+      ),
+    );
+    expect(result).toMatchObject({ ok: false, error: { code: "NOT_FOUND" } });
+  });
+});
+
+describe("discardTicketRequestRecord", () => {
+  it("la descarta con motivo, avisa al solicitante y no se descarta dos veces", async () => {
+    const { requester, coordinator, requestId } = await pendingRequest();
+    const input = { requestId, reason: "Duplicada con el ticket #12" };
+    const first = await db.$transaction((tx) =>
+      discardTicketRequestRecord(tx, coordinator, input, NOW),
+    );
+    expect(first.ok).toBe(true);
+    expect(
+      await db.ticketRequest.findUniqueOrThrow({ where: { id: requestId } }),
+    ).toMatchObject({ status: "DESCARTADA", discardReason: input.reason });
+    expect(await statusInbox(requester.id)).toHaveLength(1);
+    const again = await db.$transaction((tx) =>
+      discardTicketRequestRecord(tx, coordinator, input, NOW),
+    );
+    expect(again).toMatchObject({
+      ok: false,
+      error: { code: "INVALID_STATE" },
+    });
   });
 });
 

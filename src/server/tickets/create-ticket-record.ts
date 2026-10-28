@@ -1,6 +1,6 @@
 // src/server/tickets/create-ticket-record.ts
 // Alta de un ticket con sus áreas, su primer evento de estado y, si se elige, su primera bolsa (de la que toma la
-// modalidad del SLA); con encargado nace ASIGNADO (AGENTS.md §2.6, §2.7).
+// modalidad del SLA); con encargado nace ASIGNADO y, si viene de una solicitud, la deja atendida (AGENTS.md §2.6, §2.7).
 import { bagIneligibility } from "@/domain/tickets/bag-eligibility";
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import type { SessionUser } from "@/server/authz/roles";
@@ -10,6 +10,7 @@ import type { Tx } from "@/server/db";
 import { applyStatusChange } from "./apply-status-change";
 import { isTicketEngineer } from "./load-ticket-access";
 import { notifyOwnerAssigned } from "./notify-owner-assigned";
+import { prepareRequestLink } from "./prepare-request-link";
 
 type Modality = "H8X5" | "H24X7";
 
@@ -25,6 +26,7 @@ export type NewTicket = {
   title: string;
   description: string;
   ownerId: string | null;
+  requestId?: string | null;
 };
 
 export async function createTicketRecord(
@@ -42,6 +44,10 @@ export async function createTicketRecord(
   if (issue) return actionError("VALIDATION", issue);
   const bag = await loadInitialBag(tx, user, input);
   if (typeof bag === "string") return actionError("VALIDATION", bag);
+  const link = input.requestId
+    ? await prepareRequestLink(tx, user, input.requestId, input.areaIds, now)
+    : null;
+  if (link && !link.ok) return link;
 
   const ticket = await tx.ticket.create({
     data: {
@@ -70,6 +76,7 @@ export async function createTicketRecord(
   });
   if (input.ownerId)
     await assignInitialOwner(tx, user, ticket, input.ownerId, input.title, now);
+  if (link) await link.data(ticket);
   return actionOk({ ticketId: ticket.id, number: ticket.number });
 }
 

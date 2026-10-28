@@ -5,6 +5,9 @@ import type { BagPlan, BagSpec } from "@/domain/hours/plan-version-bags";
 import { summarizeBagEffects } from "./bag-effects";
 
 const SPEC: BagSpec = {
+  kind: "HORAS",
+  startsOn: null,
+  isUncapped: false,
   modality: "H8X5",
   scope: "GENERAL",
   areaIds: [],

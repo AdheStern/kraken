@@ -87,6 +87,8 @@ async function openBag(
     },
     select: { id: true },
   });
+  // POR QUÉ: un contrato sin tope no abre saldo; su libro empieza con el primer consumo (§2.4).
+  if (op.minutes === 0) return;
   await postHourMovement(tx, {
     bagId: bag.id,
     kind: "APERTURA",
@@ -146,6 +148,9 @@ function plannedLine(context: VersionBagContext, lineId: string): PlannedLine {
 
 function bagAttributes({ spec }: PlannedLine) {
   return {
+    kind: spec.kind,
+    startsOn: spec.startsOn ? new Date(spec.startsOn) : null,
+    isUncapped: spec.isUncapped,
     modality: spec.modality,
     scope: spec.scope,
     projectId: spec.projectId,

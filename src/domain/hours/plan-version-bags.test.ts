@@ -10,6 +10,9 @@ import {
 } from "./plan-version-bags";
 
 const SPEC: BagSpec = {
+  kind: "HORAS",
+  startsOn: null,
+  isUncapped: false,
   modality: "H8X5",
   scope: "AREA",
   areaIds: ["dimanet"],
@@ -30,6 +33,7 @@ const bag = (patch: Partial<CurrentBag> = {}): CurrentBag => ({
   status: "ACTIVA",
   lineMinutes: 1200,
   balanceMinutes: 900,
+  isUncapped: false,
   ...patch,
 });
 
@@ -166,5 +170,42 @@ describe("findBagShortfalls", () => {
         [],
       ),
     ).toThrow();
+  });
+});
+
+describe("planVersionBags · contratos por vigencia", () => {
+  const UNCAPPED: BagSpec = {
+    ...SPEC,
+    kind: "VIGENCIA",
+    startsOn: "2026-01-01",
+    isUncapped: true,
+  };
+
+  it("un contrato sin tope abre con 0 min y al quitarse cierra conservando lo usado", () => {
+    expect(planVersionBags([line("v1-a", 0, null, UNCAPPED)], []).ops).toEqual([
+      { kind: "OPEN", lineId: "v1-a", minutes: 0, spec: UNCAPPED },
+    ]);
+    const used = bag({
+      lineMinutes: 0,
+      balanceMinutes: -270,
+      isUncapped: true,
+    });
+    expect(planVersionBags([], [used]).ops).toEqual([
+      { kind: "CLOSE", bagId: "bag-1", deltaMinutes: 0 },
+    ]);
+  });
+
+  it("pasar de «sin tope» a «con tope» pide una línea nueva", () => {
+    const used = bag({
+      lineMinutes: 0,
+      balanceMinutes: -270,
+      isUncapped: true,
+    });
+    const capped = { ...UNCAPPED, isUncapped: false };
+    const plan = planVersionBags([line("v2-a", 600, "v1-a", capped)], [used]);
+    expect(plan.ops).toEqual([]);
+    expect(plan.issues).toEqual([
+      { kind: "CAP_CHANGED", lineId: "v2-a", bagId: "bag-1", status: "ACTIVA" },
+    ]);
   });
 });

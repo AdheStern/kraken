@@ -14,8 +14,13 @@ import {
   type VersionHourLine,
 } from "@/domain/hours/plan-version-bags";
 import { toBagMinutes } from "@/domain/hours/to-bag-minutes";
+import type { Prisma } from "@/generated/prisma/client";
 import type { Tx } from "@/server/db";
-import { readBagSpec } from "./read-bag-spec";
+import {
+  contractCapMinutes,
+  readHourLine,
+  type StoredHourLine,
+} from "./read-hour-line";
 
 export type PlannedLine = {
   description: string;
@@ -34,12 +39,13 @@ export type VersionBagContext = {
   invalidLines: string[];
 };
 
-// REGLA: es línea de horas la de tipo SERVICIO con unidad de horas (§2.4); solo ella abre bolsa.
-const HOUR_LINE = {
+// REGLA: abre bolsa la línea de SERVICIO con unidad de horas, o con unidad de plazo marcada como contrato por
+// vigencia (§2.4); readHourLine descarta las de plazo sin marcar.
+const HOUR_LINE: Prisma.CvLineWhereInput = {
   kind: "ITEM",
   itemType: "SERVICIO",
-  unit: { isHours: true },
-} as const;
+  unit: { OR: [{ isHours: true }, { isTerm: true }] },
+};
 
 export async function planBagsForVersion(
   tx: Tx,
@@ -60,6 +66,9 @@ export async function planBagsForVersion(
           areaId: true,
           description: true,
           hourBagSpec: true,
+          coverageStart: true,
+          coverageEnd: true,
+          unit: { select: { isHours: true, isTerm: true } },
         },
       },
     },
@@ -78,13 +87,11 @@ export async function planBagsForVersion(
   };
 }
 
-type StoredLine = {
+type StoredLine = StoredHourLine & {
   id: string;
   originLineId: string | null;
-  quantity: { toString(): string } | null;
   areaId: string | null;
   description: string;
-  hourBagSpec: unknown;
 };
 
 function readHourLines(stored: readonly StoredLine[]) {
@@ -92,14 +99,13 @@ function readHourLines(stored: readonly StoredLine[]) {
   const hourLines: VersionHourLine[] = [];
   const invalidLines: string[] = [];
   for (const line of stored) {
-    const spec = readBagSpec(line.hourBagSpec);
-    const minutes = line.quantity
-      ? toBagMinutes(new Decimal(line.quantity.toString()))
-      : null;
-    if (!spec || minutes === null) {
+    const read = readHourLine(line);
+    if (read.kind === "SKIP") continue;
+    if (read.kind === "INVALID") {
       invalidLines.push(line.description);
       continue;
     }
+    const { spec, minutes } = read;
     lines.set(line.id, {
       description: line.description,
       areaId: line.areaId,
@@ -128,18 +134,31 @@ async function loadCurrentBags(tx: Tx, cvId: string): Promise<CurrentBag[]> {
     where: { cvLine: { version: { cvId } } },
     select: {
       id: true,
+      kind: true,
       status: true,
       balanceMinutes: true,
-      cvLine: { select: { id: true, originLineId: true, quantity: true } },
+      isUncapped: true,
+      cvLine: {
+        select: {
+          id: true,
+          originLineId: true,
+          quantity: true,
+          hourBagSpec: true,
+        },
+      },
     },
   });
   return bags.map((bag) => ({
     bagId: bag.id,
     rootLineId: bag.cvLine.originLineId ?? bag.cvLine.id,
     status: bag.status,
-    lineMinutes: bag.cvLine.quantity
-      ? (toBagMinutes(new Decimal(bag.cvLine.quantity.toString())) ?? 0)
-      : 0,
+    lineMinutes:
+      bag.kind === "VIGENCIA"
+        ? contractCapMinutes(bag.cvLine.hourBagSpec)
+        : bag.cvLine.quantity
+          ? (toBagMinutes(new Decimal(bag.cvLine.quantity.toString())) ?? 0)
+          : 0,
     balanceMinutes: bag.balanceMinutes,
+    isUncapped: bag.isUncapped,
   }));
 }

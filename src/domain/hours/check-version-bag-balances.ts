@@ -14,12 +14,15 @@ export function findBagShortfalls(
   ops: readonly BagOp[],
   currentBags: readonly CurrentBag[],
 ): BagShortfall[] {
-  const balances = new Map(currentBags.map((b) => [b.bagId, b.balanceMinutes]));
+  const bags = new Map(currentBags.map((b) => [b.bagId, b]));
   return ops.flatMap((op) => {
     if (op.kind !== "ADJUST") return [];
-    const balanceMinutes = balances.get(op.bagId);
-    if (balanceMinutes === undefined)
+    const bag = bags.get(op.bagId);
+    if (bag === undefined)
       throw new Error(`El ajuste apunta a una bolsa desconocida: ${op.bagId}.`);
+    // POR QUÉ: un contrato sin tope no tiene saldo que se quede corto (§2.4).
+    if (bag.isUncapped) return [];
+    const { balanceMinutes } = bag;
     return balanceMinutes + op.deltaMinutes < 0
       ? [
           {

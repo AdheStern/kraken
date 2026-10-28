@@ -16,10 +16,10 @@ export function findBagPlanProblem(
   const [invalid] = context.invalidLines;
   if (invalid)
     return validation(
-      `Completa la bolsa de horas de «${invalid}»: modalidad, alcance y horas que den minutos enteros.`,
+      `Completa la bolsa de «${invalid}»: modalidad, alcance y horas que den minutos enteros (en un contrato por vigencia, sus fechas de vigencia y un tope válido).`,
     );
   for (const op of context.plan.ops) {
-    if (op.kind === "OPEN" && op.minutes === 0)
+    if (op.kind === "OPEN" && op.minutes === 0 && !op.spec.isUncapped)
       return validation(
         `${name(op.lineId)} no tiene horas; quítala o indica cuántas.`,
       );
@@ -35,7 +35,10 @@ export function findBagPlanProblem(
   if (terminal)
     return {
       code: "INVALID_STATE",
-      message: `La bolsa de ${name(terminal.lineId)} está ${terminal.status.toLowerCase()}; no cambies sus horas: agrega una línea nueva.`,
+      message:
+        terminal.kind === "CAP_CHANGED"
+          ? `El contrato de ${name(terminal.lineId)} no puede pasar de «sin tope» a «con tope» ni al revés: agrega una línea nueva.`
+          : `La bolsa de ${name(terminal.lineId)} está ${terminal.status.toLowerCase()}; no cambies sus horas: agrega una línea nueva.`,
     };
   const [shortfall] = context.shortfalls;
   if (shortfall)

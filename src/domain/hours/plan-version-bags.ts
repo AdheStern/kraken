@@ -1,12 +1,19 @@
 // src/domain/hours/plan-version-bags.ts
 // Decide qué pasa con las bolsas de un CV al aprobarse una versión: abrir, ajustar, cerrar o solo volver a
-// enlazar. Regla normativa: AGENTS.md §2.4 (fila "Versiones del CV").
+// enlazar. Regla normativa: AGENTS.md §2.4 (fila "Versiones del CV" y contratos por vigencia).
 import { type BagStatus, isTerminalBagStatus } from "./bag-state-machine";
+import { closingMinutes } from "./closing-minutes";
 import type { BagModality } from "./weigh-minutes";
 
 export type BagScope = "AREA" | "PROYECTO" | "GENERAL";
 
+export type BagKind = "HORAS" | "VIGENCIA";
+
+// POR QUÉ: en un contrato por vigencia, startsOn y expiresOn son las fechas de la línea y los minutos son el tope.
 export type BagSpec = {
+  kind: BagKind;
+  startsOn: string | null;
+  isUncapped: boolean;
   modality: BagModality;
   scope: BagScope;
   areaIds: readonly string[];
@@ -30,6 +37,7 @@ export type CurrentBag = {
   status: BagStatus;
   lineMinutes: number;
   balanceMinutes: number;
+  isUncapped: boolean;
 };
 
 export type BagOp =
@@ -45,7 +53,8 @@ export type BagOp =
   | { kind: "CLOSE"; bagId: string; deltaMinutes: number };
 
 export type BagPlanIssue = {
-  kind: "TERMINAL_BAG_CHANGED";
+  // REGLA: pasar un contrato de «sin tope» a «con tope» (o al revés) pide una línea nueva, como una bolsa terminal.
+  kind: "TERMINAL_BAG_CHANGED" | "CAP_CHANGED";
   lineId: string;
   bagId: string;
   status: BagStatus;
@@ -75,12 +84,11 @@ export function planVersionBags(
       });
   }
   for (const bag of unclaimed.values()) {
-    // TRAMPA: 0 - saldo y no -saldo, que con saldo 0 daría -0.
     if (!isTerminalBagStatus(bag.status))
       plan.ops.push({
         kind: "CLOSE",
         bagId: bag.bagId,
-        deltaMinutes: 0 - bag.balanceMinutes,
+        deltaMinutes: closingMinutes(bag),
       });
   }
   return plan;
@@ -92,7 +100,14 @@ function planExistingBag(
   bag: CurrentBag,
 ): void {
   const deltaMinutes = line.minutes - bag.lineMinutes;
-  if (!isTerminalBagStatus(bag.status)) {
+  if (bag.isUncapped !== line.spec.isUncapped) {
+    plan.issues.push({
+      kind: "CAP_CHANGED",
+      lineId: line.lineId,
+      bagId: bag.bagId,
+      status: bag.status,
+    });
+  } else if (!isTerminalBagStatus(bag.status)) {
     plan.ops.push({
       kind: "ADJUST",
       bagId: bag.bagId,

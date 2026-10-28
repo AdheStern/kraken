@@ -1,6 +1,6 @@
 // tests/integration/cv-hour-bags.int.test.ts
 // Bolsas de horas desde el CV contra la base (AGENTS.md §2.3, §2.4, §8): apertura al aprobar, ajuste y cierre
-// por versión, saldo insuficiente al enviar y al aprobar, bolsas terminales y anulación.
+// por versión, saldo insuficiente al enviar y al aprobar, bolsas terminales, anulación y contratos por vigencia.
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { SessionUser } from "@/server/authz/roles";
@@ -303,5 +303,84 @@ describe("bolsas al aprobar un CV", () => {
     expect(bag.balanceMinutes).toBe(750);
     expect(bag.movements[0]).toMatchObject({ kind: "APERTURA", minutes: 750 });
     expect(bag.movements[0].reason).toMatch(/^Saldo inicial migrado · /);
+  });
+});
+
+describe("contratos por vigencia al aprobar un CV", () => {
+  let termUnitId: string;
+  beforeAll(async () => {
+    termUnitId = (
+      await db.unit.create({
+        data: {
+          code: `A-${randomUUID().slice(0, 6)}`,
+          name: "Años",
+          isTerm: true,
+        },
+      })
+    ).id;
+  });
+
+  async function approvedContract(capHours: string | null, marked = true) {
+    const f = await createCvFixture(db);
+    await db.cv.update({
+      where: { id: f.cv.id },
+      data: { createdById: seller.id },
+    });
+    await db.cvLine.create({
+      data: {
+        versionId: f.version.id,
+        position: 1,
+        kind: "ITEM",
+        itemType: "SERVICIO",
+        unitId: termUnitId,
+        areaId: area.id,
+        description: "Soporte anual",
+        quantity: "1",
+        unitCostUsd: "0",
+        unitSaleUsd: "1200",
+        pricingSource: "PRECIO",
+        coverageStart: new Date("2026-11-01"),
+        coverageEnd: new Date("2027-10-31"),
+        hourBagSpec: marked
+          ? {
+              kind: "VIGENCIA",
+              capHours,
+              modality: "H24X7",
+              scope: "AREA",
+              areaIds: [area.id],
+              projectId: null,
+              expiresOn: null,
+            }
+          : undefined,
+      },
+    });
+    expect(await submit(f.version.id)).toMatchObject({ ok: true });
+    expect(await approve(f.version.id)).toMatchObject({ ok: true });
+    return bagsOf(f.cv.id);
+  }
+
+  it("sin tope abre un contrato sin APERTURA, con las fechas de la línea", async () => {
+    const [bag] = await approvedContract(null);
+    expect(bag).toMatchObject({
+      kind: "VIGENCIA",
+      isUncapped: true,
+      modality: "H24X7",
+      balanceMinutes: 0,
+      startsOn: new Date("2026-11-01"),
+      expiresOn: new Date("2027-10-31"),
+    });
+    expect(bag.movements).toEqual([]);
+  });
+
+  it("con tope de 40 h abre con APERTURA de 2,400 min", async () => {
+    const [bag] = await approvedContract("40");
+    expect(bag).toMatchObject({ kind: "VIGENCIA", isUncapped: false });
+    expect(bag.movements.map((m) => [m.kind, m.minutes])).toEqual([
+      ["APERTURA", 2400],
+    ]);
+  });
+
+  it("una línea en años sin marcar no abre nada", async () => {
+    expect(await approvedContract(null, false)).toEqual([]);
   });
 });

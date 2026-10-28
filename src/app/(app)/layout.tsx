@@ -1,6 +1,6 @@
 // src/app/(app)/layout.tsx
-// Shell de la aplicación autenticada: riel azul DIMA con navegación por rol y usuario, barra con avisos y
-// tema, y el área de trabajo.
+// Shell de la aplicación autenticada: riel azul DIMA con navegación por rol y usuario, barra con el contador
+// abierto, avisos y tema, y el área de trabajo.
 import Link from "next/link";
 import { Suspense } from "react";
 import { AppNav } from "@/components/app-shell/app-nav";
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
+import { HeaderTimer } from "@/features/tickets/components/header-timer";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
@@ -53,6 +54,9 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
             </span>
           </Link>
           <div className="ml-auto flex items-center gap-1">
+            <Suspense fallback={null}>
+              <HeaderTimer />
+            </Suspense>
             <Suspense fallback={<Skeleton className="size-8 rounded-md" />}>
               <NotificationBell />
             </Suspense>

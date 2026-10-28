@@ -55,6 +55,7 @@ export function TicketTabs({ detail, bags, time, materials }: Props) {
           engineers={detail.engineers}
           canManage={detail.permissions.canManage && !isFinished}
           viewerId={detail.permissions.viewerId}
+          time={time}
         />
       </TabsContent>
       <TabsContent value="registros">

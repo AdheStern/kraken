@@ -10,7 +10,7 @@ export const ENGINEER_MANUAL: Manual = {
     {
       heading: "Registrar tiempo con el contador",
       steps: [
-        "En Inicio ves tus tickets y tu contador. Dentro del ticket eliges dónde registrar (el ticket o una subtarea tuya).",
+        "El ticket tiene su contador arriba y cada subtarea tuya el suyo, en la pestaña Subtareas. Tu contador abierto se ve siempre en la barra superior.",
         "Iniciar, Pausar, Reanudar y Terminar. La hora la pone el servidor: cerrar la pestaña no pierde tiempo.",
         "Solo puedes tener un contador corriendo: al iniciar otro, el anterior se pausa solo. Si queda abierto más de 10 horas, te llega un aviso.",
       ],

@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listTicketMaterials } from "@/features/inventory/queries/list-ticket-materials";
+import { AutoRefresh } from "@/features/tickets/components/auto-refresh";
 import { TicketActions } from "@/features/tickets/components/ticket-actions";
 import { TicketHeader } from "@/features/tickets/components/ticket-header";
 import { TicketTabs } from "@/features/tickets/components/ticket-tabs";
@@ -48,6 +49,7 @@ async function Ticket({ params }: Pick<PageProps<"/tickets/[id]">, "params">) {
   if (!detail || !bags || !time || !materials) notFound();
   return (
     <>
+      <AutoRefresh />
       <TicketHeader
         ticket={detail.ticket}
         actions={

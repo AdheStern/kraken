@@ -79,10 +79,18 @@ test("el coordinador crea el ticket con encargado y le suma una bolsa", async ({
 test("la ingeniera usa el contador y lo resuelve", async ({ browser }) => {
   const page = await as(browser, "ingeniero");
   await page.goto(ticketUrl);
-  await page.getByRole("button", { name: "Iniciar" }).click();
-  await expect(page.getByText(/^Corriendo/)).toBeVisible();
-  await page.getByRole("button", { name: "Terminar" }).click();
-  await expect(page.getByText(/^Sin contador/)).toBeVisible();
+  const timer = page.getByRole("region", { name: "Contador" });
+  await timer.getByRole("button", { name: "Iniciar" }).click();
+  await expect(timer.getByText(/^Corriendo/)).toBeVisible();
+  // POR QUÉ: el contador abierto también se ve en la barra superior y, para el coordinador, en el ticket.
+  await expect(page.locator("header", { hasText: "Terminar" })).toBeVisible();
+  const coordinator = await as(browser, "coordinador");
+  await coordinator.goto(ticketUrl);
+  await expect(
+    coordinator.getByRole("list", { name: "Contadores en curso" }),
+  ).toBeVisible();
+  await timer.getByRole("button", { name: "Terminar" }).click();
+  await expect(timer.getByText(/^Tu contador en el ticket/)).toBeVisible();
   await page.getByRole("button", { name: "Marcar resuelto" }).click();
   await expect(
     page.locator('[data-slot="badge"]', { hasText: /^Resuelto$/ }),

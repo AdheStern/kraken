@@ -1,11 +1,10 @@
 // src/features/tickets/components/subtasks-panel.tsx
-// Subtareas del ticket con su asignado y estado; quien gestiona el ticket las crea y las reasigna
+// Subtareas del ticket con su asignado, estado y contador propio; quien gestiona el ticket las crea y las reasigna
 // (AGENTS.md §2.6 "El encargado crea subtareas y las asigna").
 "use client";
 
 import { LoaderCircle, Plus } from "lucide-react";
 import { useState } from "react";
-import { PersonAvatar } from "@/components/app-shell/person-avatar";
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +13,8 @@ import type { SubtaskStatus } from "@/generated/prisma/enums";
 import { createSubtask } from "../actions/create-subtask";
 import { updateSubtask } from "../actions/update-subtask";
 import { SUBTASK_STATUS_LABELS } from "../ticket-labels";
-import type { Person, SubtaskView } from "../types";
+import type { Person, SubtaskView, TicketTime } from "../types";
+import { SubtaskRow } from "./subtask-row";
 import { useTicketAction } from "./use-ticket-action";
 
 type Props = {
@@ -23,6 +23,7 @@ type Props = {
   engineers: Person[];
   canManage: boolean;
   viewerId: string;
+  time: TicketTime;
 };
 
 const STATUS_OPTIONS = Object.entries(SUBTASK_STATUS_LABELS).map(
@@ -35,6 +36,7 @@ export function SubtasksPanel({
   engineers,
   canManage,
   viewerId,
+  time,
 }: Props) {
   const [title, setTitle] = useState("");
   const [assigneeId, setAssigneeId] = useState<string | null>(null);
@@ -96,34 +98,26 @@ export function SubtasksPanel({
       ) : (
         <ul className="kr-solid divide-y divide-border/60 rounded-xl">
           {subtasks.map((s) => (
-            <li
+            <SubtaskRow
               key={s.id}
-              className="flex flex-wrap items-center gap-3 px-4 py-3"
-            >
-              <span className="min-w-0 flex-1 text-sm font-medium">
-                {s.title}
-              </span>
-              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                {s.assignee && (
-                  <PersonAvatar
-                    name={s.assignee.name}
-                    image={s.assignee.image}
-                    className="size-5 text-[10px]"
-                  />
-                )}
-                {s.assignee?.name ?? "Sin asignar"}
-              </span>
-              <OptionSelect
-                aria-label={`Estado de ${s.title}`}
-                className="h-8 w-40"
-                value={s.status}
-                options={STATUS_OPTIONS}
-                disabled={
-                  isPending || !(canManage || s.assignee?.id === viewerId)
-                }
-                onValueChange={(v) => setStatus(s.id, v)}
-              />
-            </li>
+              ticketId={ticketId}
+              subtask={s}
+              timers={time.timers.filter((t) => t.subtaskId === s.id)}
+              viewerId={viewerId}
+              canLog={time.targets.some((t) => t.id === s.id)}
+              status={
+                <OptionSelect
+                  aria-label={`Estado de ${s.title}`}
+                  className="h-8 w-40"
+                  value={s.status}
+                  options={STATUS_OPTIONS}
+                  disabled={
+                    isPending || !(canManage || s.assignee?.id === viewerId)
+                  }
+                  onValueChange={(v) => setStatus(s.id, v)}
+                />
+              }
+            />
           ))}
         </ul>
       )}

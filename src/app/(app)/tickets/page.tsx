@@ -1,7 +1,7 @@
 // src/app/(app)/tickets/page.tsx
 // Tablero de tickets visibles para el usuario, por estado, con filtros por cliente, área y «solo míos»
 // (AGENTS.md §2.9 "Tickets: ver", §5 navegación "Horas y tickets").
-import { FolderKanban } from "lucide-react";
+import { FolderKanban, Inbox } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { NewTicketDialog } from "@/features/tickets/components/new-ticket-dialog";
 import { TicketBoard } from "@/features/tickets/components/ticket-board";
 import { TicketFilters } from "@/features/tickets/components/ticket-filters";
+import { countPendingTicketRequests } from "@/features/tickets/queries/count-pending-ticket-requests";
 import { getTicketFormOptions } from "@/features/tickets/queries/get-ticket-form-options";
 import { listTickets } from "@/features/tickets/queries/list-tickets";
 import { hasRole } from "@/server/authz/roles";
@@ -19,6 +20,7 @@ import {
   canCreateAnyTicket,
   canSeeTickets,
 } from "@/server/authz/ticket-permissions";
+import { canHandleAnyTicketRequest } from "@/server/authz/ticket-request-permissions";
 import { requireUser } from "@/server/session";
 
 export const metadata: Metadata = { title: "Tickets" };
@@ -31,6 +33,9 @@ export default function TicketsPage({ searchParams }: PageProps<"/tickets">) {
         description="Soporte y proyectos con su encargado; al cerrarlos se descuentan sus horas de las bolsas."
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            <Suspense fallback={null}>
+              <RequestsLink />
+            </Suspense>
             <Link
               href="/tickets/proyectos"
               className={buttonVariants({ variant: "outline" })}
@@ -48,6 +53,28 @@ export default function TicketsPage({ searchParams }: PageProps<"/tickets">) {
         <TicketsResults searchParams={searchParams} />
       </Suspense>
     </main>
+  );
+}
+
+async function RequestsLink() {
+  const user = await requireUser();
+  if (!canHandleAnyTicketRequest(user)) return null;
+  const pending = await countPendingTicketRequests(user);
+  return (
+    <Link
+      href="/tickets/solicitudes"
+      className={buttonVariants({
+        variant: pending > 0 ? "default" : "outline",
+      })}
+    >
+      <Inbox aria-hidden="true" />
+      Solicitudes
+      {pending > 0 && (
+        <span className="rounded-full bg-primary-foreground/20 px-1.5 text-xs tabular-nums">
+          {pending}
+        </span>
+      )}
+    </Link>
   );
 }
 

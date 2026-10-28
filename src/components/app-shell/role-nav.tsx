@@ -1,10 +1,11 @@
 // src/components/app-shell/role-nav.tsx
 // Navegación según el rol: Tableros, Tickets, Mis solicitudes, Bolsas de horas, Inventario y Documentación para quien los ve (§2.6, §2.9, §2.10) y Aprobaciones solo para quien aprueba,
-// con el número de solicitudes pendientes.
+// con el número de pendientes (solicitudes de ticket, ajustes de inventario, aprobaciones).
 // Va dentro de un <Suspense> porque lee la sesión.
 import { visibleBoards } from "@/features/dashboards/queries/load-dashboard-context";
 import { countPendingAdjustments } from "@/features/inventory/queries/count-pending-adjustments";
 import { listPendingApprovals } from "@/features/sales-control/queries/list-pending-approvals";
+import { countPendingTicketRequests } from "@/features/tickets/queries/count-pending-ticket-requests";
 import { canOpenAdmin } from "@/server/authz/admin-permissions";
 import { canApproveCvs } from "@/server/authz/cv-permissions";
 import { canUseDocumentation } from "@/server/authz/documentation-permissions";
@@ -21,7 +22,11 @@ export async function RoleNav() {
   const entries: NavEntry[] = [...BASE_NAV];
   // POR QUÉ: los tableros van junto a Inicio; es lo primero que abre un gerente.
   if (visibleBoards(user).length > 0) entries.splice(1, 0, { key: "tableros" });
-  if (canSeeTickets(user)) entries.push({ key: "tickets" });
+  if (canSeeTickets(user))
+    entries.push({
+      key: "tickets",
+      badge: await countPendingTicketRequests(user),
+    });
   if (canRequestTicket(user)) entries.push({ key: "solicitudes" });
   if (canSeeHourBags(user)) entries.push({ key: "horas" });
   if (canSeeInventory(user))

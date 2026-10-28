@@ -1,5 +1,5 @@
 // src/components/app-shell/role-nav.tsx
-// Navegación según el rol: Tableros, Tickets, Bolsas de horas, Inventario y Documentación para quien los ve (§2.9, §2.10) y Aprobaciones solo para quien aprueba,
+// Navegación según el rol: Tableros, Tickets, Mis solicitudes, Bolsas de horas, Inventario y Documentación para quien los ve (§2.6, §2.9, §2.10) y Aprobaciones solo para quien aprueba,
 // con el número de solicitudes pendientes.
 // Va dentro de un <Suspense> porque lee la sesión.
 import { visibleBoards } from "@/features/dashboards/queries/load-dashboard-context";
@@ -11,6 +11,7 @@ import { canUseDocumentation } from "@/server/authz/documentation-permissions";
 import { canSeeHourBags } from "@/server/authz/hour-bag-permissions";
 import { canSeeInventory } from "@/server/authz/inventory-permissions";
 import { canSeeTickets } from "@/server/authz/ticket-permissions";
+import { canRequestTicket } from "@/server/authz/ticket-request-permissions";
 import { requireUser } from "@/server/session";
 import { AppNav } from "./app-nav";
 import { BASE_NAV, type NavEntry } from "./nav-entries";
@@ -21,6 +22,7 @@ export async function RoleNav() {
   // POR QUÉ: los tableros van junto a Inicio; es lo primero que abre un gerente.
   if (visibleBoards(user).length > 0) entries.splice(1, 0, { key: "tableros" });
   if (canSeeTickets(user)) entries.push({ key: "tickets" });
+  if (canRequestTicket(user)) entries.push({ key: "solicitudes" });
   if (canSeeHourBags(user)) entries.push({ key: "horas" });
   if (canSeeInventory(user))
     entries.push({

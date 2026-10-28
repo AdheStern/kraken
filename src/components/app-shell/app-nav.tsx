@@ -12,6 +12,7 @@ import {
   FolderOpen,
   Hourglass,
   House,
+  LifeBuoy,
   type LucideIcon,
   Settings,
   Stamp,
@@ -37,6 +38,11 @@ const ITEMS: Record<NavKey, { href: string; label: string; icon: LucideIcon }> =
     tableros: { href: "/tableros", label: "Tableros", icon: ChartColumn },
     cv: { href: "/cv", label: "Control de Venta", icon: FileSpreadsheet },
     tickets: { href: "/tickets", label: "Tickets", icon: Ticket },
+    solicitudes: {
+      href: "/solicitudes",
+      label: "Mis solicitudes",
+      icon: LifeBuoy,
+    },
     horas: { href: "/horas", label: "Bolsas de horas", icon: Hourglass },
     inventario: { href: "/inventario", label: "Inventario", icon: Boxes },
     documentacion: {

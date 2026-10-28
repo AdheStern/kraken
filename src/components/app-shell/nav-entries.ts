@@ -8,6 +8,7 @@ export type NavKey =
   | "tableros"
   | "cv"
   | "tickets"
+  | "solicitudes"
   | "horas"
   | "inventario"
   | "documentacion"

@@ -20,7 +20,8 @@ export function AppSidebar({ mark, nav, user }: Props) {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center gap-2.5 px-1 py-1.5">
+        {/* TRAMPA: colapsado, el riel deja 32 px útiles; sin quitar el relleno, la marca se corta. */}
+        <div className="flex items-center gap-2.5 px-1 py-1.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
           {mark}
           <div className="leading-none group-data-[collapsible=icon]:hidden">
             <p className="font-display text-xl tracking-[-0.02em]">Kraken</p>

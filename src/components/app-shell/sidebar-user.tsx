@@ -8,7 +8,7 @@ import { PersonAvatar } from "./person-avatar";
 export async function SidebarUser() {
   const user = await requireUser();
   return (
-    <div className="flex items-center gap-2.5 rounded-lg p-1.5 group-data-[collapsible=icon]:justify-center">
+    <div className="flex items-center gap-2.5 rounded-lg p-1.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0">
       <PersonAvatar
         name={user.name}
         image={user.image}

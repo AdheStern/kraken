@@ -13,7 +13,7 @@ export async function RailMark() {
     : 0;
   return (
     <KrakenMark
-      className="size-9 shrink-0"
+      className="size-9 shrink-0 group-data-[collapsible=icon]:size-8"
       mood={pending > 0 ? "alert" : "idle"}
     />
   );

@@ -25,7 +25,11 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
     <SidebarProvider>
       <AppSidebar
         mark={
-          <Suspense fallback={<KrakenMark className="size-9 shrink-0" />}>
+          <Suspense
+            fallback={
+              <KrakenMark className="size-9 shrink-0 group-data-[collapsible=icon]:size-8" />
+            }
+          >
             <RailMark />
           </Suspense>
         }

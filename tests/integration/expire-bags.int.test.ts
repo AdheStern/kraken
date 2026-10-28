@@ -1,6 +1,6 @@
 // tests/integration/expire-bags.int.test.ts
 // Job bags.expire con reloj fijo (AGENTS.md §2.4 vencimiento y alertas): vence con VENCIMIENTO por el saldo,
-// avisa 30 días antes y el mismo día, y una segunda corrida no duplica nada.
+// avisa 30 días antes y el mismo día, una segunda corrida no duplica nada y un contrato sin tope vence con su uso.
 import { afterAll, describe, expect, it } from "vitest";
 import { expireBags } from "@/server/hours/expire-bags";
 import { postHourMovement } from "@/server/hours/post-hour-movement";
@@ -79,5 +79,37 @@ describe("expireBags", () => {
       }),
     ).toBe(1);
     expect(await inbox(f.userId, "BOLSA_VENCIDA")).toHaveLength(1);
+  });
+});
+
+describe("expireBags · contrato sin tope", () => {
+  it("vence con un VENCIMIENTO de 0 y conserva lo usado como saldo", async () => {
+    const f = await createHourBagFixture(db);
+    await db.hourBag.update({
+      where: { id: f.bag.id },
+      data: {
+        kind: "VIGENCIA",
+        isUncapped: true,
+        expiresOn: new Date("2026-10-12T00:00:00Z"),
+      },
+    });
+    await db.$transaction((tx) =>
+      postHourMovement(tx, {
+        bagId: f.bag.id,
+        kind: "CONSUMO",
+        minutes: -90,
+        actorId: f.userId,
+      }),
+    );
+    await expireBags(db, clock);
+    const bag = await db.hourBag.findUniqueOrThrow({
+      where: { id: f.bag.id },
+      include: { movements: { orderBy: { createdAt: "asc" } } },
+    });
+    expect(bag).toMatchObject({ status: "VENCIDA", balanceMinutes: -90 });
+    expect(bag.movements.map((m) => [m.kind, m.minutes])).toEqual([
+      ["CONSUMO", -90],
+      ["VENCIMIENTO", 0],
+    ]);
   });
 });

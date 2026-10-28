@@ -1,12 +1,16 @@
 // src/server/tickets/load-ticket-allocation.ts
 // Arma la entrada de allocateTicketHours para un ticket bloqueado: intervalos cerrados, jerarquía de
-// bolsas con su saldo bajo bloqueo, bolsas firmes y calendario de la ciudad (AGENTS.md §2.6, §3 cierre).
+// bolsas con su saldo bajo bloqueo (un contrato sin tope, con capacidad de sobra), bolsas firmes y calendario de
+// la ciudad (AGENTS.md §2.4, §2.6, §3 cierre).
 import type { BusinessCalendar } from "@/domain/calendar/business-calendar";
 import { toBusinessDate } from "@/domain/calendar/business-date";
 import type { TimeInterval } from "@/domain/calendar/split-by-business-hours";
-import type { AllocationBag } from "@/domain/hours/allocate-ticket-hours";
+import {
+  type AllocationBag,
+  UNCAPPED_MINUTES,
+} from "@/domain/hours/allocate-ticket-hours";
 import { TICKET_ROUNDING_STEP_MINUTES } from "@/domain/hours/apply-rounding";
-import { toWorkDeadline } from "@/domain/hours/expiry";
+import { toWorkDeadline, toWorkStart } from "@/domain/hours/expiry";
 import type { BagModality } from "@/domain/hours/weigh-minutes";
 import { loadBusinessCalendar } from "@/server/calendar/load-business-calendar";
 import type { Tx } from "@/server/db";
@@ -21,7 +25,11 @@ export type TicketAllocationInput = {
   roundingStepMinutes: number;
 };
 
-type BagInfo = { modality: BagModality; expiresOn: Date | null };
+type BagInfo = {
+  modality: BagModality;
+  startsOn: Date | null;
+  expiresOn: Date | null;
+};
 
 // POR QUÉ: con projectAt es la proyección de un ticket abierto (§2.6 "consumo proyectado"): no bloquea y
 // cuenta los registros abiertos hasta ese instante. Sin él es el cierre, con las bolsas bloqueadas.
@@ -51,7 +59,14 @@ export async function loadTicketAllocation(
     const current = locked.get(bagId);
     if (firm) bags.push(toAllocationBag(bagId, bag, firm.minutes, true));
     else if (current?.status === "ACTIVA")
-      bags.push(toAllocationBag(bagId, bag, current.balanceMinutes, false));
+      bags.push(
+        toAllocationBag(
+          bagId,
+          bag,
+          current.isUncapped ? UNCAPPED_MINUTES : current.balanceMinutes,
+          false,
+        ),
+      );
   }
   const intervals = await loadIntervals(tx, ticket.id, projectAt);
   return {
@@ -67,7 +82,7 @@ export async function loadTicketAllocation(
   };
 }
 
-const BAG_INFO = { modality: true, expiresOn: true } as const;
+const BAG_INFO = { modality: true, startsOn: true, expiresOn: true } as const;
 
 // POR QUÉ: un CONSUMO sin REVERSO al cerrar solo existe si una reapertura lo dejó firme en una bolsa
 // VENCIDA o CERRADA (decisión del 2026-10-19); entra delante si ya no está en la jerarquía.
@@ -87,24 +102,27 @@ async function loadSettledMinutes(tx: Tx, ticketId: string) {
 
 function toAllocationBag(
   bagId: string,
-  { modality, expiresOn }: BagInfo,
+  { modality, startsOn, expiresOn }: BagInfo,
   availableMinutes: number,
   isSettled: boolean,
 ): AllocationBag {
-  const expiry = expiresOn ? expiresOn.toISOString().slice(0, 10) : null;
   return {
     bagId,
     modality,
     availableMinutes,
-    acceptsWorkUntil: toWorkDeadline(expiry),
+    acceptsWorkUntil: toWorkDeadline(toDateText(expiresOn)),
+    acceptsWorkFrom: toWorkStart(toDateText(startsOn)),
     isSettled,
   };
 }
 
+const toDateText = (date: Date | null) =>
+  date ? date.toISOString().slice(0, 10) : null;
+
 async function readBags(tx: Tx, bagIds: readonly string[]) {
   const bags = await tx.hourBag.findMany({
     where: { id: { in: [...bagIds] } },
-    select: { id: true, balanceMinutes: true, status: true },
+    select: { id: true, balanceMinutes: true, status: true, isUncapped: true },
   });
   return new Map(bags.map(({ id, ...bag }) => [id, bag]));
 }

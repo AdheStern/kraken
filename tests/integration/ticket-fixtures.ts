@@ -14,7 +14,13 @@ import { createCvFixture, createUserWithRoles } from "./test-db";
 
 export const lp = (local: string) => fromZonedTime(local, "America/La_Paz");
 
-type BagSpec = { modality: BagModality; minutes: number; expiresOn?: string };
+// POR QUÉ: contract crea un contrato por vigencia; sin tope (uncapped) no lleva APERTURA (AGENTS.md §2.4).
+type BagSpec = {
+  modality: BagModality;
+  minutes: number;
+  expiresOn?: string;
+  contract?: { startsOn: string; uncapped: boolean };
+};
 type CvFixture = Awaited<ReturnType<typeof createCvFixture>>;
 
 export async function createTicketFixture(
@@ -161,19 +167,25 @@ async function createLoadedBag(
       modality: spec.modality,
       scope: "AREA",
       balanceMinutes: 0,
+      kind: spec.contract ? "VIGENCIA" : "HORAS",
+      isUncapped: spec.contract?.uncapped ?? false,
+      startsOn: spec.contract
+        ? new Date(`${spec.contract.startsOn}T00:00:00Z`)
+        : null,
       expiresOn: spec.expiresOn
         ? new Date(`${spec.expiresOn}T00:00:00Z`)
         : null,
       areas: { create: { areaId: f.area.id } },
     },
   });
-  await db.$transaction((tx) =>
-    postHourMovement(tx, {
-      bagId: bag.id,
-      kind: "APERTURA",
-      minutes: spec.minutes,
-      actorId: f.userId,
-    }),
-  );
+  if (spec.minutes > 0)
+    await db.$transaction((tx) =>
+      postHourMovement(tx, {
+        bagId: bag.id,
+        kind: "APERTURA",
+        minutes: spec.minutes,
+        actorId: f.userId,
+      }),
+    );
   return bag;
 }

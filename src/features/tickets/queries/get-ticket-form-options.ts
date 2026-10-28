@@ -81,6 +81,9 @@ async function listActiveBags(user: SessionUser) {
       scope: true,
       projectId: true,
       modality: true,
+      kind: true,
+      isUncapped: true,
+      expiresOn: true,
       balanceMinutes: true,
       areas: { select: { areaId: true } },
       cvLine: {
@@ -91,13 +94,38 @@ async function listActiveBags(user: SessionUser) {
       },
     },
   });
-  return bags.map(({ areas, cvLine, balanceMinutes, ...bag }) => ({
-    ...bag,
-    areaIds: areas.map((a) => a.areaId),
-    label: `${toCvVersionLabel(cvLine.version.cv.code, cvLine.version.number)} · ${cvLine.description}`,
-    hint: `${MODALITY_LABELS[bag.modality]} · ${formatMinutes(balanceMinutes)}`,
-  }));
+  return bags.map(
+    ({
+      areas,
+      cvLine,
+      balanceMinutes,
+      kind,
+      isUncapped,
+      expiresOn,
+      ...bag
+    }) => ({
+      ...bag,
+      areaIds: areas.map((a) => a.areaId),
+      label: `${toCvVersionLabel(cvLine.version.cv.code, cvLine.version.number)} · ${cvLine.description}`,
+      hint: [
+        MODALITY_LABELS[bag.modality],
+        ...(kind === "VIGENCIA" ? ["Vigencia"] : []),
+        isUncapped ? "sin tope" : formatMinutes(balanceMinutes),
+        ...(kind === "VIGENCIA" && expiresOn
+          ? [`hasta ${dayText(expiresOn)}`]
+          : []),
+      ].join(" · "),
+    }),
+  );
 }
+
+const dayFormat = new Intl.DateTimeFormat("es-BO", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
+const dayText = (date: Date) => dayFormat.format(date);
 
 function groupEngineers(
   roles: {

@@ -24,7 +24,7 @@ export function TicketSummaryPanel({ summary: s }: { summary: TicketSummary }) {
         <Tile
           label="Horas descontadas"
           value={formatMinutes(s.chargedMinutes)}
-          hint="De las bolsas: ponderadas por horario y redondeadas a 30 min"
+          hint="De bolsas y contratos por vigencia: ponderadas por horario y redondeadas a 30 min"
         />
         <Tile
           label="Sin bolsa"

@@ -223,7 +223,7 @@ ponderados = minutos_dentro × 1 + minutos_fuera × m      m = 2 si 8x5, 1 si 24
 - Un ticket es de **soporte** o de **proyecto** (el proyecto es un contenedor con nombre, cliente, áreas y fechas).
 - Lo crea personal interno. Tiene cliente, ciudad, área(s), prioridad, descripción y adjuntos.
 - **Un solo ingeniero encargado.** El encargado crea **subtareas** y las asigna.
-- Referencia **uno o más CV** (sus bolsas) en una **jerarquía ordenada** (prioridad 1, 2, 3…) que define el coordinador o el encargado. Solo bolsas `ACTIVA` del mismo cliente cuyo alcance incluya el área o el proyecto del ticket. Al crearlo se puede elegir su primera bolsa (opcional); con ella, la modalidad del SLA es la de esa bolsa (2.7).
+- Referencia **uno o más CV** (sus bolsas) en una **jerarquía ordenada** (prioridad 1, 2, 3…) que define el coordinador o el encargado. Solo bolsas `ACTIVA` del mismo cliente cuyo alcance incluya el área o el proyecto del ticket. Un contrato por vigencia (§2.4) entra en la jerarquía como cualquier bolsa. Al crearlo se puede elegir su primera bolsa (opcional); con ella, la modalidad del SLA es la de esa bolsa (2.7).
 
 **Registro de tiempo:**
 - Contador (iniciar, pausar, reanudar, terminar) o manual (inicio y fin): son **alternativos**; el registro manual no exige el contador y, como él, pasa un ticket `ASIGNADO` a `EN_PROGRESO`. El ticket y cada subtarea tienen su contador, y todos los que ven el ticket ven los contadores en curso de todos. Iniciar o reanudar el contador de una subtarea la pasa a `EN_PROGRESO`; terminarlo, a `COMPLETADA` (si nadie más tiene uno corriendo en ella), y la fila muestra su tiempo total.

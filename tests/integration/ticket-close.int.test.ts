@@ -1,9 +1,11 @@
 // tests/integration/ticket-close.int.test.ts
 // Cierre de un ticket contra la base (AGENTS.md §2.6, §3 flujo de cierre, §11 concurrencia): HORAS-01 de
-// punta a punta, rechazos, pendiente sin bolsa y cierres simultáneos que nunca sobregiran una bolsa.
+// punta a punta, rechazos, pendiente sin bolsa, cierres simultáneos que nunca sobregiran una bolsa y
+// VIGENCIA-01 (§15.5) con contratos por vigencia, también al reabrir.
 import { afterAll, describe, expect, it } from "vitest";
 import type { SessionUser } from "@/server/authz/roles";
 import { closeTicketHours } from "@/server/tickets/close-ticket-hours";
+import { reopenTicketHours } from "@/server/tickets/reopen-ticket-hours";
 import { createTestPrisma, createUserWithRoles } from "./test-db";
 import {
   addTimeEntry,
@@ -164,5 +166,69 @@ describe("closeTicketHours", () => {
       balance: 540,
       ledger: 540,
     });
+  });
+});
+
+describe("closeTicketHours · contratos por vigencia (VIGENCIA-01)", () => {
+  const horas01 = async (ticketId: string) => {
+    await addTimeEntry(db, ticketId, "2026-10-16T17:30", "2026-10-16T18:00");
+    await addTimeEntry(db, ticketId, "2026-10-16T18:15", "2026-10-16T19:30");
+    await addTimeEntry(db, ticketId, "2026-10-17T10:00", "2026-10-17T10:40");
+  };
+
+  it("sin tope: el contrato carga 270 (saldo −270, ACTIVA) y al reabrir se revierte", async () => {
+    const f = await createTicketFixture(db, [
+      {
+        modality: "H8X5",
+        minutes: 0,
+        contract: { startsOn: "2026-10-01", uncapped: true },
+      },
+      { modality: "H8X5", minutes: 600 },
+    ]);
+    const [contract, hours] = f.bags;
+    await horas01(f.ticket.id);
+    expect(await close(f.coordinator, f.ticket.id)).toMatchObject({
+      ok: true,
+      data: { chargedMinutes: 270, pendingMinutes: 0 },
+    });
+    expect(await ledgerOf(db, contract.id)).toEqual({
+      balance: -270,
+      status: "ACTIVA",
+      ledger: -270,
+    });
+    expect(await ledgerOf(db, hours.id)).toMatchObject({ balance: 600 });
+
+    const reopened = await db.$transaction((tx) =>
+      reopenTicketHours(
+        tx,
+        f.coordinator,
+        { ticketId: f.ticket.id, reason: "Falta un registro" },
+        NOW,
+      ),
+    );
+    expect(reopened).toMatchObject({
+      ok: true,
+      data: { reversedMinutes: 270 },
+    });
+    expect(await ledgerOf(db, contract.id)).toMatchObject({ balance: 0 });
+  });
+
+  it("con tope de 120: el contrato queda AGOTADA y la bolsa de horas carga 150", async () => {
+    const f = await createTicketFixture(db, [
+      {
+        modality: "H8X5",
+        minutes: 120,
+        contract: { startsOn: "2026-10-01", uncapped: false },
+      },
+      { modality: "H8X5", minutes: 600 },
+    ]);
+    const [contract, hours] = f.bags;
+    await horas01(f.ticket.id);
+    await close(f.coordinator, f.ticket.id);
+    expect(await ledgerOf(db, contract.id)).toMatchObject({
+      balance: 0,
+      status: "AGOTADA",
+    });
+    expect(await ledgerOf(db, hours.id)).toMatchObject({ balance: 450 });
   });
 });

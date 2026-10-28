@@ -1,10 +1,11 @@
 // src/features/tickets/components/subtask-row.tsx
 // Fila de una subtarea: título, asignado, su contador siempre visible (el que corre, propio o de otra persona),
-// el botón para iniciar el propio y su estado (AGENTS.md §2.6 subtareas y registro de tiempo).
+// el botón para iniciar el propio, su estado y, completada, su tiempo total (AGENTS.md §2.6).
 "use client";
 
 import type { ReactNode } from "react";
 import { PersonAvatar } from "@/components/app-shell/person-avatar";
+import { formatMinutes } from "@/lib/format-minutes";
 import type { SubtaskView, TimerView } from "../types";
 import { RunningTimers } from "./running-timers";
 import { splitTimers, timerCaption } from "./split-timers";
@@ -15,6 +16,7 @@ type Props = {
   ticketId: string;
   subtask: SubtaskView;
   timers: TimerView[];
+  totalMinutes: number;
   viewerId: string;
   canLog: boolean;
   status: ReactNode;
@@ -24,11 +26,13 @@ export function SubtaskRow({
   ticketId,
   subtask,
   timers,
+  totalMinutes,
   viewerId,
   canLog,
   status,
 }: Props) {
   const { mine, shown, rest } = splitTimers(timers, viewerId);
+  const isDone = subtask.status === "COMPLETADA" && !shown;
   return (
     <li className="flex flex-col gap-2 px-4 py-3">
       <div className="flex flex-wrap items-center gap-3">
@@ -45,16 +49,27 @@ export function SubtaskRow({
           )}
           {subtask.assignee?.name ?? "Sin asignar"}
         </span>
-        <span className="flex flex-col items-end leading-tight">
-          <TimerClock
-            closedMs={shown?.closedMs ?? 0}
-            runningSince={shown?.runningSince ?? null}
-            className="text-base"
-          />
-          <span className="text-[11px] text-muted-foreground">
-            {timerCaption(shown, viewerId) ?? "Sin contador"}
+        {isDone ? (
+          <span className="flex flex-col items-end leading-tight">
+            <span className="text-base font-semibold tabular-nums">
+              {formatMinutes(totalMinutes)}
+            </span>
+            <span className="text-[11px] text-muted-foreground">
+              Tiempo total
+            </span>
           </span>
-        </span>
+        ) : (
+          <span className="flex flex-col items-end leading-tight">
+            <TimerClock
+              closedMs={shown?.closedMs ?? 0}
+              runningSince={shown?.runningSince ?? null}
+              className="text-base"
+            />
+            <span className="text-[11px] text-muted-foreground">
+              {timerCaption(shown, viewerId) ?? "Sin contador"}
+            </span>
+          </span>
+        )}
         {(mine || canLog) && (
           <TimerButtons
             size="sm"

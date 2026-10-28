@@ -1,6 +1,6 @@
 // src/server/tickets/start-timer-record.ts
 // Inicia un contador en un ticket o subtarea: evento con la hora del servidor y su tramo abierto; un ticket
-// ASIGNADO pasa a EN_PROGRESO y el contador que estuviera corriendo se pausa (AGENTS.md §2.6 registro de tiempo, §8 contador).
+// ASIGNADO y la subtarea pasan a EN_PROGRESO y el contador que estuviera corriendo se pausa (AGENTS.md §2.6 registro de tiempo, §8 contador).
 import { randomUUID } from "node:crypto";
 import { type ActionResult, actionOk } from "@/lib/action-result";
 import type { SessionUser } from "@/server/authz/roles";
@@ -8,6 +8,7 @@ import type { Tx } from "@/server/db";
 import { applyStatusChange } from "./apply-status-change";
 import { pauseRunningTimer } from "./pause-running-timer";
 import { lockUserTimers, prepareTimeLogging } from "./prepare-time-logging";
+import { markSubtaskStarted } from "./sync-subtask-status";
 
 type Target = { ticketId: string; subtaskId: string | null };
 
@@ -37,6 +38,7 @@ export async function startTimerRecord(
       timerId,
     },
   });
+  if (target.subtaskId) await markSubtaskStarted(tx, target.subtaskId);
   if (ticket.status === "ASIGNADO")
     await applyStatusChange(tx, {
       ticketId: ticket.id,

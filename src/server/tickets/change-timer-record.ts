@@ -1,6 +1,6 @@
 // src/server/tickets/change-timer-record.ts
 // Pausa, reanuda o termina un contador propio: registra el evento con la hora del servidor y cierra o abre su
-// tramo; reanudar pausa el que estuviera corriendo (AGENTS.md §2.6, §8 contador CORRIENDO ⇄ PAUSADO → TERMINADO).
+// tramo; reanudar pausa el que estuviera corriendo, y en una subtarea reanudar o terminar mueve su estado (AGENTS.md §2.6, §8 contador CORRIENDO ⇄ PAUSADO → TERMINADO).
 import {
   computeTimerState,
   nextTimerStatus,
@@ -12,6 +12,7 @@ import type { Tx } from "@/server/db";
 import { lockTicket } from "./lock-ticket";
 import { closeSpan, pauseRunningTimer } from "./pause-running-timer";
 import { lockUserTimers } from "./prepare-time-logging";
+import { markSubtaskFinished, markSubtaskStarted } from "./sync-subtask-status";
 
 type Change = { timerId: string; kind: "PAUSAR" | "REANUDAR" | "TERMINAR" };
 
@@ -59,6 +60,10 @@ export async function changeTimerRecord(
     select: { occurredAt: true },
   });
   if (current === "CORRIENDO") await closeSpan(tx, timerId, event.occurredAt);
+  if (first.subtaskId && kind === "REANUDAR")
+    await markSubtaskStarted(tx, first.subtaskId);
+  if (first.subtaskId && kind === "TERMINAR")
+    await markSubtaskFinished(tx, first.subtaskId, event.occurredAt);
   if (kind === "REANUDAR")
     await tx.timeEntry.create({
       data: {

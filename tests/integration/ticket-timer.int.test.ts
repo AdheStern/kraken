@@ -89,6 +89,36 @@ describe("contador", () => {
     expect(await run((tx) => hasActiveTimers(tx, f.ticket.id))).toBe(false);
   });
 
+  it("en una subtarea, iniciar la pasa a EN_PROGRESO y terminar a COMPLETADA", async () => {
+    const f = await assignedTicket();
+    const subtask = await db.subtask.create({
+      data: {
+        ticketId: f.ticket.id,
+        title: "Revisar el rack",
+        assigneeId: f.engineer.id,
+        createdById: f.engineer.id,
+      },
+    });
+    const status = async () =>
+      (await db.subtask.findUniqueOrThrow({ where: { id: subtask.id } }))
+        .status;
+    const started = await run((tx) =>
+      startTimerRecord(tx, f.engineer, {
+        ticketId: f.ticket.id,
+        subtaskId: subtask.id,
+      }),
+    );
+    if (!started.ok) throw new Error(started.error.message);
+    expect(await status()).toBe("EN_PROGRESO");
+    await run((tx) =>
+      changeTimerRecord(tx, f.engineer, {
+        timerId: started.data.timerId,
+        kind: "TERMINAR",
+      }),
+    );
+    expect(await status()).toBe("COMPLETADA");
+  });
+
   it("los contadores abiertos de un ticket se listan con quién los lleva", async () => {
     const f = await assignedTicket();
     const started = await run((tx) =>

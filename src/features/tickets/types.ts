@@ -189,5 +189,6 @@ export type TicketTime = {
   entries: TimeEntryView[];
   // POR QUÉ: los de todos los participantes; los botones solo actúan sobre los de viewerId.
   timers: TimerView[];
+  subtaskMinutes: Record<string, number>;
   targets: { id: string | null; label: string }[];
 };

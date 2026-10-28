@@ -1,14 +1,14 @@
 // src/features/tickets/queries/get-ticket-time.ts
 // Tiempo de un ticket: sus registros y sus contadores abiertos (de todos los participantes) y dónde puede
 // registrar el usuario; null si el ticket no es visible (AGENTS.md §2.6 registro de tiempo, §2.9).
+
+import { entryMinutes } from "@/domain/tickets/summarize-ticket-work";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeTicketQuery } from "@/server/authz/scope-ticket-query";
 import { canLogTimeOn } from "@/server/authz/ticket-permissions";
 import { prisma } from "@/server/db";
 import type { TicketTime } from "../types";
 import { listOpenTimers } from "./list-open-timers";
-
-const MINUTE_MS = 60_000;
 
 export async function getTicketTime(
   user: SessionUser,
@@ -29,6 +29,7 @@ export async function getTicketTime(
           endedAt: true,
           source: true,
           isLate: true,
+          subtaskId: true,
           subtask: { select: { title: true } },
           user: {
             select: {
@@ -61,14 +62,13 @@ export async function getTicketTime(
       subtaskTitle: e.subtask?.title ?? null,
       startedAt: e.startedAt.toISOString(),
       endedAt: e.endedAt?.toISOString() ?? null,
-      minutes: e.endedAt
-        ? Math.ceil((e.endedAt.getTime() - e.startedAt.getTime()) / MINUTE_MS)
-        : null,
+      minutes: e.endedAt ? entryMinutes(e) : null,
       source: e.source,
       isLate: e.isLate,
       canDelete: isOpen && e.source === "MANUAL" && e.user.userId === user.id,
     })),
     timers: await listOpenTimers({ ticketId }),
+    subtaskMinutes: minutesBySubtask(ticket.timeEntries),
     // POR QUÉ: «null» es el ticket mismo; las subtareas son solo aquellas en las que el usuario puede registrar.
     targets: [
       ...(canLogTimeOn(user, access, undefined)
@@ -79,4 +79,18 @@ export async function getTicketTime(
         .map((s) => ({ id: s.id, label: `Subtarea: ${s.title}` })),
     ],
   };
+}
+
+function minutesBySubtask(
+  entries: {
+    subtaskId: string | null;
+    startedAt: Date;
+    endedAt: Date | null;
+  }[],
+): Record<string, number> {
+  const totals: Record<string, number> = {};
+  for (const e of entries)
+    if (e.subtaskId)
+      totals[e.subtaskId] = (totals[e.subtaskId] ?? 0) + entryMinutes(e);
+  return totals;
 }

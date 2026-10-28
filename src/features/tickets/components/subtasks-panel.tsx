@@ -103,6 +103,7 @@ export function SubtasksPanel({
               ticketId={ticketId}
               subtask={s}
               timers={time.timers.filter((t) => t.subtaskId === s.id)}
+              totalMinutes={time.subtaskMinutes[s.id] ?? 0}
               viewerId={viewerId}
               canLog={time.targets.some((t) => t.id === s.id)}
               status={

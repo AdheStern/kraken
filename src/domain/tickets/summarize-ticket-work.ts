@@ -22,7 +22,9 @@ export type TicketWorkSummary = {
 
 const MINUTE_MS = 60_000;
 
-export function entryMinutes(entry: WorkEntry): number {
+export function entryMinutes(
+  entry: Pick<WorkEntry, "startedAt" | "endedAt">,
+): number {
   if (!entry.endedAt) return 0;
   return Math.ceil(
     (entry.endedAt.getTime() - entry.startedAt.getTime()) / MINUTE_MS,

@@ -12,14 +12,14 @@ export const ENGINEER_MANUAL: Manual = {
       steps: [
         "En Inicio ves tus tickets y tu contador. Dentro del ticket eliges dónde registrar (el ticket o una subtarea tuya).",
         "Iniciar, Pausar, Reanudar y Terminar. La hora la pone el servidor: cerrar la pestaña no pierde tiempo.",
-        "Solo puedes tener un contador activo. Si queda abierto más de 10 horas, te llega un aviso.",
+        "Solo puedes tener un contador corriendo: al iniciar otro, el anterior se pausa solo. Si queda abierto más de 10 horas, te llega un aviso.",
       ],
       link: { href: "/tickets", label: "Ir a mis tickets" },
     },
     {
       heading: "Registro manual",
       steps: [
-        "En la pestaña Registros cargas inicio y fin. No puede solaparse con otro registro tuyo.",
+        "Si no usaste el contador, en la pestaña Registros cargas inicio y fin al terminar («Ahora» pone la hora actual). No puede solaparse con otro registro tuyo.",
         "Si lo cargas más de 48 horas después, queda marcado como tardío: registra el mismo día.",
       ],
     },

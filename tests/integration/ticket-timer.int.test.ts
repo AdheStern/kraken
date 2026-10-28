@@ -1,7 +1,9 @@
 // tests/integration/ticket-timer.int.test.ts
 // Contador por eventos, registros manuales y contadores olvidados contra la base (AGENTS.md §2.6, §8, §7
-// timers.stale): un solo contador corriendo por persona, sin solapes, tardíos y aviso único.
-import { afterAll, describe, expect, it } from "vitest";
+// timers.stale): un solo contador corriendo por persona (iniciar otro pausa el anterior), contadores visibles
+// por ticket, sin solapes, tardíos y aviso único.
+import { afterAll, describe, expect, it, vi } from "vitest";
+import { listOpenTimers } from "@/features/tickets/queries/list-open-timers";
 import type { SessionUser } from "@/server/authz/roles";
 import type { Tx } from "@/server/db";
 import { addManualTimeEntryRecord } from "@/server/tickets/add-manual-time-entry-record";
@@ -13,6 +15,11 @@ import { warnProjectedOverrun } from "@/server/tickets/warn-projected-overrun";
 import { warnStaleTimers } from "@/server/tickets/warn-stale-timers";
 import { createTestPrisma, createUserWithRoles } from "./test-db";
 import { createTicket, createTicketFixture, lp } from "./ticket-fixtures";
+
+vi.mock("@/server/db", async () => {
+  const { createTestPrisma: create } = await import("./test-db");
+  return { prisma: create() };
+});
 
 const db = createTestPrisma();
 afterAll(() => db.$disconnect());
@@ -34,7 +41,7 @@ async function assignedTicket() {
 }
 
 describe("contador", () => {
-  it("inicia, pausa, reanuda y termina; un solo contador corriendo por persona", async () => {
+  it("inicia, pausa, reanuda y termina; iniciar o reanudar otro pausa el que corría", async () => {
     const f = await assignedTicket();
     const other = await createTicket(db, f, [], "EN_PROGRESO");
     await db.ticket.update({
@@ -57,22 +64,44 @@ describe("contador", () => {
       (await db.ticket.findUniqueOrThrow({ where: { id: f.ticket.id } }))
         .status,
     ).toBe("EN_PROGRESO");
-    expect(code(await start(other.id))).toBe("CONFLICT");
+    const second = await start(other.id);
+    if (!second.ok) throw new Error(second.error.message);
+    const openSpans = () =>
+      db.timeEntry.count({ where: { userId: f.engineer.id, endedAt: null } });
+    expect(await openSpans()).toBe(1);
+    expect(code(await change(timerId, "PAUSAR"))).toBe("INVALID_STATE");
+    expect(code(await change(timerId, "REANUDAR"))).toBe("OK");
+    expect(await openSpans()).toBe(1);
+    expect(code(await change(second.data.timerId, "TERMINAR"))).toBe("OK");
 
     expect(await change(timerId, "PAUSAR")).toEqual({
       ok: true,
       data: { status: "PAUSADO" },
     });
-    expect(code(await change(timerId, "PAUSAR"))).toBe("INVALID_STATE");
     expect(code(await change(timerId, "REANUDAR"))).toBe("OK");
     expect(code(await change(timerId, "TERMINAR"))).toBe("OK");
 
     const entries = await db.timeEntry.findMany({ where: { timerId } });
-    expect(entries).toHaveLength(2);
+    expect(entries).toHaveLength(3);
     expect(
       entries.every((e) => e.endedAt !== null && e.source === "CONTADOR"),
     ).toBe(true);
     expect(await run((tx) => hasActiveTimers(tx, f.ticket.id))).toBe(false);
+  });
+
+  it("los contadores abiertos de un ticket se listan con quién los lleva", async () => {
+    const f = await assignedTicket();
+    const started = await run((tx) =>
+      startTimerRecord(tx, f.engineer, {
+        ticketId: f.ticket.id,
+        subtaskId: null,
+      }),
+    );
+    if (!started.ok) throw new Error(started.error.message);
+    const timers = await listOpenTimers({ ticketId: f.ticket.id });
+    expect(timers.map((t) => [t.person.id, t.status])).toEqual([
+      [f.engineer.id, "CORRIENDO"],
+    ]);
   });
 
   it("el comercial no registra tiempo y nadie toca el contador de otro", async () => {
@@ -124,6 +153,11 @@ describe("registros manuales", () => {
     const now = lp("2026-10-19T12:00");
     const onTime = await add("2026-10-19T09:00", "2026-10-19T10:00", now);
     expect(onTime).toMatchObject({ ok: true, data: { isLate: false } });
+    // REGLA: el registro manual es alternativo al contador: también pasa el ticket a EN_PROGRESO (§2.6).
+    expect(
+      (await db.ticket.findUniqueOrThrow({ where: { id: f.ticket.id } }))
+        .status,
+    ).toBe("EN_PROGRESO");
     expect(code(await add("2026-10-19T09:30", "2026-10-19T11:00", now))).toBe(
       "VALIDATION",
     );

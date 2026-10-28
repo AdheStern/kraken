@@ -43,7 +43,7 @@ export async function getHomeSummary(user: SessionUser): Promise<HomeSummary> {
       canSeeHourBags(user) ? listHourBags(user) : null,
       canCreateCv(user) ? listCvs(user, { status: "BORRADOR" }) : null,
       isEngineer ? listTickets(user, { mine: true }) : null,
-      isEngineer ? listOpenTimers(user.id) : null,
+      isEngineer ? listOpenTimers({ userId: user.id }) : null,
       canOperateInventory(user) ? countTransfersInTransit(user) : null,
       canDecideAdjustments(user) ? countPendingAdjustments(user) : null,
     ]);

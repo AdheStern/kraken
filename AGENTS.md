@@ -223,9 +223,9 @@ ponderados = minutos_dentro × 1 + minutos_fuera × m      m = 2 si 8x5, 1 si 24
 - Referencia **uno o más CV** (sus bolsas) en una **jerarquía ordenada** (prioridad 1, 2, 3…) que define el coordinador o el encargado. Solo bolsas `ACTIVA` del mismo cliente cuyo alcance incluya el área o el proyecto del ticket. Al crearlo se puede elegir su primera bolsa (opcional); con ella, la modalidad del SLA es la de esa bolsa (2.7).
 
 **Registro de tiempo:**
-- Contador (iniciar, pausar, reanudar, terminar) o manual (inicio y fin).
+- Contador (iniciar, pausar, reanudar, terminar) o manual (inicio y fin): son **alternativos**; el registro manual no exige el contador y, como él, pasa un ticket `ASIGNADO` a `EN_PROGRESO`. El ticket y cada subtarea tienen su contador, y todos los que ven el ticket ven los contadores en curso de todos.
 - El contador guarda **eventos con hora del servidor** (`tickets.evento_contador`); los intervalos se derivan de ellos. Cerrar la pestaña no pierde tiempo.
-- Un solo contador activo por persona. Un contador abierto más de 10 h genera una alerta al ingeniero y al encargado.
+- Un solo contador activo por persona: iniciar o reanudar otro pausa el que estaba corriendo. Un contador abierto más de 10 h genera una alerta al ingeniero y al encargado.
 - Los registros manuales no se solapan con otros de la misma persona. Si se cargan más de 48 h después, quedan marcados como tardíos.
 - El tiempo de personas distintas **se suma** (dos ingenieros 1 h en paralelo = 2 h), confirmado por DIMA.
 

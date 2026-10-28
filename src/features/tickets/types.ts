@@ -164,9 +164,11 @@ export type TimerView = {
   // POR QUÉ: lo acumulado sin el tramo en curso; el navegador suma desde runningSince para avanzar cada segundo.
   closedMs: number;
   runningSince: string | null;
+  person: Person;
   ticketId: string;
   ticketNumber: number;
   ticketTitle: string;
+  subtaskId: string | null;
   subtaskTitle: string | null;
 };
 
@@ -183,7 +185,9 @@ export type TimeEntryView = {
 };
 
 export type TicketTime = {
+  viewerId: string;
   entries: TimeEntryView[];
+  // POR QUÉ: los de todos los participantes; los botones solo actúan sobre los de viewerId.
   timers: TimerView[];
   targets: { id: string | null; label: string }[];
 };

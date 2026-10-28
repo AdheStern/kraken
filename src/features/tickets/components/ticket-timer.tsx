@@ -18,7 +18,7 @@ import { useTicketAction } from "./use-ticket-action";
 type Props = { ticketId: string; time: TicketTime };
 
 export function TicketTimer({ ticketId, time }: Props) {
-  const [timer] = time.timers;
+  const timer = time.timers.find((t) => t.person.id === time.viewerId);
   const [target, setTarget] = useState<string>(time.targets[0]?.id ?? "ticket");
   const { run, isPending, error } = useTicketAction();
   if (!timer && time.targets.length === 0) return null;

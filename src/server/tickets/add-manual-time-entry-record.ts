@@ -1,6 +1,6 @@
 // src/server/tickets/add-manual-time-entry-record.ts
-// Registro manual de tiempo (inicio y fin): sin solapes con otros registros propios y marcado tardío si se
-// carga más de 48 h después de su fin (AGENTS.md §2.6 registro de tiempo).
+// Registro manual de tiempo (inicio y fin), alternativo al contador: sin solapes con otros registros propios,
+// marcado tardío si se carga más de 48 h después de su fin; un ticket ASIGNADO pasa a EN_PROGRESO (AGENTS.md §2.6).
 import {
   isLateEntry,
   manualEntryIssue,
@@ -8,6 +8,7 @@ import {
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import type { SessionUser } from "@/server/authz/roles";
 import type { Tx } from "@/server/db";
+import { applyStatusChange } from "./apply-status-change";
 import { lockUserTimers, prepareTimeLogging } from "./prepare-time-logging";
 
 type ManualEntry = {
@@ -47,5 +48,13 @@ export async function addManualTimeEntryRecord(
     data: { ...entry, userId: user.id, source: "MANUAL", isLate },
     select: { id: true },
   });
+  if (prepared.data.status === "ASIGNADO")
+    await applyStatusChange(tx, {
+      ticketId: entry.ticketId,
+      from: "ASIGNADO",
+      to: "EN_PROGRESO",
+      actorId: user.id,
+      now,
+    });
   return actionOk({ entryId: created.id, isLate });
 }

@@ -69,6 +69,8 @@ export async function findRunningEntry(tx: Tx, userId: string) {
     select: {
       id: true,
       timerId: true,
+      ticketId: true,
+      subtaskId: true,
       startedAt: true,
       ticket: { select: { number: true } },
     },

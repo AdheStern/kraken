@@ -19,6 +19,10 @@ describe("manualEntryIssue", () => {
   ])("rechaza %s", (_, start, end, now) => {
     expect(manualEntryIssue(start, end, now)).toEqual(expect.any(String));
   });
+
+  it("en el futuro dice la hora actual de La Paz", () => {
+    expect(manualEntryIssue(h(1), h(12), h(10))).toContain("son las 06:00");
+  });
 });
 
 describe("isLateEntry", () => {

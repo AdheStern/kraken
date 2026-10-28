@@ -1,6 +1,6 @@
 // src/features/tickets/queries/get-ticket-time.ts
-// Tiempo de un ticket: sus registros (de todos los participantes), los contadores abiertos del usuario y dónde
-// puede registrar; null si el ticket no es visible (AGENTS.md §2.6 registro de tiempo, §2.9).
+// Tiempo de un ticket: sus registros y sus contadores abiertos (de todos los participantes) y dónde puede
+// registrar el usuario; null si el ticket no es visible (AGENTS.md §2.6 registro de tiempo, §2.9).
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeTicketQuery } from "@/server/authz/scope-ticket-query";
 import { canLogTimeOn } from "@/server/authz/ticket-permissions";
@@ -50,6 +50,7 @@ export async function getTicketTime(
   };
   const isOpen = ticket.status !== "CERRADO" && ticket.status !== "CANCELADO";
   return {
+    viewerId: user.id,
     entries: ticket.timeEntries.map((e) => ({
       id: e.id,
       person: {
@@ -67,7 +68,7 @@ export async function getTicketTime(
       isLate: e.isLate,
       canDelete: isOpen && e.source === "MANUAL" && e.user.userId === user.id,
     })),
-    timers: await listOpenTimers(user.id, ticketId),
+    timers: await listOpenTimers({ ticketId }),
     // POR QUÉ: «null» es el ticket mismo; las subtareas son solo aquellas en las que el usuario puede registrar.
     targets: [
       ...(canLogTimeOn(user, access, undefined)

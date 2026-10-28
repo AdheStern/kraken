@@ -1,6 +1,8 @@
 // src/domain/tickets/time-entry-rules.ts
 // Reglas de un registro de tiempo manual: rango válido, sin futuro, duración máxima y marca de tardío
 // (AGENTS.md §2.6 "Registro de tiempo").
+import { formatInTimeZone } from "date-fns-tz";
+import { BUSINESS_TIME_ZONE } from "@/domain/calendar/business-date";
 
 // REGLA: se marca tardío si se carga más de 48 h después de su fin (§2.6).
 export const LATE_ENTRY_MS = 48 * 60 * 60_000;
@@ -17,7 +19,7 @@ export function manualEntryIssue(
   if (endedAt.getTime() <= startedAt.getTime())
     return "El fin debe ser posterior al inicio.";
   if (endedAt.getTime() > now.getTime())
-    return "No se registra tiempo en el futuro; usa el contador.";
+    return `La hora de fin todavía no llegó (son las ${formatInTimeZone(now, BUSINESS_TIME_ZONE, "HH:mm")} en La Paz). Revisa la fecha y la hora.`;
   if (endedAt.getTime() - startedAt.getTime() > MAX_MANUAL_ENTRY_MS)
     return "Un registro manual dura hasta 16 h; pártelo en tramos.";
   return null;

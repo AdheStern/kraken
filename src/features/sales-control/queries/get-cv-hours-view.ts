@@ -27,18 +27,31 @@ export async function getCvHoursView(
           sellers: {
             select: { user: { select: { user: { select: { name: true } } } } },
           },
-          // REGLA: solo líneas de horas y sin columnas de costo, factor ni precio (regla 12).
+          // REGLA: solo líneas de horas o contratos por vigencia, sin costo, factor ni precio (regla 12).
           lines: {
-            where: { itemType: "SERVICIO", unit: { isHours: true } },
+            where: {
+              itemType: "SERVICIO",
+              OR: [
+                { unit: { isHours: true } },
+                { hourBag: { kind: "VIGENCIA" } },
+              ],
+            },
             orderBy: { position: "asc" },
             select: {
               id: true,
               description: true,
               quantity: true,
               hourBagSpec: true,
+              coverageEnd: true,
               area: { select: { code: true } },
               hourBag: {
-                select: { id: true, status: true, balanceMinutes: true },
+                select: {
+                  id: true,
+                  status: true,
+                  balanceMinutes: true,
+                  isUncapped: true,
+                  kind: true,
+                },
               },
             },
           },
@@ -56,14 +69,26 @@ export async function getCvHoursView(
     sellerNames: version.sellers.map((s) => s.user.user.name),
     lines: version.lines.map((line) => {
       const spec = parseHourBagSpec(line.hourBagSpec);
+      const isContract = line.hourBag?.kind === "VIGENCIA";
+      const bag = line.hourBag && {
+        id: line.hourBag.id,
+        status: line.hourBag.status,
+        balanceMinutes: line.hourBag.balanceMinutes,
+        isUncapped: line.hourBag.isUncapped,
+      };
       return {
         id: line.id,
         description: line.description,
-        hours: line.quantity?.toString() ?? "0",
+        hours: isContract
+          ? (spec?.capHours ?? null)
+          : (line.quantity?.toString() ?? "0"),
+        isContract,
         areaCode: line.area?.code ?? null,
         modality: spec?.modality ?? null,
-        expiresOn: spec?.expiresOn || null,
-        bag: line.hourBag,
+        expiresOn: isContract
+          ? (line.coverageEnd?.toISOString().slice(0, 10) ?? null)
+          : spec?.expiresOn || null,
+        bag,
       };
     }),
   };

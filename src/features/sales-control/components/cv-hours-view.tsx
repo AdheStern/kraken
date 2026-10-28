@@ -50,14 +50,20 @@ export function CvHoursView({ cv }: { cv: CvHoursViewData }) {
               </span>
             </span>
             <span className="flex items-center gap-4 tabular-nums">
-              <span>{line.hours} h vendidas</span>
+              <span>
+                {line.isContract
+                  ? `Contrato · ${line.hours ? `tope ${line.hours} h` : "sin tope"}`
+                  : `${line.hours} h vendidas`}
+              </span>
               {line.bag && (
                 <Link
                   href={`/horas/${line.bag.id}`}
                   className="text-primary underline-offset-4 hover:underline"
                 >
-                  Saldo {formatMinutes(line.bag.balanceMinutes)} ·{" "}
-                  {STATUS[line.bag.status]}
+                  {line.bag.isUncapped
+                    ? `Usado ${formatMinutes(0 - line.bag.balanceMinutes)}`
+                    : `Saldo ${formatMinutes(line.bag.balanceMinutes)}`}{" "}
+                  · {STATUS[line.bag.status]}
                 </Link>
               )}
             </span>

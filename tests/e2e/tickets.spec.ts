@@ -1,14 +1,17 @@
 // tests/e2e/tickets.spec.ts
 // Recorrido de la F3 (AGENTS.md §11): el coordinador crea un ticket y le suma la bolsa del CV de saldo inicial
 // aprobado del seed; la ingeniera trabaja con el contador y lo resuelve; el coordinador lo cierra y ve el descuento
-// redondeado a 30 min y el resumen del ticket cerrado (§2.6).
+// redondeado a 30 min y el resumen del ticket cerrado (§2.6). Después, el mismo recorrido sobre el contrato por
+// vigencia demo de «Minera Illimani» (§2.4, §15.5): en serie, porque la ingeniera tiene un solo contador.
 import { type Browser, expect, type Page, test } from "@playwright/test";
 import { storageFor } from "./users";
 
 test.describe.configure({ mode: "serial" });
 
 const TITLE = `E2E ${Date.now()}`;
+const CONTRACT_TITLE = `Contrato E2E ${Date.now()}`;
 let ticketUrl = "";
+let contractUrl = "";
 
 async function as(
   browser: Browser,
@@ -115,4 +118,56 @@ test("el coordinador cierra y ve el descuento redondeado", async ({
   ).toBeVisible();
   await page.getByRole("tab", { name: "Resumen" }).click();
   await expect(page.getByText("Horas descontadas")).toBeVisible();
+});
+
+test("el coordinador crea el ticket con el contrato como bolsa inicial", async ({
+  browser,
+}) => {
+  const page = await as(browser, "coordinador");
+  await page.goto("/tickets");
+  await page.getByRole("button", { name: "Nuevo ticket" }).click();
+  await pick(page, "new-ticket-customerId", "Minera Illimani");
+  await pick(page, "new-ticket-cityId", "La Paz");
+  await pick(page, "new-ticket-areas", "DIMAHELP");
+  await page.locator("#new-ticket-bagId").click();
+  await page
+    .getByRole("option", { name: /Soporte técnico anual/ })
+    .first()
+    .click();
+  await page.locator("#new-ticket-title").fill(CONTRACT_TITLE);
+  await page.locator("#new-ticket-description").fill("Prueba del contrato.");
+  await pick(page, "new-ticket-ownerId", "Elena");
+  await page.getByRole("button", { name: "Crear ticket" }).click();
+  await page.waitForURL(/\/tickets\/[0-9a-f-]{36}$/);
+  contractUrl = new URL(page.url()).pathname;
+});
+
+test("en el contrato, la ingeniera usa el contador y lo resuelve", async ({
+  browser,
+}) => {
+  const page = await as(browser, "ingeniero");
+  await page.goto(contractUrl);
+  const timer = page.getByRole("region", { name: "Contador" });
+  await timer.getByRole("button", { name: "Iniciar" }).click();
+  await expect(timer.getByText(/^Corriendo/)).toBeVisible();
+  await timer.getByRole("button", { name: "Terminar" }).click();
+  await expect(timer.getByText(/^Sin contador en el ticket/)).toBeVisible();
+  await page.getByRole("button", { name: "Marcar resuelto" }).click();
+  await expect(
+    page.locator('[data-slot="badge"]', { hasText: /^Resuelto$/ }),
+  ).toBeVisible();
+});
+
+test("al cerrar, el contrato registra 30 min usados sin tope", async ({
+  browser,
+}) => {
+  const page = await as(browser, "coordinador");
+  await page.goto(contractUrl);
+  await page.getByRole("button", { name: "Cerrar ticket" }).click();
+  await page.getByRole("button", { name: "Cerrar y descontar horas" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Listo" }).click();
+  await page.goto("/horas");
+  const row = page.locator("li", { hasText: "Soporte técnico anual" }).first();
+  await expect(row).toContainText("Contrato por vigencia");
+  await expect(row).toContainText(/30 min usadas · sin tope/);
 });

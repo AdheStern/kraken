@@ -130,7 +130,9 @@ export type CvHoursView = {
   lines: {
     id: string;
     description: string;
-    hours: string;
+    // POR QUÉ: en un contrato por vigencia es el tope en horas (null = sin tope), no la cantidad facturada.
+    hours: string | null;
+    isContract: boolean;
     areaCode: string | null;
     modality: "H8X5" | "H24X7" | null;
     expiresOn: string | null;
@@ -138,6 +140,7 @@ export type CvHoursView = {
       id: string;
       status: "ACTIVA" | "AGOTADA" | "VENCIDA" | "CERRADA";
       balanceMinutes: number;
+      isUncapped: boolean;
     } | null;
   }[];
 };

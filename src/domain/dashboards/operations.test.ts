@@ -59,6 +59,16 @@ describe("horas y tickets", () => {
       consumedRealMinutes: 145,
       expiredMinutes: 0,
       surchargeMinutes: 125,
+      termUsedMinutes: 0,
+    });
+  });
+
+  it("VIGENCIA-01 sin tope: los 270 van al uso en contratos, no a horas vendidas ni descontadas", () => {
+    expect(summarizeHoursFlow({}, 145, 270)).toMatchObject({
+      soldMinutes: 0,
+      consumedWeightedMinutes: 0,
+      termUsedMinutes: 270,
+      surchargeMinutes: 125,
     });
   });
 

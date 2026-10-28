@@ -1,6 +1,6 @@
 // src/features/dashboards/components/operations-kpis.tsx
-// Fila de cifras del tablero operativo: horas vendidas y consumidas (ponderadas y reales), SLA de resolución y
-// bolsas en riesgo hoy (AGENTS.md §6). Sin montos: lo ve también el ingeniero (regla 12).
+// Fila de cifras del tablero operativo: horas vendidas y consumidas (ponderadas y reales), uso en contratos por
+// vigencia, SLA de resolución y bolsas en riesgo hoy (AGENTS.md §6). Sin montos: lo ve también el ingeniero (regla 12).
 import { formatMinutes } from "@/lib/format-minutes";
 import type { OperationsDashboard } from "../types";
 import { KpiTile } from "./kpi-tile";
@@ -23,7 +23,7 @@ export function OperationsKpis({ board }: { board: OperationsDashboard }) {
       <KpiTile
         label="Horas descontadas"
         value={formatMinutes(hours.consumedWeightedMinutes)}
-        hint={`${formatMinutes(hours.consumedRealMinutes)} reales · recargo ${formatMinutes(hours.surchargeMinutes)}`}
+        hint={`${formatMinutes(hours.consumedRealMinutes)} reales · recargo ${formatMinutes(hours.surchargeMinutes)} · ${formatMinutes(hours.termUsedMinutes)} en contratos por vigencia`}
       />
       <KpiTile
         label="SLA de resolución"

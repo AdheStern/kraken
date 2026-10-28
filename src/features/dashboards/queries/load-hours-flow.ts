@@ -1,6 +1,6 @@
 // src/features/dashboards/queries/load-hours-flow.ts
-// Horas del periodo: movimientos de las bolsas visibles (vendido, consumido ponderado, vencido), tiempo real de
-// los tickets cerrados y lo pendiente sin bolsa (AGENTS.md §2.4, §2.6 y §6).
+// Horas del periodo: movimientos de las bolsas de horas visibles (vendido, consumido ponderado, vencido), lo usado
+// en contratos por vigencia, tiempo real de los tickets cerrados y lo pendiente sin bolsa (AGENTS.md §2.4, §2.6, §6).
 import { summarizeHoursFlow } from "@/domain/dashboards/hours-kpis";
 import type { MovementTotals } from "@/domain/hours/summarize-bag";
 import type { Prisma } from "@/generated/prisma/client";
@@ -26,19 +26,24 @@ export async function loadHoursFlow(
 ): Promise<HoursFlowView> {
   const inPeriod = { gte: filters.start, lt: filters.end };
   const tickets = ticketFilter(user, filters);
-  const [movements, entries, pending] = await Promise.all([
+  const bags = (kind: "HORAS" | "VIGENCIA"): Prisma.HourBagWhereInput => ({
+    AND: [
+      scopeHourBagQuery(user),
+      { kind },
+      filters.areaId ? { areas: { some: { areaId: filters.areaId } } } : {},
+    ],
+  });
+  const [movements, termUsed, entries, pending] = await Promise.all([
     prisma.hourMovement.groupBy({
       by: ["kind"],
+      where: { createdAt: inPeriod, bag: bags("HORAS") },
+      _sum: { minutes: true },
+    }),
+    prisma.hourMovement.aggregate({
       where: {
         createdAt: inPeriod,
-        bag: {
-          AND: [
-            scopeHourBagQuery(user),
-            filters.areaId
-              ? { areas: { some: { areaId: filters.areaId } } }
-              : {},
-          ],
-        },
+        kind: { in: ["CONSUMO", "REVERSO"] },
+        bag: bags("VIGENCIA"),
       },
       _sum: { minutes: true },
     }),
@@ -62,7 +67,11 @@ export async function loadHoursFlow(
     0,
   );
   return {
-    ...summarizeHoursFlow(totals, Math.floor(realMs / MINUTE_MS)),
+    ...summarizeHoursFlow(
+      totals,
+      Math.floor(realMs / MINUTE_MS),
+      0 - (termUsed._sum.minutes ?? 0),
+    ),
     pendingMinutes:
       (pending._sum.insideMinutes ?? 0) + (pending._sum.outsideMinutes ?? 0),
   };

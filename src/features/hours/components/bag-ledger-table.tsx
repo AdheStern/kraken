@@ -1,6 +1,7 @@
 // src/features/hours/components/bag-ledger-table.tsx
 // Libro mayor de una bolsa: cada movimiento con signo explícito, saldo después del movimiento, ticket que lo
-// originó, motivo y quién lo registró (AGENTS.md §2.4 libro mayor, §5 "el libro enlaza al ticket").
+// originó, motivo y quién lo registró; en un contrato sin tope, lo usado en lugar del saldo (AGENTS.md §2.4 libro
+// mayor, §5 "el libro enlaza al ticket").
 import { formatMinutes } from "@/lib/format-minutes";
 import { cn } from "@/lib/utils";
 import type { BagLedgerEntry } from "../types";
@@ -17,7 +18,10 @@ function signed(minutes: number): string {
   return minutes > 0 ? `+${formatMinutes(minutes)}` : formatMinutes(minutes);
 }
 
-export function BagLedgerTable({ entries }: { entries: BagLedgerEntry[] }) {
+type Props = { entries: BagLedgerEntry[]; isUncapped?: boolean };
+
+export function BagLedgerTable({ entries, isUncapped = false }: Props) {
+  const after = isUncapped ? "Usado" : "Saldo";
   return (
     <div className="kr-solid overflow-hidden rounded-xl">
       <table className="w-full text-sm">
@@ -26,7 +30,7 @@ export function BagLedgerTable({ entries }: { entries: BagLedgerEntry[] }) {
             <th className="px-4 py-2.5 font-medium">Fecha</th>
             <th className="px-4 py-2.5 font-medium">Movimiento</th>
             <th className="px-4 py-2.5 text-right font-medium">Tiempo</th>
-            <th className="px-4 py-2.5 text-right font-medium">Saldo</th>
+            <th className="px-4 py-2.5 text-right font-medium">{after}</th>
             <th className="px-4 py-2.5 font-medium">Detalle</th>
           </tr>
         </thead>
@@ -51,8 +55,10 @@ export function BagLedgerTable({ entries }: { entries: BagLedgerEntry[] }) {
                 {signed(entry.minutes)}
               </td>
               <td className="text-right text-muted-foreground tabular-nums md:px-4 md:py-3 md:whitespace-nowrap">
-                <span className="md:hidden">saldo </span>
-                {formatMinutes(entry.balanceAfter)}
+                <span className="md:hidden">{after.toLowerCase()} </span>
+                {formatMinutes(
+                  isUncapped ? 0 - entry.balanceAfter : entry.balanceAfter,
+                )}
               </td>
               <td className="col-span-2 text-muted-foreground md:px-4 md:py-3">
                 {entry.ticketNumber !== null && (

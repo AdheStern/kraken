@@ -89,6 +89,7 @@ export type HoursFlowView = {
   consumedRealMinutes: number;
   expiredMinutes: number;
   surchargeMinutes: number;
+  termUsedMinutes: number;
   pendingMinutes: number;
 };
 

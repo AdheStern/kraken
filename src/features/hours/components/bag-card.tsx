@@ -1,12 +1,17 @@
 // src/features/hours/components/bag-card.tsx
 // Tarjeta de una bolsa en la vista del cliente: anillo de módulo con el % al centro, CV, modalidad, alcance,
-// saldo sobre lo vendido y vencimiento (AGENTS.md §5, "Bolsas de un cliente").
+// saldo sobre lo vendido (o lo usado de un contrato sin tope) y vigencia (AGENTS.md §2.4, §5).
 import Link from "next/link";
 import { CountUp } from "@/components/motion/count-up";
-import { formatMinutes } from "@/lib/format-minutes";
 import { cn } from "@/lib/utils";
 import type { BagSummary } from "../types";
-import { expiryText, MODALITY_LABELS, scopeText } from "./bag-labels";
+import {
+  balanceText,
+  expiryText,
+  kindText,
+  MODALITY_LABELS,
+  scopeText,
+} from "./bag-labels";
 import { BagStatusBadge } from "./bag-status-badge";
 import { bagTone, HourBagRing } from "./hour-bag-ring";
 
@@ -28,9 +33,17 @@ export function BagCard({ bag }: { bag: BagSummary }) {
             size="lg"
             className="absolute inset-0"
           />
-          <span className="text-lg font-semibold tabular-nums">
-            <CountUp value={bag.consumedPct} />%
-          </span>
+          {bag.isUncapped ? (
+            <span className="text-center text-xs font-medium leading-tight">
+              Sin
+              <br />
+              tope
+            </span>
+          ) : (
+            <span className="text-lg font-semibold tabular-nums">
+              <CountUp value={bag.consumedPct} />%
+            </span>
+          )}
         </div>
         {bag.status !== "ACTIVA" && <BagStatusBadge status={bag.status} />}
       </div>
@@ -44,18 +57,17 @@ export function BagCard({ bag }: { bag: BagSummary }) {
         <p className="truncate text-sm text-muted-foreground">
           {bag.lineDescription}
         </p>
+        {kindText(bag) && (
+          <p className="text-xs font-medium text-primary">{kindText(bag)}</p>
+        )}
       </div>
       <dl className="grid gap-1 text-sm">
         <div className="flex justify-between gap-3">
-          <dt className="text-muted-foreground">Saldo</dt>
-          <dd className="text-right tabular-nums">
-            <span className="font-medium">
-              {formatMinutes(bag.balanceMinutes)}
-            </span>
-            <span className="text-muted-foreground">
-              {" "}
-              de {formatMinutes(bag.soldMinutes)}
-            </span>
+          <dt className="text-muted-foreground">
+            {bag.isUncapped ? "Uso" : "Saldo"}
+          </dt>
+          <dd className="text-right font-medium tabular-nums">
+            {balanceText(bag)}
           </dd>
         </div>
         <div className="flex justify-between gap-3">

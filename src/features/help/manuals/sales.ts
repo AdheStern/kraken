@@ -23,6 +23,7 @@ export const SALES_MANUAL: Manual = {
         "Escribe el factor o el precio final; el otro se calcula. Con costo 0 (servicios propios) solo hay precio.",
         "Con un factor en la barra puedes aplicarlo a toda una tecnología; los lotes tienen su subtotal.",
         "Para vender horas usa la unidad HORAS y el tipo SERVICIO, y completa modalidad (8x5 o 24x7), alcance y vencimiento: al aprobarse nace la bolsa.",
+        "Para vender soporte por tiempo usa MESES o AÑOS y el tipo SERVICIO, carga la vigencia (inicio y fin) y en el detalle marca «Soporte por vigencia» con su modalidad, alcance y, si hace falta, un tope de horas: los tickets del cliente lo usan sin descontar horas.",
         "Guardar líneas (Ctrl+S). El panel lateral muestra totales en USD y Bs, margen y aprobadores.",
       ],
     },

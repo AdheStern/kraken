@@ -65,9 +65,17 @@ async function HourBag({
             size="lg"
             className="absolute inset-0"
           />
-          <span className="text-lg font-semibold tabular-nums">
-            <CountUp value={bag.consumedPct} />%
-          </span>
+          {bag.isUncapped ? (
+            <span className="text-center text-xs font-medium leading-tight">
+              Sin
+              <br />
+              tope
+            </span>
+          ) : (
+            <span className="text-lg font-semibold tabular-nums">
+              <CountUp value={bag.consumedPct} />%
+            </span>
+          )}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -77,8 +85,9 @@ async function HourBag({
             <BagStatusBadge status={bag.status} />
           </div>
           <p className="text-sm text-muted-foreground">
-            {bag.lineDescription} · {MODALITY_LABELS[bag.modality]} ·{" "}
-            {scopeText(bag)}
+            {bag.lineDescription} ·{" "}
+            {bag.kind === "VIGENCIA" && "Contrato por vigencia · "}
+            {MODALITY_LABELS[bag.modality]} · {scopeText(bag)}
           </p>
           <p className="text-sm">
             <Link
@@ -98,13 +107,16 @@ async function HourBag({
         </div>
         {canChange && (
           <div className="flex w-full items-center gap-1 sm:w-auto">
-            <AdjustBagDialog
-              bagId={bag.id}
-              balanceMinutes={bag.balanceMinutes}
-            />
+            {/* REGLA: un contrato sin tope no tiene saldo que ajustar; solo se cierra (§2.4). */}
+            {!bag.isUncapped && (
+              <AdjustBagDialog
+                bagId={bag.id}
+                balanceMinutes={bag.balanceMinutes}
+              />
+            )}
             <CloseBagDialog
               bagId={bag.id}
-              balanceMinutes={bag.balanceMinutes}
+              balanceMinutes={bag.isUncapped ? 0 : bag.balanceMinutes}
             />
           </div>
         )}
@@ -115,7 +127,7 @@ async function HourBag({
           Libro mayor{" "}
           <span className="text-muted-foreground">({ledger.length})</span>
         </h2>
-        <BagLedgerTable entries={ledger} />
+        <BagLedgerTable entries={ledger} isUncapped={bag.isUncapped} />
       </section>
     </>
   );

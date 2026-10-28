@@ -22,6 +22,7 @@ export const SUPPORT_COORDINATOR_MANUAL: Manual = {
       steps: [
         "En la pestaña Bolsas sumas o cambias las bolsas del cliente que paga el ticket y su orden: se llena la primera y luego la siguiente.",
         "Solo aparecen bolsas activas del mismo cliente cuyo alcance incluye el área o el proyecto del ticket.",
+        "Un contrato por vigencia es una bolsa más: recibe el trabajo dentro de su vigencia sin descontar horas; si tiene tope, al llegar a él sigue la siguiente bolsa.",
         "El consumo proyectado te avisa antes del cierre si el saldo no alcanzará.",
       ],
     },

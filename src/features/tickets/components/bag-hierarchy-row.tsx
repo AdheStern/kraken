@@ -48,13 +48,21 @@ export function BagHierarchyRow({
       <dl className="hidden shrink-0 text-right text-xs sm:block">
         <dt className="sr-only">Saldo</dt>
         <dd className="tabular-nums">
-          <span className="font-medium">
-            {formatMinutes(bag.balanceMinutes)}
-          </span>
-          <span className="text-muted-foreground">
-            {" "}
-            · {bag.consumedPct}% usado
-          </span>
+          {bag.isUncapped ? (
+            <span className="text-muted-foreground">
+              Contrato · {formatMinutes(bag.consumedMinutes)} usadas · sin tope
+            </span>
+          ) : (
+            <>
+              <span className="font-medium">
+                {formatMinutes(bag.balanceMinutes)}
+              </span>
+              <span className="text-muted-foreground">
+                {" "}
+                · {bag.consumedPct}% usado
+              </span>
+            </>
+          )}
         </dd>
         {projectedMinutes !== null && projectedMinutes > 0 && (
           <>

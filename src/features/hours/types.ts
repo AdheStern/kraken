@@ -5,6 +5,7 @@ import type {
   BagRiskReason,
 } from "@/domain/hours/classify-bag-risk";
 import type {
+  BagKind,
   BagModality,
   BagScope,
   BagStatus,
@@ -18,6 +19,10 @@ export type BagSummary = {
   lineDescription: string;
   customerId: string;
   customerName: string;
+  kind: BagKind;
+  // POR QUÉ: sin tope, balanceMinutes es lo usado en negativo y no se muestra como saldo (§2.4).
+  isUncapped: boolean;
+  startsOn: string | null;
   modality: BagModality;
   scope: BagScope;
   areaCodes: string[];

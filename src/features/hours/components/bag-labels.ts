@@ -1,11 +1,13 @@
 // src/features/hours/components/bag-labels.ts
-// Textos de interfaz de las bolsas: modalidad, alcance, estado, movimientos y vencimiento.
+// Textos de interfaz de las bolsas: modalidad, alcance, estado, movimientos, vencimiento y el uso de un contrato
+// por vigencia (AGENTS.md §2.4).
 import type {
   BagModality,
   BagScope,
   BagStatus,
   HourMovementKind,
 } from "@/generated/prisma/enums";
+import { formatMinutes } from "@/lib/format-minutes";
 import type { BagSummary } from "../types";
 
 export const MODALITY_LABELS: Record<BagModality, string> = {
@@ -48,11 +50,30 @@ export function scopeText(bag: Pick<BagSummary, "scope" | "areaCodes">) {
   return bag.scope === "AREA" ? areas : `${SCOPE_LABELS[bag.scope]} · ${areas}`;
 }
 
-export function expiryText(
-  bag: Pick<BagSummary, "expiresOn" | "daysToExpiry">,
+// REGLA: un contrato sin tope muestra lo usado; su saldo negativo no es un saldo (§2.4).
+export function balanceText(
+  bag: Pick<
+    BagSummary,
+    "isUncapped" | "balanceMinutes" | "soldMinutes" | "consumedMinutes"
+  >,
 ): string {
-  const { expiresOn, daysToExpiry } = bag;
+  return bag.isUncapped
+    ? `${formatMinutes(bag.consumedMinutes)} usadas · sin tope`
+    : `${formatMinutes(bag.balanceMinutes)} de ${formatMinutes(bag.soldMinutes)}`;
+}
+
+export function kindText(bag: Pick<BagSummary, "kind">): string | null {
+  return bag.kind === "VIGENCIA" ? "Contrato por vigencia" : null;
+}
+
+export function expiryText(
+  bag: Pick<BagSummary, "expiresOn" | "daysToExpiry"> &
+    Partial<Pick<BagSummary, "startsOn">>,
+): string {
+  const { expiresOn, daysToExpiry, startsOn } = bag;
   if (!expiresOn || daysToExpiry === null) return "Sin vencimiento";
+  if (startsOn && daysToExpiry > 60)
+    return `Del ${formatCivilDate(startsOn)} al ${formatCivilDate(expiresOn)}`;
   if (daysToExpiry < 0) return `Venció el ${formatCivilDate(expiresOn)}`;
   if (daysToExpiry === 0) return "Vence hoy";
   if (daysToExpiry === 1) return "Vence mañana";

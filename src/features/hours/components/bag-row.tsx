@@ -5,7 +5,7 @@ import Link from "next/link";
 import { formatMinutes } from "@/lib/format-minutes";
 import { cn } from "@/lib/utils";
 import type { BagSummary } from "../types";
-import { expiryText, MODALITY_LABELS, scopeText } from "./bag-labels";
+import { expiryText, kindText, MODALITY_LABELS, scopeText } from "./bag-labels";
 import { BagStatusBadge } from "./bag-status-badge";
 import { bagTone, HourBagRing } from "./hour-bag-ring";
 
@@ -49,11 +49,16 @@ export function BagRow({ bag }: { bag: BagSummary }) {
         </p>
       </div>
       <p className="truncate text-sm text-muted-foreground">
+        {kindText(bag) && <>{kindText(bag)} · </>}
         {MODALITY_LABELS[bag.modality]} · {scopeText(bag)}
       </p>
       <p className="text-sm tabular-nums md:text-right md:whitespace-nowrap">
         {isEnded || bag.status === "AGOTADA" ? (
           <BagStatusBadge status={bag.status} />
+        ) : bag.isUncapped ? (
+          <span className="text-muted-foreground">
+            {formatMinutes(bag.consumedMinutes)} usadas · sin tope
+          </span>
         ) : (
           <>
             <span className="font-medium">{bag.consumedPct}%</span>

@@ -54,10 +54,11 @@ export async function postHourMovement(
     );
 
   const balanceAfter = bag.balanceMinutes + minutes;
-  // REGLA: el saldo nunca queda negativo; el CHECK de la tabla es solo la última red (§2.4, ADR-03).
-  if (balanceAfter < 0)
+  // REGLA: el saldo nunca queda negativo; el CHECK de la tabla es solo la última red (§2.4, ADR-03). En un
+  // contrato sin tope el saldo es lo usado, en negativo, y nunca se agota.
+  if (balanceAfter < 0 && !bag.isUncapped)
     throw new InsufficientBalanceError(bagId, bag.balanceMinutes, -minutes);
-  const status = resolveStatus(bag.status, balanceAfter, endAs);
+  const status = resolveStatus(bag, balanceAfter, endAs);
 
   const movement = await tx.hourMovement.create({
     data: {
@@ -90,15 +91,16 @@ export async function postHourMovement(
 }
 
 function resolveStatus(
-  current: BagStatus,
+  { status: current, isUncapped }: { status: BagStatus; isUncapped: boolean },
   balanceAfter: number,
   endAs: HourMovementInput["endAs"],
 ): BagStatus {
-  if (endAs && balanceAfter !== 0)
+  if (endAs && balanceAfter !== 0 && !isUncapped)
     throw new BagStateError(
       "Para cerrar o vencer una bolsa su saldo debe quedar en 0.",
     );
-  const status = endAs ?? nextBagStatus(current, balanceAfter);
+  const status =
+    endAs ?? (isUncapped ? current : nextBagStatus(current, balanceAfter));
   if (status !== current && !canTransitionBag(current, status))
     throw new BagStateError(`Transición inválida: ${current} → ${status}.`);
   return status;

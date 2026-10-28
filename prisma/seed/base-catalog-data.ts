@@ -27,9 +27,10 @@ export const AREAS = [
 ];
 
 export const UNITS = [
+  { code: "AÑOS", name: "Años", isHours: false, isTerm: true },
   { code: "GLOBAL", name: "Global", isHours: false },
   { code: "HORAS", name: "Horas", isHours: true },
-  { code: "MESES", name: "Meses", isHours: false },
+  { code: "MESES", name: "Meses", isHours: false, isTerm: true },
   { code: "METROS", name: "Metros", isHours: false },
   { code: "PIEZA", name: "Pieza", isHours: false },
   { code: "ROLLO", name: "Rollo", isHours: false },

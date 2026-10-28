@@ -1,8 +1,9 @@
 -- prisma/sql/hours.sql
--- Restricciones del esquema horas: saldo nunca negativo y libro mayor inmutable (AGENTS.md §2.4, ADR-03).
+-- Restricciones del esquema horas: saldo nunca negativo (salvo un contrato sin tope, donde es lo usado) y libro
+-- mayor inmutable (AGENTS.md §2.4, ADR-03).
 
 ALTER TABLE horas.bolsa
-  ADD CONSTRAINT bolsa_saldo_no_negativo_ck CHECK (saldo_minutos >= 0);
+  ADD CONSTRAINT bolsa_saldo_no_negativo_ck CHECK (saldo_minutos >= 0 OR sin_tope);
 
 ALTER TABLE horas.pendiente_sin_bolsa
   ADD CONSTRAINT pendiente_minutos_ck CHECK (minutos_dentro >= 0 AND minutos_fuera >= 0);

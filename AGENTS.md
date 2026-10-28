@@ -22,7 +22,7 @@
 10. Las Server Actions devuelven `ActionResult`; nunca lanzan al cliente.
 11. **Comentarios:** solo POR QUÉ, REGLA (con referencia a este archivo), TRAMPA o LIMITACIÓN. Cero narración, cero changelog. `TODO(nombre, #issue)` o nada.
 12. Un ingeniero **nunca** recibe costos ni márgenes en el navegador, ni en campos ocultos.
-13. Los casos canónicos (`tests/canon/`: PRECIO-01, HORAS-01, APROB-01) **no se editan** sin cambiar antes la sección 15 de este archivo.
+13. Los casos canónicos (`tests/canon/`: PRECIO-01, HORAS-01, APROB-01, VIGENCIA-01) **no se editan** sin cambiar antes la sección 15 de este archivo.
 14. Sin dependencias nuevas sin justificarlas en el PR. PRs < 400 líneas netas.
 15. **Si algo es ambiguo, pregunta antes de asumir.** Si asumes, decláralo al inicio de tu respuesta. Al terminar una tarea, lista supuestos y dudas abiertas.
 16. Las reglas marcadas **[CONFIRMAR]** están vigentes pero pendientes de validación por DIMA: impleméntalas aisladas (una función, un parámetro) para poder cambiarlas sin refactor.
@@ -201,6 +201,8 @@ Cada línea de horas de servicio de un CV aprobado genera una **bolsa**.
 
 **Libro mayor:** el saldo es la suma de movimientos inmutables `APERTURA`, `CONSUMO`, `REVERSO`, `AJUSTE`, `VENCIMIENTO`. Corregir = un movimiento nuevo. `balanceMinutes` es una caché actualizada en la misma transacción.
 
+**Contratos por vigencia** (soporte vendido en `MESES` o `AÑOS`, unidades con `es_plazo`; decisión 2026-10-28): el comercial marca «Soporte por vigencia» en una línea de `SERVICIO` en esa unidad, con modalidad, alcance y tope opcional en horas; la vigencia son las fechas de la línea (inicio y fin, obligatorias). Al aprobarse abre una bolsa `tipo = VIGENCIA` que los tickets usan como cualquier otra (jerarquía, prioridad 1, SLA de su modalidad, horas ponderadas y redondeadas). No recibe trabajo anterior a su inicio ni posterior a su fin. **Con tope**, el tope es su `APERTURA` para toda la vigencia: se agota, avisa al 80 % y al 100 % y lo que excede pasa a la siguiente bolsa. **Sin tope** (`sin_tope`) no hay `APERTURA`: cada cierre registra su `CONSUMO` y el saldo queda en negativo, que es lo usado; nunca se agota, no admite ajuste manual y al cerrar o vencer conserva su uso (`CHECK (saldo_minutos >= 0 OR sin_tope)`). Caso VIGENCIA-01 (§15.5).
+
 **Alertas:** al 80% y al 100% consumido · 30 días antes del vencimiento y el día del vencimiento · ticket abierto con horas proyectadas mayores al saldo. Destinatarios: vendedor del CV, gerentes de las áreas de la bolsa y encargados de tickets activos. Umbrales configurables.
 
 ### 2.5 Horario de oficina, feriados y multiplicador
@@ -351,7 +353,7 @@ Prisma 7: `prisma.config.ts` en la raíz (esquema multiarchivo en `prisma/schema
 | `core` | `area`, `ciudad`, `usuario_perfil`, `rol`, `usuario_rol`, `grupo_entra_rol`, `cliente`, `cliente_contacto`, `proveedor`, `tecnologia`, `unidad`, `tipo_servicio`, `producto`, `horario_oficina`, `horario_franja`, `feriado`, `parametro` |
 | `fx` | `tipo_cambio` (fecha de vigencia, compra, venta, fuente, obtenido_en) |
 | `cv` | `numerador`, `cv`, `version`, `version_vendedor` (vendedores N–N), `grupo`, `linea`, `linea_serial`, `leasing_linea`, `solicitud_aprobacion`, `adjunto` |
-| `horas` | `bolsa`, `bolsa_area`, `movimiento`, `pendiente_sin_bolsa` |
+| `horas` | `bolsa` (`tipo` `HORAS` o `VIGENCIA`, `vigente_desde`, `sin_tope`), `bolsa_area`, `movimiento`, `pendiente_sin_bolsa` |
 | `tickets` | `proyecto`, `proyecto_area`, `ticket`, `ticket_area`, `ticket_bolsa` (con `prioridad`), `subtarea`, `registro_tiempo`, `evento_contador`, `evento_estado` (historial inmutable de estados), `comentario`, `adjunto`, `sla_politica`, `sla_medicion` |
 | `inv` | `almacen`, `stock` (cantidad, reservado y valor: caché de los libros), `unidad_serial`, `movimiento`, `movimiento_linea` (valor y saldo tras la línea), `traspaso`, `traspaso_linea` (valor enviado), `solicitud_ajuste` (el AJUSTE se inserta en el libro solo al aprobarse), `reserva`, `reserva_movimiento` (libro inmutable de lo reservado) |
 | `notif` | `salida` (outbox), `bandeja`, `preferencia` |
@@ -513,7 +515,7 @@ dima-hub/
 │  ├─ generated/prisma/  # cliente Prisma generado (no versionado)
 │  └─ components/ui/     # shadcn
 ├─ templates/            # PA-PR-03-RE-01.xlsx
-├─ tests/canon/          # PRECIO-01, HORAS-01, APROB-01
+├─ tests/canon/          # PRECIO-01, HORAS-01, APROB-01, VIGENCIA-01
 ├─ deploy/               # compose, haproxy, patroni, pgbackrest
 ├─ docs/plan-maestro.html
 ├─ AGENTS.md
@@ -973,6 +975,15 @@ DIMANET vuelve a aprobar en la v2: cada versión tiene su ciclo completo. El umb
 | Cantidad | `NUMERIC(14,2)` | Hasta 2 decimales |
 | Tiempo | Minutos enteros | Fracción de minuto ponderado → hacia arriba; total del ticket → hacia arriba a múltiplo de 30 |
 | Horas de una bolsa | Minutos enteros | 20 horas = 1,200 minutos |
+
+### 15.5 VIGENCIA-01 — contrato por vigencia en la jerarquía
+El ticket de HORAS-01 (245 ponderados, 270 con el redondeo) con P1 = contrato por vigencia 8x5 y P2 = bolsa 8x5 de `041LP-26` con 600 min.
+
+| Contrato P1 | P1 | P2 | Por qué |
+|---|---|---|---|
+| Sin tope | −270 | — | Recibe todo; su saldo queda en −270 (lo usado) |
+| Tope 120 min | −120 (AGOTADA) | −150 | 120 llenan el tope; 125 ponderados pasan a P2, que también absorbe los 25 del redondeo (última bolsa usada) |
+| Sin tope, vigente desde el sábado 17/10 | −80 | −190 | El viernes (165) es anterior al inicio y va a P2; el sábado (80) al contrato; el redondeo, a P2 (la de mayor índice con uso) |
 
 <!-- BEGIN:nextjs-agent-rules -->
 

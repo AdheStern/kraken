@@ -9,7 +9,7 @@ import {
   allocateTicketHours,
 } from "./allocate-ticket-hours";
 import { applyRounding, roundUpToStep } from "./apply-rounding";
-import { toWorkDeadline } from "./expiry";
+import { toWorkDeadline, toWorkStart } from "./expiry";
 
 const lp = (local: string) => fromZonedTime(local, "America/La_Paz");
 const span = (from: string, to: string) => ({ start: lp(from), end: lp(to) });
@@ -85,6 +85,31 @@ describe("allocateTicketHours", () => {
       { bagId: "P1", minutes: 120, roundingMinutes: 0, isSettled: false },
       { bagId: "P2", minutes: 60, roundingMinutes: 0, isSettled: false },
     ]);
+  });
+
+  it("un contrato de prioridad 1 recibe el tramo desde su inicio, aunque empiece a mitad del tramo", () => {
+    const result = allocateTicketHours(
+      [span("2026-10-16T23:00", "2026-10-17T01:00")],
+      [
+        bag("P1", 1000, { acceptsWorkFrom: toWorkStart("2026-10-17") }),
+        bag("P2", 1000),
+      ],
+      LA_PAZ,
+    );
+    expect(result.consumptions).toEqual([
+      { bagId: "P1", minutes: 120, roundingMinutes: 0, isSettled: false },
+      { bagId: "P2", minutes: 120, roundingMinutes: 0, isSettled: false },
+    ]);
+  });
+
+  it("sin bolsa que acepte el trabajo antes del inicio, solo ese tramo va a pendiente", () => {
+    const result = allocateTicketHours(
+      [span("2026-10-16T23:00", "2026-10-17T01:00")],
+      [bag("P1", 1000, { acceptsWorkFrom: toWorkStart("2026-10-17") })],
+      LA_PAZ,
+    );
+    expect(result.pending).toEqual({ insideMinutes: 0, outsideMinutes: 60 });
+    expect(result.consumptions[0].minutes).toBe(120);
   });
 
   it("una bolsa firme recibe sus minutos pero el redondeo pasa a la siguiente", () => {

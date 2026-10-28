@@ -1,9 +1,11 @@
 // src/server/hours/expire-bags.ts
 // Job bags.expire: vence las bolsas cuya fecha pasó (VENCIMIENTO por el saldo) y avisa N días antes y el día
 // del vencimiento, una sola vez cada aviso (AGENTS.md §2.4 vencimiento y alertas, §7 jobs).
+
 import { toBusinessDate } from "@/domain/calendar/business-date";
 import type { Clock } from "@/domain/clock";
 import { isTerminalBagStatus } from "@/domain/hours/bag-state-machine";
+import { closingMinutes } from "@/domain/hours/closing-minutes";
 import {
   daysUntilExpiry,
   isBagExpired,
@@ -79,7 +81,7 @@ async function expireBag(
   await postHourMovement(tx, {
     bagId,
     kind: "VENCIMIENTO",
-    minutes: 0 - bag.balanceMinutes,
+    minutes: closingMinutes(bag),
     actorId: null,
     reason: `Vencida el ${expiresOn}`,
     endAs: "VENCIDA",
@@ -90,7 +92,7 @@ async function expireBag(
     userIds: audience.userIds,
     title: `${toCvVersionLabel(audience.cvCode, audience.versionNumber)}: bolsa vencida`,
     body:
-      bag.balanceMinutes > 0
+      !bag.isUncapped && bag.balanceMinutes > 0
         ? `«${audience.description}» de ${audience.customerName} venció con ${formatMinutes(bag.balanceMinutes)} sin usar.`
         : `«${audience.description}» de ${audience.customerName} venció.`,
     link: `/horas/${bagId}`,

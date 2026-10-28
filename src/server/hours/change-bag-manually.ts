@@ -1,6 +1,7 @@
 // src/server/hours/change-bag-manually.ts
 // Ajuste manual (± minutos) o cierre de una bolsa por un gerente, siempre con motivo, con su movimiento y
 // aviso en la transacción recibida (AGENTS.md §2.9 "Bolsas: ajuste manual", §8 ACTIVA → CERRADA manual).
+import { closingMinutes } from "@/domain/hours/closing-minutes";
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { formatMinutes } from "@/lib/format-minutes";
 import { canAdjustHourBag } from "@/server/authz/hour-bag-permissions";
@@ -33,8 +34,15 @@ export async function changeBagManually(
     );
   const reason = change.reason.trim();
   const bag = (await lockBags(tx, [change.bagId])).get(change.bagId);
+  if (!bag) return actionError("NOT_FOUND", "La bolsa ya no existe.");
+  // REGLA: un contrato sin tope no tiene saldo que ajustar; solo se cierra (§2.4).
+  if (change.kind === "AJUSTE" && bag.isUncapped)
+    return actionError(
+      "INVALID_STATE",
+      "Un contrato sin tope no tiene saldo que ajustar; solo se puede cerrar.",
+    );
   const minutes =
-    change.kind === "AJUSTE" ? change.minutes : 0 - (bag?.balanceMinutes ?? 0);
+    change.kind === "AJUSTE" ? change.minutes : closingMinutes(bag);
   const posted = await postHourMovement(tx, {
     bagId: change.bagId,
     kind: "AJUSTE",

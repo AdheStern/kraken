@@ -12,6 +12,10 @@ import { type BagModality, OUTSIDE_HOURS_MULTIPLIER } from "./weigh-minutes";
 
 const MINUTE_MS = 60_000;
 
+// POR QUÉ: un contrato por vigencia sin tope nunca se agota; se le da una capacidad que ningún ticket alcanza
+// (unos 19 años de minutos ponderados) en lugar de un caso aparte en la asignación (§2.4).
+export const UNCAPPED_MINUTES = 10_000_000;
+
 export type AllocationBag = {
   bagId: string;
   modality: BagModality;
@@ -19,6 +23,8 @@ export type AllocationBag = {
   availableMinutes: number;
   // REGLA: la bolsa no acepta trabajo realizado desde este instante (§2.4 vencimiento); null = sin vencimiento.
   acceptsWorkUntil: Date | null;
+  // REGLA: un contrato por vigencia no acepta trabajo anterior a su inicio (§2.4); ausente o null = sin inicio.
+  acceptsWorkFrom?: Date | null;
   // POR QUÉ: al reabrir, el consumo en una bolsa VENCIDA o CERRADA queda firme (decisión del 2026-10-19);
   // al volver a cerrar recibe sus minutos para no cobrarlos dos veces, pero no se descuenta ni absorbe redondeo.
   isSettled: boolean;
@@ -91,16 +97,22 @@ function allocateSegment(
   const to = segment.end.getTime();
   let from = segment.start.getTime();
   while (from < to) {
-    const cursor = cursors.find((c) => canReceive(c, segment.isInside, from));
-    if (!cursor) {
-      if (segment.isInside) pending.insideMs += to - from;
-      else pending.outsideMs += to - from;
-      return;
+    const index = cursors.findIndex((c) =>
+      canReceive(c, segment.isInside, from),
+    );
+    // POR QUÉ: un contrato de más prioridad que empieza dentro del tramo lo recibe desde su inicio.
+    const until = Math.min(to, nextStart(cursors, index, from));
+    if (index < 0) {
+      if (segment.isInside) pending.insideMs += until - from;
+      else pending.outsideMs += until - from;
+      from = until;
+      continue;
     }
+    const cursor = cursors[index];
     const multiplier = multiplierOf(cursor.bag, segment.isInside);
     const deadline = cursor.bag.acceptsWorkUntil?.getTime() ?? to;
     const takenMs = Math.min(
-      Math.min(to, deadline) - from,
+      Math.min(until, deadline) - from,
       Math.floor(cursor.capacityMs / multiplier),
     );
     cursor.capacityMs -= takenMs * multiplier;
@@ -111,10 +123,20 @@ function allocateSegment(
 
 function canReceive(cursor: BagCursor, isInside: boolean, at: number) {
   const deadline = cursor.bag.acceptsWorkUntil;
+  const start = cursor.bag.acceptsWorkFrom;
   return (
     cursor.capacityMs >= multiplierOf(cursor.bag, isInside) &&
-    (deadline === null || at < deadline.getTime())
+    (deadline === null || at < deadline.getTime()) &&
+    (!start || at >= start.getTime())
   );
+}
+
+function nextStart(cursors: BagCursor[], index: number, at: number): number {
+  const ahead = index < 0 ? cursors : cursors.slice(0, index);
+  return ahead.reduce((next, { bag }) => {
+    const start = bag.acceptsWorkFrom?.getTime();
+    return start !== undefined && start > at ? Math.min(next, start) : next;
+  }, Number.POSITIVE_INFINITY);
 }
 
 function multiplierOf(bag: AllocationBag, isInside: boolean): number {

@@ -46,6 +46,11 @@ const bagsArb = fc.uniqueArray(
         .integer({ min: 0, max: 14 * 1440 })
         .map((minute) => new Date(FROM + minute * MINUTE)),
     ),
+    acceptsWorkFrom: fc.option(
+      fc
+        .integer({ min: 0, max: 14 * 1440 })
+        .map((minute) => new Date(FROM + minute * MINUTE)),
+    ),
     isSettled: fc.boolean(),
   }),
   { maxLength: 4, selector: (bag) => bag.bagId },

@@ -1,6 +1,6 @@
 // tests/integration/hour-ledger.int.test.ts
 // Libro mayor de bolsas contra la base (AGENTS.md §2.4, ADR-03): saldo = suma del libro, estados,
-// concurrencia con FOR UPDATE, inmutabilidad y cierres.
+// concurrencia con FOR UPDATE, inmutabilidad, cierres y contratos por vigencia sin tope.
 import { afterAll, describe, expect, it } from "vitest";
 import {
   BagStateError,
@@ -161,5 +161,45 @@ describe("postHourMovement", () => {
     await expect(
       db.hourMovement.delete({ where: { id: movement.id } }),
     ).rejects.toThrow(/inmutable/);
+  });
+});
+
+describe("contrato por vigencia sin tope", () => {
+  it("cada consumo baja el saldo bajo 0 (es lo usado), sigue ACTIVA y se cierra conservando el uso", async () => {
+    const f = await createHourBagFixture(db);
+    await db.hourBag.update({
+      where: { id: f.bag.id },
+      data: { kind: "VIGENCIA", isUncapped: true },
+    });
+    const consume = (minutes: number) =>
+      post({ bagId: f.bag.id, kind: "CONSUMO", minutes, actorId: f.userId });
+    await consume(-270);
+    await consume(-30);
+    expect(await snapshot(f.bag.id)).toEqual({
+      balance: -300,
+      status: "ACTIVA",
+      ledger: -300,
+    });
+    await post({
+      bagId: f.bag.id,
+      kind: "AJUSTE",
+      minutes: 0,
+      actorId: f.userId,
+      endAs: "CERRADA",
+    });
+    expect(await snapshot(f.bag.id)).toMatchObject({
+      balance: -300,
+      status: "CERRADA",
+    });
+  });
+
+  it("el CHECK de la base rechaza un saldo negativo en una bolsa con tope", async () => {
+    const f = await createHourBagFixture(db);
+    await expect(
+      db.hourBag.update({
+        where: { id: f.bag.id },
+        data: { balanceMinutes: -1 },
+      }),
+    ).rejects.toThrow(/bolsa_saldo_no_negativo_ck/);
   });
 });

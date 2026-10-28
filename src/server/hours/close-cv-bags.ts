@@ -1,6 +1,7 @@
 // src/server/hours/close-cv-bags.ts
 // Cierra las bolsas vigentes de un CV anulado con un AJUSTE por su saldo (AGENTS.md §8: anular sin consumos).
 import { isTerminalBagStatus } from "@/domain/hours/bag-state-machine";
+import { closingMinutes } from "@/domain/hours/closing-minutes";
 import type { Tx } from "@/server/db";
 import { lockBags } from "./lock-bags";
 import { postHourMovement } from "./post-hour-movement";
@@ -17,7 +18,7 @@ export async function closeCvBags(
     await postHourMovement(tx, {
       bagId,
       kind: "AJUSTE",
-      minutes: 0 - bag.balanceMinutes,
+      minutes: closingMinutes(bag),
       actorId,
       reason,
       endAs: "CERRADA",

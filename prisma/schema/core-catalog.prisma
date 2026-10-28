@@ -88,6 +88,8 @@ model Unit {
   code     String  @unique @map("codigo")
   name     String  @map("nombre")
   isHours  Boolean @default(false) @map("es_horas")
+  // POR QUÉ: meses o años; una línea de SERVICIO en esta unidad puede ser un contrato por vigencia (§2.4).
+  isTerm   Boolean @default(false) @map("es_plazo")
   isActive Boolean @default(true) @map("activo")
 
   products Product[]

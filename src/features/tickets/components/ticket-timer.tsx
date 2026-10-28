@@ -1,10 +1,11 @@
 // src/features/tickets/components/ticket-timer.tsx
-// Contador grande del detalle para el tiempo en el ticket mismo (las subtareas tienen el suyo): el propio con sus
-// botones y los de otras personas en curso; en el móvil queda fijo abajo (AGENTS.md §5 "Contador grande", §8).
+// Contador grande del detalle para el tiempo en el ticket mismo (las subtareas tienen el suyo): muestra el que
+// corre, sea propio o de otra persona, y los botones del propio; en el móvil queda fijo abajo (AGENTS.md §5, §8).
 "use client";
 
 import type { TicketTime } from "../types";
 import { RunningTimers } from "./running-timers";
+import { splitTimers, timerCaption } from "./split-timers";
 import { TimerButtons } from "./timer-buttons";
 import { TimerClock } from "./timer-clock";
 
@@ -12,10 +13,9 @@ type Props = { ticketId: string; time: TicketTime };
 
 export function TicketTimer({ ticketId, time }: Props) {
   const onTicket = time.timers.filter((t) => t.subtaskId === null);
-  const mine = onTicket.find((t) => t.person.id === time.viewerId);
-  const others = onTicket.filter((t) => t.person.id !== time.viewerId);
+  const { mine, shown, rest } = splitTimers(onTicket, time.viewerId);
   const canLog = time.targets.some((t) => t.id === null);
-  if (!mine && !canLog && others.length === 0) return null;
+  if (!shown && !canLog) return null;
 
   return (
     <section
@@ -25,27 +25,27 @@ export function TicketTimer({ ticketId, time }: Props) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <TimerClock
-            closedMs={mine?.closedMs ?? 0}
-            runningSince={mine?.runningSince ?? null}
+            closedMs={shown?.closedMs ?? 0}
+            runningSince={shown?.runningSince ?? null}
             className="block text-4xl"
           />
           <p
             className="truncate text-xs text-muted-foreground"
             aria-live="polite"
           >
-            {mine
-              ? `${mine.status === "CORRIENDO" ? "Corriendo" : "En pausa"} · en el ticket`
-              : "Tu contador en el ticket. La hora la pone el servidor; cerrar la pestaña no pierde tiempo."}
+            {timerCaption(shown, time.viewerId) ??
+              "Sin contador en el ticket. La hora la pone el servidor; cerrar la pestaña no pierde tiempo."}
           </p>
         </div>
         {(mine || canLog) && (
           <TimerButtons
             timer={mine}
             target={canLog ? { ticketId, subtaskId: null } : undefined}
+            startLabel={shown ? "Iniciar el mío" : "Iniciar"}
           />
         )}
       </div>
-      <RunningTimers timers={others} />
+      <RunningTimers timers={rest} />
     </section>
   );
 }

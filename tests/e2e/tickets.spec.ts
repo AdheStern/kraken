@@ -87,10 +87,12 @@ test("la ingeniera usa el contador y lo resuelve", async ({ browser }) => {
   const coordinator = await as(browser, "coordinador");
   await coordinator.goto(ticketUrl);
   await expect(
-    coordinator.getByRole("list", { name: "Contadores en curso" }),
+    coordinator
+      .getByRole("region", { name: "Contador" })
+      .getByText(/^Corriendo · Elena/),
   ).toBeVisible();
   await timer.getByRole("button", { name: "Terminar" }).click();
-  await expect(timer.getByText(/^Tu contador en el ticket/)).toBeVisible();
+  await expect(timer.getByText(/^Sin contador en el ticket/)).toBeVisible();
   await page.getByRole("button", { name: "Marcar resuelto" }).click();
   await expect(
     page.locator('[data-slot="badge"]', { hasText: /^Resuelto$/ }),

@@ -1,12 +1,13 @@
 // src/features/tickets/components/subtask-row.tsx
-// Fila de una subtarea: título, asignado, su propio contador (el del usuario, con botones, y los de otros en
-// curso) y su estado (AGENTS.md §2.6 subtareas y registro de tiempo).
+// Fila de una subtarea: título, asignado, su contador siempre visible (el que corre, propio o de otra persona),
+// el botón para iniciar el propio y su estado (AGENTS.md §2.6 subtareas y registro de tiempo).
 "use client";
 
 import type { ReactNode } from "react";
 import { PersonAvatar } from "@/components/app-shell/person-avatar";
 import type { SubtaskView, TimerView } from "../types";
 import { RunningTimers } from "./running-timers";
+import { splitTimers, timerCaption } from "./split-timers";
 import { TimerButtons } from "./timer-buttons";
 import { TimerClock } from "./timer-clock";
 
@@ -27,8 +28,7 @@ export function SubtaskRow({
   canLog,
   status,
 }: Props) {
-  const mine = timers.find((t) => t.person.id === viewerId);
-  const others = timers.filter((t) => t.person.id !== viewerId);
+  const { mine, shown, rest } = splitTimers(timers, viewerId);
   return (
     <li className="flex flex-col gap-2 px-4 py-3">
       <div className="flex flex-wrap items-center gap-3">
@@ -45,29 +45,27 @@ export function SubtaskRow({
           )}
           {subtask.assignee?.name ?? "Sin asignar"}
         </span>
+        <span className="flex flex-col items-end leading-tight">
+          <TimerClock
+            closedMs={shown?.closedMs ?? 0}
+            runningSince={shown?.runningSince ?? null}
+            className="text-base"
+          />
+          <span className="text-[11px] text-muted-foreground">
+            {timerCaption(shown, viewerId) ?? "Sin contador"}
+          </span>
+        </span>
+        {(mine || canLog) && (
+          <TimerButtons
+            size="sm"
+            timer={mine}
+            target={canLog ? { ticketId, subtaskId: subtask.id } : undefined}
+            startLabel={shown ? "Iniciar el mío" : "Iniciar subtarea"}
+          />
+        )}
         {status}
       </div>
-      {(mine || canLog || others.length > 0) && (
-        <div className="flex flex-wrap items-center gap-3">
-          {(mine || canLog) && (
-            <>
-              <TimerClock
-                closedMs={mine?.closedMs ?? 0}
-                runningSince={mine?.runningSince ?? null}
-                className="text-sm"
-              />
-              <TimerButtons
-                size="sm"
-                timer={mine}
-                target={
-                  canLog ? { ticketId, subtaskId: subtask.id } : undefined
-                }
-              />
-            </>
-          )}
-          <RunningTimers timers={others} />
-        </div>
-      )}
+      <RunningTimers timers={rest} />
     </li>
   );
 }

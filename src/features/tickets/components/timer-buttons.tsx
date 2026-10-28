@@ -17,9 +17,15 @@ type Props = {
   // POR QUÉ: sin target (no puede registrar ahí) no se ofrece Iniciar.
   target?: { ticketId: string; subtaskId: string | null };
   size?: "sm" | "lg";
+  startLabel?: string;
 };
 
-export function TimerButtons({ timer, target, size = "lg" }: Props) {
+export function TimerButtons({
+  timer,
+  target,
+  size = "lg",
+  startLabel = "Iniciar",
+}: Props) {
   const { run, isPending, error } = useTicketAction();
   const icon = (Icon: typeof Play) =>
     isPending ? (
@@ -36,7 +42,7 @@ export function TimerButtons({ timer, target, size = "lg" }: Props) {
           onClick={() => run(() => startTimer(target))}
         >
           {icon(Play)}
-          Iniciar
+          {startLabel}
         </Button>
       )}
       {timer?.status === "CORRIENDO" && (

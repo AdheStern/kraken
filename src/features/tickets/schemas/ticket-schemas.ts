@@ -10,6 +10,7 @@ export const createTicketSchema = z.object({
   cityId: z.uuid("Elige la ciudad."),
   areaIds: z.array(z.uuid()).min(1, "Elige al menos un área."),
   projectId: z.uuid().nullable(),
+  bagId: z.uuid().nullable(),
   priority: z.enum(["BAJA", "MEDIA", "ALTA", "CRITICA"]),
   slaModality: z.enum(["H8X5", "H24X7"]),
   title: z

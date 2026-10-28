@@ -1,6 +1,6 @@
 // tests/integration/ticket-workflow.int.test.ts
-// Ciclo de un ticket contra la base (AGENTS.md §2.6, §2.7, §8): alta con encargado, permisos, transiciones con
-// su historial inmutable, primera respuesta y resolución.
+// Ciclo de un ticket contra la base (AGENTS.md §2.6, §2.7, §8): alta con encargado y bolsa inicial, permisos,
+// transiciones con su historial inmutable, primera respuesta y resolución.
 import { afterAll, describe, expect, it } from "vitest";
 import type { Tx } from "@/server/db";
 import { addTicketComment } from "@/server/tickets/add-ticket-comment";
@@ -11,7 +11,7 @@ import {
   type NewTicket,
 } from "@/server/tickets/create-ticket-record";
 import {
-  createCvFixture,
+  createHourBagFixture,
   createTestPrisma,
   createUserWithRoles,
 } from "./test-db";
@@ -24,7 +24,7 @@ const at = (minutes: number) => new Date(T0.getTime() + minutes * 60_000);
 const run = <T>(work: (tx: Tx) => Promise<T>) => db.$transaction(work);
 
 async function setup() {
-  const f = await createCvFixture(db);
+  const f = await createHourBagFixture(db);
   const coordinator = await createUserWithRoles(db, "Coordinadora", [
     { code: "COORDINADOR_SOPORTE", areaId: f.area.id },
   ]);
@@ -40,6 +40,7 @@ async function setup() {
     cityId: f.city.id,
     areaIds: [f.area.id],
     projectId: null,
+    bagId: null,
     priority: "ALTA",
     slaModality: "H8X5",
     title: "Switch core caído",
@@ -88,6 +89,48 @@ describe("ciclo del ticket", () => {
       ),
     );
     expect(wrongOwner.ok ? "OK" : wrongOwner.error.code).toBe("VALIDATION");
+  });
+
+  it("con bolsa inicial: nace con ella como prioridad 1 y el SLA toma su modalidad", async () => {
+    const { f, coordinator, input } = await setup();
+    await db.hourBag.update({
+      where: { id: f.bag.id },
+      data: { modality: "H24X7" },
+    });
+    const result = await run((tx) =>
+      createTicketRecord(
+        tx,
+        coordinator,
+        { ...input, bagId: f.bag.id, slaModality: "H8X5" },
+        T0,
+      ),
+    );
+    if (!result.ok) throw new Error(result.error.message);
+    const ticket = await db.ticket.findUniqueOrThrow({
+      where: { id: result.data.ticketId },
+      include: { bags: true },
+    });
+    expect(ticket.slaModality).toBe("H24X7");
+    expect(ticket.bags.map((b) => [b.bagId, b.priority])).toEqual([
+      [f.bag.id, 1],
+    ]);
+  });
+
+  it("rechaza una bolsa de otro cliente sin crear el ticket", async () => {
+    const { f, coordinator, input } = await setup();
+    const other = await createHourBagFixture(db);
+    const result = await run((tx) =>
+      createTicketRecord(
+        tx,
+        coordinator,
+        { ...input, bagId: other.bag.id },
+        T0,
+      ),
+    );
+    expect(result.ok ? "OK" : result.error.code).toBe("VALIDATION");
+    expect(
+      await db.ticket.count({ where: { customerId: f.customer.id } }),
+    ).toBe(0);
   });
 
   it("el encargado lo trabaja hasta RESUELTO con su historial; el comercial no lo mueve", async () => {

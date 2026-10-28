@@ -1,6 +1,7 @@
 // src/features/tickets/components/new-ticket-fields.tsx
-// Campos del alta de ticket: cliente, ciudad, áreas, proyecto, prioridad, modalidad del SLA, título,
-// descripción y encargado. Los proyectos se filtran por cliente y los ingenieros por área.
+// Campos del alta de ticket: cliente, ciudad, áreas, proyecto, bolsa, SLA, prioridad, título, descripción y
+// encargado. Proyectos, bolsas e ingenieros se filtran por cliente y áreas; al cambiarlos se sueltan los que ya no
+// valen.
 "use client";
 
 import { Controller, type UseFormReturn, useWatch } from "react-hook-form";
@@ -15,13 +16,16 @@ import type {
   TicketOption,
 } from "../queries/get-ticket-form-options";
 import type { CreateTicketInput } from "../schemas/ticket-schemas";
-import { MODALITY_LABELS, PRIORITY_LABELS } from "../ticket-labels";
+import { PRIORITY_LABELS } from "../ticket-labels";
+import { NewTicketBagFields } from "./new-ticket-bag-fields";
+import { staleTicketChoices, ticketChoices } from "./new-ticket-choices";
 
 // POR QUÉ: cliente y ciudad vacíos son "" para que zod muestre su mensaje; proyecto y encargado son opcionales.
 const REQUIRED = new Set(["customerId", "cityId"]);
-
-const toOptions = (labels: Record<string, string>) =>
-  Object.entries(labels).map(([id, label]) => ({ id, label }));
+const PRIORITIES = Object.entries(PRIORITY_LABELS).map(([id, label]) => ({
+  id,
+  label,
+}));
 
 type Props = {
   form: UseFormReturn<CreateTicketInput>;
@@ -31,14 +35,21 @@ type Props = {
 export function NewTicketFields({ form, options }: Props) {
   const { errors } = form.formState;
   // TRAMPA: con el React Compiler, form.watch() no vuelve a renderizar; useWatch sí.
-  const [customerId, areaIds] = useWatch({
+  const [customerId, areaIds, projectId, ownerId, bagId] = useWatch({
     control: form.control,
-    name: ["customerId", "areaIds"],
+    name: ["customerId", "areaIds", "projectId", "ownerId", "bagId"],
   });
-  const projects = options.projects.filter((p) => p.customerId === customerId);
-  const engineers = options.engineers.filter(
-    (e) => e.areaIds === null || e.areaIds.some((a) => areaIds.includes(a)),
-  );
+  const choices = ticketChoices(options, {
+    customerId,
+    areaIds,
+    projectId,
+    ownerId,
+    bagId,
+  });
+  const dropStale = () => {
+    for (const name of staleTicketChoices(options, form.getValues()))
+      form.setValue(name, null);
+  };
   const combo = (
     name: "customerId" | "cityId" | "projectId" | "ownerId",
     list: TicketOption[],
@@ -52,9 +63,10 @@ export function NewTicketFields({ form, options }: Props) {
           id={`new-ticket-${name}`}
           options={list}
           value={field.value || null}
-          onChange={(id) =>
-            field.onChange(id ?? (REQUIRED.has(name) ? "" : null))
-          }
+          onChange={(id) => {
+            field.onChange(id ?? (REQUIRED.has(name) ? "" : null));
+            dropStale();
+          }}
           invalid={!!errors[name]}
           placeholder={placeholder}
         />
@@ -91,7 +103,10 @@ export function NewTicketFields({ form, options }: Props) {
               id="new-ticket-areas"
               options={options.areas}
               value={field.value}
-              onChange={field.onChange}
+              onChange={(ids) => {
+                field.onChange(ids);
+                dropStale();
+              }}
               invalid={!!errors.areaIds}
               placeholder="DIMANET, DIMAHELP…"
             />
@@ -105,10 +120,11 @@ export function NewTicketFields({ form, options }: Props) {
       >
         {combo(
           "projectId",
-          projects,
+          choices.projects,
           customerId ? "Sin proyecto" : "Elige primero el cliente",
         )}
       </FormField>
+      <NewTicketBagFields form={form} bags={choices.bags} />
       <FormField label="Prioridad" htmlFor="new-ticket-priority">
         <Controller
           control={form.control}
@@ -117,21 +133,7 @@ export function NewTicketFields({ form, options }: Props) {
             <OptionSelect
               id="new-ticket-priority"
               value={field.value}
-              options={toOptions(PRIORITY_LABELS)}
-              onValueChange={(v) => v && field.onChange(v)}
-            />
-          )}
-        />
-      </FormField>
-      <FormField label="Modalidad del SLA" htmlFor="new-ticket-sla">
-        <Controller
-          control={form.control}
-          name="slaModality"
-          render={({ field }) => (
-            <OptionSelect
-              id="new-ticket-sla"
-              value={field.value}
-              options={toOptions(MODALITY_LABELS)}
+              options={PRIORITIES}
               onValueChange={(v) => v && field.onChange(v)}
             />
           )}
@@ -170,7 +172,7 @@ export function NewTicketFields({ form, options }: Props) {
       >
         {combo(
           "ownerId",
-          engineers,
+          choices.engineers,
           areaIds.length ? "Asignar después" : "Elige primero las áreas",
         )}
       </FormField>

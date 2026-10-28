@@ -281,6 +281,8 @@ function useComboboxAnchor() {
   return React.useRef<HTMLDivElement | null>(null);
 }
 
+const useComboboxFilter = ComboboxPrimitive.useFilter;
+
 export {
   Combobox,
   ComboboxInput,
@@ -298,4 +300,5 @@ export {
   ComboboxTrigger,
   ComboboxValue,
   useComboboxAnchor,
+  useComboboxFilter,
 };

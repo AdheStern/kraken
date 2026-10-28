@@ -48,6 +48,13 @@ test("el coordinador crea el ticket con encargado y le suma una bolsa", async ({
     page.getByRole("heading", { level: 1, name: TITLE }),
   ).toBeVisible();
 
+  // TRAMPA: con Cache Components la página anterior se conserva al volver; el siguiente alta empieza en blanco.
+  await page.goBack();
+  await page.getByRole("button", { name: "Nuevo ticket" }).click();
+  await expect(page.locator("#new-ticket-title")).toHaveValue("");
+  await expect(page.locator("#new-ticket-customerId")).toHaveValue("");
+  await page.keyboard.press("Escape");
+
   await page.goto("/tickets");
   const card = page.locator("li", { hasText: TITLE });
   await card.getByRole("button", { name: /Cambiar el estado/ }).click();

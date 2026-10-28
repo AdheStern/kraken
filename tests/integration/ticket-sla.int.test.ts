@@ -55,6 +55,7 @@ async function newTicket() {
         cityId: f.city.id,
         areaIds: [f.area.id],
         projectId: null,
+        bagId: null,
         priority: "ALTA",
         slaModality: "H24X7",
         title: "Caída del enlace",

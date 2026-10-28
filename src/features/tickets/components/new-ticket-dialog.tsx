@@ -1,11 +1,11 @@
 // src/features/tickets/components/new-ticket-dialog.tsx
-// Diálogo para crear un ticket; al crearlo abre su detalle (AGENTS.md §2.6, §5).
+// Diálogo para crear un ticket; al crearlo abre su detalle y el siguiente alta empieza en blanco (AGENTS.md §2.6, §5).
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +31,7 @@ const DEFAULTS: CreateTicketInput = {
   cityId: "",
   areaIds: [],
   projectId: null,
+  bagId: null,
   priority: "MEDIA",
   slaModality: "H8X5",
   title: "",
@@ -40,22 +41,28 @@ const DEFAULTS: CreateTicketInput = {
 
 export function NewTicketDialog({ options }: { options: TicketFormOptions }) {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const form = useForm<CreateTicketInput>({
     resolver: zodResolver(createTicketSchema),
     defaultValues: DEFAULTS,
   });
   const { isSubmitting } = form.formState;
+  // TRAMPA: con Cache Components la página no se desmonta al navegar (<Activity>); sin esto, al volver el
+  // diálogo sigue abierto. El borrador se conserva hasta que se crea el ticket.
+  useLayoutEffect(() => () => setOpen(false), []);
 
   async function onSubmit(values: CreateTicketInput) {
     setServerError(null);
     const result = await createTicket(values);
     if (!result.ok) return setServerError(result.error.message);
+    form.reset(DEFAULTS);
+    setOpen(false);
     router.push(`/tickets/${result.data.ticketId}`);
   }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button />}>
         <Plus aria-hidden="true" />
         Nuevo ticket
@@ -65,7 +72,7 @@ export function NewTicketDialog({ options }: { options: TicketFormOptions }) {
           <DialogTitle>Nuevo ticket</DialogTitle>
           <DialogDescription>
             El horario y los feriados que ponderan sus horas son los de la
-            ciudad del ticket. Las bolsas se ordenan después, en el detalle.
+            ciudad del ticket. Si eliges una bolsa, el SLA toma su modalidad.
           </DialogDescription>
         </DialogHeader>
         <form

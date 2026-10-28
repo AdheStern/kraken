@@ -11,6 +11,7 @@ export const SUPPORT_COORDINATOR_MANUAL: Manual = {
       heading: "Crear y asignar",
       steps: [
         "Tickets → Nuevo ticket: cliente, ciudad, área, prioridad y descripción. Un ticket es de soporte o de un proyecto.",
+        "Si ya sabes qué bolsa paga el ticket, elígela al crearlo: queda como prioridad 1 y el SLA toma su modalidad (8x5 o 24x7).",
         "Asignar encargado: un solo ingeniero; él crea las subtareas y las reparte.",
         "Los proyectos (nombre, cliente, áreas y fechas) se crean en Tickets → Proyectos.",
       ],
@@ -19,7 +20,7 @@ export const SUPPORT_COORDINATOR_MANUAL: Manual = {
     {
       heading: "Bolsas del ticket",
       steps: [
-        "En la pestaña Bolsas eliges qué bolsas del cliente paga el ticket y en qué orden: se llena la primera y luego la siguiente.",
+        "En la pestaña Bolsas sumas o cambias las bolsas del cliente que paga el ticket y su orden: se llena la primera y luego la siguiente.",
         "Solo aparecen bolsas activas del mismo cliente cuyo alcance incluye el área o el proyecto del ticket.",
         "El consumo proyectado te avisa antes del cierre si el saldo no alcanzará.",
       ],

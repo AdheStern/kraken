@@ -1,5 +1,5 @@
 // src/components/forms/catalog-combobox.tsx
-// Selector con búsqueda sobre un catálogo ({ id, label, hint }); devuelve el id elegido o null.
+// Selector con búsqueda sobre un catálogo ({ id, label, hint }) por etiqueta o ayuda; devuelve el id elegido o null.
 "use client";
 
 import {
@@ -9,6 +9,7 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
+  useComboboxFilter,
 } from "@/components/ui/combobox";
 
 export type CatalogOption = { id: string; label: string; hint?: string };
@@ -23,6 +24,15 @@ type Props = {
   invalid?: boolean;
 };
 
+// POR QUÉ: también se busca por el texto de ayuda (NIT, código de ciudad, nombre del área), que los
+// placeholders ofrecen ("Nombre o NIT", "LP, SC o CB").
+export function useCatalogFilter() {
+  const { contains } = useComboboxFilter();
+  return (option: CatalogOption, query: string) =>
+    contains(option.label, query) ||
+    (option.hint !== undefined && contains(option.hint, query));
+}
+
 export function CatalogCombobox({
   id,
   options,
@@ -33,10 +43,12 @@ export function CatalogCombobox({
   invalid,
 }: Props) {
   const selected = options.find((option) => option.id === value) ?? null;
+  const filter = useCatalogFilter();
 
   return (
     <Combobox
       items={options}
+      filter={filter}
       value={selected}
       onValueChange={(option) => onChange(option?.id ?? null)}
       itemToStringLabel={(option) => option.label}

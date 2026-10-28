@@ -14,7 +14,7 @@ import {
   ComboboxValue,
   useComboboxAnchor,
 } from "@/components/ui/combobox";
-import type { CatalogOption } from "./catalog-combobox";
+import { type CatalogOption, useCatalogFilter } from "./catalog-combobox";
 
 type Props = {
   id?: string;
@@ -37,11 +37,13 @@ export function CatalogMultiCombobox({
 }: Props) {
   const anchor = useComboboxAnchor();
   const selected = options.filter((option) => value.includes(option.id));
+  const filter = useCatalogFilter();
 
   return (
     <Combobox
       multiple
       items={options}
+      filter={filter}
       value={selected}
       onValueChange={(chosen) => onChange(chosen.map((option) => option.id))}
       itemToStringLabel={(option) => option.label}

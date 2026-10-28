@@ -54,6 +54,7 @@ export async function seedDevTickets(tx: Tx, now: Date): Promise<number> {
     customerId: customer.id,
     cityId: city.id,
     projectId: null,
+    bagId: null,
     kind: "SOPORTE" as const,
   };
 

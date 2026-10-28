@@ -63,7 +63,7 @@ export function NewProjectDialog({ options }: Props) {
         <Plus aria-hidden="true" />
         Nuevo proyecto
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Nuevo proyecto</DialogTitle>
           <DialogDescription>
@@ -112,6 +112,7 @@ export function NewProjectDialog({ options }: Props) {
             label="Áreas"
             htmlFor="new-project-areas"
             error={errors.areaIds?.message}
+            className="sm:col-span-2"
           >
             <Controller
               control={form.control}

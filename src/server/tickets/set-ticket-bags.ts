@@ -1,6 +1,6 @@
 // src/server/tickets/set-ticket-bags.ts
-// Define la jerarquía ordenada de bolsas de un ticket (prioridad 1, 2, 3…) que llena el cierre
-// (AGENTS.md §2.6 estructura y paso 2).
+// Define la jerarquía ordenada de bolsas de un ticket (prioridad 1, 2, 3…) que llena el cierre; el SLA toma la
+// modalidad de la prioridad 1 (AGENTS.md §2.6 estructura y paso 2, §2.7).
 import { bagIneligibility } from "@/domain/tickets/bag-eligibility";
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import type { SessionUser } from "@/server/authz/roles";
@@ -38,6 +38,7 @@ export async function setTicketBagsRecord(
   });
   if (issue) return actionError("VALIDATION", issue);
   await reorder(tx, ticketId, bagIds);
+  if (bagIds.length > 0) await syncSlaModality(tx, ticketId, bagIds[0]);
   return actionOk({ bagIds });
 }
 
@@ -70,6 +71,18 @@ async function checkBags(
     if (reason) return reason;
   }
   return null;
+}
+
+// REGLA: el SLA corre con la modalidad que se vendió en la bolsa de prioridad 1 (§2.7); sin bolsas, conserva la última.
+async function syncSlaModality(tx: Tx, ticketId: string, bagId: string) {
+  const bag = await tx.hourBag.findUniqueOrThrow({
+    where: { id: bagId },
+    select: { modality: true },
+  });
+  await tx.ticket.update({
+    where: { id: ticketId },
+    data: { slaModality: bag.modality },
+  });
 }
 
 // POR QUÉ: se actualizan las filas que quedan en lugar de borrarlas para conservar su marca de aviso.

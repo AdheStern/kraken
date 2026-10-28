@@ -48,38 +48,36 @@ export function HourBagFields({
 
   return (
     <div className="grid gap-3">
-      <div className="grid grid-cols-2 gap-3">
-        <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">
-          Modalidad
-          <OptionSelect
-            aria-label="Modalidad"
-            value={spec.modality}
-            disabled={disabled}
-            options={MODALITY_OPTIONS}
-            onValueChange={(modality) =>
-              modality &&
-              update({ modality: modality as HourBagSpec["modality"] })
-            }
-          />
-        </Label>
-        <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">
-          Alcance
-          <OptionSelect
-            aria-label="Alcance"
-            value={spec.scope}
-            disabled={disabled}
-            options={SCOPE_OPTIONS}
-            onValueChange={(scope) =>
-              scope &&
-              update({
-                scope: scope as HourBagSpec["scope"],
-                areaIds: [],
-                projectId: null,
-              })
-            }
-          />
-        </Label>
-      </div>
+      <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">
+        Modalidad
+        <OptionSelect
+          aria-label="Modalidad"
+          value={spec.modality}
+          disabled={disabled}
+          options={MODALITY_OPTIONS}
+          onValueChange={(modality) =>
+            modality &&
+            update({ modality: modality as HourBagSpec["modality"] })
+          }
+        />
+      </Label>
+      <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">
+        Alcance
+        <OptionSelect
+          aria-label="Alcance"
+          value={spec.scope}
+          disabled={disabled}
+          options={SCOPE_OPTIONS}
+          onValueChange={(scope) =>
+            scope &&
+            update({
+              scope: scope as HourBagSpec["scope"],
+              areaIds: [],
+              projectId: null,
+            })
+          }
+        />
+      </Label>
       {spec.scope === "AREA" && (
         <fieldset className="grid gap-1.5">
           <legend className="mb-1 text-[13px] text-muted-foreground">

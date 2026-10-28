@@ -240,7 +240,7 @@ Con el ticket abierto, la interfaz muestra el **consumo proyectado** con el mism
 
 ### 2.7 SLA
 - Catálogo de SLA por modalidad y prioridad (`/admin/sla`): tiempo de primera respuesta y de resolución. Valores confirmados por DIMA, iguales en 8x5 y 24x7: crítica 30 min / 4 h, alta 1 h / 8 h, media 4 h / 24 h, baja 8 h / 40 h. Sin política activa no se mide.
-- 8x5: el reloj corre solo en horario de oficina. 24x7: corre siempre. La modalidad se elige al crear el ticket o, si se crea con bolsa, es la de la bolsa; cambiar después la jerarquía no la cambia. **[CONFIRMAR]**
+- 8x5: el reloj corre solo en horario de oficina. 24x7: corre siempre. La modalidad se elige al crear el ticket; con bolsas, es la de la bolsa de prioridad 1 y se actualiza al cambiar la jerarquía (confirmado por DIMA, 2026-10-28).
 - Corre en `NUEVO`, `ASIGNADO` y `EN_PROGRESO`; se pausa en `EN_ESPERA_CLIENTE` y no corre con el ticket resuelto, cerrado o cancelado. Se recalcula siempre desde `tickets.evento_estado` (`computeSla`, pura); `sla_medicion` es su caché.
 - Primera respuesta = primer paso a `EN_PROGRESO` o primer comentario público del encargado. Resolución = último paso a `RESUELTO`; si el cliente no está conforme, el reloj se reanuda desde lo acumulado. Resolver sin pasar por `EN_PROGRESO` también cumple la primera respuesta.
 - Cumplimiento reportado por cliente, área, ingeniero y periodo. Alerta al encargado y a los coordinadores del área al 75% del SLA (parámetro `sla.alerta_pct`), una sola vez por medición.

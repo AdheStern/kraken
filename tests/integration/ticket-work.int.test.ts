@@ -92,7 +92,7 @@ describe("subtareas", () => {
 });
 
 describe("jerarquía de bolsas", () => {
-  it("reordena conservando la marca de aviso y rechaza una bolsa de otro cliente", async () => {
+  it("reordena conservando la marca de aviso, el SLA sigue a la prioridad 1 y rechaza una bolsa de otro cliente", async () => {
     const f = await createTicketFixture(db, [
       { modality: "H8X5", minutes: 60 },
       { modality: "H24X7", minutes: 60 },
@@ -117,6 +117,10 @@ describe("jerarquía de bolsas", () => {
       [b1.id, 2],
     ]);
     expect(rows[1].projectionWarnedAt).toEqual(NOW);
+    const ticket = await db.ticket.findUniqueOrThrow({
+      where: { id: f.ticket.id },
+    });
+    expect(ticket.slaModality).toBe("H24X7");
 
     const foreign = await createTicketFixture(db, [
       { modality: "H8X5", minutes: 60 },

@@ -1,0 +1,37 @@
+// prisma/schema/tickets-requests.prisma
+// Solicitudes de ticket: cualquier usuario con rol pide uno a un área y su coordinador lo crea o la descarta
+// (AGENTS.md §2.6 «Solicitudes de ticket»).
+
+enum TicketRequestStatus {
+  PENDIENTE
+  ATENDIDA
+  DESCARTADA
+
+  @@schema("tickets")
+}
+
+// POR QUÉ: atendida, el solicitante sigue el estado del ticket enlazado; la solicitud no copia ese estado.
+model TicketRequest {
+  id            String              @id @default(uuid(7)) @db.Uuid
+  number        Int                 @unique @default(autoincrement()) @map("numero")
+  requesterId   String              @map("solicitante_id")
+  areaId        String              @map("area_id") @db.Uuid
+  title         String              @map("titulo")
+  description   String              @map("descripcion")
+  status        TicketRequestStatus @default(PENDIENTE) @map("estado")
+  ticketId      String?             @unique @map("ticket_id") @db.Uuid
+  handledById   String?             @map("atendida_por_id")
+  discardReason String?             @map("motivo_descarte")
+  createdAt     DateTime            @default(now()) @map("creado_en") @db.Timestamptz
+  handledAt     DateTime?           @map("atendida_en") @db.Timestamptz
+
+  requester UserProfile  @relation("TicketRequester", fields: [requesterId], references: [userId])
+  handledBy UserProfile? @relation("TicketRequestHandler", fields: [handledById], references: [userId])
+  area      Area         @relation(fields: [areaId], references: [id])
+  ticket    Ticket?      @relation(fields: [ticketId], references: [id])
+
+  @@index([areaId, status])
+  @@index([requesterId])
+  @@map("solicitud")
+  @@schema("tickets")
+}

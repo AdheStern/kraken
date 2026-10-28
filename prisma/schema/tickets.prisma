@@ -117,6 +117,7 @@ model Ticket {
   hourMovements   HourMovement[]
   pendingHours    PendingHours[]
   invMovements    InvMovement[]
+  request         TicketRequest?
 
   @@index([status])
   @@index([customerId])

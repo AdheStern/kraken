@@ -24,3 +24,8 @@ END $$;
 
 CREATE TRIGGER evento_estado_inmutable BEFORE UPDATE OR DELETE ON tickets.evento_estado
   FOR EACH ROW EXECUTE FUNCTION tickets.evento_estado_inmutable();
+
+-- REGLA: atendida ⇔ enlazada a su ticket; descartada exige motivo (AGENTS.md §2.6 «Solicitudes de ticket»).
+ALTER TABLE tickets.solicitud
+  ADD CONSTRAINT solicitud_atendida_ck CHECK ((estado = 'ATENDIDA') = (ticket_id IS NOT NULL)),
+  ADD CONSTRAINT solicitud_descartada_ck CHECK (estado <> 'DESCARTADA' OR motivo_descarte IS NOT NULL);

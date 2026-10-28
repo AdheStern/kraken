@@ -47,6 +47,8 @@ model UserProfile {
   docProjectsCreated      DocProject[]             @relation("DocProjectCreator")
   docDocuments            DocDocument[]            @relation("DocDocumentUploader")
   docDocumentsEdited      DocDocument[]            @relation("DocDocumentEditor")
+  ticketRequests          TicketRequest[]          @relation("TicketRequester")
+  ticketRequestsHandled   TicketRequest[]          @relation("TicketRequestHandler")
 
   @@map("usuario_perfil")
   @@schema("core")

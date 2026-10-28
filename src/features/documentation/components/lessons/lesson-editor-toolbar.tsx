@@ -126,6 +126,8 @@ export function LessonEditorToolbar({ editor }: { editor: Editor }) {
                 aria-label={tool.label}
                 title={tool.label}
                 aria-pressed={tool.isActive ? pressed : undefined}
+                // TRAMPA: sin esto el botón se queda con el foco y lo que se escribe después no llega al editor.
+                onMouseDown={(event) => event.preventDefault()}
                 onClick={() => tool.run(editor)}
               >
                 <Icon aria-hidden="true" />

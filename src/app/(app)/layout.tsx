@@ -8,6 +8,7 @@ import { AppSidebar } from "@/components/app-shell/app-sidebar";
 import { BASE_NAV } from "@/components/app-shell/nav-entries";
 import { RailMark } from "@/components/app-shell/rail-mark";
 import { RoleNav } from "@/components/app-shell/role-nav";
+import { SidebarFx } from "@/components/app-shell/sidebar-fx";
 import { SidebarUser } from "@/components/app-shell/sidebar-user";
 import { KrakenMark } from "@/components/brand/kraken-mark";
 import { ModeToggle } from "@/components/theme/mode-toggle";
@@ -36,6 +37,11 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
         nav={
           <Suspense fallback={<AppNav entries={BASE_NAV} />}>
             <RoleNav />
+          </Suspense>
+        }
+        fx={
+          <Suspense fallback={null}>
+            <SidebarFx />
           </Suspense>
         }
         user={

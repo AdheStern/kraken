@@ -146,6 +146,7 @@ Los datos de cliente y cliente final se copian en cada versión (snapshot).
 | PO#, observaciones | Orden de compra al proveedor, notas técnicas. |
 | Línea de nota | `kind = NOTA`, sin importe ("Initial Term - 36 Months…"). Se exporta como fila de texto. |
 | Bolsa de horas | Si la unidad es `HORAS` y el tipo `SERVICIO`: modalidad, alcance, áreas o proyecto, vencimiento (`hourBagSpec`). |
+| Contrato por vigencia | Si la unidad es de plazo (`MESES`, `AÑOS`) y el tipo `SERVICIO`, el comercial puede marcar «Soporte por vigencia»: modalidad, alcance y tope opcional en horas (`hourBagSpec` con `kind: VIGENCIA` y `capHours`); exige inicio y fin de vigencia (§2.4). |
 
 **Sección de leasing o arrendamiento:** se mantiene aunque se use poco. Es una lista separada (proveedor, línea, código, descripción, cantidad, costo, notas, PO#) con su propio total de costo. No afecta la venta. Se exporta en su bloque.
 

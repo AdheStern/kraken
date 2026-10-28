@@ -4,7 +4,6 @@
 "use client";
 
 import { CircleAlert } from "lucide-react";
-import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
@@ -19,12 +18,13 @@ import { Textarea } from "@/components/ui/textarea";
 import type { LineIssue } from "../../line-pricing";
 import type { CvLineDraft } from "../../schemas/cv-lines-schema";
 import type { Option } from "../../types";
-import { HourBagFields } from "./hour-bag-fields";
+import { LineBagSection } from "./line-bag-section";
 
 type Props = {
   line: CvLineDraft | null;
   row: number;
-  needsHourBag: boolean;
+  bagKind: "HORAS" | "VIGENCIA" | null;
+  canBeContract: boolean;
   issues: LineIssue[];
   areas: Option[];
   projects: Option[];
@@ -36,7 +36,8 @@ type Props = {
 export function LineDetailSheet({
   line,
   row,
-  needsHourBag,
+  bagKind,
+  canBeContract,
   issues,
   areas,
   projects,
@@ -125,33 +126,15 @@ export function LineDetailSheet({
                   {line.quantity || "—"}
                 </p>
               </section>
-              <section className="grid gap-2">
-                <h3 className="text-sm font-semibold">Bolsa de horas</h3>
-                {needsHourBag ? (
-                  <>
-                    <HourBagFields
-                      value={line.hourBag}
-                      areas={areas}
-                      projects={projects}
-                      disabled={disabled}
-                      onChange={(hourBag) => onChange({ hourBag })}
-                    />
-                    {line.id && (
-                      <Link
-                        href={`/horas/linea/${line.id}`}
-                        className="w-fit text-sm text-primary underline-offset-4 hover:underline"
-                      >
-                        Ver bolsa y su libro
-                      </Link>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    Solo para líneas con unidad en horas y tipo Servicio: al
-                    aprobarse generan una bolsa.
-                  </p>
-                )}
-              </section>
+              <LineBagSection
+                line={line}
+                bagKind={bagKind}
+                canBeContract={canBeContract}
+                areas={areas}
+                projects={projects}
+                disabled={disabled}
+                onChange={(hourBag) => onChange({ hourBag })}
+              />
               <section className="grid gap-2">
                 <h3 className="text-sm font-semibold">Catálogo</h3>
                 {line.productId ? (

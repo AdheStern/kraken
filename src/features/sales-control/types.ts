@@ -107,7 +107,7 @@ export type CvGridOptions = {
   areas: Option[];
   suppliers: Option[];
   technologies: Option[];
-  units: (Option & { isHours: boolean })[];
+  units: (Option & { isHours: boolean; isTerm: boolean })[];
   products: ProductOption[];
   // POR QUÉ: proyectos activos del cliente del CV, para el alcance PROYECTO de una bolsa (§2.4).
   projects: Option[];

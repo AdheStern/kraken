@@ -8,9 +8,9 @@ import type {
   VersionTotalsRecord,
 } from "@/server/sales-control/replace-version-lines";
 import {
+  bagKindOf,
   type LineDetailContext,
   lineDetailIssues,
-  needsHourBag,
 } from "./line-details";
 import { type PricedLine, priceLine } from "./line-pricing";
 import type { CvGroupDraft, CvLineDraft } from "./schemas/cv-lines-schema";
@@ -57,7 +57,7 @@ export function prepareLineRecords(
       groupKey: draft.groupKey,
       serials: draft.serials,
       createProduct: draft.saveAsProduct && !draft.productId,
-      data: itemData(draft, result.value, needsHourBag(draft, context)),
+      data: itemData(draft, result.value, bagKindOf(draft, context)),
     });
     pricedTotals.push(result.value.totals);
   }
@@ -75,11 +75,19 @@ export function prepareLineRecords(
 function itemData(
   draft: CvLineDraft,
   priced: PricedLine,
-  withHourBag: boolean,
+  bagKind: "HORAS" | "VIGENCIA" | null,
 ): VersionLineRecord["data"] {
+  // POR QUÉ: una bolsa de horas no lleva tope y un contrato vence con su vigencia, no con expiresOn.
   const hourBag =
-    withHourBag && draft.hourBag
-      ? { ...draft.hourBag, expiresOn: draft.hourBag.expiresOn || null }
+    bagKind && draft.hourBag
+      ? {
+          ...draft.hourBag,
+          kind: bagKind,
+          capHours:
+            bagKind === "VIGENCIA" ? draft.hourBag.capHours || null : null,
+          expiresOn:
+            bagKind === "HORAS" ? draft.hourBag.expiresOn || null : null,
+        }
       : null;
   return {
     kind: "ITEM",

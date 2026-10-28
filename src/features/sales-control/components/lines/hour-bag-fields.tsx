@@ -1,10 +1,11 @@
 // src/features/sales-control/components/lines/hour-bag-fields.tsx
-// Especificación de la bolsa de horas de una línea HORAS + SERVICIO: modalidad, alcance (áreas, proyecto del
-// cliente o general) y vencimiento.
+// Especificación de la bolsa de una línea de SERVICIO: modalidad, alcance (áreas, proyecto del cliente o general)
+// y vencimiento si es de horas, o tope opcional si es un contrato por vigencia (AGENTS.md §2.4).
 "use client";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { OptionSelect } from "@/components/ui/option-select";
 import type { HourBagSpec } from "../../schemas/cv-lines-schema";
@@ -19,15 +20,20 @@ const SCOPE_OPTIONS = [
   { id: "PROYECTO", label: "Un proyecto del cliente" },
   { id: "GENERAL", label: "General (cualquier ticket del cliente)" },
 ];
-const EMPTY: HourBagSpec = {
-  modality: "H8X5",
-  scope: "AREA",
-  areaIds: [],
-  projectId: null,
-  expiresOn: "",
-};
+export function emptyBagSpec(kind: HourBagSpec["kind"]): HourBagSpec {
+  return {
+    kind,
+    capHours: null,
+    modality: "H8X5",
+    scope: "AREA",
+    areaIds: [],
+    projectId: null,
+    expiresOn: "",
+  };
+}
 
 type Props = {
+  kind: HourBagSpec["kind"];
   value: HourBagSpec | null;
   areas: Option[];
   projects: Option[];
@@ -36,13 +42,14 @@ type Props = {
 };
 
 export function HourBagFields({
+  kind,
   value,
   areas,
   projects,
   disabled,
   onChange,
 }: Props) {
-  const spec = value ?? EMPTY;
+  const spec = value ?? emptyBagSpec(kind);
   const update = (patch: Partial<HourBagSpec>) =>
     onChange({ ...spec, ...patch });
 
@@ -123,17 +130,35 @@ export function HourBagFields({
           />
         </Label>
       )}
-      <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">
-        Vence (opcional)
-        <DatePicker
-          value={spec.expiresOn}
-          disabled={disabled}
-          clearable
-          placeholder="Sin vencimiento"
-          aria-label="Vence"
-          onChange={(expiresOn) => update({ expiresOn })}
-        />
-      </Label>
+      {kind === "VIGENCIA" ? (
+        <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">
+          Tope de horas (opcional)
+          <Input
+            inputMode="decimal"
+            placeholder="Sin tope"
+            value={spec.capHours ?? ""}
+            disabled={disabled}
+            onChange={(e) => update({ capHours: e.target.value || null })}
+            className="tabular-nums"
+          />
+          <span className="text-xs">
+            Vence con la vigencia de la línea. Al llegar al tope, el trabajo
+            pasa a la siguiente bolsa del ticket.
+          </span>
+        </Label>
+      ) : (
+        <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">
+          Vence (opcional)
+          <DatePicker
+            value={spec.expiresOn}
+            disabled={disabled}
+            clearable
+            placeholder="Sin vencimiento"
+            aria-label="Vence"
+            onChange={(expiresOn) => update({ expiresOn })}
+          />
+        </Label>
+      )}
     </div>
   );
 }

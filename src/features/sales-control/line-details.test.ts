@@ -1,5 +1,5 @@
 // src/features/sales-control/line-details.test.ts
-// Detalles de una línea: vigencia, seriales, bolsa de horas (§2.4, regla 4) y alta en catálogo.
+// Detalles de una línea: vigencia, seriales, bolsa de horas o contrato por vigencia (§2.4, regla 4) y alta en catálogo.
 import { describe, expect, it } from "vitest";
 import { blankLine } from "./components/lines/use-cv-lines-state";
 import {
@@ -10,7 +10,11 @@ import {
 import type { CvLineDraft } from "./schemas/cv-lines-schema";
 
 const HOURS = "unit-horas";
-const context = { hoursUnitIds: new Set([HOURS]) };
+const YEARS = "unit-anios";
+const context = {
+  hoursUnitIds: new Set([HOURS]),
+  termUnitIds: new Set([YEARS]),
+};
 const line = (overrides: Partial<CvLineDraft>) => ({
   ...blankLine("ITEM", null),
   ...overrides,
@@ -19,6 +23,8 @@ const fields = (l: CvLineDraft) =>
   lineDetailIssues(l, context).map((issue) => issue.field);
 const hourService = { unitId: HOURS, itemType: "SERVICIO" as const };
 const bag = {
+  kind: "HORAS" as const,
+  capHours: null,
   modality: "H8X5" as const,
   scope: "AREA" as const,
   areaIds: ["a"],
@@ -134,5 +140,44 @@ describe("CV de saldo inicial (§14, F2)", () => {
   it("admite notas y no aplica fuera de un CV de saldo inicial", () => {
     expect(lineDetailIssues(blankLine("NOTA", null), opening)).toEqual([]);
     expect(fields({ ...hours, unitSaleUsd: "50" })).toEqual([]);
+  });
+});
+
+describe("contrato por vigencia", () => {
+  const yearService = line({
+    unitId: YEARS,
+    itemType: "SERVICIO",
+    quantity: "1",
+  });
+  const contract = { ...bag, kind: "VIGENCIA" as const };
+
+  it("una línea de servicio en años sin marcar no es bolsa; marcada exige la vigencia", () => {
+    expect(needsHourBag(yearService, context)).toBe(false);
+    expect(fields(yearService)).toEqual([]);
+    expect(fields({ ...yearService, hourBag: contract })).toEqual([
+      "coverageStart",
+    ]);
+    expect(
+      fields({
+        ...yearService,
+        hourBag: contract,
+        coverageStart: "2026-11-01",
+        coverageEnd: "2027-10-31",
+      }),
+    ).toEqual([]);
+  });
+
+  it("el tope es opcional pero, si va, son horas mayores a 0 en minutos enteros", () => {
+    const dated = {
+      ...yearService,
+      coverageStart: "2026-11-01",
+      coverageEnd: "2027-10-31",
+    };
+    const withCap = (capHours: string) =>
+      fields({ ...dated, hourBag: { ...contract, capHours } });
+    expect(withCap("40")).toEqual([]);
+    expect(withCap("12.5")).toEqual([]);
+    expect(withCap("0")).toEqual(["hourBag"]);
+    expect(withCap("1.01")).toEqual(["hourBag"]);
   });
 });

@@ -56,6 +56,9 @@ export function CvLinesEditor({
       hoursUnitIds: new Set(
         options.units.filter((u) => u.isHours).map((u) => u.id),
       ),
+      termUnitIds: new Set(
+        options.units.filter((u) => u.isTerm).map((u) => u.id),
+      ),
       isOpeningBalance,
     }),
     [options.units, isOpeningBalance],
@@ -152,9 +155,12 @@ export function CvLinesEditor({
       <LineDetailSheet
         line={detailLine}
         row={detailLine ? state.lines.indexOf(detailLine) : 0}
-        needsHourBag={
+        bagKind={
+          detailLine ? (details.get(detailLine.key)?.bagKind ?? null) : null
+        }
+        canBeContract={
           detailLine
-            ? (details.get(detailLine.key)?.needsHourBag ?? false)
+            ? (details.get(detailLine.key)?.canBeContract ?? false)
             : false
         }
         issues={detailLine ? (details.get(detailLine.key)?.issues ?? []) : []}

@@ -56,12 +56,13 @@ export async function upsertCvLines(
     costFxRate: new Decimal(version.costFxRate.toString()),
     saleFxRate: new Decimal(version.saleFxRate.toString()),
   };
-  const hoursUnits = await prisma.unit.findMany({
-    where: { isHours: true },
-    select: { id: true },
+  const units = await prisma.unit.findMany({
+    where: { OR: [{ isHours: true }, { isTerm: true }] },
+    select: { id: true, isHours: true },
   });
   const context = {
-    hoursUnitIds: new Set(hoursUnits.map((unit) => unit.id)),
+    hoursUnitIds: new Set(units.filter((u) => u.isHours).map((u) => u.id)),
+    termUnitIds: new Set(units.filter((u) => !u.isHours).map((u) => u.id)),
     isOpeningBalance: version.cv.isOpeningBalance,
   };
   const prepared = prepareLineRecords(groups, lines, fx, context);

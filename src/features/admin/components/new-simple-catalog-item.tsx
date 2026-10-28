@@ -11,7 +11,12 @@ import { SIMPLE_CATALOGS, type SimpleCatalogKind } from "../simple-catalogs";
 import { SimpleCatalogFields, type SimpleDraft } from "./simple-catalog-fields";
 import { useAdminAction } from "./use-admin-action";
 
-const EMPTY: SimpleDraft = { name: "", taxId: "", isHours: false };
+const EMPTY: SimpleDraft = {
+  name: "",
+  taxId: "",
+  isHours: false,
+  isTerm: false,
+};
 
 export function NewSimpleCatalogItem({ kind }: { kind: SimpleCatalogKind }) {
   const config = SIMPLE_CATALOGS[kind];

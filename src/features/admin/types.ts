@@ -9,6 +9,7 @@ export type SimpleCatalogItem = {
   code: string | null;
   taxId: string | null;
   isHours: boolean | null;
+  isTerm: boolean | null;
   isActive: boolean;
 };
 

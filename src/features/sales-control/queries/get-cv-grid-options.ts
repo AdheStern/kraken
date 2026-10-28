@@ -30,6 +30,7 @@ export async function getCvGridOptions(
       label: u.code,
       hint: u.name,
       isHours: u.isHours,
+      isTerm: u.isTerm,
     })),
     products: products.map((p) => ({
       id: p.id,

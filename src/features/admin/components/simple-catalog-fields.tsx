@@ -7,7 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SIMPLE_CATALOGS, type SimpleCatalogKind } from "../simple-catalogs";
 
-export type SimpleDraft = { name: string; taxId: string; isHours: boolean };
+export type SimpleDraft = {
+  name: string;
+  taxId: string;
+  isHours: boolean;
+  isTerm: boolean;
+};
 
 type Props = {
   kind: SimpleCatalogKind;
@@ -46,6 +51,17 @@ export function SimpleCatalogFields({ kind, draft, onChange, label }: Props) {
             }
           />
           Es de horas
+        </Label>
+      )}
+      {config.hasHoursFlag && (
+        <Label className="flex h-9 items-center gap-2 text-sm font-normal">
+          <Checkbox
+            checked={draft.isTerm}
+            onCheckedChange={(checked) =>
+              onChange({ ...draft, isTerm: checked })
+            }
+          />
+          Es de plazo (meses o años)
         </Label>
       )}
     </>

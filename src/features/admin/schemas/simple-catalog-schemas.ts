@@ -21,6 +21,7 @@ export const simpleCatalogItemSchema = z
     code: z.string().trim().toUpperCase().optional(),
     taxId: optionalText,
     isHours: z.boolean().optional(),
+    isTerm: z.boolean().optional(),
   })
   .superRefine((item, ctx) => {
     const code = SIMPLE_CATALOGS[item.kind].code;

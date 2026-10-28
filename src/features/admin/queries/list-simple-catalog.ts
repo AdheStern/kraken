@@ -27,7 +27,12 @@ export async function listSimpleCatalog(
   }
 }
 
-type Extra = { code?: string; taxId?: string | null; isHours?: boolean };
+type Extra = {
+  code?: string;
+  taxId?: string | null;
+  isHours?: boolean;
+  isTerm?: boolean;
+};
 
 function item(
   row: { id: string; name: string; isActive: boolean },
@@ -40,5 +45,6 @@ function item(
     code: extra.code ?? null,
     taxId: extra.taxId ?? null,
     isHours: extra.isHours ?? null,
+    isTerm: extra.isTerm ?? null,
   };
 }

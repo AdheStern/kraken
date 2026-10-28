@@ -21,6 +21,7 @@ type Fields = {
   code: string;
   taxId: string | null;
   isHours: boolean;
+  isTerm: boolean;
 };
 
 export async function upsertSimpleCatalogItem(
@@ -42,6 +43,7 @@ export async function upsertSimpleCatalogItem(
     code = "",
     taxId = null,
     isHours = false,
+    isTerm = false,
   } = parsed.data;
   if (!canManageAdminAccess(user, SIMPLE_CATALOGS[kind].access))
     return actionError(
@@ -55,13 +57,19 @@ export async function upsertSimpleCatalogItem(
     );
   try {
     const saved = await runInTransaction(async (tx) => {
-      const savedId = await write(tx, kind, id, { name, code, taxId, isHours });
+      const savedId = await write(tx, kind, id, {
+        name,
+        code,
+        taxId,
+        isHours,
+        isTerm,
+      });
       await recordAudit(tx, {
         actorId: user.id,
         entity: SIMPLE_CATALOGS[kind].table,
         entityId: savedId,
         action: id ? "EDITAR" : "CREAR",
-        after: { name, ...(id ? {} : { code }), taxId, isHours },
+        after: { name, ...(id ? {} : { code }), taxId, isHours, isTerm },
       });
       return savedId;
     });
@@ -77,7 +85,7 @@ async function write(
   id: string | null,
   f: Fields,
 ): Promise<string> {
-  const { name, code, taxId, isHours } = f;
+  const { name, code, taxId, isHours, isTerm } = f;
   switch (kind) {
     case "areas":
       return id
@@ -89,8 +97,13 @@ async function write(
         : (await tx.city.create({ data: { name, code } })).id;
     case "unidades":
       return id
-        ? (await tx.unit.update({ where: { id }, data: { name, isHours } })).id
-        : (await tx.unit.create({ data: { name, code, isHours } })).id;
+        ? (
+            await tx.unit.update({
+              where: { id },
+              data: { name, isHours, isTerm },
+            })
+          ).id
+        : (await tx.unit.create({ data: { name, code, isHours, isTerm } })).id;
     case "tecnologias":
       return id
         ? (await tx.technology.update({ where: { id }, data: { name } })).id

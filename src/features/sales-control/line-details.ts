@@ -1,5 +1,5 @@
 // src/features/sales-control/line-details.ts
-// Reglas de los detalles de una línea (vigencia, seriales, bolsa de horas, alta en catálogo).
+// Reglas de los detalles de una línea (vigencia, seriales, bolsa de horas o contrato por vigencia, alta en catálogo).
 // Puro: lo usan la grilla para avisar y el servidor para rechazar (AGENTS.md §2.1 y §2.4).
 import Decimal from "decimal.js";
 import { toBagMinutes } from "@/domain/hours/to-bag-minutes";
@@ -12,13 +12,36 @@ import {
 
 export type LineDetailContext = {
   hoursUnitIds: ReadonlySet<string>;
+  termUnitIds?: ReadonlySet<string>;
   isOpeningBalance?: boolean;
 };
 
 const NUMBER = /^\d+(\.\d+)?$/;
 
-// REGLA: una línea de HORAS y tipo SERVICIO genera una bolsa al aprobarse (§2.4).
+const CAP_HOURS = /^\d+(\.\d{1,2})?$/;
+
+// REGLA: una línea de HORAS y tipo SERVICIO genera una bolsa al aprobarse; una de SERVICIO en meses o años, un
+// contrato por vigencia si el comercial lo marca (§2.4).
+export function bagKindOf(
+  line: CvLineDraft,
+  context: LineDetailContext,
+): "HORAS" | "VIGENCIA" | null {
+  if (line.kind !== "ITEM" || line.itemType !== "SERVICIO" || !line.unitId)
+    return null;
+  if (context.hoursUnitIds.has(line.unitId)) return "HORAS";
+  return canBeContract(line, context) && line.hourBag?.kind === "VIGENCIA"
+    ? "VIGENCIA"
+    : null;
+}
+
 export function needsHourBag(
+  line: CvLineDraft,
+  context: LineDetailContext,
+): boolean {
+  return bagKindOf(line, context) !== null;
+}
+
+export function canBeContract(
   line: CvLineDraft,
   context: LineDetailContext,
 ): boolean {
@@ -26,7 +49,7 @@ export function needsHourBag(
     line.kind === "ITEM" &&
     line.itemType === "SERVICIO" &&
     !!line.unitId &&
-    context.hoursUnitIds.has(line.unitId)
+    !!context.termUnitIds?.has(line.unitId)
   );
 }
 
@@ -62,8 +85,9 @@ export function lineDetailIssues(
       message: "Hay más seriales que la cantidad de la línea.",
     });
   }
-  if (needsHourBag(line, context))
-    issues.push(...hourBagIssues(line, quantity));
+  const bagKind = bagKindOf(line, context);
+  if (bagKind === "HORAS") issues.push(...hourBagIssues(line, quantity));
+  if (bagKind === "VIGENCIA") issues.push(...contractIssues(line));
   if (context.isOpeningBalance)
     issues.push(...openingBalanceIssues(line, context));
   if (line.saveAsProduct && (!line.code || !line.itemType)) {
@@ -86,7 +110,7 @@ function openingBalanceIssues(
       {
         field: "unitId",
         message:
-          "Un CV de saldo inicial solo lleva líneas de horas de servicio.",
+          "Un CV de saldo inicial solo lleva líneas de horas de servicio o contratos por vigencia.",
       },
     ];
   if (!isZeroOrEmpty(line.unitSaleUsd) || !isZeroOrEmpty(line.unitCostUsd))
@@ -121,22 +145,48 @@ function hourBagIssues(
       field: "hourBag",
       message: "Define la bolsa de horas: modalidad y alcance.",
     });
-  } else if (
-    line.hourBag.scope === "AREA" &&
-    line.hourBag.areaIds.length === 0
-  ) {
+  } else issues.push(...scopeIssues(line.hourBag));
+  return issues;
+}
+
+// REGLA: la vigencia del contrato son las fechas de la línea, obligatorias; el tope es opcional (§2.4).
+function contractIssues(line: CvLineDraft): LineIssue[] {
+  const issues: LineIssue[] = [];
+  if (!line.coverageStart || !line.coverageEnd)
     issues.push({
-      field: "hourBag",
-      message: "Elige al menos un área para la bolsa de horas.",
+      field: "coverageStart",
+      message: "Un contrato por vigencia necesita inicio y fin de vigencia.",
     });
-  } else if (line.hourBag.scope === "PROYECTO" && !line.hourBag.projectId) {
+  const cap = line.hourBag?.capHours ?? null;
+  if (
+    cap !== null &&
+    (!CAP_HOURS.test(cap) ||
+      new Decimal(cap).isZero() ||
+      toBagMinutes(new Decimal(cap)) === null)
+  )
     issues.push({
       field: "hourBag",
       message:
-        "Elige el proyecto de la bolsa; si el cliente no tiene, créalo en Tickets → Proyectos.",
+        "El tope son horas mayores a 0 que den minutos enteros, p. ej. 40 o 12.5; vacío = sin tope.",
     });
-  }
+  if (line.hourBag) issues.push(...scopeIssues(line.hourBag));
   return issues;
+}
+
+function scopeIssues(spec: HourBagSpec): LineIssue[] {
+  if (spec.scope === "AREA" && spec.areaIds.length === 0)
+    return [
+      { field: "hourBag", message: "Elige al menos un área para la bolsa." },
+    ];
+  if (spec.scope === "PROYECTO" && !spec.projectId)
+    return [
+      {
+        field: "hourBag",
+        message:
+          "Elige el proyecto de la bolsa; si el cliente no tiene, créalo en Tickets → Proyectos.",
+      },
+    ];
+  return [];
 }
 
 // POR QUÉ: el JSON guardado puede venir de versiones viejas; si no valida se trata como sin bolsa.

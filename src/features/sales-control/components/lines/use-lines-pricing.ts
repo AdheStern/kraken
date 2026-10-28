@@ -6,9 +6,10 @@
 import Decimal from "decimal.js";
 import { useMemo } from "react";
 import {
+  bagKindOf,
+  canBeContract,
   type LineDetailContext,
   lineDetailIssues,
-  needsHourBag,
 } from "../../line-details";
 import { type LineIssue, priceLine, summarizeLines } from "../../line-pricing";
 import type { CvLineDraft } from "../../schemas/cv-lines-schema";
@@ -17,7 +18,8 @@ type FxText = { costFxRate: string; saleFxRate: string };
 
 export type LineDetailInfo = {
   issues: LineIssue[];
-  needsHourBag: boolean;
+  bagKind: "HORAS" | "VIGENCIA" | null;
+  canBeContract: boolean;
   state: "empty" | "filled" | "issues";
 };
 
@@ -72,7 +74,12 @@ export function useLinesPricing(
             issues.length > 0 ? "issues" : hasData ? "filled" : "empty";
           return [
             line.key,
-            { issues, needsHourBag: needsHourBag(line, context), state },
+            {
+              issues,
+              bagKind: bagKindOf(line, context),
+              canBeContract: canBeContract(line, context),
+              state,
+            },
           ];
         }),
     );

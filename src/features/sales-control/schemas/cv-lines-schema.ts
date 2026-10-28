@@ -3,6 +3,7 @@
 // La validación de montos y factor la hace priceLine con el dominio de precios.
 import { z } from "zod";
 import {
+  BagKind,
   BagModality,
   BagScope,
   ItemType,
@@ -14,6 +15,10 @@ const dateText = z.union([z.iso.date(), z.literal("")]);
 
 // REGLA: una línea de HORAS + SERVICIO genera una bolsa al aprobarse; aquí se captura su especificación (§2.4).
 export const hourBagSpecSchema = z.object({
+  // POR QUÉ: VIGENCIA es un contrato por meses o años (§2.4); los JSON anteriores no traen kind y valen como HORAS.
+  kind: z.enum(BagKind).default("HORAS"),
+  // POR QUÉ: tope en horas de un contrato por vigencia; null = sin tope.
+  capHours: z.string().trim().nullable().default(null),
   modality: z.enum(BagModality),
   scope: z.enum(BagScope),
   areaIds: z.array(z.string()).max(10),

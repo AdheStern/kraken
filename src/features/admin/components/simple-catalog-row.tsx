@@ -22,6 +22,7 @@ export function SimpleCatalogRow({ kind, item }: Props) {
     name: item.name,
     taxId: item.taxId ?? "",
     isHours: item.isHours ?? false,
+    isTerm: item.isTerm ?? false,
   });
   const toggle = () =>
     run(() =>
@@ -84,6 +85,11 @@ export function SimpleCatalogRow({ kind, item }: Props) {
           {item.isHours && (
             <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs text-primary">
               Unidad de horas
+            </span>
+          )}
+          {item.isTerm && (
+            <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs text-primary">
+              Unidad de plazo
             </span>
           )}
           {item.isActive && (

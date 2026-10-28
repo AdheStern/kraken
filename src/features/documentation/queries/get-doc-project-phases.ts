@@ -56,7 +56,6 @@ type Row = {
   title: string | null;
   fileName: string;
   sizeBytes: number;
-  sha256: string;
   uploadedById: string;
   createdAt: Date;
   updatedAt: Date | null;
@@ -76,7 +75,6 @@ const toDocumentView = (user: SessionUser, d: Row): DocumentView => ({
 const toLessonView = (user: SessionUser, d: Row): DocLessonView => ({
   id: d.id,
   title: d.title ?? d.fileName,
-  version: d.sha256,
   author: d.uploadedBy.user.name,
   lastEdit: d.updatedAt
     ? `Editada por ${d.updatedBy?.user.name ?? "un usuario dado de baja"} · ${dateTime.format(d.updatedAt)}`

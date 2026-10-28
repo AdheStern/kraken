@@ -20,7 +20,12 @@ export async function GET(
   const document = z.uuid().safeParse(id).success
     ? await prisma.docDocument.findFirst({
         where: { id, project: scopeDocProjectQuery(user) },
-        select: { fileName: true, mimeType: true, storagePath: true },
+        select: {
+          fileName: true,
+          mimeType: true,
+          storagePath: true,
+          sha256: true,
+        },
       })
     : null;
   const store = selectFileStore();
@@ -33,6 +38,8 @@ export async function GET(
         "content-type": safeContentType(document.mimeType),
         "content-disposition": `attachment; filename*=UTF-8''${encodeURIComponent(document.fileName)}`,
         "cache-control": "private, no-store",
+        // POR QUÉ: el editor de lecciones manda este hash al guardar para no pisar la edición de otra persona.
+        etag: `"${document.sha256}"`,
         "x-content-type-options": "nosniff",
         // POR QUÉ: si el navegador igual lo abre, no ejecuta scripts ni accede a nuestro origen.
         "content-security-policy": "sandbox",

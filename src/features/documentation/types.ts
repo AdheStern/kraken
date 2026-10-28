@@ -54,11 +54,9 @@ export type DocumentView = {
   canDelete: boolean;
 };
 
-// POR QUÉ: la versión es el hash del .txt; al guardar se compara para no pisar la edición de otra persona.
 export type DocLessonView = {
   id: string;
   title: string;
-  version: string;
   author: string;
   lastEdit: string;
   canDelete: boolean;

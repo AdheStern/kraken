@@ -1,11 +1,12 @@
 // src/features/documentation/components/doc-phase-section.tsx
 // Una fase de un proyecto como carpeta: sus documentos para descargar, el botón para subir (hasta 20 MB) y quitar
-// los propios (AGENTS.md §2.10, ADR-16).
+// los propios, y sus lecciones aprendidas (AGENTS.md §2.10, ADR-16).
 "use client";
 
 import {
   Download,
   FolderOpen,
+  Lightbulb,
   LoaderCircle,
   Trash2,
   Upload,
@@ -16,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { deleteDocument } from "../actions/delete-document";
 import { uploadDocument } from "../actions/upload-document";
 import type { DocPhaseView } from "../types";
+import { DocLessonDialog } from "./lessons/doc-lesson-dialog";
+import { DocLessonList } from "./lessons/doc-lesson-list";
 import { useDocAction } from "./use-doc-action";
 
 type Props = { projectId: string; phase: DocPhaseView; canUpload: boolean };
@@ -56,9 +59,24 @@ export function DocPhaseSection({ projectId, phase, canUpload }: Props) {
           {phase.documents.length === 1
             ? "1 documento"
             : `${phase.documents.length} documentos`}
+          {phase.lessons.length > 0 &&
+            ` · ${phase.lessons.length === 1 ? "1 lección" : `${phase.lessons.length} lecciones`}`}
         </span>
         {phase.isActive && canUpload && (
-          <>
+          <div className="ml-auto flex flex-wrap gap-2">
+            <DocLessonDialog
+              mode="new"
+              projectId={projectId}
+              phaseId={phase.id}
+              phaseName={phase.name}
+              trigger={<Button size="sm" variant="outline" />}
+              triggerLabel={
+                <>
+                  <Lightbulb aria-hidden="true" />
+                  Lección aprendida
+                </>
+              }
+            />
             <input
               ref={input}
               id={inputId}
@@ -70,7 +88,6 @@ export function DocPhaseSection({ projectId, phase, canUpload }: Props) {
             <Button
               size="sm"
               variant="outline"
-              className="ml-auto"
               disabled={isPending}
               onClick={() => input.current?.click()}
             >
@@ -81,7 +98,7 @@ export function DocPhaseSection({ projectId, phase, canUpload }: Props) {
               )}
               {isPending ? "Subiendo…" : "Subir documentos"}
             </Button>
-          </>
+          </div>
         )}
       </header>
       {error && (
@@ -95,7 +112,7 @@ export function DocPhaseSection({ projectId, phase, canUpload }: Props) {
       {phase.documents.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           Sin documentos en esta fase. Sube actas, diseños o informes de hasta
-          20 MB cada uno.
+          20 MB cada uno, o escribe una lección aprendida.
         </p>
       ) : (
         <ul className="divide-y divide-border/60 rounded-lg border border-border/60">
@@ -133,6 +150,9 @@ export function DocPhaseSection({ projectId, phase, canUpload }: Props) {
             </li>
           ))}
         </ul>
+      )}
+      {phase.lessons.length > 0 && (
+        <DocLessonList lessons={phase.lessons} isPhaseActive={phase.isActive} />
       )}
     </section>
   );

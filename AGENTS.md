@@ -864,7 +864,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - Esquema `doc`, permisos y catálogo de fases en `/admin/fases-documentacion` [SONNET] — hecho
 - Proyectos con su cabecera: listado, alta y edición (`/documentacion`) [SONNET] — hecho
 - Documentos por fase en SharePoint: subir, descargar y quitar [SONNET] — hecho (E2E `tests/e2e/documentation.spec.ts`)
-- Lecciones aprendidas por fase como `.txt` con editor enriquecido [SONNET] — modelo y actions hechos; falta el editor en la interfaz
+- Lecciones aprendidas por fase como `.txt` con editor enriquecido [SONNET] — hecho (botón «Lección aprendida» en cada fase, editor con barra de formato, E2E en `tests/e2e/documentation.spec.ts`)
 - Credenciales de SharePoint (registro de app con `Sites.Selected`, permiso de escritura sobre el sitio, id de la biblioteca): guía en `deploy/README.md` («SharePoint para adjuntos y documentación») [DIMANET]
 - *Sale cuando:* los proyectos en curso tienen su documentación por fase en Kraken y se ve en la biblioteca de SharePoint.
 

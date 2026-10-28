@@ -8,6 +8,7 @@ import * as data from "./dev-catalog-data";
 import { seedDevContract } from "./dev-contracts";
 import { seedDevDashboards } from "./dev-dashboards";
 import { seedDevInventory } from "./dev-inventory";
+import { seedDevTicketRequests } from "./dev-ticket-requests";
 import { seedDevTickets } from "./dev-tickets";
 import { seedCalendar } from "./seed-calendar";
 
@@ -34,6 +35,7 @@ async function main() {
         await upsertCredentialUser(tx, { ...user, password, areaId: area?.id });
       }
       await seedDevTickets(tx, new Date());
+      await seedDevTicketRequests(tx, new Date());
       await seedDevContract(tx, new Date());
       await seedDevInventory(tx, new Date());
       await seedDevDashboards(tx, new Date());

@@ -10,21 +10,27 @@ import { PRESALES_MANUAL } from "./manuals/presales";
 import { SALES_MANUAL } from "./manuals/sales";
 import { SUPPORT_COORDINATOR_MANUAL } from "./manuals/support-coordinator";
 import { SYSTEM_ADMIN_MANUAL } from "./manuals/system-admin";
+import { TICKET_REQUEST_SECTION } from "./manuals/ticket-request-section";
 import { WAREHOUSE_MANUAL } from "./manuals/warehouse";
 import type { Manual } from "./types";
 
 // REGLA: un manual por rol; un rol nuevo en el enum no compila hasta tener el suyo.
 export const MANUALS: Record<RoleCode, Manual> = {
-  GERENTE_GENERAL: GENERAL_MANAGER_MANUAL,
-  GERENTE_AREA: AREA_MANAGER_MANUAL,
-  COMERCIAL: SALES_MANUAL,
-  PREVENTA: PRESALES_MANUAL,
-  INGENIERO: ENGINEER_MANUAL,
-  COORDINADOR_SOPORTE: SUPPORT_COORDINATOR_MANUAL,
-  ALMACEN: WAREHOUSE_MANUAL,
-  ADMINISTRACION: ADMINISTRATION_MANUAL,
-  ADMIN_SISTEMA: SYSTEM_ADMIN_MANUAL,
+  GERENTE_GENERAL: withRequests(GENERAL_MANAGER_MANUAL),
+  GERENTE_AREA: withRequests(AREA_MANAGER_MANUAL),
+  COMERCIAL: withRequests(SALES_MANUAL),
+  PREVENTA: withRequests(PRESALES_MANUAL),
+  INGENIERO: withRequests(ENGINEER_MANUAL),
+  COORDINADOR_SOPORTE: withRequests(SUPPORT_COORDINATOR_MANUAL),
+  ALMACEN: withRequests(WAREHOUSE_MANUAL),
+  ADMINISTRACION: withRequests(ADMINISTRATION_MANUAL),
+  ADMIN_SISTEMA: withRequests(SYSTEM_ADMIN_MANUAL),
 };
+
+// REGLA: todo usuario con rol pide tickets (§2.6), así que cada manual cierra con cómo hacerlo.
+function withRequests(manual: Manual): Manual {
+  return { ...manual, sections: [...manual.sections, TICKET_REQUEST_SECTION] };
+}
 
 const ORDER: readonly RoleCode[] = [
   "GERENTE_GENERAL",

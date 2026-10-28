@@ -43,7 +43,7 @@ pnpm prisma migrate dev       # migraciones en desarrollo
 pnpm db:seed:admin            # crea/actualiza la cuenta de emergencia ADMIN_SISTEMA desde SUPERADMIN_*
 pnpm db:seed:base             # catálogos base (ciudades, áreas, roles, parámetros y la hoja "Listas"); apto para producción,
                               # solo crea lo que falta
-pnpm db:seed:dev              # SOLO desarrollo: catálogos base + datos y usuarios demo (gg@, gerente.dimanet@, comercial@, comercial2@, administracion@, coordinador@, ingeniero@, ingeniero2@dima.local; tickets de ejemplo; ventas y metas demo para los tableros)
+pnpm db:seed:dev              # SOLO desarrollo: catálogos base + datos y usuarios demo (gg@, gerente.dimanet@, comercial@, comercial2@, administracion@, coordinador@, ingeniero@, ingeniero2@dima.local; tickets y solicitudes de ticket de ejemplo; ventas y metas demo para los tableros)
                               # con DEV_SEED_PASSWORD; entrar con contraseña exige AUTH_DEV_PASSWORD_LOGIN=true
 pnpm skills:install           # restaura las skills de agentes desde skills-lock.json
 docker compose -f deploy/compose.dev.yml up -d   # Postgres + correo falso
@@ -846,7 +846,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - Contador por eventos, registros manuales, contadores olvidados [SONNET] — hecho
 - SLA: políticas, reloj, pausas y alertas [OPUS reloj, SONNET UI] — hecho (`computeSla`, `/admin/sla`, semáforo)
 - E2E del recorrido bolsa → ticket → contador → cierre con descuento (`tests/e2e/tickets.spec.ts`) — hecho
-- Solicitudes de ticket: cualquier usuario pide, el coordinador crea el ticket o descarta, el solicitante sigue el estado (§2.6) [SONNET] — en curso (`/solicitudes`)
+- Solicitudes de ticket: cualquier usuario pide, el coordinador crea el ticket o descarta, el solicitante sigue el estado (§2.6) [SONNET] — hecho (`/solicitudes`, `/tickets/solicitudes`, avisos desde `applyStatusChange`, E2E `tests/e2e/ticket-requests.spec.ts`)
 - *Sale cuando:* los ingenieros registran todo en tickets y gerencia valida el descuento contra un cálculo manual en al menos 10 tickets reales.
 
 **F4 · Inventario y POS (~3–4 semanas)**

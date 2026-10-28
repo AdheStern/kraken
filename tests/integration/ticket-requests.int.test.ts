@@ -1,8 +1,9 @@
 // tests/integration/ticket-requests.int.test.ts
 // Solicitudes de ticket contra la base (AGENTS.md §2.6 «Solicitudes de ticket»): alta, aviso a quienes la
-// atienden, ticket que nace de ella, descarte y restricciones de coherencia.
+// atienden, ticket que nace de ella, avisos al solicitante, descarte y restricciones de coherencia.
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
+import { changeTicketStatusRecord } from "@/server/tickets/change-ticket-status-record";
 import { createTicketRecord } from "@/server/tickets/create-ticket-record";
 import { createTicketRequestRecord } from "@/server/tickets/create-ticket-request-record";
 import { discardTicketRequestRecord } from "@/server/tickets/discard-ticket-request-record";
@@ -223,6 +224,46 @@ describe("ticket que nace de una solicitud", () => {
       ),
     );
     expect(result).toMatchObject({ ok: false, error: { code: "NOT_FOUND" } });
+  });
+});
+
+describe("avisos al solicitante", () => {
+  it("un aviso al crear el ticket con encargado y uno por cada cambio de estado", async () => {
+    const { f, requester, coordinator, ticketInput } = await pendingRequest();
+    const engineer = await createUserWithRoles(db, "Ingeniera", [
+      { code: "INGENIERO", areaId: f.area.id },
+    ]);
+    const created = await db.$transaction((tx) =>
+      createTicketRecord(
+        tx,
+        coordinator,
+        { ...ticketInput(), ownerId: engineer.id },
+        NOW,
+      ),
+    );
+    if (!created.ok) throw new Error(created.error.message);
+    expect(await statusInbox(requester.id)).toHaveLength(1);
+    const { ticketId } = created.data;
+    for (const [to, minute] of [
+      ["EN_PROGRESO", 5],
+      ["RESUELTO", 30],
+    ] as const)
+      await db.$transaction((tx) =>
+        changeTicketStatusRecord(
+          tx,
+          engineer,
+          { ticketId, to },
+          new Date(NOW.getTime() + minute * 60_000),
+        ),
+      );
+    const titles = (await statusInbox(requester.id)).map((n) => n.title);
+    expect(titles).toHaveLength(3);
+    expect(titles).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/lo están atendiendo$/),
+        expect.stringMatching(/se resolvió$/),
+      ]),
+    );
   });
 });
 

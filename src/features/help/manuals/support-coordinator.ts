@@ -18,6 +18,16 @@ export const SUPPORT_COORDINATOR_MANUAL: Manual = {
       link: { href: "/tickets", label: "Ir a Tickets" },
     },
     {
+      heading: "Solicitudes de tu área",
+      steps: [
+        "Cuando alguien pide un ticket a tu área te llega un aviso y Tickets muestra cuántas solicitudes esperan.",
+        "Tickets → Solicitudes: Crear ticket abre el alta con el asunto, la descripción, el área y la ciudad de quien la pidió; tú eliges cliente, prioridad y encargado.",
+        "Si no corresponde (duplicada, de otra área), Descartar pide un motivo y se lo avisa a quien la pidió.",
+        "Quien la pidió sigue el estado del ticket y recibe un aviso en cada cambio, sin ver horas ni bolsas.",
+      ],
+      link: { href: "/tickets/solicitudes", label: "Ver las solicitudes" },
+    },
+    {
       heading: "Bolsas del ticket",
       steps: [
         "En la pestaña Bolsas sumas o cambias las bolsas del cliente que paga el ticket y su orden: se llena la primera y luego la siguiente.",

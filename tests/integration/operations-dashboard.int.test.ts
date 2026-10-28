@@ -159,6 +159,7 @@ describe("tablero operativo", () => {
       consumedRealMinutes: 0,
       expiredMinutes: 0,
       surchargeMinutes: 270,
+      termUsedMinutes: 0,
       pendingMinutes: 30,
     });
   });

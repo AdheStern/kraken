@@ -12,3 +12,10 @@ export type Manual = {
   summary: string;
   sections: readonly ManualSection[];
 };
+
+export type FaqEntry = {
+  id: string;
+  question: string;
+  answer: string;
+  link?: { href: string; label: string };
+};

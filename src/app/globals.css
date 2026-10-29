@@ -178,6 +178,18 @@
   --header-bg: oklch(0.155 0.03 263 / 0.7);
 }
 
+/* Cambio de tema (mode-toggle.tsx): el tema nuevo entra recortado en círculo; sin el fundido por defecto. */
+:root[data-theme-reveal]::view-transition-old(root),
+:root[data-theme-reveal]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* POR QUÉ: Firefox pinta el tema nuevo sin recorte entre la foto y la animación; se fija el círculo inicial. */
+:root[data-theme-reveal]::view-transition-new(root) {
+  clip-path: var(--theme-reveal-from);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

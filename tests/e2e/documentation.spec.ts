@@ -29,6 +29,12 @@ async function pick(page: Page, id: string, text: string) {
     .click();
 }
 
+// POR QUÉ: las fases son carpetas en pestañas; solo la abierta muestra su contenido.
+async function openPhase(page: Page) {
+  await page.getByRole("tab", { name: PHASE }).click();
+  return page.getByRole("region", { name: PHASE });
+}
+
 test("el administrador del sistema crea una fase de documentación", async ({
   browser,
 }) => {
@@ -54,7 +60,7 @@ test("la ingeniera crea un proyecto, sube un documento a la fase y lo descarga",
   projectUrl = page.url();
   await expect(page.getByRole("heading", { name: PROJECT })).toBeVisible();
 
-  const phase = page.getByRole("region", { name: PHASE });
+  const phase = await openPhase(page);
   await phase.locator('input[type="file"]').setInputFiles({
     name: "acta.txt",
     mimeType: "text/plain",
@@ -69,7 +75,7 @@ test("la ingeniera crea un proyecto, sube un documento a la fase y lo descarga",
 test("el comercial ve el documento pero no lo quita", async ({ browser }) => {
   const page = await as(browser, "comercial");
   await page.goto(projectUrl);
-  const phase = page.getByRole("region", { name: PHASE });
+  const phase = await openPhase(page);
   await expect(phase.getByText("acta.txt")).toBeVisible();
   await expect(
     phase.getByRole("button", { name: "Quitar acta.txt" }),
@@ -81,7 +87,7 @@ test("la ingeniera escribe una lección aprendida con formato en la fase", async
 }) => {
   const page = await as(browser, "ingeniero");
   await page.goto(projectUrl);
-  const phase = page.getByRole("region", { name: PHASE });
+  const phase = await openPhase(page);
   await phase.getByRole("button", { name: "Lección aprendida" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Título").fill("Energía del rack");
@@ -101,7 +107,7 @@ test("el comercial edita la lección, no la quita, y el .txt guarda el Markdown"
 }) => {
   const page = await as(browser, "comercial");
   await page.goto(projectUrl);
-  const phase = page.getByRole("region", { name: PHASE });
+  const phase = await openPhase(page);
   await phase
     .getByRole("button", { name: "Energía del rack", exact: true })
     .click();

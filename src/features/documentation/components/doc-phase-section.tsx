@@ -19,6 +19,7 @@ import { uploadDocument } from "../actions/upload-document";
 import type { DocPhaseView } from "../types";
 import { DocLessonDialog } from "./lessons/doc-lesson-dialog";
 import { DocLessonList } from "./lessons/doc-lesson-list";
+import { phaseCountText } from "./phase-count-text";
 import { useDocAction } from "./use-doc-action";
 
 type Props = { projectId: string; phase: DocPhaseView; canUpload: boolean };
@@ -56,11 +57,7 @@ export function DocPhaseSection({ projectId, phase, canUpload }: Props) {
         </h2>
         {!phase.isActive && <Badge variant="secondary">Dada de baja</Badge>}
         <span className="text-xs tabular-nums text-muted-foreground">
-          {phase.documents.length === 1
-            ? "1 documento"
-            : `${phase.documents.length} documentos`}
-          {phase.lessons.length > 0 &&
-            ` · ${phase.lessons.length === 1 ? "1 lección" : `${phase.lessons.length} lecciones`}`}
+          {phaseCountText(phase)}
         </span>
         {phase.isActive && canUpload && (
           <div className="ml-auto flex flex-wrap gap-2">

@@ -1,8 +1,8 @@
 // src/features/documentation/components/doc-phase-sections.tsx
-// Las fases de un proyecto de documentación, en orden, cada una como carpeta de documentos (AGENTS.md §2.10).
+// Las fases de un proyecto de documentación, en orden, como carpetas que se abren (AGENTS.md §2.10).
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import type { DocProjectPhases } from "../types";
-import { DocPhaseSection } from "./doc-phase-section";
+import { DocPhaseBrowser } from "./doc-phase-browser";
 
 type Props = { projectId: string; data: DocProjectPhases };
 
@@ -22,14 +22,11 @@ export function DocPhaseSections({ projectId, data }: Props) {
           conecte la biblioteca de SharePoint.
         </p>
       )}
-      {data.phases.map((phase) => (
-        <DocPhaseSection
-          key={phase.id}
-          projectId={projectId}
-          phase={phase}
-          canUpload={data.filesEnabled}
-        />
-      ))}
+      <DocPhaseBrowser
+        projectId={projectId}
+        phases={data.phases}
+        canUpload={data.filesEnabled}
+      />
     </div>
   );
 }

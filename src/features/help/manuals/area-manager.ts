@@ -24,7 +24,7 @@ export const AREA_MANAGER_MANUAL: Manual = {
         "Tickets → Solicitudes: lo que piden las personas de DIMA a tu área; creas el ticket prellenado o la descartas con un motivo. El aviso de cada solicitud te llega a ti y a los coordinadores del área.",
         "El encargado deja el ticket en Resuelto; tú lo cierras con Cerrar ticket, que descuenta las horas de las bolsas.",
         "No se puede cerrar con contadores activos o en pausa.",
-        "Reabrir el ticket pide un motivo y revierte el descuento; se recalcula al volver a cerrarlo.",
+        "Reabrir el ticket pide un motivo; las horas descontadas se mantienen y al volver a cerrarlo solo se descuenta el trabajo nuevo.",
       ],
       link: { href: "/tickets", label: "Ir a Tickets" },
     },

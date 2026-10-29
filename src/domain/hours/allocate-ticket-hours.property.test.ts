@@ -74,9 +74,14 @@ describe("allocateTicketHours · propiedades", () => {
     );
   });
 
+  // POR QUÉ: sin firmes; una firme cuenta lo que ya cobró aunque el trabajo sea menor (propiedad siguiente).
   it("en 24x7 los minutos reales se conservan entre bolsas y pendiente", () => {
     const bags24x7 = bagsArb.map((bags) =>
-      bags.map((bag) => ({ ...bag, modality: "H24X7" as const })),
+      bags.map((bag) => ({
+        ...bag,
+        modality: "H24X7" as const,
+        isSettled: false,
+      })),
     );
     fc.assert(
       fc.property(intervalsArb, bags24x7, (intervals, bags) => {
@@ -89,6 +94,26 @@ describe("allocateTicketHours · propiedades", () => {
         expect(assigned + insideMinutes + outsideMinutes).toBe(
           result.realMinutes,
         );
+      }),
+    );
+  });
+
+  it("una firme cuenta entero lo que ya cobró y el total nunca baja de lo firme", () => {
+    fc.assert(
+      fc.property(intervalsArb, bagsArb, (intervals, bags) => {
+        const result = allocateTicketHours(intervals, bags, LA_PAZ);
+        const firm = bags.filter((b) => b.isSettled && b.availableMinutes > 0);
+        for (const bag of firm)
+          expect(
+            result.consumptions.some(
+              (c) =>
+                c.isSettled &&
+                c.bagId === bag.bagId &&
+                c.minutes === bag.availableMinutes,
+            ),
+          ).toBe(true);
+        const firmTotal = firm.reduce((s, b) => s + b.availableMinutes, 0);
+        expect(result.chargedMinutes).toBeGreaterThanOrEqual(firmTotal);
       }),
     );
   });

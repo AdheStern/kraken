@@ -1,5 +1,5 @@
 // src/features/tickets/components/reopen-ticket-dialog.tsx
-// Reabre un ticket cerrado con motivo: sus consumos se revierten y se recalculan al volver a cerrarlo
+// Reabre un ticket cerrado con motivo: lo descontado queda firme y al volver a cerrarlo solo se cobra lo que falte
 // (AGENTS.md §2.6, §8 CERRADO → EN_PROGRESO).
 "use client";
 
@@ -38,8 +38,8 @@ export function ReopenTicketDialog({ ticketId }: { ticketId: string }) {
         <DialogHeader>
           <DialogTitle>Reabrir el ticket</DialogTitle>
           <DialogDescription>
-            Sus horas vuelven a las bolsas activas y se descuentan de nuevo al
-            cerrarlo. Lo consumido en bolsas ya vencidas o cerradas se mantiene.
+            Las horas ya descontadas se mantienen. Al volver a cerrarlo solo se
+            descuenta el trabajo nuevo que pase de lo ya cobrado.
           </DialogDescription>
         </DialogHeader>
         <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">

@@ -37,7 +37,7 @@ export const GENERAL_MANAGER_MANUAL: Manual = {
     {
       heading: "Tickets, bolsas e inventario",
       steps: [
-        "Puedes crear, cerrar y reabrir cualquier ticket. Reabrir pide un motivo y revierte el descuento de horas.",
+        "Puedes crear, cerrar y reabrir cualquier ticket. Reabrir pide un motivo y mantiene las horas ya descontadas.",
         "En una bolsa, Ajustar saldo y Cerrar la bolsa exigen motivo y quedan en el libro.",
         "Los ajustes de inventario que no pediste tú los apruebas o rechazas en Inventario → Ajustes.",
       ],

@@ -1,6 +1,6 @@
 // tests/integration/ticket-reopen.int.test.ts
-// Reapertura de un ticket contra la base (AGENTS.md §2.6, §8): REVERSO de sus consumos, consumo firme en
-// bolsas terminales sin cobrar dos veces al volver a cerrar, pendiente descartado y reaperturas simultáneas.
+// Reapertura de un ticket contra la base (AGENTS.md §2.6, §8): lo descontado queda firme y al volver a cerrar
+// solo se cobra la diferencia (decisión 2026-10-29), pendiente no aplicado descartado y reaperturas simultáneas.
 import { afterAll, describe, expect, it } from "vitest";
 import type { SessionUser } from "@/server/authz/roles";
 import { postHourMovement } from "@/server/hours/post-hour-movement";
@@ -16,14 +16,7 @@ const NOW = new Date("2026-10-20T15:00:00Z");
 const close = (user: SessionUser, ticketId: string) =>
   db.$transaction((tx) => closeTicketHours(tx, user, { ticketId }, NOW));
 const reopen = (user: SessionUser, ticketId: string) =>
-  db.$transaction((tx) =>
-    reopenTicketHours(
-      tx,
-      user,
-      { ticketId, reason: "Cliente no conforme" },
-      NOW,
-    ),
-  );
+  db.$transaction((tx) => reopenTicketHours(tx, user, { ticketId }, NOW));
 const resolve = (ticketId: string) =>
   db.ticket.update({ where: { id: ticketId }, data: { status: "RESUELTO" } });
 
@@ -41,41 +34,78 @@ async function closedHoras01() {
 }
 
 describe("reopenTicketHours", () => {
-  it("revierte los consumos y al volver a cerrar descuenta lo mismo", async () => {
+  it("no devuelve horas: las bolsas quedan como al cerrar y volver a cerrar sin trabajo nuevo no cobra", async () => {
     const f = await closedHoras01();
     const [p1, p2] = f.bags;
 
     expect(await reopen(f.coordinator, f.ticket.id)).toEqual({
       ok: true,
-      data: {
-        reversedMinutes: 270,
-        keptMinutes: 0,
-        discardedPending: [],
-      },
+      data: { keptMinutes: 270, discardedPending: [] },
     });
     expect(await ledgerOf(db, p1.id)).toEqual({
-      balance: 180,
-      status: "ACTIVA",
-      ledger: 180,
+      balance: 0,
+      status: "AGOTADA",
+      ledger: 0,
     });
-    expect(await ledgerOf(db, p2.id)).toMatchObject({
-      balance: 600,
-      ledger: 600,
-    });
+    expect(await ledgerOf(db, p2.id)).toMatchObject({ balance: 510 });
+    expect(
+      await db.hourMovement.count({
+        where: { ticketId: f.ticket.id, kind: "REVERSO" },
+      }),
+    ).toBe(0);
     expect(
       await db.ticket.findUniqueOrThrow({ where: { id: f.ticket.id } }),
     ).toMatchObject({ status: "EN_PROGRESO", closedAt: null });
 
     await resolve(f.ticket.id);
-    const again = await close(f.coordinator, f.ticket.id);
-    expect(again).toMatchObject({ ok: true, data: { chargedMinutes: 270 } });
+    expect(await close(f.coordinator, f.ticket.id)).toMatchObject({
+      ok: true,
+      data: { chargedMinutes: 0, consumptions: [] },
+    });
     expect(await ledgerOf(db, p2.id)).toMatchObject({
       balance: 510,
       ledger: 510,
     });
   });
 
-  it("el consumo en una bolsa vencida queda firme y no se cobra dos veces", async () => {
+  // POR QUÉ: caso de staging (2026-10-29): 263 min reales cobrados como 270; reabrir no debe devolverlos.
+  it("263 min cobrados como 270: +5 min no cobra nada y +20 min más cobra solo 30", async () => {
+    const f = await createTicketFixture(db, [
+      { modality: "H8X5", minutes: 600 },
+    ]);
+    const [bag] = f.bags;
+    await addTimeEntry(db, f.ticket.id, "2026-10-19T09:00", "2026-10-19T13:23");
+    expect(await close(f.coordinator, f.ticket.id)).toMatchObject({
+      ok: true,
+      data: { chargedMinutes: 270 },
+    });
+
+    await reopen(f.coordinator, f.ticket.id);
+    expect(await ledgerOf(db, bag.id)).toMatchObject({ balance: 330 });
+    await addTimeEntry(db, f.ticket.id, "2026-10-20T09:00", "2026-10-20T09:05");
+    await resolve(f.ticket.id);
+    expect(await close(f.coordinator, f.ticket.id)).toMatchObject({
+      ok: true,
+      data: { chargedMinutes: 0 },
+    });
+
+    await reopen(f.coordinator, f.ticket.id);
+    await addTimeEntry(db, f.ticket.id, "2026-10-20T10:00", "2026-10-20T10:20");
+    await resolve(f.ticket.id);
+    expect(await close(f.coordinator, f.ticket.id)).toMatchObject({
+      ok: true,
+      data: {
+        chargedMinutes: 30,
+        consumptions: [{ bagId: bag.id, minutes: 30 }],
+      },
+    });
+    expect(await ledgerOf(db, bag.id)).toMatchObject({
+      balance: 300,
+      ledger: 300,
+    });
+  });
+
+  it("lo firme en una bolsa vencida tampoco se cobra dos veces y el trabajo nuevo va a la activa", async () => {
     const f = await closedHoras01();
     const [p1, p2] = f.bags;
     await db.$transaction((tx) =>
@@ -87,20 +117,17 @@ describe("reopenTicketHours", () => {
         endAs: "VENCIDA",
       }),
     );
-
     expect(await reopen(f.coordinator, f.ticket.id)).toMatchObject({
       ok: true,
-      data: { reversedMinutes: 90, keptMinutes: 180 },
+      data: { keptMinutes: 270 },
     });
-    expect(await ledgerOf(db, p2.id)).toMatchObject({ balance: 600 });
-
+    await addTimeEntry(db, f.ticket.id, "2026-10-19T09:00", "2026-10-19T09:30");
     await resolve(f.ticket.id);
-    const again = await close(f.coordinator, f.ticket.id);
-    expect(again).toMatchObject({
+    expect(await close(f.coordinator, f.ticket.id)).toMatchObject({
       ok: true,
       data: {
-        chargedMinutes: 90,
-        consumptions: [{ bagId: p2.id, minutes: 90 }],
+        chargedMinutes: 30,
+        consumptions: [{ bagId: p2.id, minutes: 30 }],
       },
     });
     expect(
@@ -109,12 +136,12 @@ describe("reopenTicketHours", () => {
       }),
     ).toBe(1);
     expect(await ledgerOf(db, p2.id)).toMatchObject({
-      balance: 510,
-      ledger: 510,
+      balance: 480,
+      ledger: 480,
     });
   });
 
-  it("descarta el pendiente sin bolsa, aplicado o no, que se recalcula al volver a cerrar", async () => {
+  it("descarta el pendiente sin aplicar, conserva el aplicado y lo recalcula al volver a cerrar", async () => {
     const f = await createTicketFixture(db, []);
     await addTimeEntry(db, f.ticket.id, "2026-10-19T10:00", "2026-10-19T11:00");
     await close(f.coordinator, f.ticket.id);
@@ -130,19 +157,23 @@ describe("reopenTicketHours", () => {
 
     expect(await reopen(f.coordinator, f.ticket.id)).toMatchObject({
       ok: true,
-      data: {
-        discardedPending: [
-          { insideMinutes: 60, outsideMinutes: 0, status: "PENDIENTE" },
-          { insideMinutes: 0, outsideMinutes: 20, status: "APLICADA" },
-        ],
-      },
+      data: { discardedPending: [{ insideMinutes: 60, outsideMinutes: 0 }] },
     });
     expect(
-      await db.pendingHours.count({ where: { ticketId: f.ticket.id } }),
-    ).toBe(0);
+      await db.pendingHours.findMany({
+        where: { ticketId: f.ticket.id },
+        select: { status: true },
+      }),
+    ).toEqual([{ status: "APLICADA" }]);
+
+    await resolve(f.ticket.id);
+    expect(await close(f.coordinator, f.ticket.id)).toMatchObject({
+      ok: true,
+      data: { pendingMinutes: 60 },
+    });
   });
 
-  it("solo reabre un ticket cerrado, y dos reaperturas simultáneas revierten una sola vez", async () => {
+  it("solo reabre un ticket cerrado, y dos reaperturas simultáneas reabren una sola vez", async () => {
     const f = await closedHoras01();
     const results = await Promise.all([
       reopen(f.coordinator, f.ticket.id),
@@ -153,10 +184,10 @@ describe("reopenTicketHours", () => {
       "OK",
     ]);
     expect(
-      await db.hourMovement.count({
-        where: { ticketId: f.ticket.id, kind: "REVERSO" },
+      await db.ticketStatusEvent.count({
+        where: { ticketId: f.ticket.id, fromStatus: "CERRADO" },
       }),
-    ).toBe(2);
+    ).toBe(1);
 
     await resolve(f.ticket.id);
     const notClosed = await reopen(f.coordinator, f.ticket.id);

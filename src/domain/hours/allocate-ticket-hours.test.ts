@@ -112,16 +112,34 @@ describe("allocateTicketHours", () => {
     expect(result.consumptions[0].minutes).toBe(120);
   });
 
-  it("una bolsa firme recibe sus minutos pero el redondeo pasa a la siguiente", () => {
+  // REGLA: lo ya descontado queda firme; al volver a cerrar solo se cobra lo que falte sobre ello (decisión
+  // 2026-10-29, §2.6).
+  it("una bolsa firme cuenta todo lo que ya cobró: el redondeo no se cobra dos veces", () => {
     const result = allocateTicketHours(
       FRIDAY,
       [bag("P1", 180, { isSettled: true }), bag("P2", 600)],
       LA_PAZ,
     );
     expect(result.consumptions).toEqual([
-      { bagId: "P1", minutes: 165, roundingMinutes: 0, isSettled: true },
-      { bagId: "P2", minutes: 15, roundingMinutes: 15, isSettled: false },
+      { bagId: "P1", minutes: 180, roundingMinutes: 0, isSettled: true },
     ]);
+    expect(result.chargedMinutes).toBe(180);
+  });
+
+  it("al recerrar solo se cobra la diferencia sobre lo firme, con el redondeo sobre el total", () => {
+    // 165 ponderados ya cobrados como 180; se suman 40 min fuera de horario el sábado (80 ponderados).
+    const reopened = [...FRIDAY, span("2026-10-17T10:00", "2026-10-17T10:40")];
+    const result = allocateTicketHours(
+      reopened,
+      [bag("P1", 180, { isSettled: true }), bag("P1", 420)],
+      LA_PAZ,
+    );
+    // Total 245 → 270: la firme conserva 180 y la misma bolsa activa cobra 90 (65 + 25 de redondeo).
+    expect(result.consumptions).toEqual([
+      { bagId: "P1", minutes: 180, roundingMinutes: 0, isSettled: true },
+      { bagId: "P1", minutes: 90, roundingMinutes: 25, isSettled: false },
+    ]);
+    expect(result.chargedMinutes).toBe(270);
   });
 
   it("el redondeo llena la última bolsa usada y sigue con la siguiente con saldo", () => {

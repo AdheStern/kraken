@@ -41,9 +41,10 @@ export async function getTicketBags(
     input.calendar,
     Math.max(1, input.roundingStepMinutes),
   );
-  const projected = new Map(
-    allocation.consumptions.map((c) => [c.bagId, c.minutes]),
-  );
+  // POR QUÉ: tras reabrir, una bolsa aparece dos veces (lo firme y su saldo); se muestra la suma.
+  const projected = new Map<string, number>();
+  for (const { bagId, minutes } of allocation.consumptions)
+    projected.set(bagId, (projected.get(bagId) ?? 0) + minutes);
   // POR QUÉ: las cifras de cada bolsa salen de la query pública de horas, con su propio alcance de authz.
   const summaries = new Map(
     (await listHourBags(user, { customerId: ticket.customerId })).map((b) => [

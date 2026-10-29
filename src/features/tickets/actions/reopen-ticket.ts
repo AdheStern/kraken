@@ -1,5 +1,5 @@
 // src/features/tickets/actions/reopen-ticket.ts
-// Reabre un ticket cerrado con motivo y revierte sus consumos de horas (AGENTS.md §2.6, §8).
+// Reabre un ticket cerrado con motivo; lo descontado queda firme (AGENTS.md §2.6, §8).
 "use server";
 
 import { type ActionResult, actionError } from "@/lib/action-result";
@@ -34,7 +34,7 @@ export async function reopenTicket(
       const result = await reopenTicketHours(
         tx,
         user,
-        { ticketId, reason },
+        { ticketId },
         new Date(),
       );
       if (result.ok)
@@ -50,7 +50,6 @@ export async function reopenTicket(
           after: {
             status: "EN_PROGRESO",
             reason,
-            reversedMinutes: result.data.reversedMinutes,
             keptMinutes: result.data.keptMinutes,
           },
         });

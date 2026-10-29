@@ -1,7 +1,7 @@
 // tests/integration/ticket-close.int.test.ts
 // Cierre de un ticket contra la base (AGENTS.md §2.6, §3 flujo de cierre, §11 concurrencia): HORAS-01 de
 // punta a punta, rechazos, pendiente sin bolsa, cierres simultáneos que nunca sobregiran una bolsa y
-// VIGENCIA-01 (§15.5) con contratos por vigencia, también al reabrir.
+// VIGENCIA-01 (§15.5) con contratos por vigencia, que al reabrir conservan su uso.
 import { afterAll, describe, expect, it } from "vitest";
 import type { SessionUser } from "@/server/authz/roles";
 import { closeTicketHours } from "@/server/tickets/close-ticket-hours";
@@ -207,7 +207,7 @@ describe("closeTicketHours · contratos por vigencia (VIGENCIA-01)", () => {
     await addTimeEntry(db, ticketId, "2026-10-17T10:00", "2026-10-17T10:40");
   };
 
-  it("sin tope: el contrato carga 270 (saldo −270, ACTIVA) y al reabrir se revierte", async () => {
+  it("sin tope: el contrato carga 270 (saldo −270, ACTIVA) y al reabrir lo conserva", async () => {
     const f = await createTicketFixture(db, [
       {
         modality: "H8X5",
@@ -230,18 +230,13 @@ describe("closeTicketHours · contratos por vigencia (VIGENCIA-01)", () => {
     expect(await ledgerOf(db, hours.id)).toMatchObject({ balance: 600 });
 
     const reopened = await db.$transaction((tx) =>
-      reopenTicketHours(
-        tx,
-        f.coordinator,
-        { ticketId: f.ticket.id, reason: "Falta un registro" },
-        NOW,
-      ),
+      reopenTicketHours(tx, f.coordinator, { ticketId: f.ticket.id }, NOW),
     );
     expect(reopened).toMatchObject({
       ok: true,
-      data: { reversedMinutes: 270 },
+      data: { keptMinutes: 270 },
     });
-    expect(await ledgerOf(db, contract.id)).toMatchObject({ balance: 0 });
+    expect(await ledgerOf(db, contract.id)).toMatchObject({ balance: -270 });
   });
 
   it("con tope de 120: el contrato queda AGOTADA y la bolsa de horas carga 150", async () => {

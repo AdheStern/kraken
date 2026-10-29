@@ -1,6 +1,6 @@
 // src/server/tickets/load-ticket-allocation.ts
-// Arma la entrada de allocateTicketHours para un ticket bloqueado: intervalos cerrados, jerarquía de
-// bolsas con su saldo bajo bloqueo (un contrato sin tope, con capacidad de sobra), bolsas firmes y calendario de
+// Arma la entrada de allocateTicketHours para un ticket bloqueado: lo ya descontado como bolsas firmes, la
+// jerarquía de bolsas con su saldo bajo bloqueo (un contrato sin tope, con capacidad de sobra) y el calendario de
 // la ciudad (AGENTS.md §2.4, §2.6, §3 cierre).
 import type { BusinessCalendar } from "@/domain/calendar/business-calendar";
 import { toBusinessDate } from "@/domain/calendar/business-date";
@@ -50,15 +50,14 @@ export async function loadTicketAllocation(
   const locked = projectAt
     ? await readBags(tx, bagIds)
     : await lockBags(tx, bagIds);
+  // REGLA: lo ya descontado va primero para que el trabajo anterior lo vuelva a ocupar; luego las bolsas
+  // activas en su orden, también con el saldo que le queda a una firme (decisión 2026-10-29, §2.6).
   const bags: AllocationBag[] = [];
   for (const [bagId, { minutes, bag }] of settled)
-    if (!hierarchy.some((h) => h.bagId === bagId))
-      bags.push(toAllocationBag(bagId, bag, minutes, true));
+    bags.push(toAllocationBag(bagId, bag, minutes, true));
   for (const { bagId, bag } of hierarchy) {
-    const firm = settled.get(bagId);
     const current = locked.get(bagId);
-    if (firm) bags.push(toAllocationBag(bagId, bag, firm.minutes, true));
-    else if (current?.status === "ACTIVA")
+    if (current?.status === "ACTIVA")
       bags.push(
         toAllocationBag(
           bagId,
@@ -84,8 +83,8 @@ export async function loadTicketAllocation(
 
 const BAG_INFO = { modality: true, startsOn: true, expiresOn: true } as const;
 
-// POR QUÉ: un CONSUMO sin REVERSO al cerrar solo existe si una reapertura lo dejó firme en una bolsa
-// VENCIDA o CERRADA (decisión del 2026-10-19); entra delante si ya no está en la jerarquía.
+// POR QUÉ: un CONSUMO sin REVERSO al cerrar solo existe si el ticket se reabrió, que lo deja firme (decisión
+// 2026-10-29); los REVERSO de reaperturas anteriores a esa decisión lo excluyen.
 async function loadSettledMinutes(tx: Tx, ticketId: string) {
   const movements = await tx.hourMovement.findMany({
     where: { ticketId, kind: "CONSUMO", reversedBy: { is: null } },

@@ -54,7 +54,7 @@ export const SUPPORT_COORDINATOR_MANUAL: Manual = {
         "Cuando el encargado lo deja en Resuelto, Cerrar ticket descuenta las horas de las bolsas en orden.",
         "No se cierra con contadores activos o en pausa: pide al ingeniero que termine el suyo.",
         "Lo que no alcanzó queda como horas pendientes sin bolsa y avisa al comercial y al gerente.",
-        "Reabrir el ticket exige un motivo y revierte el descuento hasta el nuevo cierre.",
+        "Reabrir el ticket exige un motivo; lo descontado se mantiene y al volver a cerrar solo se cobra el trabajo nuevo.",
       ],
     },
   ],

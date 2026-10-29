@@ -25,8 +25,8 @@ export type AllocationBag = {
   acceptsWorkUntil: Date | null;
   // REGLA: un contrato por vigencia no acepta trabajo anterior a su inicio (§2.4); ausente o null = sin inicio.
   acceptsWorkFrom?: Date | null;
-  // POR QUÉ: al reabrir, el consumo en una bolsa VENCIDA o CERRADA queda firme (decisión del 2026-10-19);
-  // al volver a cerrar recibe sus minutos para no cobrarlos dos veces, pero no se descuenta ni absorbe redondeo.
+  // REGLA: al reabrir, lo descontado queda firme (decisión 2026-10-29, §2.6); al volver a cerrar recibe el
+  // trabajo primero, cuenta entero lo que ya cobró y no se descuenta otra vez ni absorbe redondeo.
   isSettled: boolean;
 };
 
@@ -149,8 +149,12 @@ function summarize(
   realMs: number,
   roundingStepMinutes: number,
 ): TicketAllocation {
+  // POR QUÉ: una firme ya cobró sus minutos aunque el trabajo pondere menos; contarlos enteros evita que el
+  // redondeo del total los cobre de nuevo en otra bolsa.
   const slots = cursors.map(({ bag, weightedMs }) => ({
-    minutes: Math.ceil(weightedMs / MINUTE_MS),
+    minutes: bag.isSettled
+      ? bag.availableMinutes
+      : Math.ceil(weightedMs / MINUTE_MS),
     availableMinutes: bag.availableMinutes,
     isSettled: bag.isSettled,
   }));

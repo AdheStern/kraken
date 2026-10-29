@@ -27,7 +27,7 @@ export function toTicketPermissions(
 ): TicketPermissions {
   const canManage = canManageTicket(user, access);
   const canClose = canCloseTicket(user, access);
-  // TRAMPA: desde CERRADO solo se sale con «Reabrir», que revierte las horas.
+  // TRAMPA: desde CERRADO solo se sale con «Reabrir», que exige motivo (lo descontado queda firme).
   const transitions =
     status === "CERRADO"
       ? []

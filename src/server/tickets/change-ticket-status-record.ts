@@ -41,7 +41,7 @@ export async function changeTicketStatusRecord(
       "FORBIDDEN",
       "Solo el encargado, el coordinador o el gerente del área cambian el estado de este ticket.",
     );
-  // TRAMPA: CERRADO → EN_PROGRESO es válido en §8, pero solo como reapertura (con REVERSO de horas).
+  // TRAMPA: CERRADO → EN_PROGRESO es válido en §8, pero solo como reapertura (con motivo, reopenTicket).
   if (ticket.status === "CERRADO")
     return actionError(
       "INVALID_STATE",

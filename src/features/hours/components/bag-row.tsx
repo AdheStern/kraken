@@ -71,7 +71,7 @@ export function BagRow({ bag }: { bag: BagSummary }) {
       </p>
       <p
         className={cn(
-          "col-start-2 text-sm md:col-start-auto md:text-right md:whitespace-nowrap",
+          "col-start-2 text-sm md:col-start-auto md:text-right",
           expiresSoon ? "font-medium text-warning" : "text-muted-foreground",
         )}
       >

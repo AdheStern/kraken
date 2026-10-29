@@ -41,8 +41,11 @@ const civilDate = new Intl.DateTimeFormat("es-BO", {
   timeZone: "UTC",
 });
 
+// POR QUÉ: una fecha no se parte entre líneas ("1 oct de / 2026"); los espacios duros la mantienen junta.
+const NBSP = String.fromCharCode(0xa0);
+
 export function formatCivilDate(date: string): string {
-  return civilDate.format(new Date(`${date}T00:00:00Z`));
+  return civilDate.format(new Date(`${date}T00:00:00Z`)).replaceAll(" ", NBSP);
 }
 
 export function scopeText(bag: Pick<BagSummary, "scope" | "areaCodes">) {
@@ -72,8 +75,9 @@ export function expiryText(
 ): string {
   const { expiresOn, daysToExpiry, startsOn } = bag;
   if (!expiresOn || daysToExpiry === null) return "Sin vencimiento";
+  // POR QUÉ: en una columna angosta el rango baja a dos líneas, y solo se parte antes de "al".
   if (startsOn && daysToExpiry > 60)
-    return `Del ${formatCivilDate(startsOn)} al ${formatCivilDate(expiresOn)}`;
+    return `Del${NBSP}${formatCivilDate(startsOn)} al${NBSP}${formatCivilDate(expiresOn)}`;
   if (daysToExpiry < 0) return `Venció el ${formatCivilDate(expiresOn)}`;
   if (daysToExpiry === 0) return "Vence hoy";
   if (daysToExpiry === 1) return "Vence mañana";

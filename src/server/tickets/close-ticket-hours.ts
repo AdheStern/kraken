@@ -4,6 +4,7 @@
 import { allocateTicketHours } from "@/domain/hours/allocate-ticket-hours";
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import type { SessionUser } from "@/server/authz/roles";
+import { findCityWithoutOfficeHours } from "@/server/calendar/find-city-without-office-hours";
 import type { Tx } from "@/server/db";
 import { postHourMovement } from "@/server/hours/post-hour-movement";
 import { applyStatusChange } from "./apply-status-change";
@@ -38,6 +39,12 @@ export async function closeTicketHours(
     return actionError(
       "INVALID_STATE",
       "Hay contadores activos o pausados en el ticket. Termínalos antes de cerrarlo.",
+    );
+  const cityName = await findCityWithoutOfficeHours(tx, ticket.cityId);
+  if (cityName)
+    return actionError(
+      "INVALID_STATE",
+      `${cityName} no tiene horario de oficina, así que no se puede ponderar el tiempo. Pide al administrador del sistema que le asigne uno en Administración → Calendario y vuelve a cerrar.`,
     );
 
   const input = await loadTicketAllocation(tx, ticket);

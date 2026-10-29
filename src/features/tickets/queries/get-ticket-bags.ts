@@ -6,6 +6,7 @@ import { bagIneligibility } from "@/domain/tickets/bag-eligibility";
 import { listHourBags } from "@/features/hours/queries/list-hour-bags";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeTicketQuery } from "@/server/authz/scope-ticket-query";
+import { findCityWithoutOfficeHours } from "@/server/calendar/find-city-without-office-hours";
 import { systemClock } from "@/server/clock";
 import { prisma } from "@/server/db";
 import { loadTicketAllocation } from "@/server/tickets/load-ticket-allocation";
@@ -68,6 +69,10 @@ export async function getTicketBags(
       pendingMinutes:
         allocation.pending.insideMinutes + allocation.pending.outsideMinutes,
       waivedMinutes: allocation.waivedRoundingMinutes,
+      cityWithoutOfficeHours: await findCityWithoutOfficeHours(
+        prisma,
+        ticket.cityId,
+      ),
     },
     pending: ticket.pendingHours.map((p) => ({
       id: p.id,

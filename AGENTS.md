@@ -213,6 +213,7 @@ Cada línea de horas de servicio de un CV aprobado genera una **bolsa**.
 - Bolsa **24x7**: todo 1 a 1.
 - Un intervalo que cruza el límite **se parte** (17:30–19:30 con cierre a las 18:30 = 60 min x1 + 60 min x2).
 - Se aplican el horario y los feriados de la **ciudad del ticket** (no la del ingeniero).
+- Una ciudad sin horario de oficina activo (o sin franjas) **no deja cerrar** sus tickets: todo su tiempo contaría fuera de horario. El detalle del ticket lo advierte y el administrador lo asigna en `/admin/calendario` (decisión 2026-10-29, tras un ticket de staging que cobró 9 h por 4 h 23 min reales).
 
 ```
 ponderados = minutos_dentro × 1 + minutos_fuera × m      m = 2 si 8x5, 1 si 24x7

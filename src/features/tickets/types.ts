@@ -108,6 +108,8 @@ export type TicketProjection = {
   chargedMinutes: number;
   pendingMinutes: number;
   waivedMinutes: number;
+  // POR QUÉ: sin horario de oficina el ticket no se cierra; la pestaña lo advierte antes (§2.5).
+  cityWithoutOfficeHours: string | null;
 };
 
 export type PendingView = {

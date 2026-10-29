@@ -7,7 +7,8 @@ import type { Tx } from "@/server/db";
 type Range = { from: string; to: string };
 
 // TRAMPA: se pasa la ciudad del ticket, no la del ingeniero (§2.5).
-// LIMITACIÓN: una ciudad sin horario asignado no tiene franjas; todo su tiempo cuenta fuera de horario.
+// LIMITACIÓN: una ciudad sin horario asignado no tiene franjas; todo su tiempo cuenta fuera de horario. Por eso
+// el cierre exige horario (findCityWithoutOfficeHours, §2.5).
 export async function loadBusinessCalendar(
   db: Pick<Tx, "city" | "holiday">,
   cityId: string,

@@ -112,6 +112,37 @@ describe("closeTicketHours", () => {
     expect(await code(engineer, f.ticket.id)).toBe("FORBIDDEN");
   });
 
+  // POR QUÉ: sin franjas todo el tiempo contaría fuera de horario (×2 en 8x5): 263 min reales se cobraban
+  // 9 h en lugar de 4 h 30 (staging, 2026-10-28).
+  it("no cierra si la ciudad del ticket no tiene horario de oficina y no descuenta nada", async () => {
+    const f = await createTicketFixture(db, [
+      { modality: "H8X5", minutes: 600 },
+    ]);
+    await db.city.update({
+      where: { id: f.city.id },
+      data: { officeScheduleId: null },
+    });
+    await addTimeEntry(db, f.ticket.id, "2026-10-19T09:00", "2026-10-19T13:23");
+
+    const result = await close(f.coordinator, f.ticket.id);
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "INVALID_STATE" },
+    });
+    if (!result.ok) expect(result.error.message).toContain("horario");
+    expect(await ledgerOf(db, f.bags[0].id)).toMatchObject({ balance: 600 });
+  });
+
+  it("con horario, 263 min reales en horario hábil descuentan 270 (4 h 30)", async () => {
+    const f = await createTicketFixture(db, [
+      { modality: "H8X5", minutes: 600 },
+    ]);
+    await addTimeEntry(db, f.ticket.id, "2026-10-19T09:00", "2026-10-19T13:23");
+
+    const result = await close(f.coordinator, f.ticket.id);
+    expect(result).toMatchObject({ ok: true, data: { chargedMinutes: 270 } });
+  });
+
   it("dos tickets cierran a la vez contra la misma bolsa: ambos cierran y el saldo nunca es negativo", async () => {
     const f = await createTicketFixture(db, [
       { modality: "H8X5", minutes: 180 },

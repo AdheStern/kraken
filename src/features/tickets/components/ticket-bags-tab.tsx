@@ -22,6 +22,17 @@ export function TicketBagsTab({
   const { projection } = panel;
   return (
     <div className="flex flex-col gap-4">
+      {projection.cityWithoutOfficeHours && (
+        <p
+          role="alert"
+          className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive"
+        >
+          {projection.cityWithoutOfficeHours} no tiene horario de oficina: el
+          ticket no se podrá cerrar y la proyección cuenta todo como fuera de
+          horario. Pide al administrador del sistema que le asigne uno en
+          Administración → Calendario.
+        </p>
+      )}
       <p className="kr-surface rounded-xl px-4 py-3 text-sm" aria-live="polite">
         Si se cerrara ahora se descontarían{" "}
         <span className="font-semibold tabular-nums">

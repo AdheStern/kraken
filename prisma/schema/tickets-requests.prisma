@@ -6,6 +6,7 @@ enum TicketRequestStatus {
   PENDIENTE
   ATENDIDA
   DESCARTADA
+  RETIRADA
 
   @@schema("tickets")
 }

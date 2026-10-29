@@ -53,6 +53,7 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   SUBIR: "subió",
   QUITAR: "quitó",
   DESCARTAR: "descartó",
+  RETIRAR: "retiró",
 };
 
 export function auditEntityLabel(entity: string): string {

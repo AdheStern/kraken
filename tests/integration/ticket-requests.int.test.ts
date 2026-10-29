@@ -1,12 +1,13 @@
 // tests/integration/ticket-requests.int.test.ts
 // Solicitudes de ticket contra la base (AGENTS.md §2.6 «Solicitudes de ticket»): alta, aviso a quienes la
-// atienden, ticket que nace de ella, avisos al solicitante, descarte y restricciones de coherencia.
+// atienden, ticket que nace de ella, avisos al solicitante, descarte, retiro y restricciones de coherencia.
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { changeTicketStatusRecord } from "@/server/tickets/change-ticket-status-record";
 import { createTicketRecord } from "@/server/tickets/create-ticket-record";
 import { createTicketRequestRecord } from "@/server/tickets/create-ticket-request-record";
 import { discardTicketRequestRecord } from "@/server/tickets/discard-ticket-request-record";
+import { withdrawTicketRequestRecord } from "@/server/tickets/withdraw-ticket-request-record";
 import {
   createHourBagFixture,
   createTestPrisma,
@@ -43,7 +44,7 @@ const request = (areaId: string) => ({
 });
 
 describe("createTicketRequestRecord", () => {
-  it("guarda la solicitud y avisa a los coordinadores del área, no a su gerente", async () => {
+  it("guarda la solicitud y avisa a los coordinadores y a los gerentes del área", async () => {
     const { area, requester, manager } = await setup();
     const coordinator = await createUserWithRoles(db, "Coordinadora", [
       { code: "COORDINADOR_SOPORTE", areaId: area.id },
@@ -63,7 +64,7 @@ describe("createTicketRequestRecord", () => {
       ticketId: null,
     });
     expect(await inboxOf(coordinator.id)).toHaveLength(1);
-    expect(await inboxOf(manager.id)).toHaveLength(0);
+    expect(await inboxOf(manager.id)).toHaveLength(1);
     const mail = await db.outboxMessage.count({
       where: {
         eventType: "SOLICITUD_NUEVA",
@@ -73,12 +74,18 @@ describe("createTicketRequestRecord", () => {
     expect(mail).toBe(1);
   });
 
-  it("sin coordinador activo avisa a los gerentes del área", async () => {
-    const { area, requester, manager } = await setup();
+  it("un área sin coordinadores ni gerentes activos avisa al GG", async () => {
+    const { requester } = await setup();
+    const lonely = await db.area.create({
+      data: { code: `D${randomUUID().slice(0, 6)}`, name: "Sin nadie" },
+    });
+    const gg = await createUserWithRoles(db, "Gerencia", [
+      { code: "GERENTE_GENERAL" },
+    ]);
     await db.$transaction((tx) =>
-      createTicketRequestRecord(tx, requester, request(area.id), NOW),
+      createTicketRequestRecord(tx, requester, request(lonely.id), NOW),
     );
-    expect(await inboxOf(manager.id)).toHaveLength(1);
+    expect(await inboxOf(gg.id)).toHaveLength(1);
   });
 
   it("rechaza un área dada de baja", async () => {
@@ -286,6 +293,33 @@ describe("discardTicketRequestRecord", () => {
       ok: false,
       error: { code: "INVALID_STATE" },
     });
+  });
+});
+
+describe("withdrawTicketRequestRecord", () => {
+  it("quien la pidió la retira mientras está pendiente; nadie más puede", async () => {
+    const { requester, coordinator, requestId, ticketInput } =
+      await pendingRequest();
+    const withdraw = (user: typeof requester) =>
+      db.$transaction((tx) =>
+        withdrawTicketRequestRecord(tx, user, { requestId }, NOW),
+      );
+    expect(await withdraw(coordinator)).toMatchObject({
+      ok: false,
+      error: { code: "NOT_FOUND" },
+    });
+    expect((await withdraw(requester)).ok).toBe(true);
+    expect(
+      await db.ticketRequest.findUniqueOrThrow({ where: { id: requestId } }),
+    ).toMatchObject({ status: "RETIRADA", handledById: requester.id });
+    expect(await withdraw(requester)).toMatchObject({
+      ok: false,
+      error: { code: "INVALID_STATE" },
+    });
+    const ticket = await db.$transaction((tx) =>
+      createTicketRecord(tx, coordinator, ticketInput(), NOW),
+    );
+    expect(ticket).toMatchObject({ ok: false, error: { code: "CONFLICT" } });
   });
 });
 

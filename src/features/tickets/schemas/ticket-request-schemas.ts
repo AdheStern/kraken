@@ -1,5 +1,5 @@
 // src/features/tickets/schemas/ticket-request-schemas.ts
-// Entradas de la solicitud de ticket y de su descarte; el mismo zod valida el formulario y la action (§2.6).
+// Entradas de la solicitud de ticket, de su descarte y de su retiro; el mismo zod valida el formulario y la action (§2.6).
 import { z } from "zod";
 
 export const createTicketRequestSchema = z.object({
@@ -25,9 +25,14 @@ export const discardTicketRequestSchema = z.object({
     .max(1000, "El motivo admite hasta 1000 caracteres."),
 });
 
+export const withdrawTicketRequestSchema = z.object({ requestId: z.uuid() });
+
 export type CreateTicketRequestInput = z.infer<
   typeof createTicketRequestSchema
 >;
 export type DiscardTicketRequestInput = z.infer<
   typeof discardTicketRequestSchema
+>;
+export type WithdrawTicketRequestInput = z.infer<
+  typeof withdrawTicketRequestSchema
 >;

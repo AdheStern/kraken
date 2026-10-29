@@ -1,6 +1,7 @@
 // tests/e2e/ticket-requests.spec.ts
 // Solicitudes de ticket (AGENTS.md §2.6, §11): la comercial pide un ticket a DIMAHELP, el coordinador lo crea desde
-// la bandeja con el alta prellenada y ella ve el ticket en «Mis solicitudes»; una segunda se descarta con motivo.
+// la bandeja con el alta prellenada y ella ve el ticket en «Mis solicitudes»; una segunda se descarta con motivo y
+// una tercera la retira ella misma.
 import { type Browser, expect, type Page, test } from "@playwright/test";
 import { storageFor } from "./users";
 
@@ -8,6 +9,7 @@ test.describe.configure({ mode: "serial" });
 
 const TITLE = `Solicitud E2E ${Date.now()}`;
 const DISCARDED = `Descartada E2E ${Date.now()}`;
+const WITHDRAWN = `Retirada E2E ${Date.now()}`;
 
 async function as(
   browser: Browser,
@@ -97,4 +99,17 @@ test("el coordinador descarta una solicitud con motivo", async ({
   const row = requester.locator("li", { hasText: DISCARDED });
   await expect(row).toContainText("Descartada");
   await expect(row).toContainText("Duplicada");
+});
+
+test("la comercial retira su solicitud pendiente", async ({ browser }) => {
+  const page = await as(browser, "comercial");
+  await request(page, WITHDRAWN);
+  const row = page.locator("li", { hasText: WITHDRAWN });
+  await row.getByRole("button", { name: "Retirar" }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Retirar solicitud" })
+    .click();
+  await expect(row).toContainText("Retirada");
+  await expect(row.getByRole("button", { name: "Retirar" })).toHaveCount(0);
 });

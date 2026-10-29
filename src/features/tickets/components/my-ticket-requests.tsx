@@ -1,11 +1,12 @@
 // src/features/tickets/components/my-ticket-requests.tsx
 // Lista de las solicitudes del usuario con el estado de su ticket, su encargado o el motivo del descarte
-// (AGENTS.md §2.6 «Solicitudes de ticket»).
+// y el retiro de las pendientes (AGENTS.md §2.6 «Solicitudes de ticket»).
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import { Badge } from "@/components/ui/badge";
 import type { MyTicketRequestView } from "../queries/list-my-ticket-requests";
 import { STATUS_LABELS } from "../ticket-labels";
 import { formatDateTime } from "./ticket-dates";
+import { WithdrawTicketRequestDialog } from "./withdraw-ticket-request-dialog";
 
 export function MyTicketRequests({
   requests,
@@ -38,7 +39,12 @@ export function MyTicketRequests({
             </p>
             <RequestDetail request={r} />
           </div>
-          <RequestBadge request={r} />
+          <div className="flex items-center gap-1">
+            {r.status === "PENDIENTE" && (
+              <WithdrawTicketRequestDialog requestId={r.id} number={r.number} />
+            )}
+            <RequestBadge request={r} />
+          </div>
         </li>
       ))}
     </ul>
@@ -50,6 +56,12 @@ function RequestDetail({ request: r }: { request: MyTicketRequestView }) {
     return (
       <p className="mt-1 text-xs">
         Descartada el {formatDateTime(r.handledAt)}: {r.discardReason}
+      </p>
+    );
+  if (r.status === "RETIRADA")
+    return (
+      <p className="mt-1 text-xs text-muted-foreground">
+        La retiraste el {formatDateTime(r.handledAt)}.
       </p>
     );
   if (!r.ticket)
@@ -72,6 +84,8 @@ function RequestDetail({ request: r }: { request: MyTicketRequestView }) {
 function RequestBadge({ request: r }: { request: MyTicketRequestView }) {
   if (r.status === "DESCARTADA")
     return <Badge variant="destructive">Descartada</Badge>;
+  if (r.status === "RETIRADA")
+    return <Badge variant="secondary">Retirada</Badge>;
   if (!r.ticket) return <Badge variant="outline">Pendiente</Badge>;
   const done = ["RESUELTO", "CERRADO"].includes(r.ticket.status);
   return (

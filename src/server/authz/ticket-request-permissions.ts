@@ -17,3 +17,11 @@ export function canHandleTicketRequest(
 }
 
 export const canHandleAnyTicketRequest = canCreateAnyTicket;
+
+// REGLA: solo quien la pidió retira su solicitud, mientras siga pendiente (§2.6, decisión 2026-10-29).
+export function canWithdrawTicketRequest(
+  user: SessionUser,
+  request: { requesterId: string },
+): boolean {
+  return request.requesterId === user.id;
+}

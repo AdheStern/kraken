@@ -9,6 +9,7 @@ import {
   canHandleAnyTicketRequest,
   canHandleTicketRequest,
   canRequestTicket,
+  canWithdrawTicketRequest,
 } from "@/server/authz/ticket-request-permissions";
 
 function user(...roles: [RoleCode, string?][]): SessionUser {
@@ -85,5 +86,18 @@ describe("§2.9 Solicitudes: ver", () => {
     expect(scopeTicketRequestQuery(user(["INGENIERO", "net"]))).toEqual({
       OR: [{ requesterId: "yo" }],
     });
+  });
+});
+
+describe("§2.9 Solicitudes de ticket: retirar", () => {
+  it("solo quien la pidió la retira, aunque sea GG", () => {
+    expect(
+      canWithdrawTicketRequest(user(["COMERCIAL"]), { requesterId: "yo" }),
+    ).toBe(true);
+    expect(
+      canWithdrawTicketRequest(user(["GERENTE_GENERAL"]), {
+        requesterId: "otro",
+      }),
+    ).toBe(false);
   });
 });

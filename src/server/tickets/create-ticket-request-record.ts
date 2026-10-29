@@ -43,28 +43,32 @@ export async function createTicketRequestRecord(
   return actionOk({ requestId: request.id, number: request.number });
 }
 
-// POR QUÉ: avisa a los coordinadores del área; si no tiene ninguno activo, a sus gerentes y, sin ellos, al GG,
-// para que nadie la pierda.
+// REGLA: avisa a los coordinadores y a los gerentes del área; si no tiene ninguno activo, al GG, para que nadie
+// la pierda (§2.6, decisión 2026-10-29).
 async function handlersOf(
   tx: Tx,
   areaId: string,
   requesterId: string,
 ): Promise<string[]> {
-  for (const code of [
-    "COORDINADOR_SOPORTE",
-    "GERENTE_AREA",
-    "GERENTE_GENERAL",
-  ] as const) {
-    const rows = await tx.userRole.findMany({
-      where: {
-        role: { code },
-        ...(code !== "GERENTE_GENERAL" && { areaId }),
-        user: { isActive: true },
-      },
-      select: { userId: true },
-    });
-    const ids = rows.map((r) => r.userId).filter((id) => id !== requesterId);
-    if (ids.length > 0) return ids;
-  }
-  return [];
+  const inArea = await tx.userRole.findMany({
+    where: {
+      role: { code: { in: ["COORDINADOR_SOPORTE", "GERENTE_AREA"] } },
+      areaId,
+      user: { isActive: true },
+    },
+    select: { userId: true },
+  });
+  const rows =
+    inArea.length > 0
+      ? inArea
+      : await tx.userRole.findMany({
+          where: {
+            role: { code: "GERENTE_GENERAL" },
+            user: { isActive: true },
+          },
+          select: { userId: true },
+        });
+  return [...new Set(rows.map((r) => r.userId))].filter(
+    (id) => id !== requesterId,
+  );
 }

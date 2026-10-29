@@ -21,7 +21,7 @@ export const AREA_MANAGER_MANUAL: Manual = {
       heading: "Tickets de tu área",
       steps: [
         "Tickets → Nuevo ticket: cliente, ciudad, área, prioridad y descripción; opcionalmente la bolsa que lo paga, de la que el SLA toma su modalidad. Luego asignas un encargado.",
-        "Tickets → Solicitudes: lo que piden las personas de DIMA a tu área; creas el ticket prellenado o la descartas con un motivo. Si tu área no tiene coordinador, el aviso te llega a ti.",
+        "Tickets → Solicitudes: lo que piden las personas de DIMA a tu área; creas el ticket prellenado o la descartas con un motivo. El aviso de cada solicitud te llega a ti y a los coordinadores del área.",
         "El encargado deja el ticket en Resuelto; tú lo cierras con Cerrar ticket, que descuenta las horas de las bolsas.",
         "No se puede cerrar con contadores activos o en pausa.",
         "Reabrir el ticket pide un motivo y revierte el descuento; se recalcula al volver a cerrarlo.",

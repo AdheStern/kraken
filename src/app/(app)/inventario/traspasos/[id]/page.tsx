@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { z } from "zod";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TransferDraftActions } from "@/features/inventory/components/transfer-draft-actions";
@@ -17,7 +17,17 @@ import { TransferWriteOffDialog } from "@/features/inventory/components/transfer
 import { getTransfer } from "@/features/inventory/queries/get-transfer";
 import { requireUser } from "@/server/session";
 
-export const metadata: Metadata = { title: "Traspaso" };
+// POR QUÉ: cache() comparte la lectura entre el título de la pestaña y la página.
+const loadTransfer = cache(async (id: string) =>
+  z.uuid().safeParse(id).success ? getTransfer(await requireUser(), id) : null,
+);
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/inventario/traspasos/[id]">): Promise<Metadata> {
+  const transfer = await loadTransfer((await params).id);
+  return { title: transfer ? `Traspaso N.º ${transfer.number}` : "Traspaso" };
+}
 
 const date = new Intl.DateTimeFormat("es-BO", {
   dateStyle: "medium",
@@ -47,10 +57,7 @@ export default function TransferPage({
 async function Transfer({
   params,
 }: Pick<PageProps<"/inventario/traspasos/[id]">, "params">) {
-  const { id } = await params;
-  if (!z.uuid().safeParse(id).success) notFound();
-  const user = await requireUser();
-  const transfer = await getTransfer(user, id);
+  const transfer = await loadTransfer((await params).id);
   if (!transfer) notFound();
   const canReceive =
     transfer.status === "EN_TRANSITO" ||

@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listTicketMaterials } from "@/features/inventory/queries/list-ticket-materials";
 import { AutoRefresh } from "@/features/tickets/components/auto-refresh";
@@ -19,7 +19,20 @@ import { getTicketSummary } from "@/features/tickets/queries/get-ticket-summary"
 import { getTicketTime } from "@/features/tickets/queries/get-ticket-time";
 import { requireUser } from "@/server/session";
 
-export const metadata: Metadata = { title: "Ticket" };
+// POR QUÉ: cache() comparte la lectura del detalle entre el título de la pestaña y la página.
+const loadTicketDetail = cache(getTicketDetail);
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/tickets/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  const detail = await loadTicketDetail(await requireUser(), id);
+  return {
+    title: detail
+      ? `#${detail.ticket.number} ${detail.ticket.title}`
+      : "Ticket",
+  };
+}
 
 export default function TicketPage({ params }: PageProps<"/tickets/[id]">) {
   return (
@@ -42,7 +55,7 @@ async function Ticket({ params }: Pick<PageProps<"/tickets/[id]">, "params">) {
   const { id } = await params;
   const user = await requireUser();
   const [detail, bags, time, materials, summary] = await Promise.all([
-    getTicketDetail(user, id),
+    loadTicketDetail(user, id),
     getTicketBags(user, id),
     getTicketTime(user, id),
     listTicketMaterials(user, id),

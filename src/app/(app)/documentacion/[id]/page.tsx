@@ -6,7 +6,7 @@ import { ArrowLeft, ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DocPhaseSections } from "@/features/documentation/components/doc-phase-sections";
@@ -17,7 +17,18 @@ import { getDocProjectPhases } from "@/features/documentation/queries/get-doc-pr
 import { canUseDocumentation } from "@/server/authz/documentation-permissions";
 import { requireUser } from "@/server/session";
 
-export const metadata: Metadata = { title: "Proyecto de documentación" };
+// POR QUÉ: cache() comparte la lectura entre el título de la pestaña y la página.
+const loadDocProject = cache(async (id: string) => {
+  const user = await requireUser();
+  return canUseDocumentation(user) ? getDocProject(user, id) : null;
+});
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/documentacion/[id]">): Promise<Metadata> {
+  const project = await loadDocProject((await params).id);
+  return { title: project?.name ?? "Proyecto de documentación" };
+}
 
 export default function DocProjectPage({
   params,
@@ -42,10 +53,8 @@ async function Project({
   params,
 }: Pick<PageProps<"/documentacion/[id]">, "params">) {
   const user = await requireUser();
-  if (!canUseDocumentation(user)) notFound();
-  const { id } = await params;
   const [project, options] = await Promise.all([
-    getDocProject(user, id),
+    loadDocProject((await params).id),
     getDocProjectFormOptions(),
   ]);
   if (!project) notFound();

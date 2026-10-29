@@ -1,8 +1,11 @@
 // src/app/not-found.tsx
 // Dirección que no corresponde a ninguna pantalla, fuera del marco de la app: en español y con salida.
+import type { Metadata } from "next";
 import Link from "next/link";
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import { buttonVariants } from "@/components/ui/button";
+
+export const metadata: Metadata = { title: "Página no encontrada" };
 
 export default function RootNotFound() {
   return (

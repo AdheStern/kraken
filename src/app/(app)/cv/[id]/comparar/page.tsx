@@ -4,13 +4,35 @@ import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { VersionComparison } from "@/features/sales-control/components/versions/version-comparison";
 import { getCvComparison } from "@/features/sales-control/queries/get-cv-comparison";
+import type { SessionUser } from "@/server/authz/roles";
 import { requireUser } from "@/server/session";
 
-export const metadata: Metadata = { title: "Comparar versiones" };
+// POR QUÉ: cache() comparte la comparación entre el título de la pestaña y la página.
+// TRAMPA: cache() compara por identidad; las versiones van sueltas y no en un objeto nuevo.
+const loadCvComparison = cache(
+  (user: SessionUser, id: string, from: number, to: number) =>
+    getCvComparison(user, id, { from, to }),
+);
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: PageProps<"/cv/[id]/comparar">): Promise<Metadata> {
+  const [{ id }, query] = await Promise.all([params, searchParams]);
+  const from = Number(query.de);
+  const to = Number(query.a);
+  const data =
+    Number.isInteger(from) && Number.isInteger(to) && from !== to
+      ? await loadCvComparison(await requireUser(), id, from, to)
+      : null;
+  return {
+    title: data ? `${data.fromLabel} → ${data.toLabel}` : "Comparar versiones",
+  };
+}
 
 export default function CvComparePage({
   params,
@@ -35,7 +57,7 @@ async function Comparison({
   if (!Number.isInteger(from) || !Number.isInteger(to) || from === to)
     notFound();
   const user = await requireUser();
-  const data = await getCvComparison(user, id, { from, to });
+  const data = await loadCvComparison(user, id, from, to);
   if (!data) notFound();
   const showUnchanged = query.todas === "1";
   const base = `/cv/${id}/comparar?de=${from}&a=${to}`;

@@ -4,14 +4,26 @@ import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { NodeMark } from "@/components/app-shell/node-mark";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BagCard } from "@/features/hours/components/bag-card";
 import { listHourBags } from "@/features/hours/queries/list-hour-bags";
 import { requireUser } from "@/server/session";
 
-export const metadata: Metadata = { title: "Bolsas del cliente" };
+// POR QUÉ: cache() comparte la lectura entre el título de la pestaña y la página.
+const loadCustomerBags = cache(async (customerId: string) =>
+  listHourBags(await requireUser(), { customerId }),
+);
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/horas/clientes/[id]">): Promise<Metadata> {
+  const [bag] = await loadCustomerBags((await params).id);
+  return {
+    title: bag ? `Bolsas de ${bag.customerName}` : "Bolsas del cliente",
+  };
+}
 
 export default function CustomerBagsPage({
   params,
@@ -35,9 +47,7 @@ export default function CustomerBagsPage({
 async function CustomerBags({
   params,
 }: Pick<PageProps<"/horas/clientes/[id]">, "params">) {
-  const { id } = await params;
-  const user = await requireUser();
-  const bags = await listHourBags(user, { customerId: id });
+  const bags = await loadCustomerBags((await params).id);
   // POR QUÉ: un cliente sin bolsas visibles para este usuario se trata como inexistente (regla 7).
   if (bags.length === 0) notFound();
   const active = bags.filter((b) => b.status === "ACTIVA").length;

@@ -2,7 +2,7 @@
 // Ficha de un usuario: ciudad, cargo, estado y roles con su área (AGENTS.md §1 roles, §2.9).
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { PersonAvatar } from "@/components/app-shell/person-avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminBackLink } from "@/features/admin/components/admin-back-link";
@@ -16,7 +16,19 @@ import {
 import { canManageSystem } from "@/server/authz/admin-permissions";
 import { requireUser } from "@/server/session";
 
-export const metadata: Metadata = { title: "Usuario" };
+// POR QUÉ: cache() comparte la lectura entre el título de la pestaña y la página.
+const loadUserAdmin = cache(async (id: string) => {
+  const viewer = await requireUser();
+  if (!canManageSystem(viewer)) return null;
+  return getUserAdmin(decodeURIComponent(id), viewer.id);
+});
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/admin/usuarios/[id]">): Promise<Metadata> {
+  const user = await loadUserAdmin((await params).id);
+  return { title: user?.name ?? "Usuario" };
+}
 
 export default function UserPage({
   params,
@@ -34,11 +46,9 @@ export default function UserPage({
 async function User({
   params,
 }: Pick<PageProps<"/admin/usuarios/[id]">, "params">) {
-  const viewer = await requireUser();
-  if (!canManageSystem(viewer)) notFound();
   const { id } = await params;
   const [user, options] = await Promise.all([
-    getUserAdmin(decodeURIComponent(id), viewer.id),
+    loadUserAdmin(id),
     getUserAdminOptions(),
   ]);
   if (!user) notFound();

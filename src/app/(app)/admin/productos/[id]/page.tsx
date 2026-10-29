@@ -2,7 +2,7 @@
 // Ficha de un producto: sus datos, su revisión si vino de un CV y su estado (AGENTS.md §2.1, §5).
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { z } from "zod";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,7 +16,19 @@ import {
 import { canManageCommercialCatalogs } from "@/server/authz/admin-permissions";
 import { requireUser } from "@/server/session";
 
-export const metadata: Metadata = { title: "Producto" };
+// POR QUÉ: cache() comparte la lectura entre el título de la pestaña y la página.
+const loadProduct = cache(async (id: string) => {
+  const user = await requireUser();
+  if (!canManageCommercialCatalogs(user)) return null;
+  return z.uuid().safeParse(id).success ? getProduct(id) : null;
+});
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/admin/productos/[id]">): Promise<Metadata> {
+  const product = await loadProduct((await params).id);
+  return { title: product?.code ?? "Producto" };
+}
 
 export default function ProductPage({
   params,
@@ -34,11 +46,7 @@ export default function ProductPage({
 async function Product({
   params,
 }: Pick<PageProps<"/admin/productos/[id]">, "params">) {
-  const user = await requireUser();
-  if (!canManageCommercialCatalogs(user)) notFound();
-  const { id } = await params;
-  if (!z.uuid().safeParse(id).success) notFound();
-  const product = await getProduct(id);
+  const product = await loadProduct((await params).id);
   if (!product) notFound();
   const options = await getProductFormOptions(product);
   return (

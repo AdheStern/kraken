@@ -2,7 +2,7 @@
 // Ficha de un cliente: sus datos, su estado y sus contactos (AGENTS.md §5 Administración).
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { z } from "zod";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,7 +14,19 @@ import { getCustomer } from "@/features/admin/queries/get-customer";
 import { canManageCommercialCatalogs } from "@/server/authz/admin-permissions";
 import { requireUser } from "@/server/session";
 
-export const metadata: Metadata = { title: "Cliente" };
+// POR QUÉ: cache() comparte la lectura entre el título de la pestaña y la página.
+const loadCustomer = cache(async (id: string) => {
+  const user = await requireUser();
+  if (!canManageCommercialCatalogs(user)) return null;
+  return z.uuid().safeParse(id).success ? getCustomer(id) : null;
+});
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/admin/clientes/[id]">): Promise<Metadata> {
+  const customer = await loadCustomer((await params).id);
+  return { title: customer?.name ?? "Cliente" };
+}
 
 export default function CustomerPage({
   params,
@@ -32,11 +44,7 @@ export default function CustomerPage({
 async function Customer({
   params,
 }: Pick<PageProps<"/admin/clientes/[id]">, "params">) {
-  const user = await requireUser();
-  if (!canManageCommercialCatalogs(user)) notFound();
-  const { id } = await params;
-  if (!z.uuid().safeParse(id).success) notFound();
-  const customer = await getCustomer(id);
+  const customer = await loadCustomer((await params).id);
   if (!customer) notFound();
   return (
     <>

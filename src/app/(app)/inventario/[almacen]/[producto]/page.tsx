@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatQuantity } from "@/features/inventory/components/inventory-labels";
@@ -15,9 +15,26 @@ import { formatAmount } from "@/lib/format-amount";
 import { canOperateInventory } from "@/server/authz/inventory-permissions";
 import { requireUser } from "@/server/session";
 
-export const metadata: Metadata = { title: "Kardex" };
-
 type Params = PageProps<"/inventario/[almacen]/[producto]">["params"];
+
+// POR QUÉ: cache() comparte la lectura entre el título de la pestaña y la página.
+const loadKardex = cache(async (warehouseCode: string, productId: string) =>
+  getKardex(await requireUser(), decodeURIComponent(warehouseCode), productId),
+);
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Params;
+}): Promise<Metadata> {
+  const { almacen, producto } = await params;
+  const kardex = await loadKardex(almacen, producto);
+  return {
+    title: kardex
+      ? `Kardex ${kardex.product.code} · ${kardex.warehouse.name}`
+      : "Kardex",
+  };
+}
 
 export default function KardexPage({ params }: { params: Params }) {
   return (
@@ -32,7 +49,7 @@ export default function KardexPage({ params }: { params: Params }) {
 async function Kardex({ params }: { params: Params }) {
   const { almacen, producto } = await params;
   const user = await requireUser();
-  const kardex = await getKardex(user, decodeURIComponent(almacen), producto);
+  const kardex = await loadKardex(almacen, producto);
   if (!kardex) notFound();
   const { warehouse, product, stock, entries } = kardex;
   return (

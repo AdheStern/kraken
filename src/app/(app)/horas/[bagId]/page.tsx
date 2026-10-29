@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { CountUp } from "@/components/motion/count-up";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdjustBagDialog } from "@/features/hours/components/adjust-bag-dialog";
@@ -24,7 +24,19 @@ import {
 import { getHourBag } from "@/features/hours/queries/get-hour-bag";
 import { requireUser } from "@/server/session";
 
-export const metadata: Metadata = { title: "Libro de la bolsa" };
+// POR QUÉ: cache() comparte la lectura entre el título de la pestaña y la página.
+const loadHourBag = cache(async (bagId: string) =>
+  getHourBag(await requireUser(), bagId),
+);
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/horas/[bagId]">): Promise<Metadata> {
+  const detail = await loadHourBag((await params).bagId);
+  return {
+    title: detail ? `Bolsa ${detail.bag.cvLabel}` : "Libro de la bolsa",
+  };
+}
 
 export default function HourBagPage({ params }: PageProps<"/horas/[bagId]">) {
   return (
@@ -46,9 +58,7 @@ export default function HourBagPage({ params }: PageProps<"/horas/[bagId]">) {
 async function HourBag({
   params,
 }: Pick<PageProps<"/horas/[bagId]">, "params">) {
-  const { bagId } = await params;
-  const user = await requireUser();
-  const detail = await getHourBag(user, bagId);
+  const detail = await loadHourBag((await params).bagId);
   if (!detail) notFound();
   const { bag, ledger } = detail;
   // REGLA: solo el gerente del área o el GG ajustan o cierran, y solo bolsas no terminales (§2.9, §8).

@@ -25,10 +25,23 @@ const nunito = Nunito({
   weight: ["900"],
 });
 
+const DESCRIPTION =
+  "Kraken by DIMA: control de venta, horas, tickets e inventario de DIMA Ltda. en un solo lugar.";
+
 export const metadata: Metadata = {
+  // POR QUÉ: la vista previa de un enlace necesita la URL absoluta de la imagen, y el HTML se prerenderiza en
+  // el build, donde no está BETTER_AUTH_URL. Staging muestra la misma imagen, que es solo la marca.
+  metadataBase: new URL("https://kraken.dima.com.bo"),
   title: { default: "Kraken", template: "%s · Kraken" },
-  description:
-    "Kraken by DIMA: control de venta, horas, tickets e inventario de DIMA Ltda. en un solo lugar.",
+  description: DESCRIPTION,
+  // REGLA: app interna detrás de login; no se indexa (también robots.txt).
+  robots: { index: false, follow: false },
+  openGraph: {
+    siteName: "Kraken by DIMA",
+    locale: "es_BO",
+    type: "website",
+    description: DESCRIPTION,
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

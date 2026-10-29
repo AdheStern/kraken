@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { NodeMark } from "@/components/app-shell/node-mark";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getVersionBagEffects } from "@/features/hours/queries/get-version-bag-effects";
@@ -32,7 +32,21 @@ import { canCreateCv } from "@/server/authz/cv-permissions";
 import { getDecimalParameter } from "@/server/parameters";
 import { requireUser } from "@/server/session";
 
-export const metadata: Metadata = { title: "Editor de CV" };
+// POR QUÉ: cache() comparte las lecturas entre el título de la pestaña y la página.
+const loadCvEditor = cache(getCvEditor);
+const loadCvHoursView = cache(getCvHoursView);
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: PageProps<"/cv/[id]">): Promise<Metadata> {
+  const [{ id }, { v }] = await Promise.all([params, searchParams]);
+  const user = await requireUser();
+  const editor = await loadCvEditor(user, id, toVersionNumber(v));
+  const label =
+    editor?.header.versionLabel ?? (await loadCvHoursView(user, id))?.label;
+  return { title: label ?? "Control de Venta" };
+}
 
 // [CONFIRMAR] respaldo si el parámetro no está cargado (AGENTS.md §14, F1).
 const FX_DEVIATION_FALLBACK_PCT = "2";
@@ -64,15 +78,10 @@ async function CvEditor({
 }: Pick<PageProps<"/cv/[id]">, "params" | "searchParams">) {
   const [{ id }, { v }] = await Promise.all([params, searchParams]);
   const user = await requireUser();
-  const versionNumber = Number(v);
-  const editor = await getCvEditor(
-    user,
-    id,
-    Number.isInteger(versionNumber) ? versionNumber : undefined,
-  );
+  const editor = await loadCvEditor(user, id, toVersionNumber(v));
   if (!editor) {
     // REGLA: el ingeniero ve la cabecera y las horas de los CV de sus tickets, nunca el editor (§2.9).
-    const hoursView = await getCvHoursView(user, id);
+    const hoursView = await loadCvHoursView(user, id);
     if (!hoursView) notFound();
     return <CvHoursView cv={hoursView} />;
   }
@@ -184,4 +193,8 @@ function EditorSkeleton() {
       <Skeleton className="h-72 w-full rounded-xl" />
     </div>
   );
+}
+
+function toVersionNumber(v: string | string[] | undefined): number | undefined {
+  return Number.isInteger(Number(v)) ? Number(v) : undefined;
 }

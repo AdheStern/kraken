@@ -82,6 +82,7 @@ describe("bolsas del ticket", () => {
       chargedMinutes: 270,
       pendingMinutes: 0,
       waivedMinutes: 0,
+      cityWithoutOfficeHours: null,
     });
     expect(
       panel?.hierarchy.map((h) => [h.priority, h.projectedMinutes]),

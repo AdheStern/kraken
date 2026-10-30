@@ -97,21 +97,66 @@ export const STANDARD_COLORS: { name: string; hex: string }[] = [
   { name: "Morado", hex: "7030A0" },
 ];
 
-// POR QUÉ: en la grilla el texto va encima del relleno; sobre un fondo oscuro se lee en blanco.
-export function textColorFor(hex: string): string {
+export function relativeLuminance(hex: string): number {
   const [r, g, b] = [0, 2, 4].map((i) => {
     const channel = Number.parseInt(hex.slice(i, i + 2), 16) / 255;
     return channel <= 0.03928
       ? channel / 12.92
       : ((channel + 0.055) / 1.055) ** 2.4;
   });
-  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  // POR QUÉ: 0.179 es donde el contraste WCAG con negro y con blanco se igualan.
-  return luminance > 0.179 ? "#1a1a1a" : "#ffffff";
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
+// POR QUÉ: 0.179 es donde el contraste WCAG con negro y con blanco se igualan.
+export function isDarkFill(hex: string): boolean {
+  return relativeLuminance(hex) <= 0.179;
+}
+
+// POR QUÉ: la fila redefine los tokens del tema que usan sus celdas (texto, íconos, bordes, fondo de inputs,
+// resaltados) con capas de negro o blanco según su relleno, no según el modo claro u oscuro: los tokens del
+// modo oscuro son grises claros que sobre un relleno claro o medio desaparecen. Las capas transparentes sirven
+// sobre cualquier tono. Los menús se abren en un portal, fuera de la fila, con el tema normal.
+export const INK_ON_LIGHT = {
+  "--foreground": "rgb(0 0 0 / 1)",
+  "--muted-foreground": "rgb(0 0 0 / 0.66)",
+  "--border": "rgb(0 0 0 / 0.22)",
+  "--input": "rgb(0 0 0 / 0.32)",
+  "--muted": "rgb(0 0 0 / 0.07)",
+  "--accent": "rgb(0 0 0 / 0.1)",
+  "--accent-foreground": "rgb(0 0 0 / 1)",
+  "--ring": "rgb(0 0 0 / 0.6)",
+  // Celda con foco: un velo blanco sobre el relleno, nunca el fondo del tema.
+  "--background": "rgb(255 255 255 / 0.6)",
+  "--primary": "oklch(0.42 0.17 256)",
+  "--destructive": "oklch(0.47 0.2 27)",
+  "--warning": "oklch(0.45 0.12 65)",
+  "--success": "oklch(0.4 0.11 155)",
+  colorScheme: "light",
+};
+
+export const INK_ON_DARK = {
+  "--foreground": "rgb(255 255 255 / 1)",
+  "--muted-foreground": "rgb(255 255 255 / 0.8)",
+  "--border": "rgb(255 255 255 / 0.32)",
+  "--input": "rgb(255 255 255 / 0.42)",
+  "--muted": "rgb(255 255 255 / 0.12)",
+  "--accent": "rgb(255 255 255 / 0.16)",
+  "--accent-foreground": "rgb(255 255 255 / 1)",
+  "--ring": "rgb(255 255 255 / 0.75)",
+  "--background": "rgb(0 0 0 / 0.3)",
+  "--primary": "oklch(0.86 0.09 252)",
+  "--destructive": "oklch(0.84 0.12 24)",
+  "--warning": "oklch(0.88 0.13 85)",
+  "--success": "oklch(0.86 0.12 155)",
+  colorScheme: "dark",
+};
+
 export function rowColorStyle(hex: string | null): CSSProperties | undefined {
-  return hex
-    ? { backgroundColor: `#${hex}`, color: textColorFor(hex) }
-    : undefined;
+  if (!hex) return undefined;
+  const ink = isDarkFill(hex) ? INK_ON_DARK : INK_ON_LIGHT;
+  return {
+    ...ink,
+    backgroundColor: `#${hex}`,
+    color: "var(--foreground)",
+  } as CSSProperties;
 }

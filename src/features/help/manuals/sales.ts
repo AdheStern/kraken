@@ -19,7 +19,7 @@ export const SALES_MANUAL: Manual = {
     {
       heading: "Líneas, factor y precio",
       steps: [
-        "Puedes pegar filas desde Excel en la grilla. Cada línea necesita su área: de ahí salen los aprobadores. En Observaciones, Alt+Enter agrega una línea, como en Excel. Para numerar 1.1, 1.2, el botón de sangría convierte la línea en subítem de la anterior; cada una mantiene su precio. Para resaltar una fila, el balde al final de la fila trae la paleta de Excel; el color sale igual en el Excel exportado.",
+        "Puedes pegar filas desde Excel en la grilla. Cada línea necesita su área: de ahí salen los aprobadores. En una licencia (tipo Intangible) puedes indicar el rango de activación con el calendario de la columna antes de Observaciones; sale en el Excel dentro de Observaciones. En Observaciones, Alt+Enter agrega una línea, como en Excel. Para numerar 1.1, 1.2, el botón de sangría convierte la línea en subítem de la anterior; cada una mantiene su precio. Para resaltar una fila, el balde al final de la fila trae la paleta de Excel; el color sale igual en el Excel exportado.",
         "Escribe el factor o el precio final; el otro se calcula. Con costo 0 (servicios propios) solo hay precio.",
         "Con un factor en la barra puedes aplicarlo a toda una tecnología; los lotes tienen su subtotal.",
         "Para vender horas usa la unidad HORAS y el tipo SERVICIO, y completa modalidad (8x5 o 24x7), alcance y vencimiento: al aprobarse nace la bolsa.",

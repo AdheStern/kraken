@@ -1,8 +1,10 @@
 // src/features/sales-control/components/lines/item-catalog-cells.tsx
-// Celdas descriptivas de una fila de ítem: área, producto, descripción, unidad, cantidad y clasificación.
+// Celdas descriptivas de una fila de ítem: área, producto, descripción, unidad, cantidad, clasificación, rango de
+// activación (licencias) y observaciones.
 "use client";
 
 import type { ReactNode } from "react";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import type { CvLineDraft } from "../../schemas/cv-lines-schema";
 import type { CvGridOptions } from "../../types";
 import { NumberCell, SelectCell, TextAreaCell, TextCell } from "./grid-cells";
@@ -126,11 +128,34 @@ export function catalogCells(
       "Tipo",
       line.itemType,
       ITEM_TYPE_OPTIONS,
-      (value) => ({ itemType: value as CvLineDraft["itemType"] }),
+      // REGLA: el rango de activación es solo de licencias; deja de valer si la línea cambia de tipo (§2.1).
+      (value) => ({
+        itemType: value as CvLineDraft["itemType"],
+        ...(value !== "INTANGIBLE" && {
+          activationStart: "",
+          activationEnd: "",
+        }),
+      }),
     ),
     poNumber: text("poNumber", "PO#", line.poNumber, (poNumber) => ({
       poNumber,
     })),
+    activation: (
+      <DateRangePicker
+        data-cell={`${row}:${col("activation")}`}
+        aria-label="Rango de activación"
+        start={line.activationStart}
+        end={line.activationEnd}
+        disabled={disabled || line.itemType !== "INTANGIBLE"}
+        placeholder={
+          line.itemType === "INTANGIBLE" ? "Elige el rango" : "Solo intangibles"
+        }
+        onChange={(activationStart, activationEnd) =>
+          onChange({ activationStart, activationEnd })
+        }
+        className="h-8 rounded-[6px] border-transparent px-2 text-[13px] hover:border-border focus-visible:border-ring dark:bg-transparent"
+      />
+    ),
     notes: (
       <TextAreaCell
         row={row}

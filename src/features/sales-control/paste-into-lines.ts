@@ -121,8 +121,13 @@ function applyCell(
       return { ...line, supplyMode: id ?? line.supplyMode };
     }
     case "itemType": {
-      const id = pick(ITEM_TYPE_OPTIONS, "Tipo") as CvLineDraft["itemType"];
-      return { ...line, itemType: id ?? line.itemType };
+      const itemType =
+        (pick(ITEM_TYPE_OPTIONS, "Tipo") as CvLineDraft["itemType"]) ??
+        line.itemType;
+      // REGLA: el rango de activación es solo de licencias (§2.1).
+      return itemType === "INTANGIBLE"
+        ? { ...line, itemType }
+        : { ...line, itemType, activationStart: "", activationEnd: "" };
     }
     default:
       return line;

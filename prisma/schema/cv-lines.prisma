@@ -26,37 +26,40 @@ enum PricingSource {
 
 // REGLA: área obligatoria si ITEM; factor null si costo = 0 (CHECK en prisma/sql/cv.sql, §2.2 y PRECIO-01).
 model CvLine {
-  id            String         @id @default(uuid(7)) @db.Uuid
-  versionId     String         @map("version_id") @db.Uuid
-  groupId       String?        @map("grupo_id") @db.Uuid
-  position      Int            @map("posicion")
-  kind          CvLineKind     @map("tipo_linea")
-  areaId        String?        @map("area_id") @db.Uuid
-  supplierId    String?        @map("proveedor_id") @db.Uuid
-  supplyMode    SupplyMode?    @map("modalidad_suministro")
-  technologyId  String?        @map("tecnologia_id") @db.Uuid
-  itemType      ItemType?      @map("tipo_item")
-  productId     String?        @map("producto_id") @db.Uuid
-  code          String?        @map("codigo")
-  description   String         @map("descripcion")
-  unitId        String?        @map("unidad_id") @db.Uuid
-  quantity      Decimal?       @map("cantidad") @db.Decimal(14, 2)
-  unitCostUsd   Decimal?       @map("costo_unit_usd") @db.Decimal(18, 2)
-  factor        Decimal?       @db.Decimal(8, 2)
-  unitSaleUsd   Decimal?       @map("venta_unit_usd") @db.Decimal(18, 2)
-  pricingSource PricingSource? @map("origen_precio")
-  hourBagSpec   Json?          @map("especificacion_bolsa")
+  id              String         @id @default(uuid(7)) @db.Uuid
+  versionId       String         @map("version_id") @db.Uuid
+  groupId         String?        @map("grupo_id") @db.Uuid
+  position        Int            @map("posicion")
+  kind            CvLineKind     @map("tipo_linea")
+  areaId          String?        @map("area_id") @db.Uuid
+  supplierId      String?        @map("proveedor_id") @db.Uuid
+  supplyMode      SupplyMode?    @map("modalidad_suministro")
+  technologyId    String?        @map("tecnologia_id") @db.Uuid
+  itemType        ItemType?      @map("tipo_item")
+  productId       String?        @map("producto_id") @db.Uuid
+  code            String?        @map("codigo")
+  description     String         @map("descripcion")
+  unitId          String?        @map("unidad_id") @db.Uuid
+  quantity        Decimal?       @map("cantidad") @db.Decimal(14, 2)
+  unitCostUsd     Decimal?       @map("costo_unit_usd") @db.Decimal(18, 2)
+  factor          Decimal?       @db.Decimal(8, 2)
+  unitSaleUsd     Decimal?       @map("venta_unit_usd") @db.Decimal(18, 2)
+  pricingSource   PricingSource? @map("origen_precio")
+  hourBagSpec     Json?          @map("especificacion_bolsa")
   // REGLA: raíz del linaje entre versiones (la línea de la versión donde nació); con ella una versión nueva
   // encuentra su bolsa de horas (§2.4). Sin FK: la raíz vive en una versión inmutable y nunca se borra.
-  originLineId  String?        @map("linea_origen_id") @db.Uuid
-  coverageStart DateTime?      @map("vigencia_inicio") @db.Date
-  coverageEnd   DateTime?      @map("vigencia_fin") @db.Date
-  poNumber      String?        @map("po_numero")
-  notes         String?        @map("observaciones")
+  originLineId    String?        @map("linea_origen_id") @db.Uuid
+  coverageStart   DateTime?      @map("vigencia_inicio") @db.Date
+  coverageEnd     DateTime?      @map("vigencia_fin") @db.Date
+  // Rango de activación de una licencia (solo tipo INTANGIBLE): cuándo se activará, no cuánto dura (vigencia).
+  activationStart DateTime?      @map("activacion_inicio") @db.Date
+  activationEnd   DateTime?      @map("activacion_fin") @db.Date
+  poNumber        String?        @map("po_numero")
+  notes           String?        @map("observaciones")
   // Relleno de la fila en la grilla y en el Excel exportado, como RRGGBB en mayúsculas; null = sin color.
-  color         String?        @db.VarChar(6)
+  color           String?        @db.VarChar(6)
   // Subítem de la línea principal anterior del mismo lote: se numera 1.1, 1.2 (número derivado, no guardado).
-  isSubItem     Boolean        @default(false) @map("es_subitem")
+  isSubItem       Boolean        @default(false) @map("es_subitem")
 
   version      CvVersion      @relation(fields: [versionId], references: [id], onDelete: Cascade)
   group        CvGroup?       @relation(fields: [groupId], references: [id])

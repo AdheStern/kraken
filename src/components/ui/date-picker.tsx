@@ -6,6 +6,10 @@
 import { es } from "date-fns/locale";
 import { CalendarDays, X } from "lucide-react";
 import { useState } from "react";
+import {
+  parseLocalDateText as toDate,
+  toLocalDateText as toText,
+} from "@/lib/local-date-text";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 import { Calendar } from "./calendar";
@@ -104,16 +108,4 @@ export function DatePicker({
       {name && <input type="hidden" name={name} value={value} />}
     </Popover>
   );
-}
-
-// TRAMPA: "2026-10-15" con new Date() es medianoche UTC y en La Paz cae el día anterior; se arma en hora local.
-function toDate(text: string): Date | undefined {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
-  if (!match) return undefined;
-  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-}
-
-function toText(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }

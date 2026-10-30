@@ -13,6 +13,7 @@ import {
   type CustomerParty,
   parseCustomerSnapshot,
 } from "../customer-snapshot";
+import { exportObservations } from "../export-observations";
 
 const name = { select: { user: { select: { name: true } } } } as const;
 const VERSION_INCLUDE = {
@@ -118,22 +119,18 @@ function toSections(version: VersionRow): CvExportSection[] {
                 quantity: line.quantity?.toString() ?? "",
                 unitCostUsd: line.unitCostUsd?.toFixed(2) ?? "",
                 unitSaleUsd: line.unitSaleUsd?.toFixed(2) ?? "",
-                observations: observations(
-                  line.notes,
-                  line.serials.map((s) => s.serial),
-                ),
+                observations: exportObservations({
+                  notes: line.notes,
+                  activationStart: line.activationStart,
+                  activationEnd: line.activationEnd,
+                  serials: line.serials.map((s) => s.serial),
+                }),
                 poNumber: line.poNumber ?? "",
                 color: line.color,
               },
         ),
     }))
     .filter((section) => section.groupName !== null || section.rows.length > 0);
-}
-
-function observations(notes: string | null, serials: string[]): string {
-  return [notes ?? "", serials.length > 0 ? `S/N: ${serials.join(", ")}` : ""]
-    .filter(Boolean)
-    .join("\n");
 }
 
 function emptyParty(name: string): CustomerParty {

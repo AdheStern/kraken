@@ -2,7 +2,7 @@
 // Columnas de la grilla de líneas, en el orden en que se ven y en que se reparte un bloque pegado desde Excel.
 // POR QUÉ: proveedor, tecnología, código y descripción abren la fila como en la plantilla PA-PR-03-RE-01; el área
 // va después de la descripción y los precios a continuación, para verse sin desplazar. Modalidad y tipo quedan
-// a la derecha.
+// a la derecha, y el rango de activación (solo licencias) justo antes de las observaciones.
 import type { ItemType, SupplyMode } from "@/generated/prisma/enums";
 
 export type GridColumn = {
@@ -39,6 +39,7 @@ export const COLUMNS = {
   supplyMode: { label: "Modalidad", width: 128 },
   itemType: { label: "Tipo", width: 112 },
   poNumber: { label: "PO#", width: 100 },
+  activation: { label: "Rango de activación", width: 220 },
   notes: { label: "Observaciones", width: 200 },
   actions: { label: "", width: 180 },
 } as const satisfies Record<string, GridColumn>;

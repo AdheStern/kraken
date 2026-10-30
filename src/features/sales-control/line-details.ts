@@ -69,6 +69,7 @@ export function lineDetailIssues(
       message: "La vigencia termina antes de empezar.",
     });
   }
+  issues.push(...activationIssues(line));
   if (new Set(line.serials).size !== line.serials.length) {
     issues.push({ field: "serials", message: "Hay seriales repetidos." });
   }
@@ -204,4 +205,19 @@ export function parseHourBagSpec(value: unknown): HourBagSpec | null {
   }
   const parsed = hourBagSpecSchema.safeParse(stored);
   return parsed.success ? parsed.data : null;
+}
+
+// REGLA: el rango de activación es opcional y solo de licencias (INTANGIBLE); si se pone, va completo (§2.1).
+function activationIssues(line: CvLineDraft): LineIssue[] {
+  if (line.itemType !== "INTANGIBLE") return [];
+  const field = "activationEnd";
+  if (!!line.activationStart !== !!line.activationEnd)
+    return [
+      { field, message: "Completa el rango de activación: inicio y fin." },
+    ];
+  if (line.activationEnd < line.activationStart)
+    return [
+      { field, message: "El rango de activación termina antes de empezar." },
+    ];
+  return [];
 }

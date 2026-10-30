@@ -44,6 +44,8 @@ export type VersionLineRecord = {
     color: string | null;
     coverageStart: Date | null;
     coverageEnd: Date | null;
+    activationStart: Date | null;
+    activationEnd: Date | null;
     hourBagSpec: Prisma.InputJsonValue | null;
   };
 };

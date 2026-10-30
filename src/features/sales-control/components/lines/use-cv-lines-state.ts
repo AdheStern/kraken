@@ -52,6 +52,8 @@ export function blankLine(
     serials: [],
     coverageStart: "",
     coverageEnd: "",
+    activationStart: "",
+    activationEnd: "",
     hourBag: null,
     saveAsProduct: false,
   };

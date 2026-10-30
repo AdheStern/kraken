@@ -61,6 +61,9 @@ export const cvLineDraftSchema = z.object({
   serials: z.array(z.string().trim().min(1).max(80)).max(1000),
   coverageStart: dateText,
   coverageEnd: dateText,
+  // Solo en líneas INTANGIBLE (licencias): cuándo se activarán (AGENTS.md §2.1).
+  activationStart: dateText,
+  activationEnd: dateText,
   hourBag: hourBagSpecSchema.nullable(),
   saveAsProduct: z.boolean(),
 });

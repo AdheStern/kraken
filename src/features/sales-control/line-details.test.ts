@@ -49,6 +49,32 @@ describe("lineDetailIssues", () => {
     ]);
   });
 
+  it("rango de activación de una licencia: opcional, completo y en orden", () => {
+    const license = { itemType: "INTANGIBLE" as const };
+    expect(lineDetailIssues(line(license), context)).toEqual([]);
+    expect(fields(line({ ...license, activationStart: "2026-11-01" }))).toEqual(
+      ["activationEnd"],
+    );
+    expect(
+      fields(
+        line({
+          ...license,
+          activationStart: "2026-11-15",
+          activationEnd: "2026-11-01",
+        }),
+      ),
+    ).toEqual(["activationEnd"]);
+    expect(
+      fields(
+        line({
+          ...license,
+          activationStart: "2026-11-01",
+          activationEnd: "2026-11-01",
+        }),
+      ),
+    ).toEqual([]);
+  });
+
   it("HORAS + SERVICIO exige bolsa con modalidad y áreas", () => {
     const service = line({ ...hourService, quantity: "20" });
     expect(needsHourBag(service, context)).toBe(true);

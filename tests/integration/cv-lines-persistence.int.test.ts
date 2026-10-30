@@ -44,6 +44,8 @@ function item(
       color: null,
       coverageStart: null,
       coverageEnd: null,
+      activationStart: null,
+      activationEnd: null,
       hourBagSpec: null,
     },
   };
@@ -144,6 +146,27 @@ describe("replaceVersionLines", () => {
         },
       }),
     ).rejects.toThrow(/linea_subitem_solo_item_ck/);
+  });
+
+  it("guarda el rango de activación de una licencia y la base lo rechaza en otro tipo", async () => {
+    const f = await createCvFixture(db);
+    const license = item(f.area.id, "Licencia M365");
+    license.data.itemType = "INTANGIBLE";
+    license.data.activationStart = new Date("2026-11-01");
+    license.data.activationEnd = new Date("2026-11-15");
+    await db.$transaction((tx) =>
+      replaceVersionLines(tx, f.version.id, [], [license], TOTALS),
+    );
+    const [line] = await db.cvLine.findMany({
+      where: { versionId: f.version.id },
+    });
+    expect(line.activationEnd?.toISOString().slice(0, 10)).toBe("2026-11-15");
+    await expect(
+      db.cvLine.update({
+        where: { id: line.id },
+        data: { itemType: "HARDWARE" },
+      }),
+    ).rejects.toThrow(/linea_rango_activacion_ck/);
   });
 
   it("no puede modificar una versión que ya no está en borrador", async () => {

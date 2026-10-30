@@ -120,6 +120,7 @@ function itemData(
     color: draft.color,
     coverageStart: draft.coverageStart ? new Date(draft.coverageStart) : null,
     coverageEnd: draft.coverageEnd ? new Date(draft.coverageEnd) : null,
+    ...activationData(draft),
     hourBagSpec: hourBag,
   };
 }
@@ -147,6 +148,20 @@ function noteData(draft: CvLineDraft): VersionLineRecord["data"] {
     color: draft.color,
     coverageStart: null,
     coverageEnd: null,
+    activationStart: null,
+    activationEnd: null,
     hourBagSpec: null,
+  };
+}
+
+// REGLA: el rango de activación es de licencias; si la línea dejó de ser INTANGIBLE no se guarda (§2.1).
+function activationData(draft: CvLineDraft) {
+  const keep =
+    draft.itemType === "INTANGIBLE" &&
+    !!draft.activationStart &&
+    !!draft.activationEnd;
+  return {
+    activationStart: keep ? new Date(draft.activationStart) : null,
+    activationEnd: keep ? new Date(draft.activationEnd) : null,
   };
 }

@@ -34,6 +34,8 @@ function draft(overrides: Partial<CvLineDraft>): CvLineDraft {
     serials: [],
     coverageStart: "",
     coverageEnd: "",
+    activationStart: "",
+    activationEnd: "",
     hourBag: null,
     saveAsProduct: false,
     ...overrides,

@@ -143,6 +143,7 @@ Los datos de cliente y cliente final se copian en cada versión (snapshot).
 | Costo, factor, precio | Ver 2.2. |
 | Seriales | Lista por línea. |
 | Vigencia | Inicio y fin para soporte, suscripciones y licencias → tablero de renovaciones. |
+| Rango de activación | Solo si el tipo es `INTANGIBLE` (licencias): inicio y fin en que se activarán, opcional. Es distinto de la vigencia (cuánto dura). Va antes de Observaciones; al cambiar de tipo se borra. En el Excel, renglón «Activación: dd/mm/aaaa – dd/mm/aaaa» de Observaciones (decisión 2026-10-30). |
 | PO#, observaciones | Orden de compra al proveedor, notas técnicas. Las observaciones admiten varias líneas (Alt+Enter, como en Excel). |
 | Línea de nota | `kind = NOTA`, sin importe ("Initial Term - 36 Months…"). Se exporta como fila de texto. |
 | Subítem | Opcional: una línea de ítem cuelga de la línea principal anterior de su lote y se numera `1.1`, `1.2` (la principal sigue `1`, `2`). Cada una tiene su precio y todas suman al total; el número se deriva del orden, no se guarda (decisión 2026-10-30). |
@@ -560,7 +561,7 @@ Inicio de sesión (Entra ID) → inicio según rol: GG → tablero ejecutivo; ge
 | `I11`–`I17` | Cliente final |
 | `C17`–`C21` | OC, fecha OC, términos de pago, fecha de entrega, notas |
 | Fila 23 | Encabezados de la plantilla |
-| Fila 24 en adelante | Ítem, proveedor, línea, código, descripción, cantidad, costo unitario y total, venta unitaria y total, TC de venta, venta unitaria y total en Bs, observaciones/seriales, PO#. Primero las líneas sin lote; cada lote con una fila de nombre y subtotal (`SUM`); las notas en `E` sin número de ítem; un subítem lleva `1.1` como texto en `A`. Una fila con color lleva su relleno de `A` a `O`. |
+| Fila 24 en adelante | Ítem, proveedor, línea, código, descripción, cantidad, costo unitario y total, venta unitaria y total, TC de venta, venta unitaria y total en Bs, observaciones/rango de activación/seriales, PO#. Primero las líneas sin lote; cada lote con una fila de nombre y subtotal (`SUM`); las notas en `E` sin número de ítem; un subítem lleva `1.1` como texto en `A`. Una fila con color lleva su relleno de `A` a `O`. |
 | Totales | `TOTAL $us` costo, venta y Bs con `SUMIF` sobre las filas con número de ítem (criterio `"<>"`, que incluye los subítems) (los subtotales no suman dos veces); factor global sobre las líneas con costo > 0; costo Bs = suma de `ROUND(costo_total × TC costo, 2)` por línea; `H22`/`J22` apuntan a los totales |
 | Leasing | Bloque desplazado según las filas insertadas; 3 filas mínimas, su propio total de costo |
 

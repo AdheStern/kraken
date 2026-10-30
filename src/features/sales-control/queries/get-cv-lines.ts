@@ -51,6 +51,8 @@ export async function getCvLines(
       serials: l.serials.map((s) => s.serial),
       coverageStart: toDateText(l.coverageStart),
       coverageEnd: toDateText(l.coverageEnd),
+      activationStart: toDateText(l.activationStart),
+      activationEnd: toDateText(l.activationEnd),
       hourBag: parseHourBagSpec(l.hourBagSpec),
       saveAsProduct: false,
     })),

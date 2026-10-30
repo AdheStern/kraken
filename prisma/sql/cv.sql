@@ -13,6 +13,13 @@ ALTER TABLE cv.linea
 ALTER TABLE cv.linea
   ADD CONSTRAINT linea_subitem_solo_item_ck CHECK (tipo_linea = 'ITEM' OR NOT es_subitem);
 
+-- POR QUÉ: el rango de activación es de licencias (tipo INTANGIBLE) y va completo: inicio y fin, en orden.
+ALTER TABLE cv.linea
+  ADD CONSTRAINT linea_rango_activacion_ck CHECK (
+    (activacion_inicio IS NULL AND activacion_fin IS NULL)
+    OR (tipo_item = 'INTANGIBLE' AND activacion_inicio IS NOT NULL AND activacion_fin >= activacion_inicio)
+  );
+
 -- POR QUÉ: la solicitud del GG tiene area_id nulo; NULLS NOT DISTINCT impide dos solicitudes del GG por versión.
 DROP INDEX cv.solicitud_aprobacion_unica;
 CREATE UNIQUE INDEX solicitud_aprobacion_unica ON cv.solicitud_aprobacion (version_id, tipo, area_id) NULLS NOT DISTINCT;

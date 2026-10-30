@@ -57,6 +57,13 @@ test("el contacto se elige del cliente y las observaciones son texto largo", asy
   await page.getByRole("button", { name: "Oro, claro 80 %" }).click();
   await expect(row).toHaveCSS("background-color", "rgb(255, 242, 204)");
 
+  // REGLA: el rango de activación solo se habilita en licencias (tipo Intangible).
+  const activation = row.getByLabel("Rango de activación");
+  await expect(activation).toBeDisabled();
+  await row.getByLabel("Tipo").click();
+  await page.getByRole("option", { name: "Intangible" }).click();
+  await expect(activation).toBeEnabled();
+
   await page.getByRole("button", { name: "Línea", exact: true }).click();
   const child = page.locator("tbody tr").last();
   await expect(child.locator("td").first()).toHaveText("2");

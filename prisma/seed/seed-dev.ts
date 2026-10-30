@@ -57,11 +57,15 @@ async function seedDevCatalogs(tx: Tx) {
     await tx.supplier.upsert({ where: { name }, create: { name }, update: {} });
   }
   for (const customer of data.CUSTOMERS) {
-    const found = await tx.customer.findFirst({
-      where: { name: customer.name },
+    const found =
+      (await tx.customer.findFirst({ where: { name: customer.name } })) ??
+      (await tx.customer.create({ data: { ...customer, country: "Bolivia" } }));
+    const contacts = data.CUSTOMER_CONTACTS[customer.name] ?? [];
+    if (await tx.customerContact.count({ where: { customerId: found.id } }))
+      continue;
+    await tx.customerContact.createMany({
+      data: contacts.map((c) => ({ ...c, customerId: found.id })),
     });
-    if (!found)
-      await tx.customer.create({ data: { ...customer, country: "Bolivia" } });
   }
   await seedProducts(tx);
 }

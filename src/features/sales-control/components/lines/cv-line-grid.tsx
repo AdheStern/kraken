@@ -52,10 +52,13 @@ export function CvLineGrid({
   );
 
   // POR QUÉ: un bloque con tabuladores o saltos se reparte en celdas como en Excel; un valor suelto se pega normal.
+  // En un texto largo los saltos son parte del texto: solo un bloque con tabuladores se reparte.
   function handlePaste(event: ClipboardEvent<HTMLDivElement>) {
-    const cell = (event.target as HTMLElement).dataset.cell;
+    const target = event.target as HTMLElement;
+    const cell = target.dataset.cell;
     const text = event.clipboardData.getData("text/plain");
-    if (!canEdit || !cell || !/[\t\n]/.test(text.trimEnd())) return;
+    const block = target instanceof HTMLTextAreaElement ? /\t/ : /[\t\n]/;
+    if (!canEdit || !cell || !block.test(text.trimEnd())) return;
     const [row, col] = cell.split(":").map(Number);
     const line = state.lines[row];
     const column = columns[col];

@@ -5,19 +5,20 @@
 import Decimal from "decimal.js";
 import { TriangleAlert } from "lucide-react";
 import { Controller, type UseFormReturn } from "react-hook-form";
-import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { FormField } from "@/components/forms/form-field";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { isFxRateDeviating } from "@/domain/pricing/fx-deviation";
 import type { CvHeaderInput } from "../../schemas/cv-header-schema";
-import type { CvFormOptions } from "../../types";
+import type { CvContactOption, CvFormOptions } from "../../types";
+import { HeaderCustomer } from "./header-customer";
 import { HeaderSection } from "./header-section";
 
 type Props = {
   form: UseFormReturn<CvHeaderInput>;
   options: CvFormOptions;
+  contacts: CvContactOption[];
   disabled: boolean;
   customerName: string;
   officialFxRate: string | null;
@@ -27,6 +28,7 @@ type Props = {
 export function HeaderCommercial({
   form,
   options,
+  contacts,
   disabled,
   customerName,
   officialFxRate,
@@ -47,71 +49,13 @@ export function HeaderCommercial({
 
   return (
     <>
-      <HeaderSection title="Cliente">
-        <FormField
-          label="Cliente"
-          htmlFor="cv-customer"
-          hint="Se fija al crear el CV."
-        >
-          <Input id="cv-customer" value={customerName} readOnly disabled />
-        </FormField>
-        <FormField
-          label="Contacto"
-          htmlFor="cv-contact-name"
-          error={errors.contactName?.message}
-        >
-          <Input
-            id="cv-contact-name"
-            disabled={disabled}
-            {...register("contactName")}
-          />
-        </FormField>
-        <FormField
-          label="Correo del contacto"
-          htmlFor="cv-contact-email"
-          error={errors.contactEmail?.message}
-        >
-          <Input
-            id="cv-contact-email"
-            type="email"
-            disabled={disabled}
-            {...register("contactEmail")}
-          />
-        </FormField>
-        <FormField
-          label="Teléfono del contacto"
-          htmlFor="cv-contact-phone"
-          error={errors.contactPhone?.message}
-        >
-          <Input
-            id="cv-contact-phone"
-            type="tel"
-            disabled={disabled}
-            {...register("contactPhone")}
-          />
-        </FormField>
-        <FormField
-          label="Cliente final"
-          htmlFor="cv-end-customer"
-          hint="Solo si DIMA vende a través de un tercero."
-          className="sm:col-span-2"
-        >
-          <Controller
-            control={control}
-            name="endCustomerId"
-            render={({ field }) => (
-              <CatalogCombobox
-                id="cv-end-customer"
-                options={options.customers}
-                value={field.value}
-                onChange={field.onChange}
-                disabled={disabled}
-                placeholder="Igual al cliente"
-              />
-            )}
-          />
-        </FormField>
-      </HeaderSection>
+      <HeaderCustomer
+        form={form}
+        customers={options.customers}
+        contacts={contacts}
+        disabled={disabled}
+        customerName={customerName}
+      />
 
       <HeaderSection title="Orden del cliente">
         <FormField

@@ -21,6 +21,7 @@ import { ApprovalPanel } from "@/features/sales-control/components/versions/appr
 import { BagEffectsNote } from "@/features/sales-control/components/versions/bag-effects-note";
 import { CvVersionBar } from "@/features/sales-control/components/versions/cv-version-bar";
 import { VersionHistory } from "@/features/sales-control/components/versions/version-history";
+import { getCvContactOptions } from "@/features/sales-control/queries/get-cv-contact-options";
 import { getCvEditor } from "@/features/sales-control/queries/get-cv-editor";
 import { getCvFormOptions } from "@/features/sales-control/queries/get-cv-form-options";
 import { getCvGridOptions } from "@/features/sales-control/queries/get-cv-grid-options";
@@ -88,6 +89,7 @@ async function CvEditor({
   const { header } = editor;
   const [
     options,
+    contacts,
     gridOptions,
     lines,
     leasing,
@@ -97,6 +99,7 @@ async function CvEditor({
     stockEffects,
   ] = await Promise.all([
     getCvFormOptions(),
+    editor.canEdit ? getCvContactOptions(header.customerId) : [],
     getCvGridOptions(header.customerId),
     getCvLines(header.versionId, editor.canSeeCosts),
     getCvLeasing(header.versionId, editor.canSeeCosts),
@@ -138,6 +141,7 @@ async function CvEditor({
       <CvHeaderForm
         header={header}
         options={options}
+        contacts={contacts}
         canEdit={editor.canEdit}
         maxFxDeviationPct={maxFxDeviationPct}
         defaultOpen={lines.lines.length === 0}

@@ -25,6 +25,35 @@ export const CUSTOMERS = [
   { name: "Clínica del Valle (demo)", taxId: "1000000044", city: "Cochabamba" },
 ];
 
+// POR QUÉ: el CV y la documentación eligen el contacto entre los registrados del cliente.
+export const CUSTOMER_CONTACTS: Record<
+  string,
+  { name: string; position: string; email: string; phone: string }[]
+> = {
+  "Banco Andino S.A. (demo)": [
+    {
+      name: "Lucía Mamani (demo)",
+      position: "Jefa de Infraestructura",
+      email: "lucia.mamani@bancoandino.demo",
+      phone: "+591 2 2440011",
+    },
+    {
+      name: "Jorge Quispe (demo)",
+      position: "Compras",
+      email: "jorge.quispe@bancoandino.demo",
+      phone: "+591 70011223",
+    },
+  ],
+  "Minera Illimani S.A. (demo)": [
+    {
+      name: "Carla Rojas (demo)",
+      position: "Gerente de TI",
+      email: "carla.rojas@illimani.demo",
+      phone: "+591 2 2795500",
+    },
+  ],
+};
+
 type ProductSeed = {
   code: string;
   description: string;

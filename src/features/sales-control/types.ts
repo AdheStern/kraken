@@ -7,6 +7,13 @@ import type { CustomerSnapshot } from "./customer-snapshot";
 
 export type Option = { id: string; label: string; hint?: string };
 
+// Contacto del catálogo del cliente: elegirlo prellena el contacto de la cabecera (AGENTS.md §2.1).
+export type CvContactOption = Option & {
+  name: string;
+  email: string;
+  phone: string;
+};
+
 export type CvFormOptions = {
   cities: Option[];
   customers: Option[];

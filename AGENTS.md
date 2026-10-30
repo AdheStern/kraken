@@ -122,7 +122,7 @@ Portal de clientes · integración con ERP, contabilidad o facturación · migra
 | Identificación | Número, versión, título, fecha, ciudad |
 | Personas | Vendedor(es) (puede haber más de uno), preventa, postventa — referencias a usuarios |
 | Clasificación | Línea principal (tecnología), tipo de servicio, indicador de nueva tecnología |
-| Cliente | NIT, contacto, correo, teléfono, dirección, ciudad/país (del catálogo) |
+| Cliente | NIT, contacto, correo, teléfono, dirección, ciudad/país (del catálogo). El contacto se elige entre los registrados del cliente y prellena nombre, correo y teléfono, que quedan editables (decisión 2026-10-30) |
 | Cliente final | Mismos datos; por defecto igual al cliente; distinto cuando DIMA vende a través de un tercero |
 | Orden del cliente | N° OC, fecha OC, términos de pago, fecha de entrega, adjunto de la OC |
 | Notas | Notas aclaratorias |
@@ -143,7 +143,7 @@ Los datos de cliente y cliente final se copian en cada versión (snapshot).
 | Costo, factor, precio | Ver 2.2. |
 | Seriales | Lista por línea. |
 | Vigencia | Inicio y fin para soporte, suscripciones y licencias → tablero de renovaciones. |
-| PO#, observaciones | Orden de compra al proveedor, notas técnicas. |
+| PO#, observaciones | Orden de compra al proveedor, notas técnicas. Las observaciones admiten varias líneas (Alt+Enter, como en Excel). |
 | Línea de nota | `kind = NOTA`, sin importe ("Initial Term - 36 Months…"). Se exporta como fila de texto. |
 | Bolsa de horas | Si la unidad es `HORAS` y el tipo `SERVICIO`: modalidad, alcance, áreas o proyecto, vencimiento (`hourBagSpec`). |
 | Contrato por vigencia | Si la unidad es de plazo (`MESES`, `AÑOS`) y el tipo `SERVICIO`, el comercial puede marcar «Soporte por vigencia»: modalidad, alcance y tope opcional en horas (`hourBagSpec` con `kind: VIGENCIA` y `capHours`); exige inicio y fin de vigencia (§2.4). |

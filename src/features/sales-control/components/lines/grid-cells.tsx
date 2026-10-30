@@ -1,5 +1,5 @@
 // src/features/sales-control/components/lines/grid-cells.tsx
-// Celdas editables de la grilla del CV: texto, número (acepta formato de Excel) y selector nativo.
+// Celdas editables de la grilla del CV: texto, texto largo, número (acepta formato de Excel) y selector nativo.
 // Cada celda lleva data-cell="fila:columna" para moverse con el teclado como en una planilla.
 "use client";
 
@@ -40,6 +40,51 @@ export function TextCell({
       disabled={disabled}
       className={cn(CELL, "md:text-[13px] dark:bg-transparent", className)}
       {...props}
+    />
+  );
+}
+
+type TextAreaCellProps = CellBase & {
+  value: string;
+  onValueChange: (value: string) => void;
+};
+
+// REGLA de la planilla: Enter baja de fila como en las demás celdas; Alt+Enter agrega una línea, como en Excel.
+// Crece con el texto hasta unas 6 líneas y después desplaza.
+export function TextAreaCell({
+  row,
+  col,
+  label,
+  error,
+  disabled,
+  value,
+  onValueChange,
+}: TextAreaCellProps) {
+  return (
+    <textarea
+      data-cell={`${row}:${col}`}
+      aria-label={label}
+      aria-invalid={error ? true : undefined}
+      title={error ?? "Alt+Enter: nueva línea"}
+      disabled={disabled}
+      rows={1}
+      value={value}
+      onChange={(event) => onValueChange(event.target.value)}
+      onKeyDown={(event) => {
+        if (event.key !== "Enter" || !event.altKey) return;
+        event.preventDefault();
+        const { selectionStart: start, selectionEnd: end } =
+          event.currentTarget;
+        const field = event.currentTarget;
+        onValueChange(`${value.slice(0, start)}\n${value.slice(end)}`);
+        requestAnimationFrame(() =>
+          field.setSelectionRange(start + 1, start + 1),
+        );
+      }}
+      className={cn(
+        CELL,
+        "field-sizing-content h-auto max-h-32 min-h-8 resize-none py-1.5 leading-5",
+      )}
     />
   );
 }

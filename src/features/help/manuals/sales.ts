@@ -12,14 +12,14 @@ export const SALES_MANUAL: Manual = {
       steps: [
         "Control de Venta → Nuevo Control de Venta. El número (por ejemplo 132LP-26) se asigna al crearlo y nunca se reutiliza.",
         "Para los CV mensuales de licencias o Azure, abre uno anterior y usa Duplicar.",
-        "En la cabecera completa el cliente, el cliente final, la orden de compra y los TC de costo y de venta. El TC oficial del BCB es solo referencia: si te desvías mucho verás un aviso.",
+        "En la cabecera completa el contacto, el cliente final, la orden de compra y los TC de costo y de venta. El contacto se elige entre los registrados del cliente (Administración → Clientes) y llena nombre, correo y teléfono, que puedes corregir. El TC oficial del BCB es solo referencia: si te desvías mucho verás un aviso.",
       ],
       link: { href: "/cv", label: "Ir a Control de Venta" },
     },
     {
       heading: "Líneas, factor y precio",
       steps: [
-        "Puedes pegar filas desde Excel en la grilla. Cada línea necesita su área: de ahí salen los aprobadores.",
+        "Puedes pegar filas desde Excel en la grilla. Cada línea necesita su área: de ahí salen los aprobadores. En Observaciones, Alt+Enter agrega una línea, como en Excel.",
         "Escribe el factor o el precio final; el otro se calcula. Con costo 0 (servicios propios) solo hay precio.",
         "Con un factor en la barra puedes aplicarlo a toda una tecnología; los lotes tienen su subtotal.",
         "Para vender horas usa la unidad HORAS y el tipo SERVICIO, y completa modalidad (8x5 o 24x7), alcance y vencimiento: al aprobarse nace la bolsa.",

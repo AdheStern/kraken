@@ -5,7 +5,7 @@
 import type { ReactNode } from "react";
 import type { CvLineDraft } from "../../schemas/cv-lines-schema";
 import type { CvGridOptions } from "../../types";
-import { NumberCell, SelectCell, TextCell } from "./grid-cells";
+import { NumberCell, SelectCell, TextAreaCell, TextCell } from "./grid-cells";
 import {
   type ColumnKey,
   ITEM_TYPE_OPTIONS,
@@ -127,6 +127,15 @@ export function catalogCells(
     poNumber: text("poNumber", "PO#", line.poNumber, (poNumber) => ({
       poNumber,
     })),
-    notes: text("notes", "Observaciones", line.notes, (notes) => ({ notes })),
+    notes: (
+      <TextAreaCell
+        row={row}
+        col={col("notes")}
+        label="Observaciones"
+        value={line.notes}
+        disabled={disabled}
+        onValueChange={(notes) => onChange({ notes })}
+      />
+    ),
   };
 }

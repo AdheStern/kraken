@@ -1,6 +1,7 @@
 // src/features/sales-control/components/lines/grid-keyboard.ts
 // Navegación de planilla dentro de la grilla: Enter y Shift+Enter bajan y suben; en celdas de texto
-// también las flechas. Salta las filas que no tienen esa columna (notas).
+// también las flechas (no en las de texto largo, donde mueven el cursor). Salta las filas que no tienen
+// esa columna (notas).
 import type { KeyboardEvent } from "react";
 
 const MAX_SKIP = 50;
@@ -31,11 +32,18 @@ export function handleGridKeyDown(event: KeyboardEvent<HTMLElement>) {
   }
 }
 
-// TRAMPA: en un selector las flechas abren y recorren sus opciones; ahí solo Enter mueve de fila.
+// TRAMPA: en un selector las flechas abren y recorren sus opciones, y en un texto largo mueven el cursor entre
+// líneas; ahí solo Enter mueve de fila. Alt+Enter es la nueva línea del texto largo (grid-cells.tsx).
 function toDirection(event: KeyboardEvent, target: HTMLElement): -1 | 0 | 1 {
-  if (event.key === "Enter" && !event.ctrlKey && !event.metaKey)
+  if (
+    event.key === "Enter" &&
+    !event.ctrlKey &&
+    !event.metaKey &&
+    !event.altKey
+  )
     return event.shiftKey ? -1 : 1;
   if (target.dataset.slot === "select-trigger") return 0;
+  if (target instanceof HTMLTextAreaElement) return 0;
   if (event.key === "ArrowDown") return 1;
   if (event.key === "ArrowUp") return -1;
   return 0;

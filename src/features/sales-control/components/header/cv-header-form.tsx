@@ -18,13 +18,18 @@ import {
   type CvHeaderInput,
   cvHeaderSchema,
 } from "../../schemas/cv-header-schema";
-import type { CvEditorHeader, CvFormOptions } from "../../types";
+import type {
+  CvContactOption,
+  CvEditorHeader,
+  CvFormOptions,
+} from "../../types";
 import { HeaderCommercial } from "./header-commercial";
 import { HeaderGeneral } from "./header-general";
 
 type Props = {
   header: CvEditorHeader;
   options: CvFormOptions;
+  contacts: CvContactOption[];
   canEdit: boolean;
   maxFxDeviationPct: string;
   defaultOpen: boolean;
@@ -38,6 +43,7 @@ type SaveState =
 export function CvHeaderForm({
   header,
   options,
+  contacts,
   canEdit,
   maxFxDeviationPct,
   defaultOpen,
@@ -87,6 +93,7 @@ export function CvHeaderForm({
           <HeaderCommercial
             form={form}
             options={options}
+            contacts={contacts}
             disabled={!canEdit}
             customerName={header.customerName}
             officialFxRate={header.officialFxRate}

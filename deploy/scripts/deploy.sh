@@ -4,7 +4,8 @@
 #   1. HAProxy: copia haproxy/ a cada nodo (con un .bak del anterior); si cambió, lo valida en todos y después lo
 #      recarga con HUP nodo por nodo. Si algo falla, restaura el anterior en todos y aborta sin tocar nada más;
 #   2. copia el resto de los archivos del entorno y escribe KRAKEN_TAG en /opt/kraken/.env;
-#   3. migraciones compatibles hacia atrás, una vez, desde el primer nodo;
+#   3. migraciones compatibles hacia atrás, una vez, desde el primer nodo; en producción, antes, levanta su HAProxy
+#      si no corre (la migración llega a la base por él) y espera a que pg_primary esté UP;
 #   4. por cada nodo: drenarlo en los HAProxy de todos los nodos, actualizarlo, esperar /api/health/ready y
 #      volver a habilitarlo.
 # keepalived no se toca: su configuración es manual (deploy/README.md).
@@ -19,6 +20,7 @@ DEPLOY_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 HOSTS_FILE="${DEPLOY_DIR}/hosts/${ENVIRONMENT}"
 COMPOSE="docker compose -f /opt/kraken/compose.yml"
 READY_TIMEOUT=180
+HAPROXY_DB_TIMEOUT=60
 HAPROXY_CFG=/opt/kraken/haproxy/haproxy.cfg
 HAPROXY_BAK=/opt/kraken/haproxy.cfg.bak
 
@@ -170,6 +172,30 @@ fi
 REMOTE
 }
 
+# POR QUÉ: en producción la migración llega a la base por el HAProxy del propio nodo (host.docker.internal:5000); en
+# el primer despliegue de un nodo todavía no existe y Prisma fallaría con P1001. Si ya corre, no se toca: la recarga
+# por cambios en haproxy.cfg es de apply_haproxy.
+ensure_db_proxy() {
+  ssh "deploy@$1" bash -s -- "$HAPROXY_DB_TIMEOUT" <<'REMOTE'
+set -euo pipefail
+compose="docker compose -f /opt/kraken/compose.yml"
+[ -z "$($compose ps -q haproxy)" ] || exit 0
+echo "haproxy no está corriendo: se levanta para que la migración llegue a la base."
+$compose up -d haproxy
+status=""
+for _ in $(seq "$1"); do
+  # TRAMPA: show stat es CSV; la fila BACKEND de pg_primary queda UP cuando un servidor responde /primary en :8008.
+  status="$(echo "show stat" | sudo socat stdio /run/haproxy/admin.sock 2>/dev/null |
+    awk -F, '$1 == "pg_primary" && $2 == "BACKEND" {print $18}' || true)"
+  [ "$status" != UP ] || exit 0
+  sleep 1
+done
+echo "el backend pg_primary de HAProxy no quedó UP en $1 s (último estado: ${status:-sin respuesta del socket})."
+echo "Revisar que Patroni responda /primary en :8008 desde este nodo y el log de haproxy."
+exit 1
+REMOTE
+}
+
 haproxy_all() {
   local command="$1"
   for lb in "${NODES[@]}"; do
@@ -215,6 +241,10 @@ for node in "${NODES[@]}"; do
 done
 log "Archivos copiados y KRAKEN_TAG=${TAG} en /opt/kraken/.env de cada nodo."
 
+if [[ "$ENVIRONMENT" == production ]]; then
+  ensure_db_proxy "${NODES[0]}" || fail "${NODES[0]}: sin HAProxy hacia la base no se migra; no se tocaron imágenes ni contenedores de la app."
+  log "${NODES[0]}: HAProxy con pg_primary UP."
+fi
 ssh "deploy@${NODES[0]}" "${COMPOSE} pull --quiet && ${COMPOSE} --profile migrate run --rm migrate"
 log "Migraciones aplicadas."
 

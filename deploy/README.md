@@ -134,6 +134,13 @@ sudo chown root:root /etc/kraken/tls/kraken.pem && sudo chmod 600 /etc/kraken/tl
    `production` (este con aprobación obligatoria) y la variable `CI_RUNNER=ops-01` si CI debe correr ahí.
 8. **Primer despliegue.** Desde GitHub, *Deploy → Run workflow*. El script migra (`pnpm migrate:deploy`: Prisma,
    esquema de pg-boss y catálogos base) y actualiza nodo por nodo; staging primero.
+   En producción la migración llega a la base por el HAProxy del propio nodo (`host.docker.internal:5000`), que en
+   el primer despliegue todavía no existe (Prisma fallaría con `P1001`). Por eso, antes de migrar, `deploy.sh`
+   revisa el primer nodo de `hosts/production`: si `docker compose ps -q haproxy` está vacío, hace
+   `docker compose up -d haproxy` y espera hasta 60 s a que el backend `pg_primary` quede `UP` (`show stat` en
+   `/run/haproxy/admin.sock`). Si no queda `UP`, aborta antes de migrar y sin tocar la app: revisar que Patroni
+   responda `/primary` en `:8008` desde el nodo y el log de `haproxy`. Si HAProxy ya corría, no lo toca (los
+   cambios de `haproxy.cfg` siguen el camino de *Operación diaria*).
 9. **Cuenta de emergencia.** Una vez por entorno: `docker compose -f /opt/kraken/compose.yml --profile migrate run
    --rm -e SUPERADMIN_EMAIL=… -e SUPERADMIN_PASSWORD=… migrate pnpm db:seed:admin`.
 10. **Monitoreo.** En `/opt/monitoring` de ops01 (fuera de este repositorio): raspar `http://172.22.12.112:8404/metrics`

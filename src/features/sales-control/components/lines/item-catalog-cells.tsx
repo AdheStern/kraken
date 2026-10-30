@@ -71,6 +71,10 @@ export function catalogCells(
         label="Código"
         list="cv-product-codes"
         value={line.code}
+        // POR QUÉ: el código se lee entero; la celda mide su texto (mínimo el ancho de la columna) y la tabla, que
+        // se ajusta al contenido, se ensancha. size es el respaldo donde no hay field-sizing.
+        size={Math.max(line.code.length, 1) + 1}
+        className="w-auto min-w-full field-sizing-content"
         disabled={disabled}
         onChange={(event) => onProductCode(event.target.value)}
       />

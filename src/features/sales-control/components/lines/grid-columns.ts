@@ -1,7 +1,8 @@
 // src/features/sales-control/components/lines/grid-columns.ts
-// Columnas de la grilla de líneas.
-// POR QUÉ: precio y totales van junto a la descripción para verse sin desplazar; la clasificación
-// (proveedor, modalidad, tecnología, tipo) queda a la derecha. El Excel exportado sigue su propia plantilla.
+// Columnas de la grilla de líneas, en el orden en que se ven y en que se reparte un bloque pegado desde Excel.
+// POR QUÉ: proveedor, tecnología, código y descripción abren la fila como en la plantilla PA-PR-03-RE-01; el área
+// va después de la descripción y los precios a continuación, para verse sin desplazar. Modalidad y tipo quedan
+// a la derecha.
 import type { ItemType, SupplyMode } from "@/generated/prisma/enums";
 
 export type GridColumn = {
@@ -13,9 +14,11 @@ export type GridColumn = {
 
 export const COLUMNS = {
   index: { label: "#", width: 44 },
-  area: { label: "Área", width: 104 },
+  supplier: { label: "Proveedor", width: 150 },
+  technology: { label: "Tecnología", width: 120 },
   code: { label: "Código", width: 124 },
   description: { label: "Descripción", width: 248 },
+  area: { label: "Área", width: 104 },
   unit: { label: "Unidad", width: 92 },
   quantity: { label: "Cant.", width: 76, align: "right" },
   unitCost: {
@@ -33,9 +36,7 @@ export const COLUMNS = {
     costOnly: true,
   },
   totalSale: { label: "Venta total", width: 116, align: "right" },
-  supplier: { label: "Proveedor", width: 150 },
   supplyMode: { label: "Modalidad", width: 128 },
-  technology: { label: "Tecnología", width: 120 },
   itemType: { label: "Tipo", width: 112 },
   poNumber: { label: "PO#", width: 100 },
   notes: { label: "Observaciones", width: 200 },

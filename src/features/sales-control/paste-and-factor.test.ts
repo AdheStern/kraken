@@ -53,13 +53,13 @@ describe("pasteIntoLines", () => {
     const first = line();
     const state = { groups: [], lines: [first] };
     const matrix = [
-      ["dimanet", "C9300-48P-E", "", "pieza", "2", "1.234,50"],
-      ["DIMANET", "XYZ-1", "Cable especial", "PIEZA", "3", "10,5"],
+      ["C9300-48P-E", "", "dimanet", "pieza", "2", "1.234,50"],
+      ["XYZ-1", "Cable especial", "DIMANET", "PIEZA", "3", "10,5"],
     ];
     const result = pasteIntoLines(
       state,
       matrix,
-      { lineKey: first.key, column: "area" },
+      { lineKey: first.key, column: "code" },
       COLUMNS,
       OPTIONS,
       (g) => line({ groupKey: g }),
@@ -86,8 +86,8 @@ describe("pasteIntoLines", () => {
     const first = line();
     const result = pasteIntoLines(
       { groups: [], lines: [first] },
-      [["2,50", "", "", "", "Proveedor X"]],
-      { lineKey: first.key, column: "factor" },
+      [["Proveedor X", "", "", "", "", "", "", "", "2,50"]],
+      { lineKey: first.key, column: "supplier" },
       COLUMNS,
       OPTIONS,
       (g) => line({ groupKey: g }),

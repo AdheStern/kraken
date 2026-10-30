@@ -15,6 +15,9 @@ import {
   writeCells,
 } from "./excel-cells";
 
+/** Columnas de la tabla de líneas, de Ítem (A) a PO# (O). */
+const LAST_LINE_COLUMN = 15;
+
 /** Escribe líneas y totales; devuelve cuántas filas se insertaron respecto de la plantilla. */
 export function writeCvLines(ws: Worksheet, data: CvExportData): number {
   const rowCount = Math.max(
@@ -36,6 +39,7 @@ export function writeCvLines(ws: Worksheet, data: CvExportData): number {
         item += 1;
         writeItemRow(ws, row, item, line, data.saleFxRate);
       }
+      if (line.color) fillRow(ws, row, line.color);
       row += 1;
     }
   }
@@ -88,6 +92,23 @@ function writeNoteRow(ws: Worksheet, r: number, text: string) {
   const cell = ws.getRow(r).getCell("E");
   cell.value = text;
   cell.font = { ...cell.font, italic: true };
+}
+
+// TRAMPA: duplicateRow puede dejar el mismo objeto de estilo en varias celdas; se reemplaza el estilo de cada
+// celda, nunca se muta, para no pintar otras filas.
+function fillRow(ws: Worksheet, r: number, color: string) {
+  const row = ws.getRow(r);
+  for (let column = 1; column <= LAST_LINE_COLUMN; column++) {
+    const cell = row.getCell(column);
+    cell.style = {
+      ...cell.style,
+      fill: {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: `FF${color}` },
+      },
+    };
+  }
 }
 
 function writeTotals(ws: Worksheet, last: number, costFxRate: string) {

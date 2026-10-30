@@ -5,10 +5,12 @@
 import type { PriceLineResult } from "../../line-pricing";
 import type { CvLineDraft } from "../../schemas/cv-lines-schema";
 import type { CvGridOptions } from "../../types";
+import { rowColorStyle } from "./excel-palette";
 import type { ColumnKey } from "./grid-columns";
 import { catalogCells } from "./item-catalog-cells";
 import type { ItemCellContext } from "./item-cell-context";
 import { pricingCells } from "./item-pricing-cells";
+import { RowColorPicker } from "./row-color-picker";
 import { DetailButton, RowActions, RowNumber } from "./row-parts";
 
 type Props = {
@@ -22,6 +24,8 @@ type Props = {
   onProductCode: (code: string) => void;
   onMove: (offset: -1 | 1) => void;
   onRemove: () => void;
+  color: string | null;
+  onColor: (color: string | null) => void;
   detailState: "empty" | "filled" | "issues";
   onDetail: () => void;
 };
@@ -37,6 +41,8 @@ export function CvItemRow({
   onProductCode,
   onMove,
   onRemove,
+  color,
+  onColor,
   detailState,
   onDetail,
 }: Props) {
@@ -61,13 +67,17 @@ export function CvItemRow({
     actions: (
       <div className="flex items-center justify-end">
         <DetailButton state={detailState} onClick={onDetail} />
+        {canEdit && <RowColorPicker value={color} onChange={onColor} />}
         {canEdit && <RowActions onMove={onMove} onRemove={onRemove} />}
       </div>
     ),
   };
 
   return (
-    <tr className="group/row border-b border-border/60 hover:bg-muted/40">
+    <tr
+      className="group/row border-b border-border/60 hover:bg-muted/40"
+      style={rowColorStyle(color)}
+    >
       {columns.map((key) => (
         <td key={key} className="px-0.5 py-0.5 align-middle">
           {cells[key]}

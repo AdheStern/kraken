@@ -23,9 +23,11 @@ export type CvExportItem = {
   unitSaleUsd: string;
   observations: string;
   poNumber: string;
+  /** Relleno de la fila como RRGGBB; null = el de la plantilla. */
+  color: string | null;
 };
 
-export type CvExportNote = { kind: "NOTA"; text: string };
+export type CvExportNote = { kind: "NOTA"; text: string; color: string | null };
 
 /** Una sección por lote, en el orden del editor: primero las líneas sin lote (`groupName: null`). */
 export type CvExportSection = {

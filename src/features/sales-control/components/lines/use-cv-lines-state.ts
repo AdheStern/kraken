@@ -47,6 +47,7 @@ export function blankLine(
     unitSaleUsd: "",
     poNumber: "",
     notes: "",
+    color: null,
     serials: [],
     coverageStart: "",
     coverageEnd: "",

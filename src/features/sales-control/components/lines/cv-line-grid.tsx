@@ -76,6 +76,9 @@ export function CvLineGrid({
       onMove: (offset: -1 | 1) =>
         dispatch({ type: "moveLine", key: line.key, offset }),
       onRemove: () => dispatch({ type: "removeLine", key: line.key }),
+      color: line.color,
+      onColor: (color: string | null) =>
+        dispatch({ type: "updateLine", key: line.key, patch: { color } }),
     };
     if (line.kind === "NOTA") {
       return (

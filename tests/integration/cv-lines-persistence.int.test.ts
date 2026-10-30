@@ -1,5 +1,5 @@
 // tests/integration/cv-lines-persistence.int.test.ts
-// Guardado de líneas de una versión: sincronización, posiciones, lotes, totales, versión cerrada y copia.
+// Guardado de líneas de una versión: sincronización, posiciones, lotes, totales, color, versión cerrada y copia.
 import { afterAll, describe, expect, it } from "vitest";
 import { copyVersionContent } from "@/server/sales-control/copy-version-content";
 import {
@@ -40,6 +40,7 @@ function item(
       pricingSource: "FACTOR",
       poNumber: null,
       notes: null,
+      color: null,
       coverageStart: null,
       coverageEnd: null,
       hourBagSpec: null,
@@ -97,6 +98,22 @@ describe("replaceVersionLines", () => {
     );
   });
 
+  it("guarda el color de la fila y la base rechaza uno que no sea RRGGBB en mayúsculas", async () => {
+    const f = await createCvFixture(db);
+    const colored = item(f.area.id, "Con color");
+    colored.data.color = "FFC000";
+    await db.$transaction((tx) =>
+      replaceVersionLines(tx, f.version.id, [], [colored], TOTALS),
+    );
+    const [line] = await db.cvLine.findMany({
+      where: { versionId: f.version.id },
+    });
+    expect(line.color).toBe("FFC000");
+    await expect(
+      db.cvLine.update({ where: { id: line.id }, data: { color: "ffc000" } }),
+    ).rejects.toThrow(/linea_color_ck/);
+  });
+
   it("no puede modificar una versión que ya no está en borrador", async () => {
     const f = await createCvFixture(db);
     await db.cvVersion.update({
@@ -125,7 +142,12 @@ describe("copyVersionContent", () => {
         tx,
         f.version.id,
         [{ key: "g1", id: null, name: "LOTE 1" }],
-        [item(f.area.id, "A", "g1")],
+        [
+          {
+            ...item(f.area.id, "A", "g1"),
+            data: { ...item(f.area.id, "A").data, color: "DDEBF7" },
+          },
+        ],
         TOTALS,
       ),
     );
@@ -148,6 +170,7 @@ describe("copyVersionContent", () => {
       include: { group: true },
     });
     expect(line.description).toBe("A");
+    expect(line.color).toBe("DDEBF7");
     expect(line.group?.versionId).toBe(target.id);
     expect(
       await db.cvLeasingLine.count({ where: { versionId: target.id } }),

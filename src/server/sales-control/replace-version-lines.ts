@@ -40,6 +40,7 @@ export type VersionLineRecord = {
     pricingSource: PricingSource | null;
     poNumber: string | null;
     notes: string | null;
+    color: string | null;
     coverageStart: Date | null;
     coverageEnd: Date | null;
     hourBagSpec: Prisma.InputJsonValue | null;

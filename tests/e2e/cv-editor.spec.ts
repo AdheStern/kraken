@@ -1,6 +1,7 @@
 // tests/e2e/cv-editor.spec.ts
 // Editor del CV (AGENTS.md §2.1): el contacto de la cabecera se elige entre los registrados del cliente y
-// prellena sus datos; las observaciones de una línea admiten varias líneas (Alt+Enter, como en Excel).
+// prellena sus datos; las observaciones de una línea admiten varias líneas (Alt+Enter, como en Excel) y la
+// fila se colorea con la paleta de Excel.
 import { expect, type Page, test } from "@playwright/test";
 import { storageFor } from "./users";
 
@@ -50,4 +51,9 @@ test("el contacto se elige del cliente y las observaciones son texto largo", asy
   await expect(notes).toHaveValue(
     "Entrega en dos partes\nSoporte desde la segunda",
   );
+
+  const row = page.locator("tr", { has: notes });
+  await row.getByRole("button", { name: "Color de la fila" }).click();
+  await page.getByRole("button", { name: "Oro, claro 80 %" }).click();
+  await expect(row).toHaveCSS("background-color", "rgb(255, 242, 204)");
 });

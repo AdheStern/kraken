@@ -30,6 +30,7 @@ const item = (overrides: Partial<CvExportItem>): CvExportItem => ({
   unitSaleUsd: "0.00",
   observations: "",
   poNumber: "",
+  color: null,
   ...overrides,
 });
 
@@ -63,6 +64,7 @@ const DATA: CvExportData = {
           unitSaleUsd: "985.76",
           observations: "S/N: FOC1, FOC2",
           poNumber: "PO-1",
+          color: "FFC000",
         }),
         item({
           supplier: "DIMA",
@@ -78,7 +80,7 @@ const DATA: CvExportData = {
           unitCostUsd: "0.00",
           unitSaleUsd: "269.12",
         }),
-        { kind: "NOTA", text: "Initial Term - 36 Months" },
+        { kind: "NOTA", text: "Initial Term - 36 Months", color: "DDEBF7" },
       ],
     },
     {
@@ -181,6 +183,19 @@ describe("exportación del CV a PA-PR-03-RE-01", async () => {
     expect(cells.E37).toBe("UPS 3 kVA");
     expect(cells.E40).toBe("Switch de acceso");
     expect(cells.H41).toBe("=SUM(H37:H40)");
+  });
+
+  it("las filas con color llevan su relleno de A a O; las demás conservan el de la plantilla", () => {
+    const fill = (address: string) => {
+      const value = sheet.getCell(address).fill;
+      return value?.type === "pattern" ? value.fgColor?.argb : undefined;
+    };
+    expect(fill("A24")).toBe("FFFFC000");
+    expect(fill("O24")).toBe("FFFFC000");
+    expect(fill("P24")).toBeUndefined();
+    // TRAMPA: las filas copiadas de la 24 no deben heredar el color (estilo compartido de duplicateRow).
+    expect(fill("A25")).not.toBe("FFFFC000");
+    expect(fill("E27")).toBe("FFDDEBF7");
   });
 
   it("conserva el logo y las notas de ayuda, que se desplazan con su encabezado", () => {

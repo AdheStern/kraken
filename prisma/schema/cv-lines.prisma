@@ -53,6 +53,8 @@ model CvLine {
   coverageEnd   DateTime?      @map("vigencia_fin") @db.Date
   poNumber      String?        @map("po_numero")
   notes         String?        @map("observaciones")
+  // Relleno de la fila en la grilla y en el Excel exportado, como RRGGBB en mayúsculas; null = sin color.
+  color         String?        @db.VarChar(6)
 
   version      CvVersion      @relation(fields: [versionId], references: [id], onDelete: Cascade)
   group        CvGroup?       @relation(fields: [groupId], references: [id])

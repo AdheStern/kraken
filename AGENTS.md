@@ -145,6 +145,7 @@ Los datos de cliente y cliente final se copian en cada versión (snapshot).
 | Vigencia | Inicio y fin para soporte, suscripciones y licencias → tablero de renovaciones. |
 | PO#, observaciones | Orden de compra al proveedor, notas técnicas. Las observaciones admiten varias líneas (Alt+Enter, como en Excel). |
 | Línea de nota | `kind = NOTA`, sin importe ("Initial Term - 36 Months…"). Se exporta como fila de texto. |
+| Color de fila | Opcional, en ítems y notas: un color de la paleta de relleno de Excel (tema con sus variaciones y estándar) o uno libre, como `RRGGBB`. Solo resalta: no cambia montos ni aprobaciones. Viaja a las versiones nuevas y al Excel como relleno de la fila (decisión 2026-10-30). |
 | Bolsa de horas | Si la unidad es `HORAS` y el tipo `SERVICIO`: modalidad, alcance, áreas o proyecto, vencimiento (`hourBagSpec`). |
 | Contrato por vigencia | Si la unidad es de plazo (`MESES`, `AÑOS`) y el tipo `SERVICIO`, el comercial puede marcar «Soporte por vigencia»: modalidad, alcance y tope opcional en horas (`hourBagSpec` con `kind: VIGENCIA` y `capHours`); exige inicio y fin de vigencia (§2.4). |
 
@@ -558,7 +559,7 @@ Inicio de sesión (Entra ID) → inicio según rol: GG → tablero ejecutivo; ge
 | `I11`–`I17` | Cliente final |
 | `C17`–`C21` | OC, fecha OC, términos de pago, fecha de entrega, notas |
 | Fila 23 | Encabezados de la plantilla |
-| Fila 24 en adelante | Ítem, proveedor, línea, código, descripción, cantidad, costo unitario y total, venta unitaria y total, TC de venta, venta unitaria y total en Bs, observaciones/seriales, PO#. Primero las líneas sin lote; cada lote con una fila de nombre y subtotal (`SUM`); las notas en `E` sin número de ítem. |
+| Fila 24 en adelante | Ítem, proveedor, línea, código, descripción, cantidad, costo unitario y total, venta unitaria y total, TC de venta, venta unitaria y total en Bs, observaciones/seriales, PO#. Primero las líneas sin lote; cada lote con una fila de nombre y subtotal (`SUM`); las notas en `E` sin número de ítem. Una fila con color lleva su relleno de `A` a `O`. |
 | Totales | `TOTAL $us` costo, venta y Bs con `SUMIF` sobre las filas con número de ítem (los subtotales no suman dos veces); factor global sobre las líneas con costo > 0; costo Bs = suma de `ROUND(costo_total × TC costo, 2)` por línea; `H22`/`J22` apuntan a los totales |
 | Leasing | Bloque desplazado según las filas insertadas; 3 filas mínimas, su propio total de costo |
 

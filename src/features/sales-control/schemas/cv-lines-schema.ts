@@ -53,6 +53,10 @@ export const cvLineDraftSchema = z.object({
   unitSaleUsd: z.string(),
   poNumber: z.string().trim().max(60),
   notes: z.string().trim().max(1000),
+  color: z
+    .string()
+    .regex(/^[0-9A-F]{6}$/, "Elige un color de la paleta.")
+    .nullable(),
   serials: z.array(z.string().trim().min(1).max(80)).max(1000),
   coverageStart: dateText,
   coverageEnd: dateText,

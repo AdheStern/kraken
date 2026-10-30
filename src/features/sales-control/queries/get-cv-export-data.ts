@@ -103,7 +103,11 @@ function toSections(version: VersionRow): CvExportSection[] {
         .filter((line) => line.groupId === group.id)
         .map((line) =>
           line.kind === "NOTA"
-            ? { kind: "NOTA" as const, text: line.description }
+            ? {
+                kind: "NOTA" as const,
+                text: line.description,
+                color: line.color,
+              }
             : {
                 kind: "ITEM" as const,
                 supplier: line.supplier?.name ?? "",
@@ -118,6 +122,7 @@ function toSections(version: VersionRow): CvExportSection[] {
                   line.serials.map((s) => s.serial),
                 ),
                 poNumber: line.poNumber ?? "",
+                color: line.color,
               },
         ),
     }))

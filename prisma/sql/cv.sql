@@ -5,6 +5,10 @@ ALTER TABLE cv.linea
   ADD CONSTRAINT linea_area_obligatoria_ck CHECK (tipo_linea <> 'ITEM' OR area_id IS NOT NULL),
   ADD CONSTRAINT linea_factor_sin_costo_ck CHECK (factor IS NULL OR costo_unit_usd > 0);
 
+-- POR QUÉ: el color viaja tal cual al relleno del Excel (ARGB); solo se acepta RRGGBB en mayúsculas.
+ALTER TABLE cv.linea
+  ADD CONSTRAINT linea_color_ck CHECK (color IS NULL OR color ~ '^[0-9A-F]{6}$');
+
 -- POR QUÉ: la solicitud del GG tiene area_id nulo; NULLS NOT DISTINCT impide dos solicitudes del GG por versión.
 DROP INDEX cv.solicitud_aprobacion_unica;
 CREATE UNIQUE INDEX solicitud_aprobacion_unica ON cv.solicitud_aprobacion (version_id, tipo, area_id) NULLS NOT DISTINCT;

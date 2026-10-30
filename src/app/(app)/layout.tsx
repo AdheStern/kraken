@@ -54,7 +54,9 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
       />
       {/* TRAMPA: sin min-w-0 el área de contenido crece con lo más ancho (tablero, grilla) y la página desborda. */}
       <SidebarInset className="kr-ground min-w-0">
-        <header className="kr-header sticky top-0 z-10 flex h-12 items-center gap-2 px-3">
+        {/* POR QUÉ: z-30 deja la cabecera sobre lo fijo del contenido (encabezado de la grilla, temporizador, menús
+            de tarjetas, z-10) al desplazar, y bajo diálogos, paneles y menús emergentes (z-50). */}
+        <header className="kr-header sticky top-0 z-30 flex h-12 items-center gap-2 px-3">
           <SidebarTrigger aria-label="Mostrar u ocultar la navegación" />
           {/* POR QUÉ: en móvil el riel vive en un panel; la cabecera lleva la marca para no perder identidad. */}
           <Link href="/inicio" className="flex items-center gap-1.5 md:hidden">

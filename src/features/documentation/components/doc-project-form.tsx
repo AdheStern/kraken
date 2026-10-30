@@ -8,6 +8,7 @@ import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useMarkCreated } from "@/components/forms/fresh-after-create";
 import { Button } from "@/components/ui/button";
 import { createDocProject } from "../actions/create-doc-project";
 import { updateDocProjectHeader } from "../actions/update-doc-project-header";
@@ -37,6 +38,7 @@ type Props = {
 
 export function DocProjectForm({ options, project }: Props) {
   const router = useRouter();
+  const markCreated = useMarkCreated();
   const [serverError, setServerError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const form = useForm<DocProjectInput>({
@@ -51,6 +53,7 @@ export function DocProjectForm({ options, project }: Props) {
     if (!project) {
       const result = await createDocProject(values);
       if (!result.ok) return setServerError(result.error.message);
+      markCreated();
       return router.push(`/documentacion/${result.data.projectId}`);
     }
     const result = await updateDocProjectHeader({

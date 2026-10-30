@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
+import { FreshAfterCreate } from "@/components/forms/fresh-after-create";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ReceiptForm } from "@/features/inventory/components/receipt-form";
 import { listWarehouseTabs } from "@/features/inventory/queries/list-warehouse-tabs";
@@ -55,5 +56,9 @@ async function NewReceipt({
       </KrakenEmpty>
     );
   const chosen = warehouses.find((w) => w.code === params.almacen) ?? first;
-  return <ReceiptForm warehouses={warehouses} defaultWarehouseId={chosen.id} />;
+  return (
+    <FreshAfterCreate>
+      <ReceiptForm warehouses={warehouses} defaultWarehouseId={chosen.id} />
+    </FreshAfterCreate>
+  );
 }

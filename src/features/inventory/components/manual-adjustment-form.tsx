@@ -6,6 +6,7 @@
 import { LoaderCircle, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useMarkCreated } from "@/components/forms/fresh-after-create";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,7 @@ const FIELDS = [
 
 export function ManualAdjustmentForm({ warehouses, areas }: Props) {
   const router = useRouter();
+  const markCreated = useMarkCreated();
   const [warehouseId, setWarehouseId] = useState<string | null>(
     warehouses[0]?.id ?? null,
   );
@@ -49,6 +51,7 @@ export function ManualAdjustmentForm({ warehouses, areas }: Props) {
     });
     setIsPending(false);
     if (!result.ok) return setError(result.error.message);
+    markCreated();
     router.push("/inventario/ajustes");
   }
 

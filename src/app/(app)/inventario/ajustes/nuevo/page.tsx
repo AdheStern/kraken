@@ -6,6 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
+import { FreshAfterCreate } from "@/components/forms/fresh-after-create";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ManualAdjustmentForm } from "@/features/inventory/components/manual-adjustment-form";
 import { listAreaOptions } from "@/features/inventory/queries/list-area-options";
@@ -47,5 +48,9 @@ async function NewAdjustment() {
   const warehouses = tabs
     .filter((t) => t.kind !== "TRANSITO")
     .map((t) => ({ id: t.id, label: t.name }));
-  return <ManualAdjustmentForm warehouses={warehouses} areas={areas} />;
+  return (
+    <FreshAfterCreate>
+      <ManualAdjustmentForm warehouses={warehouses} areas={areas} />
+    </FreshAfterCreate>
+  );
 }

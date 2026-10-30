@@ -6,6 +6,7 @@
 import { LoaderCircle, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useMarkCreated } from "@/components/forms/fresh-after-create";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,7 @@ type Props = {
 
 export function NewTransferForm({ warehouses, origin, catalog }: Props) {
   const router = useRouter();
+  const markCreated = useMarkCreated();
   const [destinationId, setDestinationId] = useState<string | null>(
     warehouses.find((w) => w.id !== origin.id)?.id ?? null,
   );
@@ -64,6 +66,7 @@ export function NewTransferForm({ warehouses, origin, catalog }: Props) {
     setPending(null);
     if (!created.ok) return setError(created.error.message);
     if (sent && !sent.ok) setError(`Quedó en borrador: ${sent.error.message}`);
+    markCreated();
     router.push(`/inventario/traspasos/${created.data.transferId}`);
   }
 

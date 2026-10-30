@@ -6,6 +6,7 @@
 import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useMarkCreated } from "@/components/forms/fresh-after-create";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ import { PosDone } from "./pos-done";
 
 export function ReturnForm({ source }: { source: ReturnSource }) {
   const router = useRouter();
+  const markCreated = useMarkCreated();
   // POR QUÉ: la misma clave en cada reintento; un doble clic no registra dos devoluciones.
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [quantities, setQuantities] = useState<Record<string, string>>({});
@@ -42,6 +44,7 @@ export function ReturnForm({ source }: { source: ReturnSource }) {
     });
     setIsPending(false);
     if (!result.ok) return setError(result.error.message);
+    markCreated();
     setDone({ id: result.data.movementId, number: result.data.number });
   }
 

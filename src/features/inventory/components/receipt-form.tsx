@@ -6,6 +6,7 @@
 import Decimal from "decimal.js";
 import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
+import { useMarkCreated } from "@/components/forms/fresh-after-create";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,6 +42,7 @@ export function ReceiptForm({ warehouses, defaultWarehouseId }: Props) {
   );
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const markCreated = useMarkCreated();
   const [done, setDone] = useState<{
     number: number;
     createdProducts: string[];
@@ -70,6 +72,7 @@ export function ReceiptForm({ warehouses, defaultWarehouseId }: Props) {
     });
     setIsPending(false);
     if (!result.ok) return setError(result.error.message);
+    markCreated();
     setDone(result.data);
   }
 

@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
+import { FreshAfterCreate } from "@/components/forms/fresh-after-create";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminBackLink } from "@/features/admin/components/admin-back-link";
 import { CustomerForm } from "@/features/admin/components/customer-form";
@@ -30,5 +31,9 @@ export default function NewCustomerPage() {
 async function GuardedForm() {
   const user = await requireUser();
   if (!canManageCommercialCatalogs(user)) notFound();
-  return <CustomerForm />;
+  return (
+    <FreshAfterCreate>
+      <CustomerForm />
+    </FreshAfterCreate>
+  );
 }

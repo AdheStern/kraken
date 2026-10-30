@@ -6,6 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
+import { FreshAfterCreate } from "@/components/forms/fresh-after-create";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DocProjectForm } from "@/features/documentation/components/doc-project-form";
 import { getDocProjectFormOptions } from "@/features/documentation/queries/get-doc-project-form-options";
@@ -40,7 +41,9 @@ async function NewProject() {
   if (!canUseDocumentation(user)) notFound();
   return (
     <section className="kr-surface rounded-xl p-4 sm:p-6">
-      <DocProjectForm options={await getDocProjectFormOptions()} />
+      <FreshAfterCreate>
+        <DocProjectForm options={await getDocProjectFormOptions()} />
+      </FreshAfterCreate>
     </section>
   );
 }

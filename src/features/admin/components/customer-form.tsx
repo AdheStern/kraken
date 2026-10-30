@@ -4,6 +4,7 @@
 
 import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
+import { useMarkCreated } from "@/components/forms/fresh-after-create";
 import { Button } from "@/components/ui/button";
 import { upsertCustomer } from "../actions/upsert-customer";
 import type { CustomerDetail } from "../types";
@@ -32,6 +33,7 @@ const FIELDS: {
 
 export function CustomerForm({ customer }: { customer?: CustomerDetail }) {
   const { isPending, error, run } = useAdminAction();
+  const markCreated = useMarkCreated();
   const [saved, setSaved] = useState(false);
   const [draft, setDraft] = useState<Draft>({
     name: customer?.name ?? "",
@@ -49,7 +51,10 @@ export function CustomerForm({ customer }: { customer?: CustomerDetail }) {
     if (!customer)
       return run(
         () => upsertCustomer(input),
-        (data) => `/admin/clientes/${data.id}`,
+        (data) => {
+          markCreated();
+          return `/admin/clientes/${data.id}`;
+        },
       );
     setSaved(await run(() => upsertCustomer(input)));
   }

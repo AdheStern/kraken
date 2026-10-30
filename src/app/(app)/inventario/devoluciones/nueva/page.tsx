@@ -7,6 +7,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
+import { FreshAfterCreate } from "@/components/forms/fresh-after-create";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -80,7 +81,9 @@ async function ReturnContent({ searchParams }: Pick<Props, "searchParams">) {
               {source.destination}
             </span>
           </p>
-          <ReturnForm key={source.movementId} source={source} />
+          <FreshAfterCreate key={source.movementId}>
+            <ReturnForm source={source} />
+          </FreshAfterCreate>
         </>
       )}
     </>

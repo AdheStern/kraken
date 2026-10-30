@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
+import { FreshAfterCreate } from "@/components/forms/fresh-after-create";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NewTransferForm } from "@/features/inventory/components/new-transfer-form";
 import { getPosCatalog } from "@/features/inventory/queries/get-pos-catalog";
@@ -61,11 +62,12 @@ async function NewTransfer({
     );
   const { items } = await getPosCatalog(user, origin.id);
   return (
-    <NewTransferForm
-      key={origin.id}
-      warehouses={warehouses}
-      origin={origin}
-      catalog={items}
-    />
+    <FreshAfterCreate key={origin.id}>
+      <NewTransferForm
+        warehouses={warehouses}
+        origin={origin}
+        catalog={items}
+      />
+    </FreshAfterCreate>
   );
 }

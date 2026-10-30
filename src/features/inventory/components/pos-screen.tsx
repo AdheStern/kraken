@@ -6,6 +6,7 @@
 import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useMarkCreated } from "@/components/forms/fresh-after-create";
 import { Button } from "@/components/ui/button";
 import { OptionSelect } from "@/components/ui/option-select";
 import { dispatchItems } from "../actions/dispatch-items";
@@ -38,6 +39,7 @@ export function PosScreen({
   isDefaultWarehouse,
 }: Props) {
   const router = useRouter();
+  const markCreated = useMarkCreated();
   const [cart, setCart] = useState<CartLine[]>([]);
   const [destination, setDestination] = useState<PosDestination>({
     kind: "CV",
@@ -96,6 +98,7 @@ export function PosScreen({
     });
     setIsPending(false);
     if (!result.ok) return setError(result.error.message);
+    markCreated();
     setDone(result.data);
     router.refresh();
   }

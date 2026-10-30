@@ -26,7 +26,9 @@ export function FxManualForm({ today }: { today: string }) {
       onSubmit={async (event) => {
         event.preventDefault();
         setSaved(false);
-        setSaved(await run(() => setManualFxRate(draft)));
+        const ok = await run(() => setManualFxRate(draft));
+        if (ok) setDraft({ ...draft, buyRate: "", sellRate: "" });
+        setSaved(ok);
       }}
     >
       <div className="grid gap-1.5">

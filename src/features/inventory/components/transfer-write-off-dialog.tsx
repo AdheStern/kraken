@@ -53,6 +53,7 @@ export function TransferWriteOffDialog({
     setIsPending(false);
     if (!result.ok) return setError(result.error.message);
     setOpen(false);
+    setReason("");
     router.push("/inventario/ajustes");
   }
 

@@ -4,6 +4,7 @@
 
 import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
+import { useMarkCreated } from "@/components/forms/fresh-after-create";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,7 @@ type Props = { product?: ProductDetail; options: ProductFormOptions };
 
 export function ProductForm({ product, options }: Props) {
   const { isPending, error, run } = useAdminAction();
+  const markCreated = useMarkCreated();
   const [saved, setSaved] = useState(false);
   const [draft, setDraft] = useState({
     code: product?.code ?? "",
@@ -40,7 +42,10 @@ export function ProductForm({ product, options }: Props) {
     if (!product)
       return run(
         () => upsertProduct(input),
-        (data) => `/admin/productos/${data.id}`,
+        (data) => {
+          markCreated();
+          return `/admin/productos/${data.id}`;
+        },
       );
     setSaved(await run(() => upsertProduct(input)));
   }

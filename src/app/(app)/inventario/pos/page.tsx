@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
+import { FreshAfterCreate } from "@/components/forms/fresh-after-create";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PosScreen } from "@/features/inventory/components/pos-screen";
 import { getPosCatalog } from "@/features/inventory/queries/get-pos-catalog";
@@ -53,13 +54,14 @@ async function Pos({
     );
   const { items, reservations } = await getPosCatalog(user, warehouse.id);
   return (
-    <PosScreen
-      key={warehouse.id}
-      warehouses={warehouses}
-      warehouse={warehouse}
-      catalog={items}
-      reservations={reservations}
-      isDefaultWarehouse={!requested}
-    />
+    <FreshAfterCreate key={warehouse.id}>
+      <PosScreen
+        warehouses={warehouses}
+        warehouse={warehouse}
+        catalog={items}
+        reservations={reservations}
+        isDefaultWarehouse={!requested}
+      />
+    </FreshAfterCreate>
   );
 }

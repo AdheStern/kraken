@@ -47,6 +47,7 @@ export async function getCvLines(
       poNumber: l.poNumber ?? "",
       notes: l.notes ?? "",
       color: l.color,
+      isSubItem: l.isSubItem,
       serials: l.serials.map((s) => s.serial),
       coverageStart: toDateText(l.coverageStart),
       coverageEnd: toDateText(l.coverageEnd),

@@ -11,6 +11,8 @@ import { RowActions, RowNumber } from "./row-parts";
 type Props = {
   description: string;
   row: number;
+  label: string | null;
+  isOrphan: boolean;
   columns: ColumnKey[];
   canEdit: boolean;
   onChange: (description: string) => void;
@@ -40,7 +42,7 @@ export function CvNoteRow({
       style={rowColorStyle(color)}
     >
       <td className="px-0.5 py-0.5" style={{ width: COLUMNS.index.width }}>
-        <RowNumber row={row} hasIssues={description.trim() === ""} />
+        <RowNumber label={null} hasIssues={description.trim() === ""} />
       </td>
       <td colSpan={span} className="px-0.5 py-0.5">
         <TextCell

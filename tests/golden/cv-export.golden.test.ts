@@ -21,6 +21,7 @@ const party = {
 
 const item = (overrides: Partial<CvExportItem>): CvExportItem => ({
   kind: "ITEM",
+  isSubItem: false,
   supplier: "INGRAM",
   technology: "Cisco",
   code: "",
@@ -70,6 +71,7 @@ const DATA: CvExportData = {
           supplier: "DIMA",
           technology: "Webex",
           description: "Licencias Webex",
+          isSubItem: true,
           unitCostUsd: "45.22",
           unitSaleUsd: "130.80",
         }),
@@ -159,20 +161,22 @@ describe("exportación del CV a PA-PR-03-RE-01", async () => {
     expect(cells.C18).toBe("2026-10-10");
   });
 
-  it("líneas con fórmulas redondeadas; lote con subtotal; nota sin importe", () => {
+  it("líneas con fórmulas redondeadas; subítem 1.1; lote con subtotal; nota sin importe", () => {
     expect(cells.H24).toBe("=ROUND(G24*F24,2)");
     expect(cells.M24).toBe("=ROUND(J24*K24,2)");
     expect(cells.E27).toBe("Initial Term - 36 Months");
     expect(cells.A27).toBeUndefined();
     expect(cells.E28).toBe("LOTE 1");
     expect(cells.H28).toBe("=SUM(H29:H30)");
-    expect(cells.A30).toBe("5");
+    expect(cells.A25).toBe("1.1");
+    expect(cells.A26).toBe("2");
+    expect(cells.A30).toBe("4");
   });
 
   it("totales solo de ítems, factor global sobre líneas con costo y Bs por línea", () => {
-    expect(cells.H31).toBe('=SUMIF(A24:A30,">0",H24:H30)');
-    expect(cells.O31).toContain('SUMIFS(J24:J30,A24:A30,">0",H24:H30,">0")');
-    expect(cells.H32).toBe("=SUMPRODUCT((A24:A30>0)*ROUND(H24:H30*6.97,2))");
+    expect(cells.H31).toBe('=SUMIF(A24:A30,"<>",H24:H30)');
+    expect(cells.O31).toContain('SUMIFS(J24:J30,A24:A30,"<>",H24:H30,">0")');
+    expect(cells.H32).toBe('=SUMPRODUCT((A24:A30<>"")*ROUND(H24:H30*6.97,2))');
     expect(cells.H22).toBe("=H31");
   });
 

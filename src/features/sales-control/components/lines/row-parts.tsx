@@ -1,24 +1,61 @@
 // src/features/sales-control/components/lines/row-parts.tsx
-// Piezas comunes de las filas de la grilla: número de fila con estado y acciones (mover, quitar).
-import { ArrowDown, ArrowUp, SlidersHorizontal, Trash2 } from "lucide-react";
+// Piezas comunes de las filas de la grilla: número de ítem (1, 1.1) con estado y acciones (subítem, mover, quitar).
+import {
+  ArrowDown,
+  ArrowUp,
+  IndentDecrease,
+  IndentIncrease,
+  SlidersHorizontal,
+  Trash2,
+} from "lucide-react";
 
+// POR QUÉ: la columna # muestra el número de ítem (el del Excel), no la posición: las notas no llevan número.
 export function RowNumber({
-  row,
+  label,
   hasIssues,
+  issueText = "La línea tiene datos por completar",
 }: {
-  row: number;
+  label: string | null;
   hasIssues: boolean;
+  issueText?: string;
 }) {
+  const isSub = label?.includes(".") ?? false;
   return (
-    <span className="flex items-center justify-end gap-1 pr-1 text-xs text-muted-foreground tabular-nums">
+    <span
+      className={`flex items-center gap-1 pr-1 text-xs text-muted-foreground tabular-nums ${isSub ? "justify-start pl-3" : "justify-end"}`}
+    >
       {hasIssues && (
         <span
-          className="size-1.5 rounded-full bg-destructive"
-          title="La línea tiene datos por completar"
+          className="size-1.5 shrink-0 rounded-full bg-destructive"
+          title={issueText}
         />
       )}
-      {row + 1}
+      {label}
     </span>
+  );
+}
+
+export function SubItemButton({
+  isSubItem,
+  onToggle,
+}: {
+  isSubItem: boolean;
+  onToggle: () => void;
+}) {
+  const label = isSubItem
+    ? "Volver a línea principal"
+    : "Convertir en subítem de la línea anterior";
+  const Icon = isSubItem ? IndentDecrease : IndentIncrease;
+  return (
+    <button
+      type="button"
+      className={ICON_BUTTON}
+      onClick={onToggle}
+      aria-label={label}
+      title={label}
+    >
+      <Icon className="size-3.5" />
+    </button>
   );
 }
 

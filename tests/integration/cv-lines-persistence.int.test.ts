@@ -24,6 +24,7 @@ function item(
     createProduct: false,
     data: {
       kind: "ITEM",
+      isSubItem: false,
       description,
       areaId,
       supplierId: null,
@@ -112,6 +113,37 @@ describe("replaceVersionLines", () => {
     await expect(
       db.cvLine.update({ where: { id: line.id }, data: { color: "ffc000" } }),
     ).rejects.toThrow(/linea_color_ck/);
+  });
+
+  it("guarda el subítem y la base no deja marcar una nota como subítem", async () => {
+    const f = await createCvFixture(db);
+    const child = item(f.area.id, "Licencia");
+    child.data.isSubItem = true;
+    await db.$transaction((tx) =>
+      replaceVersionLines(
+        tx,
+        f.version.id,
+        [],
+        [item(f.area.id, "Switch"), child],
+        TOTALS,
+      ),
+    );
+    const saved = await db.cvLine.findMany({
+      where: { versionId: f.version.id },
+      orderBy: { position: "asc" },
+    });
+    expect(saved.map((l) => l.isSubItem)).toEqual([false, true]);
+    await expect(
+      db.cvLine.create({
+        data: {
+          versionId: f.version.id,
+          position: 3,
+          kind: "NOTA",
+          description: "Nota",
+          isSubItem: true,
+        },
+      }),
+    ).rejects.toThrow(/linea_subitem_solo_item_ck/);
   });
 
   it("no puede modificar una versión que ya no está en borrador", async () => {

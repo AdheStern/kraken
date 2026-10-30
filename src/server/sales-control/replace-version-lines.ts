@@ -24,6 +24,7 @@ export type VersionLineRecord = {
   createProduct: boolean;
   data: {
     kind: CvLineKind;
+    isSubItem: boolean;
     description: string;
     areaId: string | null;
     supplierId: string | null;

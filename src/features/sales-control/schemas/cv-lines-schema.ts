@@ -37,6 +37,7 @@ export const cvLineDraftSchema = z.object({
   id: z.string().nullable(),
   kind: z.enum(["ITEM", "NOTA"]),
   groupKey: z.string().nullable(),
+  isSubItem: z.boolean(),
   areaId: optionalId,
   supplierId: optionalId,
   supplyMode: z.enum(SupplyMode).nullable(),

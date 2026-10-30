@@ -110,6 +110,7 @@ function toSections(version: VersionRow): CvExportSection[] {
               }
             : {
                 kind: "ITEM" as const,
+                isSubItem: line.isSubItem,
                 supplier: line.supplier?.name ?? "",
                 technology: line.technology?.name ?? "",
                 code: line.code ?? "",

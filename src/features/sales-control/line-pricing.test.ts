@@ -13,6 +13,7 @@ function draft(overrides: Partial<CvLineDraft>): CvLineDraft {
     id: null,
     kind: "ITEM",
     groupKey: null,
+    isSubItem: false,
     areaId: "area-net",
     supplierId: null,
     supplyMode: null,

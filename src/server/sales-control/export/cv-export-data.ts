@@ -14,6 +14,8 @@ export type CvExportParty = {
 
 export type CvExportItem = {
   kind: "ITEM";
+  /** Subítem de la principal anterior del lote: se numera 1.1, 1.2 (AGENTS.md §2.1). */
+  isSubItem: boolean;
   supplier: string;
   technology: string;
   code: string;

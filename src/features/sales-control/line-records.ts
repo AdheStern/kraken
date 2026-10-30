@@ -3,6 +3,7 @@
 // y las reglas de detalle, fija los montos recalculados y suma los totales. Puro; lo usa upsertCvLines.
 import type { FxRates } from "@/domain/pricing/compute-line-totals";
 import { computeVersionTotals } from "@/domain/pricing/compute-version-totals";
+import { numberItems } from "@/domain/sales-control/number-items";
 import type {
   VersionLineRecord,
   VersionTotalsRecord,
@@ -28,6 +29,14 @@ export function prepareLineRecords(
   const groupKeys = new Set(groups.map((group) => group.key));
   const records: VersionLineRecord[] = [];
   const pricedTotals: PricedLine["totals"][] = [];
+  const { orphans } = numberItems(
+    lines.map((l) => ({ ...l, sectionKey: l.groupKey })),
+  );
+  if (orphans.length > 0)
+    return {
+      ok: false,
+      message: `Línea ${orphans[0] + 1}: un subítem necesita una línea principal antes, en el mismo lote.`,
+    };
 
   for (const [index, draft] of lines.entries()) {
     const prefix = `Línea ${index + 1}:`;
@@ -91,6 +100,7 @@ function itemData(
       : null;
   return {
     kind: "ITEM",
+    isSubItem: draft.isSubItem,
     description: draft.description,
     areaId: draft.areaId,
     supplierId: draft.supplierId,
@@ -117,6 +127,7 @@ function itemData(
 function noteData(draft: CvLineDraft): VersionLineRecord["data"] {
   return {
     kind: "NOTA",
+    isSubItem: false,
     description: draft.description,
     areaId: null,
     supplierId: null,

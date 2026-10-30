@@ -1,9 +1,10 @@
 // src/features/sales-control/components/lines/cv-line-grid.tsx
-// Grilla tipo planilla de las líneas del CV: secciones por lote, ítems, notas y navegación con teclado.
+// Grilla tipo planilla de las líneas del CV: secciones por lote, ítems con subítems (1, 1.1), notas y navegación
+// con teclado.
 "use client";
 
-import Decimal from "decimal.js";
 import type { ClipboardEvent, Dispatch } from "react";
+import { numberItems } from "@/domain/sales-control/number-items";
 import { parseTsv } from "@/domain/sales-control/parse-tsv";
 import type { PriceLineResult } from "../../line-pricing";
 import type { CvLineDraft } from "../../schemas/cv-lines-schema";
@@ -14,6 +15,7 @@ import { CvNoteRow } from "./cv-note-row";
 import type { ColumnKey } from "./grid-columns";
 import { GridHeader } from "./grid-header";
 import { handleGridKeyDown } from "./grid-keyboard";
+import { groupSubtotal } from "./group-subtotal";
 import type { LinesAction, LinesState } from "./use-cv-lines-state";
 import type { LineDetailInfo } from "./use-lines-pricing";
 
@@ -47,6 +49,10 @@ export function CvLineGrid({
 }: Props) {
   const rowOf = new Map(state.lines.map((line, index) => [line.key, index]));
   const sections = [null, ...state.groups.map((group) => group.key)];
+  // TRAMPA: state.lines ya está en el orden visible (por lote); la numeración se calcula sobre ese orden.
+  const numbering = numberItems(
+    state.lines.map((line) => ({ ...line, sectionKey: line.groupKey })),
+  );
   const productsByCode = new Map(
     options.products.map((product) => [product.code.toUpperCase(), product]),
   );
@@ -76,6 +82,8 @@ export function CvLineGrid({
       onMove: (offset: -1 | 1) =>
         dispatch({ type: "moveLine", key: line.key, offset }),
       onRemove: () => dispatch({ type: "removeLine", key: line.key }),
+      label: numbering.labels[row],
+      isOrphan: numbering.orphans.includes(row),
       color: line.color,
       onColor: (color: string | null) =>
         dispatch({ type: "updateLine", key: line.key, patch: { color } }),
@@ -145,7 +153,7 @@ export function CvLineGrid({
                   span={columns.length}
                   canEdit={canEdit}
                   lineCount={lines.length}
-                  subtotalSaleUsd={subtotal(lines, results)}
+                  subtotalSaleUsd={groupSubtotal(lines, results)}
                   onRename={(name) =>
                     dispatch({ type: "renameGroup", key: group.key, name })
                   }
@@ -185,16 +193,4 @@ export function CvLineGrid({
       </datalist>
     </div>
   );
-}
-
-function subtotal(
-  lines: CvLineDraft[],
-  results: Map<string, PriceLineResult>,
-): string {
-  return lines
-    .reduce((sum, line) => {
-      const result = results.get(line.key);
-      return result?.ok ? sum.plus(result.value.totals.totalSaleUsd) : sum;
-    }, new Decimal(0))
-    .toFixed(2);
 }

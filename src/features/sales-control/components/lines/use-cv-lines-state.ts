@@ -31,6 +31,7 @@ export function blankLine(
     id: null,
     kind,
     groupKey,
+    isSubItem: false,
     areaId: null,
     supplierId: null,
     supplyMode: null,

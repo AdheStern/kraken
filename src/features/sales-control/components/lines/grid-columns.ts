@@ -13,7 +13,7 @@ export type GridColumn = {
 };
 
 export const COLUMNS = {
-  index: { label: "#", width: 44 },
+  index: { label: "#", width: 60 },
   supplier: { label: "Proveedor", width: 150 },
   technology: { label: "Tecnología", width: 120 },
   code: { label: "Código", width: 124 },
@@ -40,7 +40,7 @@ export const COLUMNS = {
   itemType: { label: "Tipo", width: 112 },
   poNumber: { label: "PO#", width: 100 },
   notes: { label: "Observaciones", width: 200 },
-  actions: { label: "", width: 152 },
+  actions: { label: "", width: 180 },
 } as const satisfies Record<string, GridColumn>;
 
 export type ColumnKey = keyof typeof COLUMNS;

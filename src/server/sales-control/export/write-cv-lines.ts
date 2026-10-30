@@ -2,6 +2,7 @@
 // Líneas del CV desde la fila 24 (ítems, filas de lote con subtotal y filas de nota) y los totales.
 // Escribe fórmulas, no solo valores, para que el archivo siga "vivo" (ADR-12).
 import type { Worksheet } from "exceljs";
+import { numberItems } from "@/domain/sales-control/number-items";
 import type {
   CvExportData,
   CvExportItem,
@@ -26,8 +27,9 @@ export function writeCvLines(ws: Worksheet, data: CvExportData): number {
   );
   if (rowCount > 1) insertRowCopies(ws, FIRST_LINE_ROW, rowCount - 1);
 
+  const labels = itemLabels(data.sections);
   let row = FIRST_LINE_ROW;
-  let item = 0;
+  let index = 0;
   for (const section of data.sections) {
     if (section.groupName !== null) {
       writeGroupRow(ws, row, section.groupName, section.rows.length);
@@ -35,16 +37,26 @@ export function writeCvLines(ws: Worksheet, data: CvExportData): number {
     }
     for (const line of section.rows) {
       if (line.kind === "NOTA") writeNoteRow(ws, row, line.text);
-      else {
-        item += 1;
-        writeItemRow(ws, row, item, line, data.saleFxRate);
-      }
+      else writeItemRow(ws, row, labels[index] ?? "", line, data.saleFxRate);
       if (line.color) fillRow(ws, row, line.color);
       row += 1;
+      index += 1;
     }
   }
   writeTotals(ws, FIRST_LINE_ROW + rowCount - 1, data.costFxRate);
   return rowCount - 1;
+}
+
+function itemLabels(sections: CvExportSection[]): (string | null)[] {
+  return numberItems(
+    sections.flatMap((section, sectionIndex) =>
+      section.rows.map((line) => ({
+        kind: line.kind,
+        isSubItem: line.kind === "ITEM" && line.isSubItem,
+        sectionKey: String(sectionIndex),
+      })),
+    ),
+  ).labels;
 }
 
 function sectionSize(section: CvExportSection): number {
@@ -54,12 +66,13 @@ function sectionSize(section: CvExportSection): number {
 function writeItemRow(
   ws: Worksheet,
   r: number,
-  item: number,
+  label: string,
   line: CvExportItem,
   saleFxRate: string,
 ) {
   writeCells(ws.getRow(r), {
-    A: item,
+    // POR QUÉ: la principal va como número (como siempre); el subítem como texto, porque 1.10 sería 1.1.
+    A: label.includes(".") ? label : Number(label),
     B: line.supplier,
     C: line.technology,
     D: line.code,
@@ -115,11 +128,12 @@ function writeTotals(ws: Worksheet, last: number, costFxRate: string) {
   const total = last + 1;
   const items = (column: string) =>
     `${column}${FIRST_LINE_ROW}:${column}${last}`;
-  // POR QUÉ: las filas de lote llevan subtotal; solo las filas con número de ítem (columna A) suman.
+  // POR QUÉ: las filas de lote llevan subtotal; solo las filas con número de ítem (columna A, número o
+  // «1.1» como texto) suman.
   const sumItems = (column: string) =>
-    formula(`SUMIF(${items("A")},">0",${items(column)})`);
+    formula(`SUMIF(${items("A")},"<>",${items(column)})`);
   const withCost = (column: string) =>
-    `SUMIFS(${items(column)},${items("A")},">0",${items("H")},">0")`;
+    `SUMIFS(${items(column)},${items("A")},"<>",${items("H")},">0")`;
   writeCells(ws.getRow(total), {
     H: sumItems("H"),
     J: sumItems("J"),
@@ -130,7 +144,7 @@ function writeTotals(ws: Worksheet, last: number, costFxRate: string) {
   writeCells(ws.getRow(total + 1), {
     // REGLA: Bs por línea redondeado y luego sumado (AGENTS.md §2.2).
     H: formula(
-      `SUMPRODUCT((${items("A")}>0)*ROUND(${items("H")}*${costFxRate},2))`,
+      `SUMPRODUCT((${items("A")}<>"")*ROUND(${items("H")}*${costFxRate},2))`,
     ),
     J: formula(`M${total}`),
   });

@@ -55,6 +55,8 @@ model CvLine {
   notes         String?        @map("observaciones")
   // Relleno de la fila en la grilla y en el Excel exportado, como RRGGBB en mayúsculas; null = sin color.
   color         String?        @db.VarChar(6)
+  // Subítem de la línea principal anterior del mismo lote: se numera 1.1, 1.2 (número derivado, no guardado).
+  isSubItem     Boolean        @default(false) @map("es_subitem")
 
   version      CvVersion      @relation(fields: [versionId], references: [id], onDelete: Cascade)
   group        CvGroup?       @relation(fields: [groupId], references: [id])

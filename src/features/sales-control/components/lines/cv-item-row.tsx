@@ -11,11 +11,18 @@ import { catalogCells } from "./item-catalog-cells";
 import type { ItemCellContext } from "./item-cell-context";
 import { pricingCells } from "./item-pricing-cells";
 import { RowColorPicker } from "./row-color-picker";
-import { DetailButton, RowActions, RowNumber } from "./row-parts";
+import {
+  DetailButton,
+  RowActions,
+  RowNumber,
+  SubItemButton,
+} from "./row-parts";
 
 type Props = {
   line: CvLineDraft;
   row: number;
+  label: string | null;
+  isOrphan: boolean;
   result: PriceLineResult;
   columns: ColumnKey[];
   options: CvGridOptions;
@@ -33,6 +40,8 @@ type Props = {
 export function CvItemRow({
   line,
   row,
+  label,
+  isOrphan,
   result,
   columns,
   options,
@@ -60,13 +69,27 @@ export function CvItemRow({
   };
   const cells = {
     index: (
-      <RowNumber row={row} hasIssues={!result.ok || detailState === "issues"} />
+      <RowNumber
+        label={label}
+        hasIssues={isOrphan || !result.ok || detailState === "issues"}
+        issueText={
+          isOrphan
+            ? "Un subítem necesita una línea principal antes, en el mismo lote"
+            : undefined
+        }
+      />
     ),
     ...catalogCells(context, options, onProductCode),
     ...pricingCells(context),
     actions: (
       <div className="flex items-center justify-end">
         <DetailButton state={detailState} onClick={onDetail} />
+        {canEdit && (
+          <SubItemButton
+            isSubItem={line.isSubItem}
+            onToggle={() => onChange({ isSubItem: !line.isSubItem })}
+          />
+        )}
         {canEdit && <RowColorPicker value={color} onChange={onColor} />}
         {canEdit && <RowActions onMove={onMove} onRemove={onRemove} />}
       </div>

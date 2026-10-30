@@ -9,6 +9,10 @@ ALTER TABLE cv.linea
 ALTER TABLE cv.linea
   ADD CONSTRAINT linea_color_ck CHECK (color IS NULL OR color ~ '^[0-9A-F]{6}$');
 
+-- POR QUÉ: el número 1.1 se deriva del orden; una nota no lleva número y no puede ser subítem.
+ALTER TABLE cv.linea
+  ADD CONSTRAINT linea_subitem_solo_item_ck CHECK (tipo_linea = 'ITEM' OR NOT es_subitem);
+
 -- POR QUÉ: la solicitud del GG tiene area_id nulo; NULLS NOT DISTINCT impide dos solicitudes del GG por versión.
 DROP INDEX cv.solicitud_aprobacion_unica;
 CREATE UNIQUE INDEX solicitud_aprobacion_unica ON cv.solicitud_aprobacion (version_id, tipo, area_id) NULLS NOT DISTINCT;

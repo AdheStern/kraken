@@ -21,15 +21,22 @@ test.describe("Administración", () => {
     page,
   }) => {
     await page.goto("/admin/clientes/nuevo");
-    await page.getByLabel("Razón social").fill(`Cliente E2E ${STAMP}`);
-    await page.getByLabel("NIT").fill(String(STAMP));
+    await page
+      .getByRole("textbox", { name: "Razón social" })
+      .fill(`Cliente E2E ${STAMP}`);
+    await page.getByRole("textbox", { name: "NIT" }).fill(String(STAMP));
     await page.getByRole("button", { name: "Crear cliente" }).click();
     await expect(page).toHaveURL(/\/admin\/clientes\/[0-9a-f-]{36}$/);
 
+    // TRAMPA: la ficha recién creada sigue montada y oculta; getByRole ignora lo oculto, getByLabel no.
     await page.goBack();
-    await expect(page.getByLabel("Razón social")).toHaveValue("");
-    await expect(page.getByLabel("NIT")).toHaveValue("");
-    await expect(page.getByLabel("País")).toHaveValue("Bolivia");
+    await expect(
+      page.getByRole("textbox", { name: "Razón social" }),
+    ).toHaveValue("");
+    await expect(page.getByRole("textbox", { name: "NIT" })).toHaveValue("");
+    await expect(page.getByRole("textbox", { name: "País" })).toHaveValue(
+      "Bolivia",
+    );
   });
 });
 

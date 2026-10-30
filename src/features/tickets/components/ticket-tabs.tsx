@@ -3,7 +3,9 @@
 // con su jerarquía, materiales, comentarios, adjuntos e historial (AGENTS.md §5 "Detalle del ticket").
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
+import { GooeyNav } from "@/components/ui/gooey-nav";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import type { TicketMaterials } from "@/features/inventory/queries/list-ticket-materials";
 import type { TicketSummary } from "../queries/get-ticket-summary";
 import type { TicketBagsPanel, TicketDetail, TicketTime } from "../types";
@@ -27,31 +29,47 @@ type Props = {
 export function TicketTabs({ detail, bags, time, materials, summary }: Props) {
   const isFinished =
     detail.ticket.status === "CERRADO" || detail.ticket.status === "CANCELADO";
+  const [tab, setTab] = useState(summary ? "resumen" : "subtareas");
+  const items = [
+    ...(summary ? [{ key: "resumen", label: "Resumen" }] : []),
+    {
+      key: "subtareas",
+      label: <Label text="Subtareas" count={detail.subtasks.length} />,
+    },
+    {
+      key: "registros",
+      label: <Label text="Registros" count={time.entries.length} />,
+    },
+    {
+      key: "bolsas",
+      label: <Label text="Bolsas" count={bags.hierarchy.length} />,
+    },
+    {
+      key: "materiales",
+      label: <Label text="Materiales" count={materials.items.length} />,
+    },
+    {
+      key: "comentarios",
+      label: <Label text="Comentarios" count={detail.comments.length} />,
+    },
+    {
+      key: "adjuntos",
+      label: <Label text="Adjuntos" count={detail.attachments.length} />,
+    },
+    { key: "historial", label: "Historial" },
+  ];
   return (
-    <Tabs defaultValue={summary ? "resumen" : "subtareas"} className="gap-4">
-      {/* TRAMPA: una lista centrada que desborda corta la primera pestaña; en el móvil se alinea al inicio. */}
-      <TabsList className="w-full justify-start overflow-x-auto sm:w-fit">
-        {summary && <TabsTrigger value="resumen">Resumen</TabsTrigger>}
-        <TabsTrigger value="subtareas">
-          Subtareas <Count value={detail.subtasks.length} />
-        </TabsTrigger>
-        <TabsTrigger value="registros">
-          Registros <Count value={time.entries.length} />
-        </TabsTrigger>
-        <TabsTrigger value="bolsas">
-          Bolsas <Count value={bags.hierarchy.length} />
-        </TabsTrigger>
-        <TabsTrigger value="materiales">
-          Materiales <Count value={materials.items.length} />
-        </TabsTrigger>
-        <TabsTrigger value="comentarios">
-          Comentarios <Count value={detail.comments.length} />
-        </TabsTrigger>
-        <TabsTrigger value="adjuntos">
-          Adjuntos <Count value={detail.attachments.length} />
-        </TabsTrigger>
-        <TabsTrigger value="historial">Historial</TabsTrigger>
-      </TabsList>
+    <Tabs
+      value={tab}
+      onValueChange={(value) => setTab(String(value))}
+      className="gap-4"
+    >
+      <GooeyNav
+        mode="tabs"
+        label="Secciones del ticket"
+        items={items}
+        active={tab}
+      />
       {summary && (
         <TabsContent value="resumen">
           <TicketSummaryPanel summary={summary} />
@@ -106,8 +124,11 @@ export function TicketTabs({ detail, bags, time, materials, summary }: Props) {
   );
 }
 
-function Count({ value }: { value: number }) {
+// POR QUÉ: el conteo hereda el color de la pestaña (también sobre el azul de la elegida), solo más tenue.
+function Label({ text, count }: { text: string; count: number }) {
   return (
-    <span className="text-xs tabular-nums text-muted-foreground">{value}</span>
+    <>
+      {text} <span className="text-xs tabular-nums opacity-70">{count}</span>
+    </>
   );
 }

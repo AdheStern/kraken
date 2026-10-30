@@ -3,39 +3,33 @@
 // a la pantalla que explican (AGENTS.md §12 F6).
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { GooeyNav } from "@/components/ui/gooey-nav";
 import type { ManualChoice } from "../manual-registry";
 
 export function ManualView({ choice }: { choice: ManualChoice }) {
   const { manual, role, tabs } = choice;
   return (
     <>
-      <nav aria-label="Manuales por rol" className="-mx-1 overflow-x-auto px-1">
-        <ul className="flex w-max gap-1 rounded-xl bg-muted/60 p-1 md:w-auto md:flex-wrap">
-          {tabs.map((tab) => (
-            <li key={tab.role}>
-              <Link
-                href={`/ayuda?rol=${tab.role}`}
-                aria-current={tab.role === role ? "page" : undefined}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none motion-reduce:transition-none",
-                  tab.role === role &&
-                    "bg-background text-foreground shadow-sm",
-                )}
-              >
-                {tab.isOwn && (
-                  <span
-                    className="size-1.5 rounded-full bg-primary"
-                    aria-hidden="true"
-                  />
-                )}
-                {tab.title}
-                {tab.isOwn && <span className="sr-only">(tu rol)</span>}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <GooeyNav
+        label="Manuales por rol"
+        active={role}
+        items={tabs.map((tab) => ({
+          key: tab.role,
+          href: `/ayuda?rol=${tab.role}`,
+          label: (
+            <>
+              {tab.isOwn && (
+                <span
+                  className="size-1.5 rounded-full bg-current opacity-80"
+                  aria-hidden="true"
+                />
+              )}
+              {tab.title}
+              {tab.isOwn && <span className="sr-only">(tu rol)</span>}
+            </>
+          ),
+        }))}
+      />
       <p className="max-w-3xl text-base text-pretty">{manual.summary}</p>
       <div className="grid gap-4 md:grid-cols-2">
         {manual.sections.map((section) => (

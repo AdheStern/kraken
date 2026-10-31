@@ -82,32 +82,13 @@ export function NewCvDialog({
         <form
           id="new-cv"
           onSubmit={form.handleSubmit(onSubmit)}
-          className="grid gap-4 sm:grid-cols-2"
+          className="grid gap-4 sm:grid-cols-3"
         >
-          <FormField
-            label="Ciudad"
-            htmlFor="new-cv-city"
-            error={errors.cityId?.message}
-          >
-            <Controller
-              control={form.control}
-              name="cityId"
-              render={({ field }) => (
-                <CatalogCombobox
-                  id="new-cv-city"
-                  options={options.cities}
-                  value={field.value || null}
-                  onChange={(id) => field.onChange(id ?? "")}
-                  invalid={!!errors.cityId}
-                  placeholder="LP, SC o CB"
-                />
-              )}
-            />
-          </FormField>
           <FormField
             label="Cliente"
             htmlFor="new-cv-customer"
             error={errors.customerId?.message}
+            className="sm:col-span-3"
           >
             <Controller
               control={form.control}
@@ -128,12 +109,32 @@ export function NewCvDialog({
             label="Título"
             htmlFor="new-cv-title"
             error={errors.title?.message}
-            className="sm:col-span-2"
+            className="sm:col-span-3"
           >
             <Input
               id="new-cv-title"
               placeholder="Renovación de licencias Microsoft 365"
               {...form.register("title")}
+            />
+          </FormField>
+          <FormField
+            label="Ciudad"
+            htmlFor="new-cv-city"
+            error={errors.cityId?.message}
+          >
+            <Controller
+              control={form.control}
+              name="cityId"
+              render={({ field }) => (
+                <CatalogCombobox
+                  id="new-cv-city"
+                  options={options.cities}
+                  value={field.value || null}
+                  onChange={(id) => field.onChange(id ?? "")}
+                  invalid={!!errors.cityId}
+                  placeholder="LP, SC o CB"
+                />
+              )}
             />
           </FormField>
           <FormField

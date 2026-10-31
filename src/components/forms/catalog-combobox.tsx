@@ -65,14 +65,16 @@ export function CatalogCombobox({
         disabled={disabled}
         className="w-full"
       />
-      <ComboboxContent>
+      {/* POR QUÉ: la lista crece hasta mostrar el nombre entero (razón social larga + NIT) aunque el campo sea angosto;
+          con más de 32rem el nombre baja de renglón en vez de cortarse. */}
+      <ComboboxContent className="w-max max-w-[min(var(--available-width),32rem)]">
         <ComboboxEmpty>Sin coincidencias. Prueba con otro texto.</ComboboxEmpty>
         <ComboboxList>
           {(option: CatalogOption) => (
             <ComboboxItem key={option.id} value={option}>
-              <span className="truncate">{option.label}</span>
+              <span className="min-w-0 flex-1 break-words">{option.label}</span>
               {option.hint && (
-                <span className="ml-auto pl-3 text-xs text-muted-foreground">
+                <span className="shrink-0 pl-3 text-xs whitespace-nowrap text-muted-foreground">
                   {option.hint}
                 </span>
               )}

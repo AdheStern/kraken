@@ -17,7 +17,7 @@ export function OpeningBalanceField({
       control={control}
       name="isOpeningBalance"
       render={({ field }) => (
-        <Label className="flex items-start gap-2.5 rounded-lg border px-3 py-2.5 font-normal sm:col-span-2">
+        <Label className="flex items-start gap-2.5 rounded-lg border px-3 py-2.5 font-normal sm:col-span-full">
           <Checkbox
             checked={field.value ?? false}
             onCheckedChange={(checked) => field.onChange(checked === true)}

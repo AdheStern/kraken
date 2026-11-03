@@ -11,6 +11,7 @@ import { canApproveCvs, canListCvs } from "@/server/authz/cv-permissions";
 import { canUseDocumentation } from "@/server/authz/documentation-permissions";
 import { canSeeHourBags } from "@/server/authz/hour-bag-permissions";
 import { canSeeInventory } from "@/server/authz/inventory-permissions";
+import { canSeeCustomerBags } from "@/server/authz/scope-customer-hour-bag-query";
 import { canSeeTickets } from "@/server/authz/ticket-permissions";
 import { canRequestTicket } from "@/server/authz/ticket-request-permissions";
 import { requireUser } from "@/server/session";
@@ -22,7 +23,15 @@ export async function RoleNav() {
   // REGLA: la cuenta de un cliente ve solo su Inicio y sus Tickets (§2.11).
   if (user.customer)
     return (
-      <AppNav entries={[{ key: "clienteInicio" }, { key: "clienteTickets" }]} />
+      <AppNav
+        entries={[
+          { key: "clienteInicio" },
+          { key: "clienteTickets" },
+          ...(canSeeCustomerBags(user)
+            ? [{ key: "clienteBolsas" as const }]
+            : []),
+        ]}
+      />
     );
   const entries: NavEntry[] = [...BASE_NAV];
   // POR QUÉ: los tableros van junto a Inicio; es lo primero que abre un gerente.

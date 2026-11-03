@@ -1,6 +1,7 @@
 // src/features/hours/components/bag-card.tsx
 // Tarjeta de una bolsa en la vista del cliente: anillo de módulo con el % al centro, CV, modalidad, alcance,
-// saldo sobre lo vendido (o lo usado de un contrato sin tope) y vigencia (AGENTS.md §2.4, §5).
+// saldo sobre lo vendido (o lo usado de un contrato sin tope) y vigencia (AGENTS.md §2.4, §5). En el portal de
+// clientes va sin enlace ni código de CV, con la descripción de lo vendido (§2.11).
 import Link from "next/link";
 import { CountUp } from "@/components/motion/count-up";
 import { cn } from "@/lib/utils";
@@ -15,7 +16,13 @@ import {
 import { BagStatusBadge } from "./bag-status-badge";
 import { bagTone, HourBagRing } from "./hour-bag-ring";
 
-export function BagCard({ bag }: { bag: BagSummary }) {
+export function BagCard({
+  bag,
+  forCustomer = false,
+}: {
+  bag: BagSummary;
+  forCustomer?: boolean;
+}) {
   const isEnded = bag.status === "VENCIDA" || bag.status === "CERRADA";
   return (
     <li
@@ -48,15 +55,21 @@ export function BagCard({ bag }: { bag: BagSummary }) {
         {bag.status !== "ACTIVA" && <BagStatusBadge status={bag.status} />}
       </div>
       <div className="min-w-0">
-        <Link
-          href={`/horas/${bag.id}`}
-          className="font-semibold tabular-nums after:absolute after:inset-0 hover:underline"
-        >
-          {bag.cvLabel}
-        </Link>
-        <p className="truncate text-sm text-muted-foreground">
-          {bag.lineDescription}
-        </p>
+        {forCustomer ? (
+          <p className="font-semibold">{bag.lineDescription}</p>
+        ) : (
+          <>
+            <Link
+              href={`/horas/${bag.id}`}
+              className="font-semibold tabular-nums after:absolute after:inset-0 hover:underline"
+            >
+              {bag.cvLabel}
+            </Link>
+            <p className="truncate text-sm text-muted-foreground">
+              {bag.lineDescription}
+            </p>
+          </>
+        )}
         {kindText(bag) && (
           <p className="text-xs font-medium text-primary">{kindText(bag)}</p>
         )}

@@ -62,6 +62,12 @@ const ITEMS: Record<NavKey, { href: string; label: string; icon: LucideIcon }> =
       label: "Tickets",
       icon: Ticket,
     },
+
+    clienteBolsas: {
+      href: "/cliente/bolsas",
+      label: "Bolsas de horas",
+      icon: Hourglass,
+    },
   };
 
 export function AppNav({ entries }: { entries: readonly NavEntry[] }) {

@@ -1,8 +1,12 @@
 // tests/authz/scope-customer-ticket-query.test.ts
-// Alcance de tickets del portal (AGENTS.md §2.11): la cuenta de un cliente ve solo los de su empresa; el
-// personal de DIMA no entra por aquí.
+// Alcances del portal (AGENTS.md §2.11): la cuenta de un cliente ve solo los tickets de su empresa, y sus
+// bolsas si su configuración lo permite; el personal de DIMA no entra por aquí.
 import { describe, expect, it } from "vitest";
 import type { SessionUser } from "@/server/authz/roles";
+import {
+  canSeeCustomerBags,
+  scopeCustomerHourBagQuery,
+} from "@/server/authz/scope-customer-hour-bag-query";
 import { scopeCustomerTicketQuery } from "@/server/authz/scope-customer-ticket-query";
 
 const base: SessionUser = {
@@ -33,5 +37,28 @@ describe("§2.11 scopeCustomerTicketQuery", () => {
       roles: [{ code: "GERENTE_GENERAL", areaId: null }],
     };
     expect(scopeCustomerTicketQuery(gg)).toEqual({ id: { in: [] } });
+  });
+});
+
+describe("§2.11 scopeCustomerHourBagQuery", () => {
+  const withBags = (seesBags: boolean): SessionUser => ({
+    ...base,
+    customer: {
+      customerId: "c1",
+      seesBags,
+      requestsWork: false,
+      comments: false,
+    },
+  });
+
+  it("ve las bolsas de su empresa solo si su configuración lo permite", () => {
+    expect(scopeCustomerHourBagQuery(withBags(true))).toEqual({
+      customerId: "c1",
+    });
+    expect(canSeeCustomerBags(withBags(true))).toBe(true);
+    expect(scopeCustomerHourBagQuery(withBags(false))).toEqual({
+      id: { in: [] },
+    });
+    expect(canSeeCustomerBags(withBags(false))).toBe(false);
   });
 });

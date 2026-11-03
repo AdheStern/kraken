@@ -2,6 +2,7 @@
 // Tickets del portal de clientes (AGENTS.md §2.11): la cuenta ve solo los de su empresa, nunca los
 // comentarios internos, y al cerrarse sus horas descontadas.
 import { afterAll, describe, expect, it, vi } from "vitest";
+import { listCustomerBags } from "@/features/hours/queries/list-customer-bags";
 import { getCustomerTicket } from "@/features/tickets/queries/get-customer-ticket";
 import { listCustomerTickets } from "@/features/tickets/queries/list-customer-tickets";
 import type { SessionUser } from "@/server/authz/roles";
@@ -16,7 +17,7 @@ vi.mock("@/server/db", async () => {
 const db = createTestPrisma();
 afterAll(() => db.$disconnect());
 
-function customerAccount(customerId: string): SessionUser {
+function customerAccount(customerId: string, seesBags = false): SessionUser {
   return {
     id: "cuenta-cliente",
     name: "Soporte ACME",
@@ -25,7 +26,7 @@ function customerAccount(customerId: string): SessionUser {
     roles: [{ code: "CLIENTE", areaId: null }],
     customer: {
       customerId,
-      seesBags: false,
+      seesBags,
       requestsWork: false,
       comments: false,
     },
@@ -86,5 +87,22 @@ describe("portal de clientes: tickets", () => {
     );
     expect(detail?.comments.map((c) => c.body)).toEqual(["Avance"]);
     expect(detail?.chargedMinutes).toBe(90);
+  });
+});
+
+describe("portal de clientes: bolsas", () => {
+  it("ve las bolsas de su empresa solo si su configuración lo permite", async () => {
+    const own = await createTicketFixture(db, [
+      { modality: "H8X5", minutes: 600 },
+    ]);
+    await createTicketFixture(db, [{ modality: "H8X5", minutes: 300 }]);
+
+    const bags = await listCustomerBags(customerAccount(own.customer.id, true));
+    expect(bags.map((b) => [b.id, b.balanceMinutes])).toEqual([
+      [own.bags[0].id, 600],
+    ]);
+    expect(await listCustomerBags(customerAccount(own.customer.id))).toEqual(
+      [],
+    );
   });
 });

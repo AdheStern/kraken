@@ -4,6 +4,7 @@
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeCustomerTicketQuery } from "@/server/authz/scope-customer-ticket-query";
 import { prisma } from "@/server/db";
+import { selectFileStore } from "@/server/files/select-file-store";
 import type { CustomerTicketDetail } from "../customer-portal-types";
 import {
   CUSTOMER_TICKET_SELECT,
@@ -32,6 +33,10 @@ export async function getCustomerTicket(
           author: { select: { user: { select: { name: true } } } },
         },
       },
+      attachments: {
+        orderBy: { createdAt: "asc" },
+        select: { id: true, fileName: true, sizeBytes: true, createdAt: true },
+      },
     },
   });
   if (!ticket) return null;
@@ -46,5 +51,14 @@ export async function getCustomerTicket(
       body: c.body,
       createdAt: c.createdAt.toISOString(),
     })),
+    attachments: ticket.attachments.map((a) => ({
+      ...a,
+      createdAt: a.createdAt.toISOString(),
+    })),
+    // REGLA: el ticket ya pasó por el alcance de su empresa; falta su configuración (§2.11).
+    canComment:
+      user.customer?.comments === true &&
+      !["CERRADO", "CANCELADO"].includes(ticket.status),
+    filesEnabled: selectFileStore() !== null,
   };
 }

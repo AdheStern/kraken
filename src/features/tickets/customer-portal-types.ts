@@ -30,4 +30,13 @@ export type CustomerTicketDetail = CustomerTicketRow & {
     body: string;
     createdAt: string;
   }[];
+  attachments: {
+    id: string;
+    fileName: string;
+    sizeBytes: number;
+    createdAt: string;
+  }[];
+  // Comenta y adjunta si su empresa lo permite y hay dónde guardar archivos (§2.11, ADR-16).
+  canComment: boolean;
+  filesEnabled: boolean;
 };

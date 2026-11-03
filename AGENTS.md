@@ -895,7 +895,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - Rol `CLIENTE`, empresa en el perfil, configuración del portal por cliente, sesión aislada y acceso con contraseña [OPUS] — hecho
 - Alta y edición de la cuenta del cliente en `/admin/usuarios` con su contraseña y su configuración [SONNET] — hecho (`/admin/usuarios/clientes/nueva`; el rol `CLIENTE` no se asigna a mano ni por Entra)
 - Navegación del cliente (Inicio y Tickets), listado y detalle de sus tickets con horas descontadas [SONNET] — hecho (`/cliente`, `/cliente/tickets`; `scopeCustomerTicketQuery`; `/inicio` lo redirige)
-- Bolsas, solicitudes, comentarios y adjuntos según la configuración de su empresa [SONNET] — bolsas hechas (`/cliente/bolsas`, `scopeCustomerHourBagQuery`); solicitudes hechas (`/cliente/solicitudes`, `tickets.solicitud.cliente_id`; su ticket debe ser de esa empresa)
+- Bolsas, solicitudes, comentarios y adjuntos según la configuración de su empresa [SONNET] — bolsas hechas (`/cliente/bolsas`, `scopeCustomerHourBagQuery`); solicitudes hechas (`/cliente/solicitudes`, `tickets.solicitud.cliente_id`; su ticket debe ser de esa empresa); comentarios y adjuntos hechos (`canCommentTicket` con la empresa del ticket; lo que escribe el cliente es público)
 - *Sale cuando:* un cliente piloto sigue sus tickets en Kraken sin ver nada interno.
 
 ---

@@ -9,6 +9,7 @@ export const BOARD_LABELS: Record<BoardKey, string> = {
   operacion: "Operación",
   inventario: "Inventario",
   metas: "Metas",
+  ingenieros: "Ingenieros",
 };
 
 type Props = {

@@ -6,6 +6,7 @@ import type { RoleCode } from "@/generated/prisma/enums";
 import {
   canEditGoal,
   canEditGoals,
+  canSeeEngineersDashboard,
   canSeeInventoryDashboard,
   canSeeOperationsDashboard,
   canSeeSalesDashboard,
@@ -48,6 +49,8 @@ describe("§2.9 Tableros: quién ve cada uno", () => {
     expect(canSeeSalesDashboard(u)).toBe(sales);
     expect(canSeeOperationsDashboard(u)).toBe(ops);
     expect(canSeeInventoryDashboard(u)).toBe(inv);
+    // REGLA: el de ingenieros lo ven los mismos del operativo, cada uno con su alcance (§6).
+    expect(canSeeEngineersDashboard(u)).toBe(ops);
   });
 });
 

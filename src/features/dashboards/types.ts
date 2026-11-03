@@ -1,6 +1,7 @@
 // src/features/dashboards/types.ts
 // Tipos de presentación de los tableros (nunca entidades Prisma completas). Montos como texto con 2 decimales
 // para no pasar por number (regla 3); tiempo en minutos enteros (regla 4).
+import type { EngineerPerformance as EngineerPerformanceView } from "@/domain/dashboards/engineer-performance";
 import type { SalesDimension } from "@/domain/dashboards/sales-breakdown";
 import type { BagSummary } from "@/features/hours/types";
 
@@ -133,4 +134,47 @@ export type InventoryDashboard = {
   transit: { transfers: number; valueUsd: string };
 };
 
-export type BoardKey = "ventas" | "operacion" | "inventario" | "metas";
+export type BoardKey =
+  | "ventas"
+  | "operacion"
+  | "inventario"
+  | "metas"
+  | "ingenieros";
+
+// Desempeño por ingeniero (AGENTS.md §6): una fila del listado y su detalle. Sin montos (regla 12).
+export type EngineerRow = {
+  userId: string;
+  name: string;
+  loggedMinutes: number;
+  outsidePct: number | null;
+  utilizationPct: number | null;
+  ownedResolved: number;
+  participated: number;
+  chargedMinutes: number;
+  slaPct: number | null;
+  medianResolutionMinutes: number | null;
+  latePct: number | null;
+};
+
+export type EngineerTicketRow = {
+  id: string;
+  number: number;
+  title: string;
+  customerName: string;
+  status: string;
+  role: "ENCARGADO" | "SUBTAREA" | "COLABORADOR";
+  myMinutes: number;
+  chargedMinutes: number;
+  slaMissed: boolean;
+  createdAt: string;
+  closedAt: string | null;
+};
+
+export type EngineerDetail = {
+  periodLabel: string;
+  userId: string;
+  name: string;
+  performance: Omit<EngineerPerformanceView, "minutesByTicket">;
+  weeks: { weekStart: string; minutes: number }[];
+  tickets: EngineerTicketRow[];
+};

@@ -28,6 +28,12 @@ export function canSeeOperationsDashboard(user: SessionUser): boolean {
   return OPERATIONS_VIEWERS.some((code) => hasRole(user, code));
 }
 
+// REGLA: el desempeño por ingeniero lo ven los mismos del operativo; cada uno recortado por scopeEngineerQuery
+// (el ingeniero, solo el suyo; gerente y coordinador, los de sus áreas; el GG, todos) (§6, decisión 2026-11-03).
+export function canSeeEngineersDashboard(user: SessionUser): boolean {
+  return canSeeOperationsDashboard(user);
+}
+
 // REGLA: el de inventario es valorizado; solo para quien ve costos de inventario (§2.8).
 export function canSeeInventoryDashboard(user: SessionUser): boolean {
   return canSeeInventoryCosts(user);

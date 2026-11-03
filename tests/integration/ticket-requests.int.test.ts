@@ -97,13 +97,13 @@ describe("createTicketRequestRecord", () => {
     expect(result).toMatchObject({ ok: false, error: { code: "VALIDATION" } });
   });
 
-  it("rechaza a un usuario sin roles", async () => {
+  it("un usuario sin roles también pide (decisión 2026-11-03)", async () => {
     const { area } = await setup();
-    const nobody = await createUserWithRoles(db, "Sin rol", []);
+    const newcomer = await createUserWithRoles(db, "Recién llegado", []);
     const result = await db.$transaction((tx) =>
-      createTicketRequestRecord(tx, nobody, request(area.id), NOW),
+      createTicketRequestRecord(tx, newcomer, request(area.id), NOW),
     );
-    expect(result).toMatchObject({ ok: false, error: { code: "FORBIDDEN" } });
+    expect(result.ok).toBe(true);
   });
 });
 

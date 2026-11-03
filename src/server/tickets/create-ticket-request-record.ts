@@ -2,7 +2,6 @@
 // Alta de una solicitud de ticket y aviso a quienes la atienden en su área (AGENTS.md §2.6 «Solicitudes de ticket»).
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import type { SessionUser } from "@/server/authz/roles";
-import { canRequestTicket } from "@/server/authz/ticket-request-permissions";
 import type { Tx } from "@/server/db";
 import { notify } from "@/server/notifications/notify";
 
@@ -18,11 +17,6 @@ export async function createTicketRequestRecord(
   input: NewTicketRequest,
   now: Date,
 ): Promise<ActionResult<{ requestId: string; number: number }>> {
-  if (!canRequestTicket(user))
-    return actionError(
-      "FORBIDDEN",
-      "Necesitas un rol en Kraken para pedir tickets. Pídelo al administrador del sistema.",
-    );
   const area = await tx.area.findFirst({
     where: { id: input.areaId, isActive: true },
     select: { code: true },

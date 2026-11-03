@@ -17,4 +17,4 @@ export type NavKey =
 
 export type NavEntry = { key: NavKey; badge?: number };
 
-export const BASE_NAV: readonly NavEntry[] = [{ key: "inicio" }, { key: "cv" }];
+export const BASE_NAV: readonly NavEntry[] = [{ key: "inicio" }];

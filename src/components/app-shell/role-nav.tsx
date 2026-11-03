@@ -7,7 +7,7 @@ import { countPendingAdjustments } from "@/features/inventory/queries/count-pend
 import { listPendingApprovals } from "@/features/sales-control/queries/list-pending-approvals";
 import { countPendingTicketRequests } from "@/features/tickets/queries/count-pending-ticket-requests";
 import { canOpenAdmin } from "@/server/authz/admin-permissions";
-import { canApproveCvs } from "@/server/authz/cv-permissions";
+import { canApproveCvs, canListCvs } from "@/server/authz/cv-permissions";
 import { canUseDocumentation } from "@/server/authz/documentation-permissions";
 import { canSeeHourBags } from "@/server/authz/hour-bag-permissions";
 import { canSeeInventory } from "@/server/authz/inventory-permissions";
@@ -22,6 +22,7 @@ export async function RoleNav() {
   const entries: NavEntry[] = [...BASE_NAV];
   // POR QUÉ: los tableros van junto a Inicio; es lo primero que abre un gerente.
   if (visibleBoards(user).length > 0) entries.splice(1, 0, { key: "tableros" });
+  if (canListCvs(user)) entries.push({ key: "cv" });
   if (canSeeTickets(user))
     entries.push({
       key: "tickets",

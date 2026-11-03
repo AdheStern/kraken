@@ -1,6 +1,7 @@
 // src/app/(app)/cv/page.tsx
 // Listado de Control de Venta visible para el usuario, con búsqueda, filtro por estado y alta de CV.
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,7 +12,7 @@ import { getCvFormOptions } from "@/features/sales-control/queries/get-cv-form-o
 import { listCvs } from "@/features/sales-control/queries/list-cvs";
 import type { CvVersionStatus } from "@/generated/prisma/enums";
 import { CvVersionStatus as Statuses } from "@/generated/prisma/enums";
-import { canCreateCv } from "@/server/authz/cv-permissions";
+import { canCreateCv, canListCvs } from "@/server/authz/cv-permissions";
 import { requireUser } from "@/server/session";
 
 export const metadata: Metadata = { title: "Control de Venta" };
@@ -49,6 +50,7 @@ async function CvListResults({
   searchParams,
 }: Pick<PageProps<"/cv">, "searchParams">) {
   const user = await requireUser();
+  if (!canListCvs(user)) notFound();
   const params = await searchParams;
   const search = typeof params.q === "string" ? params.q : undefined;
   const status = toStatus(params.estado);

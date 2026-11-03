@@ -10,6 +10,7 @@ import {
   canEditCvDraft,
   canEditPostSaleDetails,
   canExportCvVersion,
+  canListCvs,
   canSeeCvCosts,
   seesOnlyApprovedVersions,
 } from "@/server/authz/cv-permissions";
@@ -124,6 +125,21 @@ describe("§2.3 CV aprobado: datos posventa (observaciones, PO#, activación, se
     ["administrador del sistema", user(["ADMIN_SISTEMA"]), ownCv, false],
   ])("%s → %s", (_, u, cv, expected) => {
     expect(canEditPostSaleDetails(u, cv)).toBe(expected);
+  });
+});
+
+describe("§2.9 CV: ver (listado y navegación)", () => {
+  it.each<[string, SessionUser, boolean]>([
+    ["comercial", user(["COMERCIAL"]), true],
+    ["preventa", user(["PREVENTA"]), true],
+    ["gerente de área", user(["GERENTE_AREA", AREA_NET]), true],
+    ["gerente general", user(["GERENTE_GENERAL"]), true],
+    ["administración", user(["ADMINISTRACION"]), true],
+    ["ingeniero (ve sus CV desde el ticket)", user(["INGENIERO"]), false],
+    ["administrador del sistema", user(["ADMIN_SISTEMA"]), false],
+    ["usuario sin rol", user(), false],
+  ])("%s → %s", (_, u, expected) => {
+    expect(canListCvs(u)).toBe(expected);
   });
 });
 

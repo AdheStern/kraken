@@ -3,9 +3,10 @@
 import type { SessionUser } from "./roles";
 import { canCreateAnyTicket, canCreateTicket } from "./ticket-permissions";
 
-// REGLA: pide un ticket todo usuario con al menos un rol (§2.9, fila "Solicitudes: crear").
-export function canRequestTicket(user: SessionUser): boolean {
-  return user.roles.length > 0;
+// REGLA: pide un ticket todo usuario de DIMA, también sin rol: es lo primero que necesita quien recién entra
+// (§2.9, fila "Solicitudes: crear"; decisión 2026-11-03).
+export function canRequestTicket(_user: SessionUser): boolean {
+  return true;
 }
 
 // REGLA: atiende (crea el ticket o descarta) quien puede crear tickets del área de la solicitud (§2.9).

@@ -37,8 +37,8 @@ describe("§2.9 Solicitudes: crear", () => {
     expect(canRequestTicket(user([role]))).toBe(true);
   });
 
-  it("sin rol no pide", () => {
-    expect(canRequestTicket(user())).toBe(false);
+  it("sin rol también pide (decisión 2026-11-03)", () => {
+    expect(canRequestTicket(user())).toBe(true);
   });
 });
 

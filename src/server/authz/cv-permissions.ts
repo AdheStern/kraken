@@ -10,6 +10,18 @@ export type CvAccessFacts = {
   isApprovedVersion: boolean;
 };
 
+// REGLA: el listado de CV es de quien tiene un rol que ve CV (§2.9 "CV: ver"); el ingeniero ve los de sus
+// tickets desde el ticket, sin listado (regla 12).
+export function canListCvs(user: SessionUser): boolean {
+  return (
+    hasRole(user, "GERENTE_GENERAL") ||
+    hasRole(user, "GERENTE_AREA") ||
+    hasRole(user, "COMERCIAL") ||
+    hasRole(user, "PREVENTA") ||
+    hasRole(user, "ADMINISTRACION")
+  );
+}
+
 export function canCreateCv(user: SessionUser): boolean {
   return (
     hasRole(user, "COMERCIAL") ||

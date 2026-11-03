@@ -42,6 +42,7 @@ export const SUPPORT_COORDINATOR_MANUAL: Manual = {
         "El semáforo muestra el tiempo de primera respuesta y de resolución; en 8x5 solo corre en horario de oficina.",
         "En espera del cliente el reloj se pausa. Al 75% del plazo te llega un aviso.",
         "Tableros → Operación muestra cumplimiento de SLA, tickets abiertos y utilización de tu área.",
+        "Tableros → Ingenieros muestra el desempeño de cada ingeniero de tu área, con su detalle y sus tickets.",
       ],
       link: {
         href: "/tableros/operacion",

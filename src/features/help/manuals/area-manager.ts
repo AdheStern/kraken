@@ -25,6 +25,7 @@ export const AREA_MANAGER_MANUAL: Manual = {
         "El encargado deja el ticket en Resuelto; tú lo cierras con Cerrar ticket, que descuenta las horas de las bolsas.",
         "No se puede cerrar con contadores activos o en pausa.",
         "Reabrir el ticket pide un motivo; las horas descontadas se mantienen y al volver a cerrarlo solo se descuenta el trabajo nuevo.",
+        "Tableros → Ingenieros muestra el desempeño de los ingenieros de tu área; abre uno para ver sus cifras y sus tickets.",
       ],
       link: { href: "/tickets", label: "Ir a Tickets" },
     },

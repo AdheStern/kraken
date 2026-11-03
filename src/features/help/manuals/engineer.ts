@@ -40,5 +40,14 @@ export const ENGINEER_MANUAL: Manual = {
         "El semáforo de SLA indica cuánto tiempo queda para responder y resolver.",
       ],
     },
+    {
+      heading: "Tu desempeño",
+      steps: [
+        "Tableros → Ingenieros muestra tu tiempo registrado (en y fuera de horario), tu utilización, tus tickets a cargo y trabajados, las horas descontadas de los que tienes a cargo, tu SLA y tus registros tardíos.",
+        "Elige el mes, el trimestre o el año arriba. Más abajo están tu tiempo por semana y la lista de tus tickets con el tiempo que les dedicaste.",
+        "Solo ves tus propias cifras; tu gerente y tu coordinador ven las de su área.",
+      ],
+      link: { href: "/tableros/ingenieros", label: "Ver mi desempeño" },
+    },
   ],
 };

@@ -1,6 +1,6 @@
 // tests/e2e/dashboards.spec.ts
 // Tableros de la F5 (AGENTS.md §6, §2.9 "Tableros", §11) con los datos demo: el GG ve todo y exporta, el gerente de
-// DIMANET solo su área y sus metas, el comercial solo ventas y el ingeniero solo su operación, sin montos.
+// DIMANET solo su área y sus metas, el comercial solo ventas y el ingeniero solo su operación y su desempeño, sin montos.
 import { type Browser, expect, type Page, test } from "@playwright/test";
 import { type E2E_USERS, storageFor } from "./users";
 
@@ -81,4 +81,40 @@ test("el ingeniero ve su operación y ningún monto", async ({ browser }) => {
   expect(await page.content()).not.toContain("US$");
   const exported = await page.request.get("/api/dashboards/ventas/export.xlsx");
   expect(exported.status()).toBe(403);
+});
+
+test("el GG compara a los ingenieros y abre el detalle de una", async ({
+  browser,
+}) => {
+  const page = await as(browser, "gg");
+  await page.goto(`/tableros/ingenieros?periodo=${YEAR}`);
+  await expect(
+    page.getByRole("heading", { name: "Tablero de ingenieros" }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Elena Ingeniera (demo)" }).click();
+  await expect(
+    page.getByText("Tiempo registrado", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Sus tickets en el periodo")).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Todos los ingenieros" }),
+  ).toBeVisible();
+});
+
+test("el ingeniero entra directo a su desempeño y no abre el de otro", async ({
+  browser,
+}) => {
+  const page = await as(browser, "ingeniero");
+  await page.goto("/tableros/ingenieros");
+  await page.waitForURL(/\/tableros\/ingenieros\/[0-9a-f-]{36}/);
+  await expect(
+    page.getByText("Tiempo registrado", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Todos los ingenieros" }),
+  ).toHaveCount(0);
+  // REGLA: sin montos para el ingeniero (regla 12).
+  expect(await page.content()).not.toContain("US$");
+  await page.goto("/tableros/ingenieros/00000000-0000-7000-8000-000000000000");
+  await expect(page.getByText("No encontramos esta página.")).toBeVisible();
 });

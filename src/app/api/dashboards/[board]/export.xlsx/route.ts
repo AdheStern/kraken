@@ -7,12 +7,15 @@ import {
   operationsSheets,
   salesSheets,
 } from "@/features/dashboards/export/board-sheets";
+import { engineersSheets } from "@/features/dashboards/export/engineer-sheets";
+import { getEngineersDashboard } from "@/features/dashboards/queries/get-engineers-dashboard";
 import { getInventoryDashboard } from "@/features/dashboards/queries/get-inventory-dashboard";
 import { getOperationsDashboard } from "@/features/dashboards/queries/get-operations-dashboard";
 import { getSalesDashboard } from "@/features/dashboards/queries/get-sales-dashboard";
 import { loadDashboardContext } from "@/features/dashboards/queries/load-dashboard-context";
 import { periodToken } from "@/features/dashboards/schemas/dashboard-filters";
 import {
+  canSeeEngineersDashboard,
   canSeeOperationsDashboard,
   canSeeSalesDashboard,
 } from "@/server/authz/dashboard-permissions";
@@ -47,6 +50,13 @@ const BOARDS: Record<
     load: async (user, f) =>
       canSeeOperationsDashboard(user)
         ? operationsSheets(await getOperationsDashboard(user, f))
+        : null,
+  },
+  ingenieros: {
+    title: "Tablero de ingenieros",
+    load: async (user, f) =>
+      canSeeEngineersDashboard(user)
+        ? engineersSheets(await getEngineersDashboard(user, f))
         : null,
   },
   inventario: {

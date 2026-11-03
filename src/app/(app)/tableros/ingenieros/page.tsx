@@ -45,6 +45,7 @@ async function EngineersBoard({
       <DashboardHeader
         context={context}
         active="ingenieros"
+        exportHref={`/api/dashboards/ingenieros/export.xlsx?${context.query}`}
         description={`Tiempo, tickets y SLA de cada ingeniero en ${board.periodLabel}. Abre uno para ver su detalle y sus tickets.`}
       />
       <EngineersTable rows={board.rows} query={context.query} />

@@ -5,6 +5,7 @@ import type { Clock } from "@/domain/clock";
 import type { PeriodKind } from "@/domain/dashboards/period";
 import {
   canEditGoals,
+  canSeeEngineersDashboard,
   canSeeInventoryDashboard,
   canSeeOperationsDashboard,
   canSeeSalesDashboard,
@@ -70,6 +71,7 @@ export function visibleBoards(user: SessionUser): BoardKey[] {
   const boards: BoardKey[] = [];
   if (canSeeSalesDashboard(user)) boards.push("ventas");
   if (canSeeOperationsDashboard(user)) boards.push("operacion");
+  if (canSeeEngineersDashboard(user)) boards.push("ingenieros");
   if (canSeeInventoryDashboard(user)) boards.push("inventario");
   if (canEditGoals(user)) boards.push("metas");
   return boards;

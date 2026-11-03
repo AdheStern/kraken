@@ -1,6 +1,7 @@
 // src/features/dashboards/components/utilization-table.tsx
 // Utilización por ingeniero: minutos registrados sobre la capacidad hábil de su ciudad, con una barra fina de
 // una sola serie que puede pasar de 100% (AGENTS.md §6). La tabla es su propia vista accesible.
+import Link from "next/link";
 import { formatMinutes } from "@/lib/format-minutes";
 import { cn } from "@/lib/utils";
 import type { UtilizationRow } from "../types";
@@ -29,7 +30,14 @@ export function UtilizationTable({ rows }: { rows: UtilizationRow[] }) {
           <tbody className="tabular-nums">
             {rows.map((row) => (
               <tr key={row.userId} className="border-t border-border/60">
-                <td className="max-w-48 truncate py-2 pr-3">{row.name}</td>
+                <td className="max-w-48 truncate py-2 pr-3">
+                  <Link
+                    href={`/tableros/ingenieros/${row.userId}`}
+                    className="hover:underline"
+                  >
+                    {row.name}
+                  </Link>
+                </td>
                 <td className="hidden py-2 pr-3 sm:table-cell">
                   <span
                     className="block h-1.5 rounded-full bg-muted"

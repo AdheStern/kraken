@@ -34,6 +34,15 @@ export function canSeeEngineersDashboard(user: SessionUser): boolean {
   return canSeeOperationsDashboard(user);
 }
 
+// POR QUÉ: quien solo se ve a sí mismo (el ingeniero) entra directo a su detalle, sin listado.
+export function seesOtherEngineers(user: SessionUser): boolean {
+  return (
+    hasRole(user, "GERENTE_GENERAL") ||
+    areaIdsWithRole(user, "GERENTE_AREA").length > 0 ||
+    areaIdsWithRole(user, "COORDINADOR_SOPORTE").length > 0
+  );
+}
+
 // REGLA: el de inventario es valorizado; solo para quien ve costos de inventario (§2.8).
 export function canSeeInventoryDashboard(user: SessionUser): boolean {
   return canSeeInventoryCosts(user);

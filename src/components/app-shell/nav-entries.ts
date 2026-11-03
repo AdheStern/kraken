@@ -13,7 +13,10 @@ export type NavKey =
   | "inventario"
   | "documentacion"
   | "aprobaciones"
-  | "admin";
+  | "admin"
+  // Portal de clientes (AGENTS.md §2.11).
+  | "clienteInicio"
+  | "clienteTickets";
 
 export type NavEntry = { key: NavKey; badge?: number };
 

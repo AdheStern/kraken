@@ -56,6 +56,12 @@ const ITEMS: Record<NavKey, { href: string; label: string; icon: LucideIcon }> =
       label: "Administración",
       icon: Settings,
     },
+    clienteInicio: { href: "/cliente", label: "Inicio", icon: House },
+    clienteTickets: {
+      href: "/cliente/tickets",
+      label: "Tickets",
+      icon: Ticket,
+    },
   };
 
 export function AppNav({ entries }: { entries: readonly NavEntry[] }) {

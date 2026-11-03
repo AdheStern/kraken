@@ -19,6 +19,11 @@ import { BASE_NAV, type NavEntry } from "./nav-entries";
 
 export async function RoleNav() {
   const user = await requireUser();
+  // REGLA: la cuenta de un cliente ve solo su Inicio y sus Tickets (§2.11).
+  if (user.customer)
+    return (
+      <AppNav entries={[{ key: "clienteInicio" }, { key: "clienteTickets" }]} />
+    );
   const entries: NavEntry[] = [...BASE_NAV];
   // POR QUÉ: los tableros van junto a Inicio; es lo primero que abre un gerente.
   if (visibleBoards(user).length > 0) entries.splice(1, 0, { key: "tableros" });

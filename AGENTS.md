@@ -894,7 +894,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 **F8 · Portal de clientes (§2.11, ~2 semanas)**
 - Rol `CLIENTE`, empresa en el perfil, configuración del portal por cliente, sesión aislada y acceso con contraseña [OPUS] — hecho
 - Alta y edición de la cuenta del cliente en `/admin/usuarios` con su contraseña y su configuración [SONNET] — hecho (`/admin/usuarios/clientes/nueva`; el rol `CLIENTE` no se asigna a mano ni por Entra)
-- Navegación del cliente (Inicio y Tickets), listado y detalle de sus tickets con horas descontadas [SONNET]
+- Navegación del cliente (Inicio y Tickets), listado y detalle de sus tickets con horas descontadas [SONNET] — hecho (`/cliente`, `/cliente/tickets`; `scopeCustomerTicketQuery`; `/inicio` lo redirige)
 - Bolsas, solicitudes, comentarios y adjuntos según la configuración de su empresa [SONNET]
 - *Sale cuando:* un cliente piloto sigue sus tickets en Kraken sin ver nada interno.
 

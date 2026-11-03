@@ -42,6 +42,8 @@ export default function HomePage() {
 
 async function Home() {
   const user = await requireUser();
+  // REGLA: la cuenta de un cliente tiene su propio inicio (§2.11).
+  if (user.customer) redirect("/cliente");
   // REGLA: el inicio del almacenero es el POS (§5 navegación).
   if (user.roles.length > 0 && user.roles.every((r) => r.code === "ALMACEN"))
     redirect("/inventario/pos");

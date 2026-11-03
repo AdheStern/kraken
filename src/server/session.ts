@@ -7,6 +7,7 @@ import { cache } from "react";
 import { auth } from "@/server/auth";
 import type { SessionUser } from "@/server/authz/roles";
 import { prisma } from "@/server/db";
+import { toSessionUser } from "@/server/session-user";
 
 // POR QUÉ: cache() comparte la lectura entre el layout, la página y sus componentes en la misma petición.
 export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
@@ -17,16 +18,19 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
     select: {
       isActive: true,
       roles: { select: { areaId: true, role: { select: { code: true } } } },
+      customer: {
+        select: {
+          id: true,
+          isActive: true,
+          portalSeesBags: true,
+          portalRequests: true,
+          portalComments: true,
+        },
+      },
     },
   });
-  if (!profile?.isActive) return null;
-  return {
-    id: session.user.id,
-    name: session.user.name,
-    email: session.user.email,
-    image: session.user.image ?? null,
-    roles: profile.roles.map((r) => ({ code: r.role.code, areaId: r.areaId })),
-  };
+  if (!profile) return null;
+  return toSessionUser(session.user, profile);
 });
 
 export async function requireUser(): Promise<SessionUser> {

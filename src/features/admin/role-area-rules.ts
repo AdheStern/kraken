@@ -16,6 +16,7 @@ export const ROLE_AREA_RULES: Record<RoleCode, RoleAreaRule> = {
   ADMINISTRACION: "NONE",
   ALMACEN: "NONE",
   ADMIN_SISTEMA: "NONE",
+  CLIENTE: "NONE",
 };
 
 export function roleAreaIssue(

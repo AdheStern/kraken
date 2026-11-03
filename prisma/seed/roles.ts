@@ -13,6 +13,7 @@ const ROLE_NAMES: Record<RoleCode, string> = {
   ALMACEN: "Almacén",
   ADMINISTRACION: "Administración",
   ADMIN_SISTEMA: "Administrador del sistema",
+  CLIENTE: "Cliente (portal)",
 };
 
 export async function upsertRoles(tx: Tx): Promise<void> {

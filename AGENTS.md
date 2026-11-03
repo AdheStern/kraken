@@ -96,6 +96,7 @@ La Paz `LP`, Santa Cruz `SC`, Cochabamba `CB`. Cada una tiene su correlativo de 
 | Almacén | Ingresos, salidas, traspasos, POS. |
 | Administración | Consulta CV aprobados, exporta, gestiona clientes y proveedores. |
 | Administrador del sistema | Usuarios, grupos de Entra, excepciones de permisos, parámetros. No ve montos por ese rol. |
+| Cliente (portal) | Cuenta de una empresa cliente, no de una persona: sigue sus tickets y sus horas descontadas (§2.11). Nunca suma roles internos. |
 
 Una persona puede tener varios roles; los permisos se suman.
 
@@ -103,7 +104,7 @@ Una persona puede tener varios roles; los permisos se suman.
 Control de Venta · Horas, tickets y proyectos · Inventario y POS interno · Documentación por proyecto · Tableros · Administración · Notificaciones.
 
 ### Fuera de alcance en v1 (YAGNI)
-Portal de clientes · integración con ERP, contabilidad o facturación · migración de los CV de ejemplo (fueron solo material de análisis) · delegación de aprobaciones (regla de negocio: si el gerente está ausente, no se aprueba) · app móvil nativa · Kubernetes y microservicios · multimoneda.
+Integración con ERP, contabilidad o facturación · migración de los CV de ejemplo (fueron solo material de análisis) · delegación de aprobaciones (regla de negocio: si el gerente está ausente, no se aprueba) · app móvil nativa · Kubernetes y microservicios · multimoneda.
 
 ---
 
@@ -302,6 +303,13 @@ Además del CV y del soporte, DIMA documenta sus proyectos por **fases**. No se 
 - **Lecciones aprendidas:** n por fase, escritas en el editor de Kraken (Tiptap) y guardadas como un `.txt` más de la carpeta de la fase (`doc.documento` con `tipo = LECCION` y título), con el texto en Markdown (UTF-8 con BOM) y el nombre `Lección aprendida - {título}.txt`. Cualquier usuario con rol las edita: editar reemplaza el contenido del mismo archivo (`FileStore.replace`, SharePoint conserva la versión anterior) y se rechaza si otra persona la guardó desde que se abrió (versión = hash). El título no cambia después de crearla. Se quitan como un documento.
 - **Permisos:** la información es pública dentro de DIMA. Todo usuario con al menos un rol ve, crea proyectos, edita la cabecera, sube y escribe o edita lecciones aprendidas; quitar un documento es de quien lo subió o del administrador del sistema. Los listados pasan igual por `scopeDocProjectQuery` (regla 7). Crear, editar, subir, editar una lección, quitar y los cambios de fases se auditan.
 
+### 2.11 Portal de clientes (decisión 2026-11-03)
+Una empresa cliente sigue en Kraken los tickets que DIMA le atiende. Sustituye a «portal de clientes» como fuera de alcance.
+- **Cuenta por empresa, no por persona:** rol `CLIENTE` y `core.usuario_perfil.cliente_id`. La crea el administrador del sistema con correo y contraseña (12+ caracteres), sin invitación ni correo; la desactiva o le cambia la contraseña cuando haga falta. Entra con contraseña por `/api/auth` (límite de intentos, sesión de 12 h).
+- **Aislamiento:** la sesión de una cuenta `CLIENTE` trae solo ese rol (cualquier otro se descarta) y su empresa; sin empresa activa no entra. Nunca ve CV, costos, montos, inventario, documentación, solicitudes internas, comentarios internos, registros de tiempo ni a otros clientes. Todo listado del portal pasa por su `scope*Query` (regla 7).
+- **Siempre ve:** Inicio con un resumen de sus tickets y Tickets: los de su empresa con número, título, estado, prioridad, encargado, fechas, SLA, comentarios públicos, adjuntos y, al cerrarse, las horas descontadas.
+- **Configurable por empresa** (`core.cliente`: `portal_ve_bolsas`, `portal_pide_trabajo`, `portal_comenta`, apagadas por defecto): ver sus bolsas de horas (saldo, consumo, vencimiento); pedir trabajo (una solicitud con su empresa ya puesta que DIMA convierte en ticket); comentar (siempre público) y adjuntar en sus tickets.
+
 ---
 
 ## 3. Arquitectura
@@ -324,7 +332,7 @@ Usuarios ─HTTPS→ FortiGate/Radware (WAF + TLS) → IP virtual (keepalived)
 | ADR-02 | Un esquema Postgres por dominio (`core`, `cv`, `horas`, `tickets`, `inv`, `fx`, `notif`, `audit`, `auth`) con Prisma `multiSchema`. | Orden, permisos y respaldos selectivos. Prisma es el único dueño del esquema. |
 | ADR-03 | Libros mayores inmutables (`horas.movimiento`, `inv.movimiento`). El saldo es una caché actualizada en la misma transacción con `SELECT … FOR UPDATE`; `CHECK (saldo >= 0)` como última red. | Auditoría, correcciones sin borrar, sin sobregiros concurrentes. |
 | ADR-04 | Decimales exactos (`NUMERIC`) y `Prisma.Decimal` en TS. | Sin errores de coma flotante. |
-| ADR-05 | Better Auth + Microsoft Entra ID (OIDC, inquilino único). Sesiones en BD. Grupos de Entra → roles. Email/contraseña solo para la cuenta de emergencia `ADMIN_SISTEMA` (sin registro público; el login va por `/api/auth`, no por Server Action, para que aplique el límite de intentos). | SSO, MFA y acceso condicional heredados; dar de baja en Entra corta el acceso. |
+| ADR-05 | Better Auth + Microsoft Entra ID (OIDC, inquilino único). Sesiones en BD. Grupos de Entra → roles. Email/contraseña solo para la cuenta de emergencia `ADMIN_SISTEMA` y las cuentas `CLIENTE` del portal, que crea el administrador con su contraseña (§2.11; sin registro público; el login va por `/api/auth`, no por Server Action, para que aplique el límite de intentos). | SSO, MFA y acceso condicional heredados; dar de baja en Entra corta el acceso. |
 | ADR-06 | Authz centralizada en `src/server/authz`: funciones propias `can*` y `scope*Query(user)`, sin CASL. Una excepción por usuario es un rol asignado a mano, aparte de los de sus grupos de Entra. | Reglas de 2.9 en un solo lugar, testeables. CASL no aportaba sobre funciones simples (YAGNI). |
 | ADR-07 | Jobs con pg-boss en un proceso worker separado (`src/worker`, registro en `job-registry.ts`). Su esquema `pgboss` queda fuera de Prisma y en producción se crea con el usuario de migraciones antes del primer arranque. | Sin Redis; los jobs sobreviven a reinicios; sin doble ejecución. |
 | ADR-08 | Correo con Microsoft Graph `sendMail` (app-only) desde un buzón de servicio, limitado con RBAC para aplicaciones de Exchange. **Outbox**: la action escribe en `notif.salida` dentro de su transacción y el worker envía con reintentos. | Sin SMTP propio; ningún correo se pierde ni se envía por una transacción revertida. |
@@ -882,6 +890,13 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - Lecciones aprendidas por fase como `.txt` con editor enriquecido [SONNET] — hecho (botón «Lección aprendida» en cada fase, editor con barra de formato, E2E en `tests/e2e/documentation.spec.ts`)
 - Credenciales de SharePoint (registro de app con `Sites.Selected`, permiso de escritura sobre el sitio, id de la biblioteca): guía en `deploy/README.md` («SharePoint para adjuntos y documentación») [DIMANET]
 - *Sale cuando:* los proyectos en curso tienen su documentación por fase en Kraken y se ve en la biblioteca de SharePoint.
+
+**F8 · Portal de clientes (§2.11, ~2 semanas)**
+- Rol `CLIENTE`, empresa en el perfil, configuración del portal por cliente, sesión aislada y acceso con contraseña [OPUS] — hecho
+- Alta y edición de la cuenta del cliente en `/admin/usuarios` con su contraseña y su configuración [SONNET]
+- Navegación del cliente (Inicio y Tickets), listado y detalle de sus tickets con horas descontadas [SONNET]
+- Bolsas, solicitudes, comentarios y adjuntos según la configuración de su empresa [SONNET]
+- *Sale cuando:* un cliente piloto sigue sus tickets en Kraken sin ver nada interno.
 
 ---
 

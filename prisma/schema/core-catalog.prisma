@@ -10,17 +10,21 @@ enum ItemType {
 }
 
 model Customer {
-  id        String   @id @default(uuid(7)) @db.Uuid
-  name      String   @map("razon_social")
-  taxId     String?  @map("nit")
-  email     String?  @map("correo")
-  phone     String?  @map("telefono")
-  address   String?  @map("direccion")
-  city      String?  @map("ciudad")
-  country   String?  @map("pais")
-  isActive  Boolean  @default(true) @map("activo")
-  createdAt DateTime @default(now()) @map("creado_en") @db.Timestamptz
-  updatedAt DateTime @updatedAt @map("actualizado_en") @db.Timestamptz
+  id             String   @id @default(uuid(7)) @db.Uuid
+  name           String   @map("razon_social")
+  taxId          String?  @map("nit")
+  email          String?  @map("correo")
+  phone          String?  @map("telefono")
+  address        String?  @map("direccion")
+  city           String?  @map("ciudad")
+  country        String?  @map("pais")
+  isActive       Boolean  @default(true) @map("activo")
+  // Qué permite el portal a la cuenta del cliente; siempre ve sus tickets y sus horas descontadas (§2.11).
+  portalSeesBags Boolean  @default(false) @map("portal_ve_bolsas")
+  portalRequests Boolean  @default(false) @map("portal_pide_trabajo")
+  portalComments Boolean  @default(false) @map("portal_comenta")
+  createdAt      DateTime @default(now()) @map("creado_en") @db.Timestamptz
+  updatedAt      DateTime @updatedAt @map("actualizado_en") @db.Timestamptz
 
   contacts            CustomerContact[]
   cvs                 Cv[]
@@ -30,6 +34,7 @@ model Customer {
   projects            Project[]
   tickets             Ticket[]
   docProjects         DocProject[]
+  portalUsers         UserProfile[]
 
   @@index([taxId])
   @@map("cliente")

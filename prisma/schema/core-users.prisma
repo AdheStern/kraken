@@ -2,15 +2,18 @@
 // Perfil de negocio de cada usuario de Better Auth. Toda FK a una persona apunta aquí, no a auth.user.
 
 model UserProfile {
-  userId    String   @id @map("usuario_id")
-  cityId    String?  @map("ciudad_id") @db.Uuid
-  jobTitle  String?  @map("cargo")
-  isActive  Boolean  @default(true) @map("activo")
-  createdAt DateTime @default(now()) @map("creado_en") @db.Timestamptz
-  updatedAt DateTime @updatedAt @map("actualizado_en") @db.Timestamptz
+  userId     String   @id @map("usuario_id")
+  cityId     String?  @map("ciudad_id") @db.Uuid
+  jobTitle   String?  @map("cargo")
+  isActive   Boolean  @default(true) @map("activo")
+  // Empresa de una cuenta del portal de clientes (rol CLIENTE); null en el personal de DIMA (§2.11).
+  customerId String?  @map("cliente_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("creado_en") @db.Timestamptz
+  updatedAt  DateTime @updatedAt @map("actualizado_en") @db.Timestamptz
 
-  user User  @relation(fields: [userId], references: [id])
-  city City? @relation(fields: [cityId], references: [id])
+  user     User      @relation(fields: [userId], references: [id])
+  city     City?     @relation(fields: [cityId], references: [id])
+  customer Customer? @relation(fields: [customerId], references: [id])
 
   roles                   UserRole[]
   parametersUpdated       Parameter[]

@@ -4,6 +4,7 @@
 import type { RoleCode } from "@/generated/prisma/enums";
 import { ADMINISTRATION_MANUAL } from "./manuals/administration";
 import { AREA_MANAGER_MANUAL } from "./manuals/area-manager";
+import { CUSTOMER_PORTAL_MANUAL } from "./manuals/customer-portal";
 import { ENGINEER_MANUAL } from "./manuals/engineer";
 import { GENERAL_MANAGER_MANUAL } from "./manuals/general-manager";
 import { PRESALES_MANUAL } from "./manuals/presales";
@@ -25,6 +26,8 @@ export const MANUALS: Record<RoleCode, Manual> = {
   ALMACEN: withRequests(WAREHOUSE_MANUAL),
   ADMINISTRACION: withRequests(ADMINISTRATION_MANUAL),
   ADMIN_SISTEMA: withRequests(SYSTEM_ADMIN_MANUAL),
+  // POR QUÉ: el cliente no usa las solicitudes internas; las suyas se habilitan por empresa (§2.11).
+  CLIENTE: CUSTOMER_PORTAL_MANUAL,
 };
 
 // REGLA: todo usuario con rol pide tickets (§2.6), así que cada manual cierra con cómo hacerlo.
@@ -56,6 +59,8 @@ export function chooseManual(
   requested: string | undefined,
 ): ManualChoice {
   const own = new Set(userRoles);
+  // REGLA: el cliente ve solo su manual y el personal nunca el del portal: no hay nada interno que mostrarle (§2.11).
+  if (own.has("CLIENTE")) return single("CLIENTE");
   const sorted = [
     ...ORDER.filter((role) => own.has(role)),
     ...ORDER.filter((role) => !own.has(role)),
@@ -69,5 +74,13 @@ export function chooseManual(
       title: MANUALS[r].title,
       isOwn: own.has(r),
     })),
+  };
+}
+
+function single(role: RoleCode): ManualChoice {
+  return {
+    role,
+    manual: MANUALS[role],
+    tabs: [{ role, title: MANUALS[role].title, isOwn: true }],
   };
 }

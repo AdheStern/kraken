@@ -3,14 +3,16 @@
 // si la cuenta está activa y el alta del perfil de negocio de cada usuario nuevo.
 import { prisma } from "@/server/db";
 
-const PASSWORD_ROLE = "ADMIN_SISTEMA";
+const PASSWORD_ROLES = ["ADMIN_SISTEMA", "CLIENTE"] as const;
 
-// REGLA: el acceso con contraseña es solo la cuenta de emergencia del administrador del sistema;
-// el resto del personal entra con Entra ID (AGENTS.md ADR-05).
+// REGLA: entran con contraseña la cuenta de emergencia del administrador del sistema y las cuentas de las
+// empresas clientes del portal; el personal de DIMA entra con Entra ID (AGENTS.md ADR-05, §2.11).
 export async function canSignInWithPassword(email: string): Promise<boolean> {
   const count = await prisma.userRole.count({
     where: {
-      ...(allowsDevPasswordLogin() ? {} : { role: { code: PASSWORD_ROLE } }),
+      ...(allowsDevPasswordLogin()
+        ? {}
+        : { role: { code: { in: [...PASSWORD_ROLES] } } }),
       user: { isActive: true, user: { email: email.toLowerCase() } },
     },
   });

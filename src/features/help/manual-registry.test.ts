@@ -26,6 +26,12 @@ describe("chooseManual", () => {
     expect(chooseManual([], undefined).role).toBe("GERENTE_GENERAL");
   });
 
+  it("el cliente ve solo su manual (§2.11)", () => {
+    const choice = chooseManual(["CLIENTE"], "COMERCIAL");
+    expect(choice.role).toBe("CLIENTE");
+    expect(choice.tabs).toHaveLength(1);
+  });
+
   it("cada manual tiene secciones con pasos y enlaces internos", () => {
     for (const manual of Object.values(MANUALS)) {
       expect(manual.sections.length).toBeGreaterThan(0);

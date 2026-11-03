@@ -1,11 +1,12 @@
 // src/server/authz/documentation-permissions.ts
 // Permisos de la documentación por proyecto (AGENTS.md §2.10, §2.9): la información es pública dentro de DIMA.
 import { canManageSystem } from "./admin-permissions";
-import { hasRole, type SessionUser } from "./roles";
+import { hasRole, isCustomerAccount, type SessionUser } from "./roles";
 
-// REGLA: todo usuario con al menos un rol ve, crea proyectos, edita su cabecera y sube documentos (§2.10).
+// REGLA: todo usuario de DIMA con al menos un rol ve, crea proyectos, edita su cabecera y sube documentos
+// (§2.10); la cuenta de un cliente no (§2.11).
 export function canUseDocumentation(user: SessionUser): boolean {
-  return user.roles.length > 0;
+  return user.roles.length > 0 && !isCustomerAccount(user);
 }
 
 // REGLA: quitar un documento es de quien lo subió o del administrador del sistema (§2.10).

@@ -23,6 +23,9 @@ export function roleAreaIssue(
   role: RoleCode,
   areaId: string | null,
 ): string | null {
+  // REGLA: CLIENTE solo nace con la cuenta de una empresa cliente; nunca se asigna a mano ni por Entra (§2.11).
+  if (role === "CLIENTE")
+    return "El rol Cliente se da al crear la cuenta de un cliente.";
   const rule = ROLE_AREA_RULES[role];
   if (rule === "REQUIRED" && !areaId)
     return "El gerente de área necesita el área que aprueba.";

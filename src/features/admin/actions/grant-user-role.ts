@@ -22,6 +22,15 @@ export async function grantUserRole(
     return actionError("VALIDATION", parsed.error.issues[0].message);
   const { userId, role, areaId } = parsed.data;
   try {
+    // REGLA: la cuenta de un cliente nunca suma roles internos (§2.11).
+    const isCustomer = await prisma.userRole.count({
+      where: { userId, role: { code: "CLIENTE" } },
+    });
+    if (isCustomer > 0)
+      return actionError(
+        "INVALID_STATE",
+        "Es la cuenta de un cliente; no recibe roles internos.",
+      );
     const roleRow = await prisma.role.findUniqueOrThrow({
       where: { code: role },
     });

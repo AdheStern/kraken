@@ -614,7 +614,7 @@ type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { code: Error
 - Horas: `adjustHourBag`, `closeHourBag`, `applyPendingHours`
 - Tickets: `createTicket`, `assignOwner`, `setTicketBags`, `createSubtask`, `updateSubtask`, `addComment`, `createProject`, `startTimer`, `pauseTimer`, `resumeTimer`, `stopTimer`, `addManualTimeEntry`, `deleteTimeEntry`, `changeTicketStatus`, `closeTicket`, `reopenTicket`, `setProjectStatus`, `uploadTicketAttachment`, `deleteTicketAttachment`; solicitudes: `createTicketRequest`, `discardTicketRequest`, `withdrawTicketRequest` (`createTicket` recibe `requestId` y la enlaza)
 - Inventario: `registerReceipt`, `dispatchItems`, `returnItems`, `findDispatchTicket`, `createTransfer`, `sendTransfer`, `receiveTransfer`, `cancelTransfer`, `requestAdjustment`, `requestManualAdjustment`, `decideAdjustment`, `submitInventoryCount`; almacenes: `upsertWarehouse`, `setWarehouseActive`
-- Administración: CRUD de catálogos (`upsertSimpleCatalogItem` y `setSimpleCatalogItemActive` para áreas, ciudades, tecnologías, unidades, tipos de servicio y proveedores; `upsertCustomer`, `upsertCustomerContact`, `upsertProduct`, `markProductReviewed` y sus bajas), usuarios (`updateUserProfile`, `setUserActive`, `grantUserRole`, `revokeUserRole`), `mapEntraGroup`, `unmapEntraGroup`, `setParameter`, `setManualFxRate`, `sendTestMail`, `retryOutboxMessage`, `upsertSlaPolicy`
+- Administración: CRUD de catálogos (`upsertSimpleCatalogItem` y `setSimpleCatalogItemActive` para áreas, ciudades, tecnologías, unidades, tipos de servicio y proveedores; `upsertCustomer`, `upsertCustomerContact`, `upsertProduct`, `markProductReviewed` y sus bajas), usuarios (`updateUserProfile`, `setUserActive`, `grantUserRole`, `revokeUserRole`), cuentas de clientes (`createCustomerAccount`, `updateCustomerAccount`, §2.11), `mapEntraGroup`, `unmapEntraGroup`, `setParameter`, `setManualFxRate`, `sendTestMail`, `retryOutboxMessage`, `upsertSlaPolicy`
 - Notificaciones: `markInboxRead`
 - Tableros: `upsertGoal` (meta mensual por área o de la empresa; vacía la quita)
 - Documentación: `createDocProject`, `updateDocProjectHeader`, `uploadDocument`, `deleteDocument`, `createDocLesson`, `updateDocLesson`; fases: `upsertDocPhase`, `setDocPhaseActive`, `moveDocPhase`
@@ -893,7 +893,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 
 **F8 · Portal de clientes (§2.11, ~2 semanas)**
 - Rol `CLIENTE`, empresa en el perfil, configuración del portal por cliente, sesión aislada y acceso con contraseña [OPUS] — hecho
-- Alta y edición de la cuenta del cliente en `/admin/usuarios` con su contraseña y su configuración [SONNET]
+- Alta y edición de la cuenta del cliente en `/admin/usuarios` con su contraseña y su configuración [SONNET] — hecho (`/admin/usuarios/clientes/nueva`; el rol `CLIENTE` no se asigna a mano ni por Entra)
 - Navegación del cliente (Inicio y Tickets), listado y detalle de sus tickets con horas descontadas [SONNET]
 - Bolsas, solicitudes, comentarios y adjuntos según la configuración de su empresa [SONNET]
 - *Sale cuando:* un cliente piloto sigue sus tickets en Kraken sin ver nada interno.

@@ -99,7 +99,7 @@ async function CvEditor({
     stockEffects,
   ] = await Promise.all([
     getCvFormOptions(),
-    editor.canEdit ? getCvContactOptions(header.customerId) : [],
+    editor.canEditHeader ? getCvContactOptions(header.customerId) : [],
     getCvGridOptions(header.customerId),
     getCvLines(header.versionId, editor.canSeeCosts),
     getCvLeasing(header.versionId, editor.canSeeCosts),
@@ -132,6 +132,8 @@ async function CvEditor({
         {!editor.canEdit && !editor.canEditPostSale && (
           <p className="basis-full text-sm text-muted-foreground">
             Solo lectura: {readOnlyReason(editor)}
+            {editor.canEditHeader &&
+              " Puedes corregir la cabecera, salvo el TC de costo y el de venta."}
           </p>
         )}
       </header>
@@ -142,7 +144,8 @@ async function CvEditor({
         header={header}
         options={options}
         contacts={contacts}
-        canEdit={editor.canEdit}
+        canEdit={editor.canEditHeader}
+        fxLocked={editor.fxLocked}
         maxFxDeviationPct={maxFxDeviationPct}
         defaultOpen={lines.lines.length === 0}
       />

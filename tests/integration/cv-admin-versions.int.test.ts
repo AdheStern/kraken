@@ -36,6 +36,7 @@ describe("Administración y las versiones de un CV", () => {
     expect(asked?.versions.map((v) => v.number)).toEqual([1]);
     expect(asked?.canSeeCosts).toBe(true);
     expect(asked?.canEditPostSale).toBe(true);
+    expect(asked).toMatchObject({ canEditHeader: true, fxLocked: true });
     expect(
       await getCvComparison(admin, f.cv.id, { from: 1, to: 2 }),
     ).toBeNull();

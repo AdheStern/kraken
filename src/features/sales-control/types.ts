@@ -93,6 +93,9 @@ export type CvEditorData = {
   canEdit: boolean;
   // Solo observaciones, PO#, activación, seriales y notas/PO# del leasing de la versión aprobada (§2.3).
   canEditPostSale: boolean;
+  // Cabecera editable; fuera del borrador del comercial, sin los TC (§2.3).
+  canEditHeader: boolean;
+  fxLocked: boolean;
   canSeeCosts: boolean;
   canExport: boolean;
   versionNumber: number;

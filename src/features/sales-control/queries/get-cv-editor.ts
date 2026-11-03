@@ -5,6 +5,7 @@ import { toCvVersionLabel } from "@/domain/sales-control/cv-code";
 import {
   canDecideApproval,
   canEditCvDraft,
+  canEditCvHeaderAnyState,
   canEditPostSaleDetails,
   canExportCvVersion,
   canSeeCvCosts,
@@ -97,6 +98,10 @@ export async function getCvEditor(
   return {
     header: toEditorHeader(cv, version),
     canEdit: isLatest && version.status === "BORRADOR" && canManage,
+    canEditHeader:
+      (isLatest && version.status === "BORRADOR" && canManage) ||
+      canEditCvHeaderAnyState(user, shownAccess),
+    fxLocked: !(isLatest && version.status === "BORRADOR" && canManage),
     canEditPostSale:
       version.status === "APROBADA" &&
       canEditPostSaleDetails(user, latestAccess),

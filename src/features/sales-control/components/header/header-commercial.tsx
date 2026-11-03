@@ -20,6 +20,8 @@ type Props = {
   options: CvFormOptions;
   contacts: CvContactOption[];
   disabled: boolean;
+  // REGLA: fuera del borrador del comercial los TC se ven pero no cambian (§2.3).
+  fxLocked: boolean;
   customerName: string;
   officialFxRate: string | null;
   maxFxDeviationPct: string;
@@ -30,6 +32,7 @@ export function HeaderCommercial({
   options,
   contacts,
   disabled,
+  fxLocked,
   customerName,
   officialFxRate,
   maxFxDeviationPct,
@@ -134,6 +137,8 @@ export function HeaderCommercial({
             inputMode="decimal"
             className="tabular-nums"
             disabled={disabled}
+            // TRAMPA: readOnly y no disabled; react-hook-form no envía los campos deshabilitados.
+            readOnly={fxLocked}
             {...register("costFxRate")}
           />
         </FormField>
@@ -147,6 +152,8 @@ export function HeaderCommercial({
             inputMode="decimal"
             className="tabular-nums"
             disabled={disabled}
+            // TRAMPA: readOnly y no disabled; react-hook-form no envía los campos deshabilitados.
+            readOnly={fxLocked}
             {...register("saleFxRate")}
           />
         </FormField>

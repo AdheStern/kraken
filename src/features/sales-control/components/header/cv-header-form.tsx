@@ -1,5 +1,6 @@
 // src/features/sales-control/components/header/cv-header-form.tsx
-// Cabecera plegable del editor de CV: edita y guarda la versión en BORRADOR (AGENTS.md §5, Editor de CV).
+// Cabecera plegable del editor de CV: la edita el comercial en el borrador y gerentes y Administración en cualquier
+// estado, estos sin los TC (AGENTS.md §5 Editor de CV, §2.3).
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,6 +32,7 @@ type Props = {
   options: CvFormOptions;
   contacts: CvContactOption[];
   canEdit: boolean;
+  fxLocked: boolean;
   maxFxDeviationPct: string;
   defaultOpen: boolean;
 };
@@ -45,6 +47,7 @@ export function CvHeaderForm({
   options,
   contacts,
   canEdit,
+  fxLocked,
   maxFxDeviationPct,
   defaultOpen,
 }: Props) {
@@ -95,6 +98,7 @@ export function CvHeaderForm({
             options={options}
             contacts={contacts}
             disabled={!canEdit}
+            fxLocked={fxLocked}
             customerName={header.customerName}
             officialFxRate={header.officialFxRate}
             maxFxDeviationPct={maxFxDeviationPct}

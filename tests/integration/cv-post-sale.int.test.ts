@@ -1,11 +1,16 @@
 // tests/integration/cv-post-sale.int.test.ts
 // Datos posventa de la versión APROBADA (AGENTS.md §2.3, decisión 2026-11-03): el trigger deja cambiar solo
-// observaciones, PO#, activación, seriales y notas/PO# del leasing.
+// observaciones, PO#, activación, seriales y notas/PO# del leasing, y el cambio viaja al borrador abierto.
 import { afterAll, describe, expect, it } from "vitest";
-import { createCvFixture, createTestPrisma } from "./test-db";
+import { applyPostSaleLeasing } from "@/server/sales-control/apply-post-sale-leasing";
+import { applyPostSaleLines } from "@/server/sales-control/apply-post-sale-lines";
+import { copyVersionContent } from "@/server/sales-control/copy-version-content";
+import { createCvFixture, createTestPrisma, createVersion } from "./test-db";
 
 const db = createTestPrisma();
 afterAll(() => db.$disconnect());
+
+type Fixture = Awaited<ReturnType<typeof createCvFixture>>;
 
 async function approvedCv(itemType: "INTANGIBLE" | "HARDWARE" = "INTANGIBLE") {
   const f = await createCvFixture(db);
@@ -39,6 +44,12 @@ async function approvedCv(itemType: "INTANGIBLE" | "HARDWARE" = "INTANGIBLE") {
 
 function setStatus(versionId: string, status: "APROBADA" | "REEMPLAZADA") {
   return db.cvVersion.update({ where: { id: versionId }, data: { status } });
+}
+
+async function openDraft(f: Fixture) {
+  const draft = await createVersion(db, f.cv.id, f.userId, 2);
+  await copyVersionContent(db, f.version.id, draft.id, { sameSale: true });
+  return draft;
 }
 
 const details = (id: string) => ({
@@ -90,5 +101,72 @@ describe("trigger: versión APROBADA", () => {
     await expect(
       db.cvLineSerial.create({ data: { lineId: f.line.id, serial: "S1" } }),
     ).rejects.toThrow(/no admite cambios/);
+  });
+});
+
+describe("applyPostSaleLines", () => {
+  it("guarda en la aprobada y copia al borrador solo lo que cambió", async () => {
+    const f = await approvedCv();
+    const draft = await openDraft(f);
+    const draftLine = await db.cvLine.findFirstOrThrow({
+      where: { versionId: draft.id },
+    });
+    await db.cvLine.update({
+      where: { id: draftLine.id },
+      data: { poNumber: "PO-BORRADOR", description: "Licencia v2" },
+    });
+
+    const result = await db.$transaction((tx) =>
+      applyPostSaleLines(tx, f.cv.id, f.version.id, [
+        { ...details(f.line.id), poNumber: null },
+      ]),
+    );
+    expect(result.ok && result.changes).toHaveLength(1);
+
+    const saved = await db.cvLine.findUniqueOrThrow({
+      where: { id: f.line.id },
+      include: { serials: true },
+    });
+    expect(saved.notes).toBe("Entregado al cliente");
+    expect(saved.serials.map((s) => s.serial).sort()).toEqual(["FOC1", "FOC2"]);
+    const copied = await db.cvLine.findUniqueOrThrow({
+      where: { id: draftLine.id },
+      include: { serials: true },
+    });
+    expect(copied.notes).toBe("Entregado al cliente");
+    expect(copied.activationStart?.toISOString()).toBe(
+      "2026-11-10T00:00:00.000Z",
+    );
+    expect(copied.serials).toHaveLength(2);
+    expect(copied.poNumber).toBe("PO-BORRADOR");
+    expect(copied.description).toBe("Licencia v2");
+  });
+
+  it("rechaza activación en una línea que no es licencia", async () => {
+    const f = await approvedCv("HARDWARE");
+    const result = await db.$transaction((tx) =>
+      applyPostSaleLines(tx, f.cv.id, f.version.id, [details(f.line.id)]),
+    );
+    expect(result).toEqual({
+      ok: false,
+      message: "Solo las licencias (tipo Intangible) llevan activación.",
+    });
+  });
+});
+
+describe("applyPostSaleLeasing", () => {
+  it("guarda en la aprobada y copia al leasing equivalente del borrador", async () => {
+    const f = await approvedCv();
+    const draft = await openDraft(f);
+
+    await db.$transaction((tx) =>
+      applyPostSaleLeasing(tx, f.cv.id, f.version.id, [
+        { id: f.leasing.id, notes: null, poNumber: "PO-L1" },
+      ]),
+    );
+    const copied = await db.cvLeasingLine.findFirstOrThrow({
+      where: { versionId: draft.id },
+    });
+    expect(copied.poNumber).toBe("PO-L1");
   });
 });

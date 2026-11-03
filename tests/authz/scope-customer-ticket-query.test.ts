@@ -8,6 +8,7 @@ import {
   scopeCustomerHourBagQuery,
 } from "@/server/authz/scope-customer-hour-bag-query";
 import { scopeCustomerTicketQuery } from "@/server/authz/scope-customer-ticket-query";
+import { canCommentTicket } from "@/server/authz/ticket-permissions";
 
 const base: SessionUser = {
   id: "u1",
@@ -60,5 +61,29 @@ describe("§2.11 scopeCustomerHourBagQuery", () => {
       id: { in: [] },
     });
     expect(canSeeCustomerBags(withBags(false))).toBe(false);
+  });
+});
+
+describe("§2.11 canCommentTicket para la cuenta de un cliente", () => {
+  const account = (comments: boolean): SessionUser => ({
+    ...base,
+    customer: {
+      customerId: "c1",
+      seesBags: false,
+      requestsWork: false,
+      comments,
+    },
+  });
+  const ticket = (customerId: string) => ({
+    areaIds: ["a1"],
+    ownerId: "ing",
+    subtaskAssigneeIds: [],
+    customerId,
+  });
+
+  it("comenta y adjunta en los de su empresa solo si su configuración lo permite", () => {
+    expect(canCommentTicket(account(true), ticket("c1"))).toBe(true);
+    expect(canCommentTicket(account(true), ticket("c2"))).toBe(false);
+    expect(canCommentTicket(account(false), ticket("c1"))).toBe(false);
   });
 });

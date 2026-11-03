@@ -1,12 +1,14 @@
 // tests/integration/ticket-attachments.int.test.ts
 // Adjuntos de ticket contra la base (ADR-16, AGENTS.md §2.9): suben quienes trabajan el ticket con su hash, el
-// comercial no; quitar borra el registro y el archivo; un ticket cerrado conserva sus adjuntos.
+// comercial no; quitar borra el registro y el archivo; un ticket cerrado conserva sus adjuntos. La cuenta de un
+// cliente comenta (siempre en público) y adjunta en los de su empresa si esta lo permite (§2.11).
 import { createHash } from "node:crypto";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { LocalFileStore } from "@/server/files/local-file-store";
+import { addTicketComment } from "@/server/tickets/add-ticket-comment";
 import { deleteTicketAttachmentRecord } from "@/server/tickets/delete-ticket-attachment-record";
 import { uploadTicketAttachment } from "@/server/tickets/upload-ticket-attachment";
 import { createTestPrisma, createUserWithRoles } from "./test-db";
@@ -103,5 +105,73 @@ describe("adjuntos del ticket", () => {
       }),
     );
     expect(deleted.ok ? "OK" : deleted.error.code).toBe("INVALID_STATE");
+  });
+});
+
+describe("cuenta de un cliente (§2.11)", () => {
+  async function customerAccount(comments: boolean, customerId: string) {
+    const account = await createUserWithRoles(db, "Portal ACME", [
+      { code: "CLIENTE" },
+    ]);
+    return {
+      ...account,
+      customer: {
+        customerId,
+        seesBags: false,
+        requestsWork: false,
+        comments,
+      },
+    };
+  }
+
+  it("con «comenta y adjunta» sube a los tickets de su empresa; sin ella o en otra empresa, no", async () => {
+    const f = await createTicketFixture(db, []);
+    const other = await createTicketFixture(db, []);
+    const allowed = await customerAccount(true, f.customer.id);
+    const off = await customerAccount(false, f.customer.id);
+
+    const ok = await uploadTicketAttachment(
+      allowed,
+      f.ticket.id,
+      file("oc"),
+      store,
+    );
+    expect(ok.ok).toBe(true);
+    const foreign = await uploadTicketAttachment(
+      allowed,
+      other.ticket.id,
+      file("x"),
+      store,
+    );
+    expect(foreign.ok ? "OK" : foreign.error.code).toBe("FORBIDDEN");
+    const disabled = await uploadTicketAttachment(
+      off,
+      f.ticket.id,
+      file("x"),
+      store,
+    );
+    expect(disabled.ok ? "OK" : disabled.error.code).toBe("FORBIDDEN");
+  });
+
+  it("su comentario siempre es público", async () => {
+    const f = await createTicketFixture(db, []);
+    const user = await customerAccount(true, f.customer.id);
+    const result = await db.$transaction((tx) =>
+      addTicketComment(
+        tx,
+        user,
+        {
+          ticketId: f.ticket.id,
+          body: "Ya probamos de nuevo",
+          isPublic: false,
+        },
+        new Date(),
+      ),
+    );
+    if (!result.ok) throw new Error(result.error.message);
+    const saved = await db.comment.findUniqueOrThrow({
+      where: { id: result.data.commentId },
+    });
+    expect(saved.isPublic).toBe(true);
   });
 });

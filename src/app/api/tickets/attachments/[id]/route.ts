@@ -1,6 +1,8 @@
 // src/app/api/tickets/attachments/[id]/route.ts
-// Descarga de un adjunto de ticket con authz: solo si el ticket es visible para el usuario (AGENTS.md §7, §2.9).
+// Descarga de un adjunto de ticket con authz: solo si el ticket es visible para el usuario, también para la cuenta
+// de un cliente en los de su empresa (AGENTS.md §7, §2.9, §2.11).
 import { NextResponse } from "next/server";
+import { scopeCustomerTicketQuery } from "@/server/authz/scope-customer-ticket-query";
 import { scopeTicketQuery } from "@/server/authz/scope-ticket-query";
 import { prisma } from "@/server/db";
 import { safeContentType } from "@/server/files/safe-content-type";
@@ -17,7 +19,10 @@ export async function GET(
     return new NextResponse("Inicia sesión para descargar.", { status: 401 });
   const { id } = await params;
   const attachment = await prisma.ticketAttachment.findFirst({
-    where: { id, ticket: scopeTicketQuery(user) },
+    where: {
+      id,
+      ticket: { OR: [scopeTicketQuery(user), scopeCustomerTicketQuery(user)] },
+    },
     select: { fileName: true, mimeType: true, storagePath: true },
   });
   const store = selectFileStore();

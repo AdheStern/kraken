@@ -7,6 +7,8 @@ export type TicketAccess = {
   areaIds: readonly string[];
   ownerId: string | null;
   subtaskAssigneeIds: readonly string[];
+  // POR QUÉ: decide si la cuenta de un cliente interviene en el ticket (§2.11); el personal no la usa.
+  customerId?: string;
 };
 
 const TICKET_VIEWERS = [
@@ -80,9 +82,14 @@ export function canLogTimeOn(
 }
 
 // POR QUÉ: comenta quien trabaja el ticket o lo gestiona; el comercial lo consulta sin intervenir.
+// REGLA: la cuenta de un cliente comenta y adjunta en los tickets de su empresa si esta lo permite (§2.11).
 export function canCommentTicket(
   user: SessionUser,
   ticket: TicketAccess,
 ): boolean {
+  if (user.customer)
+    return (
+      user.customer.comments && ticket.customerId === user.customer.customerId
+    );
   return canManageTicket(user, ticket) || canLogTime(user, ticket);
 }

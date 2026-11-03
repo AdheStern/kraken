@@ -12,6 +12,7 @@ export async function loadTicketAccess(
     where: { id: ticketId },
     select: {
       ownerId: true,
+      customerId: true,
       areas: { select: { areaId: true } },
       subtasks: {
         where: { assigneeId: { not: null } },
@@ -23,6 +24,7 @@ export async function loadTicketAccess(
   return {
     areaIds: ticket.areas.map((a) => a.areaId),
     ownerId: ticket.ownerId,
+    customerId: ticket.customerId,
     subtaskAssigneeIds: ticket.subtasks.flatMap((s) =>
       s.assigneeId ? [s.assigneeId] : [],
     ),

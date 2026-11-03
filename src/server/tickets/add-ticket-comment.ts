@@ -13,9 +13,11 @@ type NewComment = { ticketId: string; body: string; isPublic: boolean };
 export async function addTicketComment(
   tx: Tx,
   user: SessionUser,
-  { ticketId, body, isPublic }: NewComment,
+  { ticketId, body, isPublic: asked }: NewComment,
   now: Date,
 ): Promise<ActionResult<{ commentId: string }>> {
+  // REGLA: lo que escribe un cliente siempre es público (§2.11).
+  const isPublic = user.customer ? true : asked;
   const access = await loadTicketAccess(tx, ticketId);
   if (!access) return actionError("NOT_FOUND", "El ticket ya no existe.");
   if (!canCommentTicket(user, access))

@@ -98,10 +98,19 @@ export type UserRow = {
   roles: UserRoleView[];
 };
 
+// Cuenta del portal de una empresa cliente (§2.11); null en el personal de DIMA.
+export type CustomerAccountView = {
+  customerName: string;
+  seesBags: boolean;
+  requestsWork: boolean;
+  comments: boolean;
+};
+
 export type UserAdminDetail = UserRow & {
   cityId: string | null;
   jobTitle: string | null;
   isSelf: boolean;
+  customerAccount: CustomerAccountView | null;
 };
 
 export type RoleOption = {

@@ -6,6 +6,7 @@ import { cache, Suspense } from "react";
 import { PersonAvatar } from "@/components/app-shell/person-avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminBackLink } from "@/features/admin/components/admin-back-link";
+import { CustomerAccountPanel } from "@/features/admin/components/customer-account-panel";
 import { UserProfileForm } from "@/features/admin/components/user-profile-form";
 import { UserRolesPanel } from "@/features/admin/components/user-roles-panel";
 import { UserStatusButton } from "@/features/admin/components/user-status-button";
@@ -13,6 +14,7 @@ import {
   getUserAdmin,
   getUserAdminOptions,
 } from "@/features/admin/queries/get-user-admin";
+import type { UserAdminDetail, UserAdminOptions } from "@/features/admin/types";
 import { canManageSystem } from "@/server/authz/admin-permissions";
 import { requireUser } from "@/server/session";
 
@@ -75,6 +77,32 @@ async function User({
           isSelf={user.isSelf}
         />
       </header>
+      {user.customerAccount ? (
+        <section className="grid gap-3" aria-labelledby="portal">
+          <h2 id="portal" className="text-sm font-medium">
+            Portal de clientes
+          </h2>
+          <CustomerAccountPanel
+            userId={user.id}
+            account={user.customerAccount}
+          />
+        </section>
+      ) : (
+        <InternalUserSections user={user} options={options} />
+      )}
+    </>
+  );
+}
+
+function InternalUserSections({
+  user,
+  options,
+}: {
+  user: UserAdminDetail;
+  options: UserAdminOptions;
+}) {
+  return (
+    <>
       <section className="grid gap-3" aria-labelledby="perfil">
         <h2 id="perfil" className="text-sm font-medium">
           Perfil

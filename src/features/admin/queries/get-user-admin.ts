@@ -20,9 +20,18 @@ export async function getUserAdmin(
       user: { select: { name: true, email: true, image: true } },
       city: { select: { code: true } },
       roles: { select: USER_ROLE_SELECT, orderBy: { createdAt: "asc" } },
+      customer: {
+        select: {
+          name: true,
+          portalSeesBags: true,
+          portalRequests: true,
+          portalComments: true,
+        },
+      },
     },
   });
   if (!p) return null;
+  const isCustomer = p.roles.some((r) => r.role.code === "CLIENTE");
   return {
     id: p.userId,
     name: p.user.name,
@@ -34,6 +43,15 @@ export async function getUserAdmin(
     isActive: p.isActive,
     isSelf: p.userId === viewerId,
     roles: p.roles.map(toRoleView),
+    customerAccount:
+      isCustomer && p.customer
+        ? {
+            customerName: p.customer.name,
+            seesBags: p.customer.portalSeesBags,
+            requestsWork: p.customer.portalRequests,
+            comments: p.customer.portalComments,
+          }
+        : null,
   };
 }
 
@@ -43,7 +61,10 @@ export async function getUserAdminOptions(): Promise<UserAdminOptions> {
     orderBy: { code: "asc" as const },
   };
   const [roles, areas, cities] = await Promise.all([
-    prisma.role.findMany({ orderBy: { name: "asc" } }),
+    prisma.role.findMany({
+      where: { code: { not: "CLIENTE" } },
+      orderBy: { name: "asc" },
+    }),
     prisma.area.findMany(active),
     prisma.city.findMany(active),
   ]);

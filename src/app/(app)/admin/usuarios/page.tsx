@@ -1,10 +1,13 @@
 // src/app/(app)/admin/usuarios/page.tsx
 // Usuarios del sistema con sus roles, con búsqueda por nombre o correo (AGENTS.md §1 roles, §5 Administración).
 // Solo para el administrador del sistema (§2.9).
+import { Plus } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
+import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminBackLink } from "@/features/admin/components/admin-back-link";
 import { AdminSearch } from "@/features/admin/components/admin-search";
@@ -23,7 +26,16 @@ export default function UsersPage({
       <AdminBackLink />
       <ModuleHeading
         title="Usuarios y roles"
-        description="Cada persona aparece al entrar por primera vez con su cuenta de Microsoft. Sus roles deciden qué ve; los permisos de varios roles se suman."
+        description="Cada persona aparece al entrar por primera vez con su cuenta de Microsoft. Sus roles deciden qué ve; los permisos de varios roles se suman. Las cuentas de clientes se crean aquí."
+        actions={
+          <Link
+            href="/admin/usuarios/clientes/nueva"
+            className={buttonVariants()}
+          >
+            <Plus aria-hidden="true" />
+            Cuenta de cliente
+          </Link>
+        }
       />
       <Suspense fallback={<Skeleton className="h-72 w-full rounded-xl" />}>
         <Users searchParams={searchParams} />

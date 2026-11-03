@@ -2,6 +2,10 @@
 // Alta de una solicitud de ticket y aviso a quienes la atienden en su área (AGENTS.md §2.6 «Solicitudes de ticket»).
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import type { SessionUser } from "@/server/authz/roles";
+import {
+  canCustomerRequestWork,
+  canRequestTicket,
+} from "@/server/authz/ticket-request-permissions";
 import type { Tx } from "@/server/db";
 import { notify } from "@/server/notifications/notify";
 
@@ -17,6 +21,11 @@ export async function createTicketRequestRecord(
   input: NewTicketRequest,
   now: Date,
 ): Promise<ActionResult<{ requestId: string; number: number }>> {
+  if (!canRequestTicket(user) && !canCustomerRequestWork(user))
+    return actionError(
+      "FORBIDDEN",
+      "Tu empresa no tiene habilitado pedir trabajo por el portal. Pídelo a DIMA.",
+    );
   const area = await tx.area.findFirst({
     where: { id: input.areaId, isActive: true },
     select: { code: true },
@@ -24,7 +33,13 @@ export async function createTicketRequestRecord(
   if (!area)
     return actionError("VALIDATION", "El área no existe o está dada de baja.");
   const request = await tx.ticketRequest.create({
-    data: { ...input, requesterId: user.id, createdAt: now },
+    // REGLA: la solicitud de una cuenta de cliente lleva su empresa; no se elige (§2.11).
+    data: {
+      ...input,
+      requesterId: user.id,
+      customerId: user.customer?.customerId ?? null,
+      createdAt: now,
+    },
     select: { id: true, number: true },
   });
   await notify(tx, {

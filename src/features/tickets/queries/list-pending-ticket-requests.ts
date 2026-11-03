@@ -16,6 +16,8 @@ export type PendingTicketRequestView = {
   requesterName: string;
   // POR QUÉ: prellena la ciudad del ticket; el coordinador la puede cambiar.
   requesterCityId: string | null;
+  // Pedida desde el portal de clientes: el ticket debe ser de esta empresa (§2.11).
+  customer: { id: string; name: string } | null;
   createdAt: string;
 };
 
@@ -36,6 +38,7 @@ export async function listPendingTicketRequests(
       requester: {
         select: { cityId: true, user: { select: { name: true } } },
       },
+      customer: { select: { id: true, name: true } },
     },
   });
   return rows

@@ -17,6 +17,8 @@ model TicketRequest {
   number        Int                 @unique @default(autoincrement()) @map("numero")
   requesterId   String              @map("solicitante_id")
   areaId        String              @map("area_id") @db.Uuid
+  // Empresa de una solicitud del portal de clientes; su ticket debe ser de ella (AGENTS.md §2.11).
+  customerId    String?             @map("cliente_id") @db.Uuid
   title         String              @map("titulo")
   description   String              @map("descripcion")
   status        TicketRequestStatus @default(PENDIENTE) @map("estado")
@@ -29,6 +31,7 @@ model TicketRequest {
   requester UserProfile  @relation("TicketRequester", fields: [requesterId], references: [userId])
   handledBy UserProfile? @relation("TicketRequestHandler", fields: [handledById], references: [userId])
   area      Area         @relation(fields: [areaId], references: [id])
+  customer  Customer?    @relation(fields: [customerId], references: [id])
   ticket    Ticket?      @relation(fields: [ticketId], references: [id])
 
   @@index([areaId, status])

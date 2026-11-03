@@ -9,6 +9,11 @@ export function canRequestTicket(user: SessionUser): boolean {
   return !isCustomerAccount(user);
 }
 
+// REGLA: la cuenta de un cliente pide trabajo solo si su empresa lo tiene habilitado (§2.11, `portal_pide_trabajo`).
+export function canCustomerRequestWork(user: SessionUser): boolean {
+  return user.customer?.requestsWork === true;
+}
+
 // REGLA: atiende (crea el ticket o descarta) quien puede crear tickets del área de la solicitud (§2.9).
 export function canHandleTicketRequest(
   user: SessionUser,

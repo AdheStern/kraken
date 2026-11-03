@@ -45,7 +45,7 @@ export async function createTicketRecord(
   const bag = await loadInitialBag(tx, user, input);
   if (typeof bag === "string") return actionError("VALIDATION", bag);
   const link = input.requestId
-    ? await prepareRequestLink(tx, user, input.requestId, input.areaIds, now)
+    ? await prepareRequestLink(tx, user, input.requestId, input, now)
     : null;
   if (link && !link.ok) return link;
 

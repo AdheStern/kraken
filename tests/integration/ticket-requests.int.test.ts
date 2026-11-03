@@ -335,3 +335,82 @@ describe("restricciones de tickets.solicitud", () => {
     ).rejects.toThrow(/solicitud_descartada_ck/);
   });
 });
+
+describe("solicitudes del portal de clientes (§2.11)", () => {
+  async function customerAccount(requestsWork: boolean) {
+    const f = await createHourBagFixture(db);
+    const account = await createUserWithRoles(db, "Portal ACME", [
+      { code: "CLIENTE" },
+    ]);
+    const coordinator = await createUserWithRoles(db, "Coordinadora", [
+      { code: "COORDINADOR_SOPORTE", areaId: f.area.id },
+    ]);
+    const user = {
+      ...account,
+      customer: {
+        customerId: f.customer.id,
+        seesBags: false,
+        requestsWork,
+        comments: false,
+      },
+    };
+    return { f, user, coordinator };
+  }
+
+  it("con «pide trabajo», la solicitud lleva la empresa del cliente", async () => {
+    const { f, user } = await customerAccount(true);
+    const result = await db.$transaction((tx) =>
+      createTicketRequestRecord(tx, user, request(f.area.id), NOW),
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const saved = await db.ticketRequest.findUniqueOrThrow({
+      where: { id: result.data.requestId },
+    });
+    expect(saved.customerId).toBe(f.customer.id);
+  });
+
+  it("sin «pide trabajo», la cuenta del cliente no pide nada", async () => {
+    const { f, user } = await customerAccount(false);
+    const result = await db.$transaction((tx) =>
+      createTicketRequestRecord(tx, user, request(f.area.id), NOW),
+    );
+    expect(result).toMatchObject({ ok: false, error: { code: "FORBIDDEN" } });
+  });
+
+  it("su ticket debe ser de ese cliente", async () => {
+    const { f, user, coordinator } = await customerAccount(true);
+    const created = await db.$transaction((tx) =>
+      createTicketRequestRecord(tx, user, request(f.area.id), NOW),
+    );
+    if (!created.ok) throw new Error(created.error.message);
+    const other = await db.customer.create({ data: { name: "Otro cliente" } });
+    const input = {
+      kind: "SOPORTE" as const,
+      customerId: other.id,
+      cityId: f.city.id,
+      areaIds: [f.area.id],
+      projectId: null,
+      bagId: null,
+      priority: "MEDIA" as const,
+      slaModality: "H8X5" as const,
+      title: "No puedo entrar a la VPN",
+      description: "Desde hoy en la mañana.",
+      ownerId: null,
+      requestId: created.data.requestId,
+    };
+    const wrong = await db.$transaction((tx) =>
+      createTicketRecord(tx, coordinator, input, NOW),
+    );
+    expect(wrong).toMatchObject({ ok: false, error: { code: "VALIDATION" } });
+    const right = await db.$transaction((tx) =>
+      createTicketRecord(
+        tx,
+        coordinator,
+        { ...input, customerId: f.customer.id },
+        NOW,
+      ),
+    );
+    expect(right.ok).toBe(true);
+  });
+});

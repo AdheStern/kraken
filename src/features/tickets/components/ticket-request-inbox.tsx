@@ -36,6 +36,11 @@ export function TicketRequestInbox({ requests, options }: Props) {
               <p className="text-xs text-muted-foreground">
                 {r.areaCode} · {r.requesterName} · {formatDateTime(r.createdAt)}
               </p>
+              {r.customer && (
+                <p className="text-xs font-medium text-primary">
+                  Pedida desde el portal por {r.customer.name}
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-1">
               <DiscardTicketRequestDialog requestId={r.id} number={r.number} />
@@ -47,6 +52,7 @@ export function TicketRequestInbox({ requests, options }: Props) {
                   description: r.description,
                   areaIds: [r.areaId],
                   cityId: r.requesterCityId ?? "",
+                  customerId: r.customer?.id ?? "",
                   requestId: r.id,
                 }}
               />

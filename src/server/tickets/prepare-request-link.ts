@@ -15,9 +15,10 @@ export async function prepareRequestLink(
   tx: Tx,
   user: SessionUser,
   requestId: string,
-  areaIds: readonly string[],
+  ticket: { areaIds: readonly string[]; customerId: string },
   now: Date,
 ): Promise<ActionResult<Link>> {
+  const { areaIds } = ticket;
   const request = await lockTicketRequest(tx, requestId);
   if (!request || !canHandleTicketRequest(user, request))
     return actionError(
@@ -33,6 +34,12 @@ export async function prepareRequestLink(
     return actionError(
       "VALIDATION",
       "El ticket debe incluir el área de la solicitud.",
+    );
+  // REGLA: la solicitud de un cliente se atiende con un ticket de su empresa (§2.11).
+  if (request.customerId && request.customerId !== ticket.customerId)
+    return actionError(
+      "VALIDATION",
+      "La solicitud es de un cliente: el ticket debe ser de ese cliente.",
     );
   return actionOk(async (ticket) => {
     await tx.ticketRequest.update({

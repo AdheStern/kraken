@@ -10,6 +10,7 @@ export type LockedTicketRequest = {
   areaId: string;
   requesterId: string;
   title: string;
+  customerId: string | null;
 };
 
 type Row = {
@@ -19,6 +20,7 @@ type Row = {
   area_id: string;
   solicitante_id: string;
   titulo: string;
+  cliente_id: string | null;
 };
 
 // TRAMPA: dos coordinadores pueden atender la misma solicitud a la vez; el bloqueo hace que el segundo la vea
@@ -29,7 +31,7 @@ export async function lockTicketRequest(
 ): Promise<LockedTicketRequest | null> {
   const [row] = await tx.$queryRaw<Row[]>`
     SELECT id::text AS id, numero, estado::text AS estado, area_id::text AS area_id,
-           solicitante_id, titulo
+           solicitante_id, titulo, cliente_id::text AS cliente_id
     FROM tickets.solicitud
     WHERE id = ${requestId}::uuid
     FOR UPDATE`;
@@ -41,5 +43,6 @@ export async function lockTicketRequest(
     areaId: row.area_id,
     requesterId: row.solicitante_id,
     title: row.titulo,
+    customerId: row.cliente_id,
   };
 }

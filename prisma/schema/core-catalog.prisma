@@ -35,6 +35,7 @@ model Customer {
   tickets             Ticket[]
   docProjects         DocProject[]
   portalUsers         UserProfile[]
+  ticketRequests      TicketRequest[]
 
   @@index([taxId])
   @@map("cliente")

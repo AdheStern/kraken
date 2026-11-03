@@ -6,9 +6,11 @@ export type LinesNoticeValue = { tone: "info" | "error"; text: string } | null;
 export function LinesNotice({
   notice,
   isDirty,
+  canPaste = true,
 }: {
   notice: LinesNoticeValue;
   isDirty: boolean;
+  canPaste?: boolean;
 }) {
   return (
     <p aria-live="polite" className="min-h-5 text-sm">
@@ -22,8 +24,8 @@ export function LinesNotice({
         </span>
       ) : isDirty ? (
         <span className="text-muted-foreground">
-          Cambios sin guardar · Ctrl+S para guardar. Pega bloques desde Excel en
-          cualquier celda.
+          Cambios sin guardar · Ctrl+S para guardar.
+          {canPaste && " Pega bloques desde Excel en cualquier celda."}
         </span>
       ) : null}
     </p>

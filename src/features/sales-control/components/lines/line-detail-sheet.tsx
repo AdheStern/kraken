@@ -29,6 +29,7 @@ type Props = {
   areas: Option[];
   projects: Option[];
   canEdit: boolean;
+  canEditPostSale: boolean;
   onChange: (patch: Partial<CvLineDraft>) => void;
   onClose: () => void;
 };
@@ -42,6 +43,7 @@ export function LineDetailSheet({
   areas,
   projects,
   canEdit,
+  canEditPostSale,
   onChange,
   onClose,
 }: Props) {
@@ -107,7 +109,7 @@ export function LineDetailSheet({
                 <h3 className="text-sm font-semibold">Seriales</h3>
                 <Textarea
                   rows={5}
-                  disabled={disabled}
+                  disabled={disabled && !canEditPostSale}
                   placeholder="Uno por línea. Puedes pegarlos desde Excel."
                   key={line.key}
                   defaultValue={line.serials.join("\n")}

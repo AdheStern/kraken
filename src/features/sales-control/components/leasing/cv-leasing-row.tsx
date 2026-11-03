@@ -28,6 +28,8 @@ type Props = {
   row: number;
   options: CvGridOptions;
   canEdit: boolean;
+  // Notas y PO# siguen editables en la versión aprobada (AGENTS.md §2.3).
+  canEditPostSale: boolean;
   onChange: (patch: Partial<CvLeasingLineDraft>) => void;
   onRemove: () => void;
 };
@@ -37,6 +39,7 @@ export function CvLeasingRow({
   row,
   options,
   canEdit,
+  canEditPostSale,
   onChange,
   onRemove,
 }: Props) {
@@ -114,7 +117,7 @@ export function CvLeasingRow({
           col={7}
           label="Notas"
           value={line.notes}
-          disabled={disabled}
+          disabled={disabled && !canEditPostSale}
           onChange={(e) => onChange({ notes: e.target.value })}
         />
       </td>
@@ -124,7 +127,7 @@ export function CvLeasingRow({
           col={8}
           label="PO#"
           value={line.poNumber}
-          disabled={disabled}
+          disabled={disabled && !canEditPostSale}
           onChange={(e) => onChange({ poNumber: e.target.value })}
         />
       </td>

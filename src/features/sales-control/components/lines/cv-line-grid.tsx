@@ -25,6 +25,7 @@ type Props = {
   columns: ColumnKey[];
   options: CvGridOptions;
   canEdit: boolean;
+  canEditPostSale: boolean;
   dispatch: Dispatch<LinesAction>;
   details: Map<string, LineDetailInfo>;
   onOpenDetail: (lineKey: string) => void;
@@ -41,6 +42,7 @@ export function CvLineGrid({
   columns,
   options,
   canEdit,
+  canEditPostSale,
   dispatch,
   details,
   onOpenDetail,
@@ -110,6 +112,7 @@ export function CvLineGrid({
         {...common}
         line={line}
         options={options}
+        canEditPostSale={canEditPostSale}
         result={results.get(line.key) ?? { ok: false, issues: [] }}
         detailState={details.get(line.key)?.state ?? "empty"}
         onDetail={() => onOpenDetail(line.key)}

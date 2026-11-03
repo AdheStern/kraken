@@ -27,6 +27,7 @@ type Props = {
   columns: ColumnKey[];
   options: CvGridOptions;
   canEdit: boolean;
+  canEditPostSale: boolean;
   onChange: (patch: Partial<CvLineDraft>) => void;
   onProductCode: (code: string) => void;
   onMove: (offset: -1 | 1) => void;
@@ -46,6 +47,7 @@ export function CvItemRow({
   columns,
   options,
   canEdit,
+  canEditPostSale,
   onChange,
   onProductCode,
   onMove,
@@ -65,6 +67,7 @@ export function CvItemRow({
         : result.issues.find((i) => i.field === field)?.message,
     priced: result.ok ? result.value : null,
     disabled: !canEdit,
+    postSaleDisabled: !canEdit && !canEditPostSale,
     onChange,
   };
   const cells = {

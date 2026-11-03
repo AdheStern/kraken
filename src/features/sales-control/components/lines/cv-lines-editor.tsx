@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import { submitCvVersion } from "../../actions/submit-cv-version";
-import { upsertCvLines } from "../../actions/upsert-cv-lines";
 import { approverLabels } from "../../approver-labels";
 import type { CvGridOptions } from "../../types";
 import { CvLineGrid } from "./cv-line-grid";
@@ -14,14 +13,12 @@ import { CvLinesToolbar } from "./cv-lines-toolbar";
 import { CvTotalsPanel } from "./cv-totals-panel";
 import { visibleColumns } from "./grid-columns";
 import { LineDetailSheet } from "./line-detail-sheet";
-import { LinesNotice, type LinesNoticeValue } from "./lines-notice";
-import {
-  type LinesState,
-  orderBySection,
-  useCvLinesState,
-} from "./use-cv-lines-state";
+import { LinesNotice } from "./lines-notice";
+import { PostSaleToolbar } from "./post-sale-toolbar";
+import { type LinesState, useCvLinesState } from "./use-cv-lines-state";
 import { useLinesCommands } from "./use-lines-commands";
 import { useLinesPricing } from "./use-lines-pricing";
+import { useLinesSave } from "./use-lines-save";
 import { useSaveShortcuts } from "./use-save-shortcuts";
 
 type Props = {
@@ -31,6 +28,7 @@ type Props = {
   fxRates: { costFxRate: string; saleFxRate: string };
   thresholdUsd: string;
   canEdit: boolean;
+  canEditPostSale: boolean;
   canSeeCosts: boolean;
   isOpeningBalance: boolean;
 };
@@ -42,14 +40,13 @@ export function CvLinesEditor({
   fxRates,
   thresholdUsd,
   canEdit,
+  canEditPostSale,
   canSeeCosts,
   isOpeningBalance,
 }: Props) {
   const router = useRouter();
   const [state, dispatch] = useCvLinesState(initial);
   const [baseline] = useState(() => JSON.stringify(state));
-  const [isSaving, setIsSaving] = useState(false);
-  const [notice, setNotice] = useState<LinesNoticeValue>(null);
   const [detailKey, setDetailKey] = useState<string | null>(null);
   const detailContext = useMemo(
     () => ({
@@ -73,21 +70,12 @@ export function CvLinesEditor({
   const approvers = approverLabels(summary, options.areas, thresholdUsd);
   const detailLine = state.lines.find((line) => line.key === detailKey) ?? null;
   const isDirty = JSON.stringify(state) !== baseline;
-
-  async function save() {
-    if (!canEdit || isSaving || !isDirty) return;
-    setIsSaving(true);
-    setNotice(null);
-    const result = await upsertCvLines({
-      versionId,
-      groups: state.groups,
-      lines: orderBySection(state),
-    });
-    setIsSaving(false);
-    if (!result.ok)
-      return setNotice({ tone: "error", text: result.error.message });
-    router.refresh();
-  }
+  const { save, isSaving, notice, setNotice } = useLinesSave(
+    versionId,
+    state,
+    canEdit ? "draft" : canEditPostSale ? "postSale" : "readOnly",
+    isDirty,
+  );
   useSaveShortcuts(() => void save(), isDirty);
 
   const commands = useLinesCommands({
@@ -122,6 +110,12 @@ export function CvLinesEditor({
             onSubmitted={() => router.refresh()}
             onApplyTechnologyFactor={commands.applyTechnologyFactor}
           />
+        ) : canEditPostSale ? (
+          <PostSaleToolbar
+            isDirty={isDirty}
+            isSaving={isSaving}
+            onSave={() => void save()}
+          />
         ) : (
           <h2 className="text-base font-semibold">Líneas</h2>
         )}
@@ -131,7 +125,9 @@ export function CvLinesEditor({
             venta en 0. Cada línea abre su bolsa al aprobarse.
           </p>
         )}
-        {canEdit && <LinesNotice notice={notice} isDirty={isDirty} />}
+        {(canEdit || canEditPostSale) && (
+          <LinesNotice notice={notice} isDirty={isDirty} canPaste={canEdit} />
+        )}
         {state.lines.length === 0 && state.groups.length === 0 ? (
           <KrakenEmpty compact title="Este CV todavía no tiene líneas.">
             {canEdit &&
@@ -144,6 +140,7 @@ export function CvLinesEditor({
             columns={columns}
             options={options}
             canEdit={canEdit}
+            canEditPostSale={canEditPostSale}
             dispatch={dispatch}
             details={details}
             onOpenDetail={setDetailKey}
@@ -167,6 +164,7 @@ export function CvLinesEditor({
         areas={options.areas}
         projects={options.projects}
         canEdit={canEdit}
+        canEditPostSale={canEditPostSale}
         onChange={(patch) =>
           detailKey && dispatch({ type: "updateLine", key: detailKey, patch })
         }

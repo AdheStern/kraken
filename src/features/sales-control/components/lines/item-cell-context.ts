@@ -11,5 +11,7 @@ export type ItemCellContext = {
   issue: (field: keyof CvLineDraft) => string | undefined;
   priced: PricedLine | null;
   disabled: boolean;
+  // Observaciones, PO# y activación: siguen editables en la versión aprobada (AGENTS.md §2.3).
+  postSaleDisabled: boolean;
   onChange: (patch: Partial<CvLineDraft>) => void;
 };

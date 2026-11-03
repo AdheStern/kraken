@@ -91,6 +91,8 @@ export type CvApprovalItem = {
 export type CvEditorData = {
   header: CvEditorHeader;
   canEdit: boolean;
+  // Solo observaciones, PO#, activación, seriales y notas/PO# del leasing de la versión aprobada (§2.3).
+  canEditPostSale: boolean;
   canSeeCosts: boolean;
   canExport: boolean;
   versionNumber: number;

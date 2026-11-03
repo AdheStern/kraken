@@ -33,6 +33,7 @@ export const SALES_MANUAL: Manual = {
         "Enviar a aprobación crea una solicitud por área y, sobre el umbral, otra para el gerente general. Mientras espera, la versión no se edita.",
         "Si alguien rechaza, la versión queda observada: crea una Nueva versión con motivo, corrige y vuelve a enviar.",
         "Para cambiar un CV aprobado también se crea una versión nueva; la aprobada sigue vigente hasta que se apruebe la nueva.",
+        "En la versión aprobada sí puedes completar, sin versión nueva, observaciones, PO#, rango de activación y seriales de las líneas, y notas y PO# del leasing: no cambian montos. Si hay una versión nueva en borrador, el cambio también llega a ella.",
         "Comparar versiones muestra líneas agregadas, quitadas y modificadas. El Excel se exporta con la plantilla oficial.",
       ],
     },

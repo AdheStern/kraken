@@ -13,6 +13,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { formatAmount } from "@/lib/format-amount";
+import { updatePostSaleDetails } from "../../actions/update-post-sale-details";
 import { upsertCvLeasing } from "../../actions/upsert-cv-leasing";
 import type { CvLeasingLineDraft } from "../../schemas/cv-leasing-schema";
 import type { CvGridOptions } from "../../types";
@@ -24,6 +25,7 @@ type Props = {
   initial: CvLeasingLineDraft[];
   options: CvGridOptions;
   canEdit: boolean;
+  canEditPostSale: boolean;
 };
 
 const HEADERS = [
@@ -56,6 +58,7 @@ export function CvLeasingEditor({
   initial,
   options,
   canEdit,
+  canEditPostSale,
 }: Props) {
   const router = useRouter();
   const [lines, setLines] = useState(initial);
@@ -75,7 +78,14 @@ export function CvLeasingEditor({
   async function save() {
     setIsSaving(true);
     setError(null);
-    const result = await upsertCvLeasing({ versionId, lines });
+    const result = canEdit
+      ? await upsertCvLeasing({ versionId, lines })
+      : await updatePostSaleDetails({
+          versionId,
+          leasing: lines.flatMap(({ id, notes, poNumber }) =>
+            id ? [{ id, notes, poNumber }] : [],
+          ),
+        });
     setIsSaving(false);
     if (!result.ok) return setError(result.error.message);
     router.refresh();
@@ -125,6 +135,7 @@ export function CvLeasingEditor({
                     row={row}
                     options={options}
                     canEdit={canEdit}
+                    canEditPostSale={canEditPostSale}
                     onChange={(patch) => update(line.key, patch)}
                     onRemove={() =>
                       setLines((c) => c.filter((l) => l.key !== line.key))
@@ -134,16 +145,18 @@ export function CvLeasingEditor({
               </tbody>
             </table>
           </div>
-          {canEdit && (
+          {(canEdit || canEditPostSale) && (
             <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLines((c) => [...c, blank()])}
-              >
-                <Plus aria-hidden="true" />
-                Línea de leasing
-              </Button>
+              {canEdit && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLines((c) => [...c, blank()])}
+                >
+                  <Plus aria-hidden="true" />
+                  Línea de leasing
+                </Button>
+              )}
               <p aria-live="polite" className="mr-auto text-sm">
                 {error ? (
                   <span className="text-destructive">{error}</span>

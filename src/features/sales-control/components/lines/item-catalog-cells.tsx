@@ -16,7 +16,15 @@ import {
 import type { ItemCellContext } from "./item-cell-context";
 
 export function catalogCells(
-  { line, row, col, issue, disabled, onChange }: ItemCellContext,
+  {
+    line,
+    row,
+    col,
+    issue,
+    disabled,
+    postSaleDisabled,
+    onChange,
+  }: ItemCellContext,
   options: CvGridOptions,
   onProductCode: (code: string) => void,
 ): Partial<Record<ColumnKey, ReactNode>> {
@@ -137,16 +145,23 @@ export function catalogCells(
         }),
       }),
     ),
-    poNumber: text("poNumber", "PO#", line.poNumber, (poNumber) => ({
-      poNumber,
-    })),
+    poNumber: (
+      <TextCell
+        row={row}
+        col={col("poNumber")}
+        label="PO#"
+        value={line.poNumber}
+        disabled={postSaleDisabled}
+        onChange={(event) => onChange({ poNumber: event.target.value })}
+      />
+    ),
     activation: (
       <DateRangePicker
         data-cell={`${row}:${col("activation")}`}
         aria-label="Rango de activación"
         start={line.activationStart}
         end={line.activationEnd}
-        disabled={disabled || line.itemType !== "INTANGIBLE"}
+        disabled={postSaleDisabled || line.itemType !== "INTANGIBLE"}
         placeholder={
           line.itemType === "INTANGIBLE" ? "Elige el rango" : "Solo intangibles"
         }
@@ -162,7 +177,7 @@ export function catalogCells(
         col={col("notes")}
         label="Observaciones"
         value={line.notes}
-        disabled={disabled}
+        disabled={postSaleDisabled}
         onValueChange={(notes) => onChange({ notes })}
       />
     ),

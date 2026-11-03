@@ -129,7 +129,7 @@ async function CvEditor({
         <p className="basis-full text-sm text-muted-foreground">
           {header.title} · {header.customerName} · {header.cityName}
         </p>
-        {!editor.canEdit && (
+        {!editor.canEdit && !editor.canEditPostSale && (
           <p className="basis-full text-sm text-muted-foreground">
             Solo lectura: {readOnlyReason(editor)}
           </p>
@@ -157,6 +157,7 @@ async function CvEditor({
         }}
         thresholdUsd={thresholdUsd}
         canEdit={editor.canEdit}
+        canEditPostSale={editor.canEditPostSale}
         canSeeCosts={editor.canSeeCosts}
         isOpeningBalance={header.isOpeningBalance}
       />
@@ -168,6 +169,7 @@ async function CvEditor({
           initial={leasing}
           options={gridOptions}
           canEdit={editor.canEdit}
+          canEditPostSale={editor.canEditPostSale}
         />
       )}
       <VersionHistory

@@ -1,31 +1,40 @@
 // src/features/dashboards/components/engineers-table.tsx
 // Desempeño por ingeniero del periodo: tiempo real, utilización, fuera de horario, tickets, descontado, SLA,
-// mediana de resolución y registros tardíos; cada fila abre su detalle (AGENTS.md §6). Sin montos.
+// mediana de resolución y registros tardíos; se ordena por cualquier columna y cada fila abre su detalle (AGENTS.md
+// §6). Sin montos.
+import { ArrowDown, ArrowUp } from "lucide-react";
 import Link from "next/link";
 import { formatMinutes } from "@/lib/format-minutes";
+import {
+  type EngineerSort,
+  type EngineerSortKey,
+  sortEngineerRows,
+} from "../engineer-sort";
 import type { EngineerRow } from "../types";
 
 const pct = (value: number | null) => (value === null ? "—" : `${value}%`);
 
-const COLUMNS = [
-  "Ingeniero",
-  "Registrado",
-  "Utilización",
-  "Fuera de horario",
-  "Resueltos",
-  "Tickets",
-  "Descontado",
-  "SLA",
-  "Mediana resolución",
-  "Tardíos",
+const COLUMNS: [EngineerSortKey, string][] = [
+  ["name", "Ingeniero"],
+  ["loggedMinutes", "Registrado"],
+  ["utilizationPct", "Utilización"],
+  ["outsidePct", "Fuera de horario"],
+  ["ownedResolved", "Resueltos"],
+  ["participated", "Tickets"],
+  ["chargedMinutes", "Descontado"],
+  ["slaPct", "SLA"],
+  ["medianResolutionMinutes", "Mediana resolución"],
+  ["latePct", "Tardíos"],
 ];
 
 export function EngineersTable({
   rows,
   query,
+  sort,
 }: {
   rows: EngineerRow[];
   query: string;
+  sort: EngineerSort;
 }) {
   if (rows.length === 0)
     return (
@@ -34,19 +43,21 @@ export function EngineersTable({
         grupos de Entra en Administración.
       </p>
     );
-  const sorted = [...rows].sort((a, b) => b.loggedMinutes - a.loggedMinutes);
+  const sorted = sortEngineerRows(rows, sort);
   return (
     <div className="kr-solid overflow-x-auto rounded-xl">
       <table className="w-full min-w-[56rem] text-sm">
         <thead className="text-left text-xs text-muted-foreground">
           <tr>
-            {COLUMNS.map((c, i) => (
-              <th
-                key={c}
-                className={`px-3 py-2 font-medium ${i > 0 ? "text-right" : ""}`}
-              >
-                {c}
-              </th>
+            {COLUMNS.map(([key, label], i) => (
+              <SortHeader
+                key={key}
+                label={label}
+                column={key}
+                sort={sort}
+                query={query}
+                alignRight={i > 0}
+              />
             ))}
           </tr>
         </thead>
@@ -79,6 +90,44 @@ export function EngineersTable({
         </tbody>
       </table>
     </div>
+  );
+}
+
+// POR QUÉ: un enlace por columna conserva los filtros del tablero; repetir la columna invierte la dirección.
+function SortHeader({
+  label,
+  column,
+  sort,
+  query,
+  alignRight,
+}: {
+  label: string;
+  column: EngineerSortKey;
+  sort: EngineerSort;
+  query: string;
+  alignRight: boolean;
+}) {
+  const isActive = sort.key === column;
+  const dir = isActive && sort.dir === "desc" ? "asc" : "desc";
+  const params = new URLSearchParams(query);
+  params.set("orden", column);
+  params.set("dir", dir);
+  const Icon = sort.dir === "asc" ? ArrowUp : ArrowDown;
+  return (
+    <th
+      className={`px-3 py-2 font-medium ${alignRight ? "text-right" : ""}`}
+      aria-sort={
+        isActive ? (sort.dir === "asc" ? "ascending" : "descending") : "none"
+      }
+    >
+      <Link
+        href={`/tableros/ingenieros?${params}`}
+        className="inline-flex items-center gap-1 hover:text-foreground"
+      >
+        {label}
+        {isActive && <Icon className="size-3" aria-hidden="true" />}
+      </Link>
+    </th>
   );
 }
 

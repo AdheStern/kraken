@@ -7,8 +7,14 @@ import {
   operationsSheets,
   salesSheets,
 } from "@/features/dashboards/export/board-sheets";
-import { engineersSheets } from "@/features/dashboards/export/engineer-sheets";
-import { getEngineersDashboard } from "@/features/dashboards/queries/get-engineers-dashboard";
+import {
+  engineerDetailSheets,
+  engineersSheets,
+} from "@/features/dashboards/export/engineer-sheets";
+import {
+  getEngineerDetail,
+  getEngineersDashboard,
+} from "@/features/dashboards/queries/get-engineers-dashboard";
 import { getInventoryDashboard } from "@/features/dashboards/queries/get-inventory-dashboard";
 import { getOperationsDashboard } from "@/features/dashboards/queries/get-operations-dashboard";
 import { getSalesDashboard } from "@/features/dashboards/queries/get-sales-dashboard";
@@ -35,7 +41,11 @@ const BOARDS: Record<
   string,
   {
     title: string;
-    load: (user: SessionUser, f: Filters) => Promise<SheetSpec[] | null>;
+    load: (
+      user: SessionUser,
+      f: Filters,
+      params: Record<string, string>,
+    ) => Promise<SheetSpec[] | null>;
   }
 > = {
   ventas: {
@@ -54,10 +64,14 @@ const BOARDS: Record<
   },
   ingenieros: {
     title: "Tablero de ingenieros",
-    load: async (user, f) =>
-      canSeeEngineersDashboard(user)
-        ? engineersSheets(await getEngineersDashboard(user, f))
-        : null,
+    // POR QUÉ: con ?ingeniero= exporta el detalle de uno; fuera del alcance del usuario no hay detalle (null → 403).
+    load: async (user, f, params) => {
+      if (!canSeeEngineersDashboard(user)) return null;
+      if (!params.ingeniero)
+        return engineersSheets(await getEngineersDashboard(user, f));
+      const detail = await getEngineerDetail(user, params.ingeniero, f);
+      return detail && engineerDetailSheets(detail);
+    },
   },
   inventario: {
     title: "Tablero de inventario",
@@ -83,7 +97,7 @@ export async function GET(
   if (!spec) return new Response("No existe ese tablero.", { status: 404 });
   const params = Object.fromEntries(request.nextUrl.searchParams);
   const { filters } = await loadDashboardContext(user, params);
-  const sheets = await spec.load(user, filters);
+  const sheets = await spec.load(user, filters, params);
   if (!sheets)
     return new Response("No tienes permiso para exportar este tablero.", {
       status: 403,

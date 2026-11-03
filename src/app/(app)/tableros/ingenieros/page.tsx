@@ -7,6 +7,7 @@ import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardHeader } from "@/features/dashboards/components/dashboard-header";
 import { EngineersTable } from "@/features/dashboards/components/engineers-table";
+import { toEngineerSort } from "@/features/dashboards/engineer-sort";
 import { getEngineersDashboard } from "@/features/dashboards/queries/get-engineers-dashboard";
 import { loadDashboardContext } from "@/features/dashboards/queries/load-dashboard-context";
 import {
@@ -34,7 +35,8 @@ async function EngineersBoard({
 }: Pick<PageProps<"/tableros/ingenieros">, "searchParams">) {
   const user = await requireUser();
   if (!canSeeEngineersDashboard(user)) notFound();
-  const context = await loadDashboardContext(user, await searchParams);
+  const params = await searchParams;
+  const context = await loadDashboardContext(user, params);
   if (!seesOtherEngineers(user))
     redirect(
       `/tableros/ingenieros/${user.id}${context.query ? `?${context.query}` : ""}`,
@@ -48,7 +50,11 @@ async function EngineersBoard({
         exportHref={`/api/dashboards/ingenieros/export.xlsx?${context.query}`}
         description={`Tiempo, tickets y SLA de cada ingeniero en ${board.periodLabel}. Abre uno para ver su detalle y sus tickets.`}
       />
-      <EngineersTable rows={board.rows} query={context.query} />
+      <EngineersTable
+        rows={board.rows}
+        query={context.query}
+        sort={toEngineerSort(params.orden, params.dir)}
+      />
     </>
   );
 }

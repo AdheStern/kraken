@@ -15,9 +15,11 @@ import {
   getHomeSummary,
   type HomeSummary,
 } from "@/features/home/queries/get-home-summary";
+import { hasRole } from "@/server/authz/roles";
 import { systemClock } from "@/server/clock";
 import { requireUser } from "@/server/session";
 import { ApprovalsPanel } from "./approvals-panel";
+import { PerformanceLink } from "./performance-link";
 import { RiskPanel } from "./risk-panel";
 import { TimersPanel } from "./timers-panel";
 
@@ -60,6 +62,7 @@ async function Home() {
       <Suspense fallback={<Skeleton className="h-28 w-full rounded-xl" />}>
         <MonthStrip user={user} />
       </Suspense>
+      {hasRole(user, "INGENIERO") && <PerformanceLink userId={user.id} />}
       {summary.timers && summary.timers.length > 0 && (
         <TimersPanel timers={summary.timers} />
       )}

@@ -57,6 +57,7 @@ async function EngineerBoard({
         context={context}
         active="ingenieros"
         showArea={false}
+        exportHref={`/api/dashboards/ingenieros/export.xlsx?ingeniero=${detail.userId}${context.query ? `&${context.query}` : ""}`}
         description={`${detail.name} · ${detail.periodLabel}. El tiempo es el que registró; lo descontado, el de los tickets a su cargo cerrados en el periodo.`}
       />
       {seesOtherEngineers(user) && (

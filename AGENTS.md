@@ -879,7 +879,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 - Taller con gerencia: KPIs, KGIs y metas [negocio] — gerencia dejó la definición al equipo (2026-10-22): v1 con la propuesta de §6, se ajusta con el uso
 - Vistas `dash.*` con tests de cálculo [OPUS] — hecho como funciones puras (`src/domain/dashboards`) sobre queries con alcance, sin vistas (§6); `dash.meta` para las metas
 - Tableros por rol, filtros, exportación [SONNET] — hecho (`/tableros/ventas`, `/tableros/operacion`, `/tableros/inventario`, `/tableros/metas`, franja «Este mes» en `/inicio`, exportación a Excel; Recharts; datos demo en `db:seed:dev`; E2E `tests/e2e/dashboards.spec.ts`)
-- Desempeño por ingeniero: listado y detalle con sus tickets, exportación a Excel (`/tableros/ingenieros`, decisión 2026-11-03) [SONNET] — hecho
+- Desempeño por ingeniero: listado ordenable por columna y detalle con sus tickets, exportación a Excel del listado y del detalle (`?ingeniero=`), enlace «Mi desempeño» en el Inicio del ingeniero (`/tableros/ingenieros`, decisión 2026-11-03) [SONNET] — hecho
 - *Sale cuando:* cada gerente usa su tablero en la reunión semanal.
 
 **F6 · Endurecimiento y continuidad (~2 semanas)**

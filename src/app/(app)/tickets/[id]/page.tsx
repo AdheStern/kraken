@@ -34,7 +34,10 @@ export async function generateMetadata({
   };
 }
 
-export default function TicketPage({ params }: PageProps<"/tickets/[id]">) {
+export default function TicketPage({
+  params,
+  searchParams,
+}: PageProps<"/tickets/[id]">) {
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-8 sm:px-6">
       <Link
@@ -44,6 +47,9 @@ export default function TicketPage({ params }: PageProps<"/tickets/[id]">) {
         <ArrowLeft className="size-4" aria-hidden="true" />
         Tickets
       </Link>
+      <Suspense fallback={null}>
+        <FailedUploadsNotice searchParams={searchParams} />
+      </Suspense>
       <Suspense fallback={<Skeleton className="h-96 w-full rounded-xl" />}>
         <Ticket params={params} />
       </Suspense>
@@ -84,5 +90,22 @@ async function Ticket({ params }: Pick<PageProps<"/tickets/[id]">, "params">) {
         summary={summary}
       />
     </>
+  );
+}
+
+// POR QUÉ: el alta crea el ticket antes de subir sus adjuntos; lo que no subió se avisa aquí para reintentarlo.
+async function FailedUploadsNotice({
+  searchParams,
+}: Pick<PageProps<"/tickets/[id]">, "searchParams">) {
+  const { adjuntosFallidos } = await searchParams;
+  if (typeof adjuntosFallidos !== "string" || !adjuntosFallidos) return null;
+  return (
+    <p
+      role="alert"
+      className="rounded-lg bg-warning/10 px-3 py-2 text-sm text-warning"
+    >
+      El ticket se creó, pero no se subieron: {adjuntosFallidos}. Súbelos desde
+      la pestaña Adjuntos.
+    </p>
   );
 }

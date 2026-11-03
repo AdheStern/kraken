@@ -1,6 +1,6 @@
 // src/features/tickets/queries/get-ticket-form-options.ts
 // Catálogos del alta de ticket: clientes, ciudades, las áreas que el usuario gestiona, proyectos activos,
-// ingenieros con sus áreas y bolsas activas (AGENTS.md §2.6, §2.9).
+// ingenieros con sus áreas, bolsas activas y si hay dónde guardar adjuntos (AGENTS.md §2.6, §2.9, ADR-16).
 
 import { toCvVersionLabel } from "@/domain/sales-control/cv-code";
 import type { EligibleBag } from "@/domain/tickets/bag-eligibility";
@@ -10,6 +10,7 @@ import type { SessionUser } from "@/server/authz/roles";
 import { scopeHourBagQuery } from "@/server/authz/scope-hour-bag-query";
 import { ticketAreasManagedBy } from "@/server/authz/ticket-permissions";
 import { prisma } from "@/server/db";
+import { selectFileStore } from "@/server/files/select-file-store";
 import { MODALITY_LABELS } from "../ticket-labels";
 
 export type TicketOption = { id: string; label: string; hint?: string };
@@ -23,6 +24,7 @@ export type TicketFormOptions = {
   engineers: (TicketOption & { areaIds: string[] | null })[];
   // POR QUÉ: el formulario filtra por cliente, áreas y proyecto con la misma regla del servidor (bagIneligibility).
   bags: (TicketOption & EligibleBag & { modality: BagModality })[];
+  filesEnabled: boolean;
 };
 
 export async function getTicketFormOptions(
@@ -67,6 +69,7 @@ export async function getTicketFormOptions(
     })),
     engineers: groupEngineers(engineers),
     bags,
+    filesEnabled: selectFileStore() !== null,
   };
 }
 

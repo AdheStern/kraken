@@ -1,7 +1,9 @@
 // src/server/sales-control/apply-post-sale-lines.ts
 // Aplica los datos posventa (observaciones, PO#, rango de activación, seriales) a las líneas de una versión
-// APROBADA y los copia a la línea del mismo linaje del borrador abierto (AGENTS.md §2.3, decisión 2026-11-03).
+// APROBADA y los copia a la línea del mismo linaje de la versión siguiente aún sin aprobar (AGENTS.md §2.3,
+// decisión 2026-11-03).
 import type { Tx } from "@/server/db";
+import { findFollowingVersion } from "./find-following-version";
 
 export type PostSaleLineRecord = {
   id: string;
@@ -30,10 +32,7 @@ export async function applyPostSaleLines(
   });
   const byId = new Map(current.map((line) => [line.id, line]));
   const changes: LineChange[] = [];
-  const draft = await tx.cvVersion.findFirst({
-    where: { cvId, status: "BORRADOR" },
-    select: { id: true },
-  });
+  const following = await findFollowingVersion(tx, cvId, versionId);
   for (const record of records) {
     const line = byId.get(record.id);
     if (!line || line.kind !== "ITEM")
@@ -49,21 +48,26 @@ export async function applyPostSaleLines(
     changes.push({ before: pick(before), after: record });
     // TRAMPA: en serie; dentro de una transacción el cliente usa una sola conexión y pg@9 rechaza consultas en paralelo.
     await writePatch(tx, line.id, patch);
-    if (draft)
-      await copyToDraft(tx, draft.id, line.originLineId ?? line.id, patch);
+    if (following)
+      await copyToFollowing(
+        tx,
+        following.id,
+        line.originLineId ?? line.id,
+        patch,
+      );
   }
   return { ok: true, changes };
 }
 
-// POR QUÉ: al borrador solo viaja lo que cambió, para no pisar lo que su autor editó en los demás campos.
-async function copyToDraft(
+// POR QUÉ: a la versión siguiente solo viaja lo que cambió, para no pisar lo que su autor editó en los demás campos.
+async function copyToFollowing(
   tx: Tx,
-  draftId: string,
+  followingId: string,
   originLineId: string,
   patch: LinePatch,
 ) {
   const target = await tx.cvLine.findFirst({
-    where: { versionId: draftId, originLineId, kind: "ITEM" },
+    where: { versionId: followingId, originLineId, kind: "ITEM" },
     select: { id: true, itemType: true },
   });
   if (!target) return;

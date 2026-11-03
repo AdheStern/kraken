@@ -42,7 +42,10 @@ async function approvedCv(itemType: "INTANGIBLE" | "HARDWARE" = "INTANGIBLE") {
   return { ...f, line, leasing };
 }
 
-function setStatus(versionId: string, status: "APROBADA" | "REEMPLAZADA") {
+function setStatus(
+  versionId: string,
+  status: "APROBADA" | "REEMPLAZADA" | "EN_APROBACION",
+) {
   return db.cvVersion.update({ where: { id: versionId }, data: { status } });
 }
 
@@ -151,6 +154,41 @@ describe("applyPostSaleLines", () => {
       ok: false,
       message: "Solo las licencias (tipo Intangible) llevan activación.",
     });
+  });
+});
+
+describe("versión siguiente en aprobación", () => {
+  it("recibe los datos posventa copiados; su contenido sigue inmutable", async () => {
+    const f = await approvedCv();
+    const next = await openDraft(f);
+    await setStatus(next.id, "EN_APROBACION");
+    const nextLine = await db.cvLine.findFirstOrThrow({
+      where: { versionId: next.id },
+    });
+
+    await db.$transaction((tx) =>
+      applyPostSaleLines(tx, f.cv.id, f.version.id, [details(f.line.id)]),
+    );
+    const copied = await db.cvLine.findUniqueOrThrow({
+      where: { id: nextLine.id },
+      include: { serials: true },
+    });
+    expect(copied.poNumber).toBe("PO-77");
+    expect(copied.serials).toHaveLength(2);
+    await expect(
+      db.cvLine.update({
+        where: { id: nextLine.id },
+        data: { description: "Otra" },
+      }),
+    ).rejects.toThrow(/no admite cambios/);
+  });
+
+  it("sin versión aprobada, una en aprobación no admite datos posventa", async () => {
+    const f = await approvedCv();
+    await setStatus(f.version.id, "EN_APROBACION");
+    await expect(
+      db.cvLine.update({ where: { id: f.line.id }, data: { notes: "x" } }),
+    ).rejects.toThrow(/no admite cambios/);
   });
 });
 

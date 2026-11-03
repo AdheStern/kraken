@@ -1,7 +1,8 @@
 // src/server/sales-control/apply-post-sale-leasing.ts
-// Aplica notas y PO# al leasing de una versión APROBADA y los copia al leasing equivalente del borrador abierto
-// (AGENTS.md §2.3, decisión 2026-11-03).
+// Aplica notas y PO# al leasing de una versión APROBADA y los copia al leasing equivalente de la versión siguiente
+// aún sin aprobar (AGENTS.md §2.3, decisión 2026-11-03).
 import type { Tx } from "@/server/db";
+import { findFollowingVersion } from "./find-following-version";
 
 export type PostSaleLeasingRecord = {
   id: string;
@@ -27,10 +28,7 @@ export async function applyPostSaleLeasing(
     where: { versionId, id: { in: records.map((r) => r.id) } },
   });
   const byId = new Map(current.map((line) => [line.id, line]));
-  const draft = await tx.cvVersion.findFirst({
-    where: { cvId, status: "BORRADOR" },
-    select: { id: true },
-  });
+  const following = await findFollowingVersion(tx, cvId, versionId);
   const changes: LeasingChange[] = [];
   for (const record of records) {
     const line = byId.get(record.id);
@@ -40,7 +38,7 @@ export async function applyPostSaleLeasing(
         message: "Una línea de leasing ya no está en el CV.",
       };
     const data = { notes: record.notes, poNumber: record.poNumber };
-    // POR QUÉ: al borrador solo viaja lo que cambió, para no pisar lo que su autor editó en el otro campo.
+    // POR QUÉ: a la versión siguiente solo viaja lo que cambió, para no pisar lo que su autor editó en el otro campo.
     const patch = {
       ...(line.notes !== data.notes && { notes: data.notes }),
       ...(line.poNumber !== data.poNumber && { poNumber: data.poNumber }),
@@ -52,12 +50,12 @@ export async function applyPostSaleLeasing(
     });
     // TRAMPA: en serie; dentro de una transacción el cliente usa una sola conexión y pg@9 rechaza consultas en paralelo.
     await tx.cvLeasingLine.update({ where: { id: line.id }, data });
-    // LIMITACIÓN: el leasing no guarda linaje; en el borrador se reconoce por posición y descripción, y si el
+    // LIMITACIÓN: el leasing no guarda linaje; en la versión siguiente se reconoce por posición y descripción, y si el
     // autor lo movió o lo reescribió, el cambio no viaja.
-    if (draft)
+    if (following)
       await tx.cvLeasingLine.updateMany({
         where: {
-          versionId: draft.id,
+          versionId: following.id,
           position: line.position,
           description: line.description,
         },

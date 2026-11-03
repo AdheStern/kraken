@@ -174,4 +174,38 @@ describe("cuenta de un cliente (§2.11)", () => {
     });
     expect(saved.isPublic).toBe(true);
   });
+
+  it("avisa al encargado o, sin encargado, a los coordinadores del área", async () => {
+    const f = await createTicketFixture(db, []);
+    const user = await customerAccount(true, f.customer.id);
+    const coordinator = await createUserWithRoles(db, "Coordinadora", [
+      { code: "COORDINADOR_SOPORTE", areaId: f.area.id },
+    ]);
+    const owner = await createUserWithRoles(db, "Ingeniera", [
+      { code: "INGENIERO", areaId: f.area.id },
+    ]);
+    const notices = (userId: string) =>
+      db.inboxItem.count({
+        where: { userId, eventType: "TICKET_ACTIVIDAD_CLIENTE" },
+      });
+    const comment = () =>
+      db.$transaction((tx) =>
+        addTicketComment(
+          tx,
+          user,
+          { ticketId: f.ticket.id, body: "¿Novedades?", isPublic: true },
+          new Date(),
+        ),
+      );
+
+    await comment();
+    expect(await notices(coordinator.id)).toBe(1);
+    await db.ticket.update({
+      where: { id: f.ticket.id },
+      data: { ownerId: owner.id },
+    });
+    await uploadTicketAttachment(user, f.ticket.id, file("captura"), store);
+    expect(await notices(owner.id)).toBe(1);
+    expect(await notices(coordinator.id)).toBe(1);
+  });
 });

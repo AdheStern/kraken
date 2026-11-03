@@ -7,6 +7,7 @@ import { canCommentTicket } from "@/server/authz/ticket-permissions";
 import type { Tx } from "@/server/db";
 import { refreshTicketSla } from "@/server/sla/refresh-ticket-sla";
 import { loadTicketAccess } from "./load-ticket-access";
+import { notifyCustomerActivity } from "./notify-customer-activity";
 
 type NewComment = { ticketId: string; body: string; isPublic: boolean };
 
@@ -29,6 +30,8 @@ export async function addTicketComment(
     data: { ticketId, authorId: user.id, body, isPublic, createdAt: now },
     select: { id: true },
   });
+  if (user.customer)
+    await notifyCustomerActivity(tx, user, ticketId, { kind: "COMENTARIO" });
   if (isPublic && access.ownerId === user.id) {
     await tx.ticket.updateMany({
       where: { id: ticketId, firstResponseAt: null },

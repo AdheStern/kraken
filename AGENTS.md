@@ -308,7 +308,7 @@ Una empresa cliente sigue en Kraken los tickets que DIMA le atiende. Sustituye a
 - **Cuenta por empresa, no por persona:** rol `CLIENTE` y `core.usuario_perfil.cliente_id`. La crea el administrador del sistema con correo y contraseña (12+ caracteres), sin invitación ni correo; la desactiva o le cambia la contraseña cuando haga falta. Entra con contraseña por `/api/auth` (límite de intentos, sesión de 12 h).
 - **Aislamiento:** la sesión de una cuenta `CLIENTE` trae solo ese rol (cualquier otro se descarta) y su empresa; sin empresa activa no entra. Nunca ve CV, costos, montos, inventario, documentación, solicitudes internas, comentarios internos, registros de tiempo ni a otros clientes. Todo listado del portal pasa por su `scope*Query` (regla 7).
 - **Siempre ve:** Inicio con un resumen de sus tickets y Tickets: los de su empresa con número, título, estado, prioridad, encargado, fechas, SLA, comentarios públicos, adjuntos y, al cerrarse, las horas descontadas.
-- **Configurable por empresa** (`core.cliente`: `portal_ve_bolsas`, `portal_pide_trabajo`, `portal_comenta`, apagadas por defecto): ver sus bolsas de horas (saldo, consumo, vencimiento); pedir trabajo (una solicitud con su empresa ya puesta que DIMA convierte en ticket); comentar (siempre público) y adjuntar en sus tickets.
+- **Configurable por empresa** (`core.cliente`: `portal_ve_bolsas`, `portal_pide_trabajo`, `portal_comenta`, apagadas por defecto): ver sus bolsas de horas (saldo, consumo, vencimiento); pedir trabajo (una solicitud con su empresa ya puesta que DIMA convierte en ticket); comentar (siempre público) y adjuntar en sus tickets; cada comentario o adjunto avisa al encargado o, sin encargado, a los coordinadores de las áreas del ticket.
 
 ---
 

@@ -14,6 +14,7 @@ import {
 import { toSafeFileName } from "@/server/files/safe-file-name";
 import { log } from "@/server/log";
 import { loadTicketAccess } from "./load-ticket-access";
+import { notifyCustomerActivity } from "./notify-customer-activity";
 
 export async function uploadTicketAttachment(
   user: SessionUser,
@@ -80,6 +81,11 @@ export async function uploadTicketAttachment(
         },
         select: { id: true },
       });
+      if (user.customer)
+        await notifyCustomerActivity(tx, user, ticketId, {
+          kind: "ADJUNTO",
+          fileName,
+        });
       await recordAudit(tx, {
         actorId: user.id,
         entity: "tickets.adjunto",

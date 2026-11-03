@@ -8,6 +8,7 @@ import {
   canCreateCv,
   canDecideApproval,
   canEditCvDraft,
+  canEditCvHeaderAnyState,
   canEditPostSaleDetails,
   canExportCvVersion,
   canListCvs,
@@ -140,6 +141,35 @@ describe("§2.9 CV: ver (listado y navegación)", () => {
     ["usuario sin rol", user(), false],
   ])("%s → %s", (_, u, expected) => {
     expect(canListCvs(u)).toBe(expected);
+  });
+});
+
+describe("§2.3 CV: cabecera en cualquier estado (salvo los TC)", () => {
+  it.each<[string, SessionUser, CvAccessFacts, boolean]>([
+    [
+      "gerente general, CV ajeno",
+      user(["GERENTE_GENERAL"]),
+      foreignNetCv,
+      true,
+    ],
+    ["administración, CV ajeno", user(["ADMINISTRACION"]), foreignNetCv, true],
+    [
+      "gerente de área, CV con línea de su área",
+      user(["GERENTE_AREA", AREA_NET]),
+      foreignNetCv,
+      true,
+    ],
+    [
+      "gerente de área, CV de otra área",
+      user(["GERENTE_AREA", AREA_NET]),
+      sellerCv,
+      false,
+    ],
+    ["comercial, CV propio", user(["COMERCIAL"]), ownCv, false],
+    ["ingeniero", user(["INGENIERO"]), ownCv, false],
+    ["administrador del sistema", user(["ADMIN_SISTEMA"]), ownCv, false],
+  ])("%s → %s", (_, u, cv, expected) => {
+    expect(canEditCvHeaderAnyState(u, cv)).toBe(expected);
   });
 });
 

@@ -46,6 +46,18 @@ export function canEditCvDraft(user: SessionUser, cv: CvAccessFacts): boolean {
   return canEditOwn && isOwnCv(user, cv);
 }
 
+// REGLA: la cabecera (salvo el TC de costo y el de venta) la corrigen en cualquier estado el GG, el gerente de un
+// área con una línea en el CV y Administración (§2.3, decisión 2026-11-03).
+export function canEditCvHeaderAnyState(
+  user: SessionUser,
+  cv: CvAccessFacts,
+): boolean {
+  if (hasRole(user, "GERENTE_GENERAL") || hasRole(user, "ADMINISTRACION"))
+    return true;
+  const managedAreaIds = areaIdsWithRole(user, "GERENTE_AREA");
+  return cv.lineAreaIds.some((areaId) => managedAreaIds.includes(areaId));
+}
+
 // REGLA: los datos posventa de la versión aprobada (observaciones, PO#, activación, seriales) los completan
 // quienes editan el borrador y Administración (§2.3, decisión 2026-11-03).
 export function canEditPostSaleDetails(

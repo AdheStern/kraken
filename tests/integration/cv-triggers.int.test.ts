@@ -1,5 +1,5 @@
 // tests/integration/cv-triggers.int.test.ts
-// Restricciones del esquema cv en la base: versiones inmutables fuera de BORRADOR (ADR-11),
+// Restricciones del esquema cv en la base: versiones inmutables fuera de BORRADOR salvo la cabecera (ADR-11, §2.3),
 // una sola versión APROBADA por CV, CHECK de línea y unicidad de la solicitud del GG.
 import { afterAll, describe, expect, it } from "vitest";
 import { createCvFixture, createTestPrisma, createVersion } from "./test-db";
@@ -32,7 +32,7 @@ async function submit(versionId: string) {
 }
 
 describe("versión fuera de BORRADOR", () => {
-  it("bloquea crear, editar y borrar líneas, grupos, leasing y vendedores", async () => {
+  it("bloquea crear, editar y borrar líneas, grupos y leasing; los vendedores se corrigen (§2.3)", async () => {
     const f = await createCvFixture(db);
     const line = await db.cvLine.create({ data: itemLine(f) });
     await submit(f.version.id);
@@ -65,24 +65,33 @@ describe("versión fuera de BORRADOR", () => {
         },
       }),
     ).rejects.toThrow(/no admite cambios/);
-    await expect(
-      db.cvVersionSeller.create({
-        data: { versionId: f.version.id, userId: f.userId },
-      }),
-    ).rejects.toThrow(/no admite cambios/);
+    await db.cvVersionSeller.create({
+      data: { versionId: f.version.id, userId: f.userId },
+    });
     await expect(
       db.cvLineSerial.create({ data: { lineId: line.id, serial: "FOC123" } }),
     ).rejects.toThrow(/no admite cambios/);
   });
 
-  it("solo deja cambiar el estado y sus marcas de tiempo", async () => {
+  it("deja cambiar el estado y la cabecera; nunca los TC ni los montos (§2.3)", async () => {
     const f = await createCvFixture(db);
     await submit(f.version.id);
 
+    const renamed = await db.cvVersion.update({
+      where: { id: f.version.id },
+      data: { title: "Cambiado", customerPoNumber: "OC-9" },
+    });
+    expect(renamed.title).toBe("Cambiado");
     await expect(
       db.cvVersion.update({
         where: { id: f.version.id },
-        data: { title: "Cambiado" },
+        data: { costFxRate: "7.00" },
+      }),
+    ).rejects.toThrow(/es inmutable/);
+    await expect(
+      db.cvVersion.update({
+        where: { id: f.version.id },
+        data: { totalSaleUsd: "1.00" },
       }),
     ).rejects.toThrow(/es inmutable/);
     await expect(

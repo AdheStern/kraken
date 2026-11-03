@@ -59,6 +59,10 @@ DECLARE
     ELSE ARRAY[]::text[]
   END;
 BEGIN
+  -- REGLA: los vendedores son parte de la cabecera y se corrigen en cualquier estado (§2.3, decisión 2026-11-03).
+  IF TG_TABLE_NAME = 'version_vendedor' THEN
+    RETURN COALESCE(NEW, OLD);
+  END IF;
   IF TG_OP = 'UPDATE' AND cardinality(v_posventa) > 0
     AND (to_jsonb(NEW) - v_posventa) = (to_jsonb(OLD) - v_posventa)
     AND cv.admite_datos_posventa(NEW.version_id) THEN
@@ -103,10 +107,14 @@ CREATE TRIGGER bloquear_version_cerrada BEFORE INSERT OR UPDATE OR DELETE ON cv.
 CREATE TRIGGER bloquear_version_cerrada BEFORE INSERT OR UPDATE OR DELETE ON cv.linea_serial
   FOR EACH ROW EXECUTE FUNCTION cv.bloquear_serial_version_cerrada();
 
--- REGLA: fuera de BORRADOR solo cambian el estado y sus marcas de tiempo (máquina de estados, AGENTS.md §8).
-CREATE FUNCTION cv.proteger_version() RETURNS trigger LANGUAGE plpgsql AS $$
+-- REGLA: fuera de BORRADOR solo cambian el estado y sus marcas de tiempo (máquina de estados, AGENTS.md §8) y la
+-- cabecera, que gerentes y Administración corrigen en cualquier estado salvo el TC de costo y el de venta
+-- (§2.3, decisión 2026-11-03). Montos, TC, umbral y número siguen inmutables.
+CREATE OR REPLACE FUNCTION cv.proteger_version() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE
-  c_mutables CONSTANT text[] := ARRAY['estado', 'aprobada_en', 'observada_en', 'reemplazada_en', 'anulada_en', 'actualizado_en'];
+  c_mutables CONSTANT text[] := ARRAY['estado', 'aprobada_en', 'observada_en', 'reemplazada_en', 'anulada_en', 'actualizado_en',
+    'titulo', 'fecha', 'preventa_id', 'postventa_id', 'linea_principal_id', 'tipo_servicio_id', 'nueva_tecnologia',
+    'cliente_final_id', 'datos_cliente', 'oc_numero', 'oc_fecha', 'terminos_pago', 'fecha_entrega', 'notas'];
 BEGIN
   IF OLD.estado = 'BORRADOR' THEN
     RETURN COALESCE(NEW, OLD);

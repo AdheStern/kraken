@@ -13,14 +13,17 @@ import { canSeeHourBags } from "@/server/authz/hour-bag-permissions";
 import { canSeeInventory } from "@/server/authz/inventory-permissions";
 import { canSeeCustomerBags } from "@/server/authz/scope-customer-hour-bag-query";
 import { canSeeTickets } from "@/server/authz/ticket-permissions";
-import { canRequestTicket } from "@/server/authz/ticket-request-permissions";
+import {
+  canCustomerRequestWork,
+  canRequestTicket,
+} from "@/server/authz/ticket-request-permissions";
 import { requireUser } from "@/server/session";
 import { AppNav } from "./app-nav";
 import { BASE_NAV, type NavEntry } from "./nav-entries";
 
 export async function RoleNav() {
   const user = await requireUser();
-  // REGLA: la cuenta de un cliente ve solo su Inicio y sus Tickets (§2.11).
+  // REGLA: la cuenta de un cliente ve solo su Inicio y sus Tickets, y lo que su empresa le habilite (§2.11).
   if (user.customer)
     return (
       <AppNav
@@ -29,6 +32,9 @@ export async function RoleNav() {
           { key: "clienteTickets" },
           ...(canSeeCustomerBags(user)
             ? [{ key: "clienteBolsas" as const }]
+            : []),
+          ...(canCustomerRequestWork(user)
+            ? [{ key: "clienteSolicitudes" as const }]
             : []),
         ]}
       />

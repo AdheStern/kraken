@@ -17,7 +17,8 @@ export type NavKey =
   // Portal de clientes (AGENTS.md §2.11).
   | "clienteInicio"
   | "clienteTickets"
-  | "clienteBolsas";
+  | "clienteBolsas"
+  | "clienteSolicitudes";
 
 export type NavEntry = { key: NavKey; badge?: number };
 

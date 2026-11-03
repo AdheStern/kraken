@@ -2,7 +2,7 @@
 // Mis solicitudes: cualquier usuario con rol pide un ticket a un área y sigue su estado (AGENTS.md §2.6
 // «Solicitudes de ticket»).
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,6 +42,8 @@ async function NewRequestAction() {
 
 async function Requests() {
   const user = await requireUser();
+  // POR QUÉ: los avisos al solicitante enlazan aquí; la cuenta de un cliente sigue lo suyo en el portal (§2.11).
+  if (user.customer) redirect("/cliente/solicitudes");
   if (!canRequestTicket(user)) notFound();
   return <MyTicketRequests requests={await listMyTicketRequests(user)} />;
 }

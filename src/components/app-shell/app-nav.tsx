@@ -68,6 +68,11 @@ const ITEMS: Record<NavKey, { href: string; label: string; icon: LucideIcon }> =
       label: "Bolsas de horas",
       icon: Hourglass,
     },
+    clienteSolicitudes: {
+      href: "/cliente/solicitudes",
+      label: "Pedir trabajo",
+      icon: LifeBuoy,
+    },
   };
 
 export function AppNav({ entries }: { entries: readonly NavEntry[] }) {

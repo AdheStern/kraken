@@ -183,6 +183,7 @@ venta_bs = redondear2(venta_total_usd × tc_venta)
 
 ### 2.3 Versiones y aprobación
 - Solo la versión `BORRADOR` es editable. `EN_APROBACION` y `APROBADA` son **inmutables** (trigger en la base de datos, no solo la interfaz).
+- **Datos posventa:** en la versión `APROBADA` vigente siguen editables los datos que se completan después de la venta y no tocan montos: observaciones, PO#, rango de activación y seriales de las líneas, y notas y PO# del leasing. Los editan quienes editan el borrador y Administración; se auditan y se copian (solo lo que cambió) a la línea del mismo linaje del borrador abierto, si lo hay; el leasing, que no tiene linaje, a la de igual posición y descripción. Una versión `EN_APROBACION`, `OBSERVADA` o `REEMPLAZADA` no los recibe (decisión 2026-11-03).
 - Modificar un CV aprobado crea una **versión nueva** a partir de la vigente, con motivo obligatorio, y repite el ciclo completo. Mientras tanto, la versión aprobada anterior sigue vigente para horas e inventario.
 - Historial con quién y cuándo, y **comparador** línea por línea (agregadas, quitadas, modificadas, diferencia de totales).
 - Aprobación **en paralelo**: una solicitud por cada área presente en las líneas, dirigida a su gerente. Todas deben aprobar.
@@ -276,6 +277,7 @@ Roles asignados por grupos de Entra ID, más **excepciones por usuario** gestion
 | CV: aprobar | No | Parte de su área | Sobre el umbral | No | No |
 | CV: costos y margen | Propios | De todo el CV si tiene una línea de su área (decisión 2026-10-24) | Todos | **Nunca** | Solo versiones aprobadas o reemplazadas (y solo esas versiones ve) |
 | CV: exportar Excel | Propios | Su área | Todos | No | Aprobados |
+| CV: datos posventa de la versión aprobada (§2.3) | Propios | Propios | Todos | No | Aprobados |
 | Tickets: ver | De clientes de sus CV | De su área | Todos | Asignados o con subtarea suya | No |
 | Tickets: registrar tiempo | No | Su área | No | Sus subtareas y tickets a cargo | No |
 | Tickets: crear y asignar encargado | No | Su área | Todos | No | No |
@@ -328,10 +330,10 @@ Usuarios ─HTTPS→ FortiGate/Radware (WAF + TLS) → IP virtual (keepalived)
 | ADR-08 | Correo con Microsoft Graph `sendMail` (app-only) desde un buzón de servicio, limitado con RBAC para aplicaciones de Exchange. **Outbox**: la action escribe en `notif.salida` dentro de su transacción y el worker envía con reintentos. | Sin SMTP propio; ningún correo se pierde ni se envía por una transacción revertida. |
 | ADR-09 | TC desacoplado: job a las 00:15 + reintentos cada hora → `fx.tipo_cambio`. Cada versión guarda TC de costo, TC de venta y TC oficial. | La API puede fallar; los CV históricos no cambian. |
 | ADR-10 | Lógica de dominio pura en `src/domain` (precio, calendario, ponderación, asignación, SLA, costo promedio). | Las reglas delicadas se prueban sin BD. |
-| ADR-11 | Versionado de CV por copia (cada versión con sus líneas). Un trigger bloquea cambios en versiones que no estén en `BORRADOR`. | Comparador trivial; lo aprobado no cambia ni por error. |
+| ADR-11 | Versionado de CV por copia (cada versión con sus líneas). Un trigger bloquea cambios en versiones que no estén en `BORRADOR`, salvo los datos posventa de la `APROBADA` (§2.3). | Comparador trivial; lo aprobado no cambia ni por error. |
 | ADR-12 | Exportación con ExcelJS sobre la plantilla oficial `PA-PR-03-RE-01` en `templates/`, escribiendo fórmulas. | El formato que DIMA ya usa; archivo "vivo". |
 | ADR-13 | Docker Compose sobre VMs de VMware, sin Kubernetes. Dos imágenes sin root (`Dockerfile`): `app` (Next standalone) y `worker` (tsx, solo dependencias de producción; también corre `migrate:deploy`). Plantillas y runbook en `deploy/`. | La misma disponibilidad con mucha menos operación. |
-| ADR-14 | Auditoría en `audit.evento` con `recordAudit(tx, …)` explícito dentro de la transacción de cada action que decide algo (crear, enviar, aprobar o rechazar, nueva versión, anular, ajustes y cierres de bolsas, administración y la sincronización con Entra): actor, entidad, acción, antes, después, IP y requestId. Los guardados de borrador no se auditan: la versión enviada es inmutable y es el rastro de sus precios. | Trazabilidad de precios, aprobaciones y ajustes. Explícito y no una extensión de Prisma: la extensión no ve al actor ni la transacción para leer el «antes» (KISS). |
+| ADR-14 | Auditoría en `audit.evento` con `recordAudit(tx, …)` explícito dentro de la transacción de cada action que decide algo (crear, enviar, aprobar o rechazar, nueva versión, anular, ajustes y cierres de bolsas, datos posventa de un CV aprobado, administración y la sincronización con Entra): actor, entidad, acción, antes, después, IP y requestId. Los guardados de borrador no se auditan: la versión enviada es inmutable y es el rastro de sus precios. | Trazabilidad de precios, aprobaciones y ajustes. Explícito y no una extensión de Prisma: la extensión no ve al actor ni la transacción para leer el «antes» (KISS). |
 | ADR-15 | Fechas UTC en BD; calendario en `America/La_Paz` (UTC−4, sin horario de verano). | Sin errores de zona horaria. |
 | ADR-16 | Adjuntos en una biblioteca de **SharePoint** por Microsoft Graph (app-only, `Sites.Selected` sobre el sitio de Kraken), detrás de la interfaz `FileStore` (`src/server/files`): la BD guarda nombre, hash, tamaño y el id del elemento; la descarga pasa por un route handler con authz. `FILES_ROOT` (carpeta o montaje) queda como alternativa y es el almacén de desarrollo. Hasta 20 MB por archivo. | SharePoint ya es el repositorio documental de DIMA, con versionado y retención de M365; sin NAS ni servicio de objetos adicionales. |
 
@@ -457,7 +459,7 @@ model HourMovement {
 
 ### Restricciones en la base de datos (en `prisma/sql/`, dentro de la migración correspondiente)
 - `CHECK (balance_minutes >= 0)` en `horas.bolsa`; `CHECK (cantidad >= 0)` en `inv.stock`.
-- Trigger `cv.bloquear_version_cerrada`: rechaza INSERT/UPDATE/DELETE de líneas, grupos, seriales, leasing y vendedores si la versión no está en `BORRADOR`. Trigger `cv.proteger_version`: fuera de `BORRADOR` solo cambian `estado` y sus marcas de tiempo.
+- Trigger `cv.bloquear_version_cerrada`: rechaza INSERT/UPDATE/DELETE de líneas, grupos, seriales, leasing y vendedores si la versión no está en `BORRADOR`; en la `APROBADA` deja cambiar solo los datos posventa (§2.3). Trigger `cv.proteger_version`: fuera de `BORRADOR` solo cambian `estado` y sus marcas de tiempo.
 - Triggers `horas.movimiento_inmutable`, `inv.movimiento_inmutable` y `audit.evento_inmutable`: rechazan UPDATE y DELETE.
 - Índices únicos parciales (declarados en Prisma con la preview `partialIndexes`): una sola versión `APROBADA` vigente por CV; un solo registro de tiempo abierto por usuario (`fin IS NULL`).
 - Unicidad con `NULLS NOT DISTINCT` (declarada con `@@unique` y recreada en `prisma/sql/`): `usuario_rol`, `grupo_entra_rol`, `feriado`, `solicitud_aprobacion`.
@@ -600,7 +602,7 @@ type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { code: Error
 ```
 
 **Actions:**
-- CV: `createCv`, `duplicateCv`, `updateCvHeader`, `upsertCvLines`, `upsertCvLeasing`, `submitCvVersion`, `decideApproval`, `createCvVersion`, `voidCv`. El factor por lote o tecnología se aplica en el editor (`applyFactorToDrafts`) y lo recalcula y valida `upsertCvLines` al guardar.
+- CV: `createCv`, `duplicateCv`, `updateCvHeader`, `upsertCvLines`, `upsertCvLeasing`, `submitCvVersion`, `decideApproval`, `createCvVersion`, `voidCv`, `updatePostSaleDetails` (datos posventa, §2.3). El factor por lote o tecnología se aplica en el editor (`applyFactorToDrafts`) y lo recalcula y valida `upsertCvLines` al guardar.
 - Horas: `adjustHourBag`, `closeHourBag`, `applyPendingHours`
 - Tickets: `createTicket`, `assignOwner`, `setTicketBags`, `createSubtask`, `updateSubtask`, `addComment`, `createProject`, `startTimer`, `pauseTimer`, `resumeTimer`, `stopTimer`, `addManualTimeEntry`, `deleteTimeEntry`, `changeTicketStatus`, `closeTicket`, `reopenTicket`, `setProjectStatus`, `uploadTicketAttachment`, `deleteTicketAttachment`; solicitudes: `createTicketRequest`, `discardTicketRequest`, `withdrawTicketRequest` (`createTicket` recibe `requestId` y la enlaza)
 - Inventario: `registerReceipt`, `dispatchItems`, `returnItems`, `findDispatchTicket`, `createTransfer`, `sendTransfer`, `receiveTransfer`, `cancelTransfer`, `requestAdjustment`, `requestManualAdjustment`, `decideAdjustment`, `submitInventoryCount`; almacenes: `upsertWarehouse`, `setWarehouseActive`

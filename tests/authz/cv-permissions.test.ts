@@ -8,6 +8,7 @@ import {
   canCreateCv,
   canDecideApproval,
   canEditCvDraft,
+  canEditPostSaleDetails,
   canExportCvVersion,
   canSeeCvCosts,
   seesOnlyApprovedVersions,
@@ -94,6 +95,35 @@ describe("§2.9 CV: crear y editar borrador", () => {
     ],
   ])("editar: %s → %s", (_, u, cv, expected) => {
     expect(canEditCvDraft(u, cv)).toBe(expected);
+  });
+});
+
+describe("§2.3 CV aprobado: datos posventa (observaciones, PO#, activación, seriales)", () => {
+  it.each<[string, SessionUser, CvAccessFacts, boolean]>([
+    ["comercial, vendedor del CV", user(["COMERCIAL"]), sellerCv, true],
+    ["comercial, CV ajeno", user(["COMERCIAL"]), foreignNetCv, false],
+    [
+      "gerente de área, CV ajeno de su área",
+      user(["GERENTE_AREA", AREA_NET]),
+      foreignNetCv,
+      false,
+    ],
+    [
+      "gerente general, CV ajeno",
+      user(["GERENTE_GENERAL"]),
+      foreignNetCv,
+      true,
+    ],
+    [
+      "administración, CV ajeno",
+      user(["ADMINISTRACION"]),
+      foreignApprovedCv,
+      true,
+    ],
+    ["ingeniero, CV propio", user(["INGENIERO"]), ownCv, false],
+    ["administrador del sistema", user(["ADMIN_SISTEMA"]), ownCv, false],
+  ])("%s → %s", (_, u, cv, expected) => {
+    expect(canEditPostSaleDetails(u, cv)).toBe(expected);
   });
 });
 

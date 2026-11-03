@@ -34,6 +34,15 @@ export function canEditCvDraft(user: SessionUser, cv: CvAccessFacts): boolean {
   return canEditOwn && isOwnCv(user, cv);
 }
 
+// REGLA: los datos posventa de la versión aprobada (observaciones, PO#, activación, seriales) los completan
+// quienes editan el borrador y Administración (§2.3, decisión 2026-11-03).
+export function canEditPostSaleDetails(
+  user: SessionUser,
+  cv: CvAccessFacts,
+): boolean {
+  return hasRole(user, "ADMINISTRACION") || canEditCvDraft(user, cv);
+}
+
 // REGLA: un ingeniero nunca recibe costos ni márgenes; ese rol no otorga nada aquí (regla 12).
 export function canSeeCvCosts(user: SessionUser, cv: CvAccessFacts): boolean {
   if (hasRole(user, "GERENTE_GENERAL")) return true;

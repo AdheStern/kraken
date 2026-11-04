@@ -11,14 +11,7 @@ import {
   type ReceiptDraftRow,
   toReceiptDraftRows,
 } from "@/domain/inventory/parse-receipt-rows";
-
-export const EMPTY_ROW: ReceiptDraftRow = {
-  code: "",
-  description: "",
-  quantity: "",
-  unitCostUsd: "",
-  serials: "",
-};
+import { EMPTY_ROW } from "./receipt-draft";
 
 const FIELDS: {
   key: keyof ReceiptDraftRow;

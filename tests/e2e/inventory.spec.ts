@@ -20,7 +20,7 @@ async function as(
 }
 
 // POR QUÉ: el proyecto tablet corre en vertical, donde el panel de la operación empieza plegado.
-async function openPanel(page: Page, title: "Salida" | "Traspaso") {
+async function openPanel(page: Page, title: "Salida" | "Traspaso" | "Ingreso") {
   await page.getByRole("button", { name: new RegExp(`^${title} ·`) }).click();
 }
 
@@ -39,6 +39,7 @@ test("el almacenero entra al POS e ingresa un producto nuevo pegando desde Excel
   await page.goto("/inventario/ingresos/nuevo?almacen=LP");
   // TRAMPA: el pegado es un evento sintético; antes de hidratar React no lo escucha.
   await page.waitForLoadState("networkidle");
+  await page.getByRole("tab", { name: "Pegar desde Excel" }).click();
   const first = page.getByLabel("Código, fila 1");
   await first.focus();
   await page.evaluate((text) => {
@@ -48,6 +49,7 @@ test("el almacenero entra al POS e ingresa un producto nuevo pegando desde Excel
       new ClipboardEvent("paste", { clipboardData: data, bubbles: true }),
     );
   }, `${CODE}\tPatch cord E2E\t5\t2,50\t`);
+  await openPanel(page, "Ingreso");
   await expect(
     page.getByText("1 línea · 5 unidades · USD 12.50"),
   ).toBeVisible();
@@ -56,6 +58,27 @@ test("el almacenero entra al POS e ingresa un producto nuevo pegando desde Excel
     page.getByText(/Ingreso N\.º \d+ registrado en Almacén La Paz/),
   ).toBeVisible();
   await expect(page.getByText(CODE)).toBeVisible();
+});
+
+test("ingresa un producto del catálogo tocando su mosaico", async ({
+  browser,
+}) => {
+  const page = await as(browser, "almacen");
+  await page.goto("/inventario/ingresos/nuevo?almacen=LP");
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("button", { name: /^CAB-UTP-CAT6,/ }).click();
+  const dialog = page.getByRole("dialog", { name: "Ingreso de CAB-UTP-CAT6" });
+  await dialog.getByLabel("Cantidad").fill("2");
+  await dialog.getByLabel("Costo unit. USD").fill("118.40");
+  await dialog.getByRole("button", { name: "Guardar línea" }).click();
+  await openPanel(page, "Ingreso");
+  await expect(
+    page.getByText("1 línea · 2 unidades · USD 236.80"),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Registrar ingreso" }).click();
+  await expect(
+    page.getByText(/Ingreso N\.º \d+ registrado en Almacén La Paz/),
+  ).toBeVisible();
 });
 
 test("traspasa a Santa Cruz y la diferencia queda en tránsito", async ({

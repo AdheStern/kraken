@@ -13,6 +13,7 @@ export const SYSTEM_ADMIN_MANUAL: Manual = {
         "Grupos de Entra ID: cada grupo de Microsoft da un rol (y un área si corresponde). Los roles se recalculan en cada inicio de sesión.",
         "Dar de baja a alguien en Entra le corta el acceso el mismo día (la sesión dura 12 horas).",
         "Usuarios y roles: las excepciones son roles asignados a mano a una persona, aparte de los de sus grupos.",
+        "Cada trimestre descarga Revisión de accesos: revisa los roles a mano y da de baja las cuentas marcadas «Revisar» (sin uso en 90 días) que ya no hagan falta.",
       ],
       link: { href: "/admin/usuarios", label: "Ir a Usuarios y roles" },
     },
@@ -37,8 +38,8 @@ export const SYSTEM_ADMIN_MANUAL: Manual = {
       heading: "Correo y auditoría",
       steps: [
         "Correo: la cola de avisos, los que fallaron (Reintentar) y Enviarme un correo de prueba.",
-        "Auditoría: quién aprobó, ajustó o cambió qué y cuándo, con su IP.",
-        "La cuenta de emergencia con contraseña es solo para cuando Entra ID no responde.",
+        "Auditoría: quién aprobó, ajustó o cambió qué y cuándo, con su IP; también cada inicio de sesión, intento fallido, descarga y exportación.",
+        "La cuenta de emergencia con contraseña es solo para cuando Entra ID no responde: cada uso te llega como aviso, igual que 5 contraseñas fallidas en 15 min sobre una cuenta.",
       ],
       link: { href: "/admin/auditoria", label: "Ir a Auditoría" },
     },

@@ -623,7 +623,7 @@ type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { code: Error
 - Tableros: `upsertGoal` (meta mensual por área o de la empresa; vacía la quita)
 - Documentación: `createDocProject`, `updateDocProjectHeader`, `uploadDocument`, `deleteDocument`, `createDocLesson`, `updateDocLesson`; fases: `upsertDocPhase`, `setDocPhaseActive`, `moveDocPhase`
 
-**Route handlers:** `GET /api/cv/[versionId]/export.xlsx` (con authz) · `GET /api/tickets/attachments/[id]` (con authz) · `GET /api/documentation/documents/[id]` (con authz) · `GET /api/inventory/receipts/[id].pdf` (con authz; carpeta `[file]`) · `GET /api/dashboards/[board]/export.xlsx` (ventas, operación o inventario, con los filtros y la authz del tablero) · `GET /api/health/live` · `GET /api/health/ready` (BD y, si los adjuntos van a `FILES_ROOT`, su carpeta; HAProxy saca el nodo si falla) · `/api/auth/*`.
+**Route handlers:** `GET /api/cv/[versionId]/export.xlsx` (con authz) · `GET /api/tickets/attachments/[id]` (con authz) · `GET /api/documentation/documents/[id]` (con authz) · `GET /api/inventory/receipts/[id].pdf` (con authz; carpeta `[file]`) · `GET /api/dashboards/[board]/export.xlsx` (ventas, operación o inventario, con los filtros y la authz del tablero) · `GET /api/admin/access-review.xlsx` (revisión de accesos: cuentas, roles, último inicio de sesión, sin uso en 90 días y roles a mano; solo el administrador del sistema; ISO 27001 A.5.18, decisión 2026-11-04) · `GET /api/health/live` · `GET /api/health/ready` (BD y, si los adjuntos van a `FILES_ROOT`, su carpeta; HAProxy saca el nodo si falla) · `/api/auth/*`.
 
 **Jobs:**
 | Job | Cuándo | Qué hace |

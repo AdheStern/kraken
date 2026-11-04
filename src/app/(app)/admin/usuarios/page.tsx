@@ -1,7 +1,7 @@
 // src/app/(app)/admin/usuarios/page.tsx
 // Usuarios del sistema con sus roles, con búsqueda por nombre o correo (AGENTS.md §1 roles, §5 Administración).
 // Solo para el administrador del sistema (§2.9).
-import { Plus } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -28,13 +28,23 @@ export default function UsersPage({
         title="Usuarios y roles"
         description="Cada persona aparece al entrar por primera vez con su cuenta de Microsoft. Sus roles deciden qué ve; los permisos de varios roles se suman. Las cuentas de clientes se crean aquí."
         actions={
-          <Link
-            href="/admin/usuarios/clientes/nueva"
-            className={buttonVariants()}
-          >
-            <Plus aria-hidden="true" />
-            Cuenta de cliente
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            {/* POR QUÉ: un route handler que descarga; <Link> intentaría navegar del lado del cliente. */}
+            <a
+              href="/api/admin/access-review.xlsx"
+              className={buttonVariants({ variant: "outline" })}
+            >
+              <Download aria-hidden="true" />
+              Revisión de accesos
+            </a>
+            <Link
+              href="/admin/usuarios/clientes/nueva"
+              className={buttonVariants()}
+            >
+              <Plus aria-hidden="true" />
+              Cuenta de cliente
+            </Link>
+          </div>
         }
       />
       <Suspense fallback={<Skeleton className="h-72 w-full rounded-xl" />}>

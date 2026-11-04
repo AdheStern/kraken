@@ -31,6 +31,7 @@ export const AUDIT_ENTITY_LABELS: Record<string, string> = {
   "dash.tablero": "Tablero",
   "auth.user": "Inicio de sesión",
   "auth.intento": "Intento de inicio de sesión",
+  "admin.revision_accesos": "Revisión de accesos",
 };
 
 export const AUDIT_ACTION_LABELS: Record<string, string> = {

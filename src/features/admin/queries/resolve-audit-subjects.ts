@@ -73,6 +73,7 @@ const SELF_NAMED = new Set([
   "core.grupo_entra_rol",
   "auth.intento",
   "dash.tablero",
+  "admin.revision_accesos",
 ]);
 
 export async function resolveAuditSubjects(

@@ -83,6 +83,14 @@ export type PosCatalogItem = {
   technology: string | null;
 };
 
+// Producto del catálogo para los mosaicos del ingreso: entra aunque el almacén no tenga stock. Sin costos.
+export type ReceiptProduct = {
+  code: string;
+  description: string;
+  technology: string | null;
+  isSerialized: boolean;
+};
+
 export type PendingReservation = {
   reservationId: string;
   cvLabel: string;

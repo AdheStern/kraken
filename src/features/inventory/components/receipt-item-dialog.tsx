@@ -60,6 +60,12 @@ function ItemFields({
     ? { ...row, quantity: serialCount > 0 ? String(serialCount) : "" }
     : row;
   const [issue] = parseReceiptRows([effective]).issues;
+  // POR QUÉ: un error en rojo antes de escribir nada asusta; mientras la línea esté como se abrió, solo se orienta.
+  const isPristine = JSON.stringify(row) === JSON.stringify(draft.row);
+  const message =
+    draft.isSerialized && serialCount === 0
+      ? `Escribe o escanea el serial de cada unidad de ${row.code}.`
+      : issue?.message;
   return (
     <form
       className="grid gap-4"
@@ -129,8 +135,15 @@ function ItemFields({
           />
         </Field>
       )}
-      <p className="min-h-5 text-sm text-destructive" aria-live="polite">
-        {issue?.message}
+      <p
+        className={
+          isPristine
+            ? "min-h-5 text-sm text-muted-foreground"
+            : "min-h-5 text-sm text-destructive"
+        }
+        aria-live="polite"
+      >
+        {message}
       </p>
       <DialogFooter>
         <Button type="submit" className="h-12 w-full" disabled={!!issue}>

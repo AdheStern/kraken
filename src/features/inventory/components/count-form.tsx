@@ -98,12 +98,14 @@ export function CountForm({ warehouseId, startedAt, catalog }: Props) {
               <Button
                 key={s.id}
                 variant={scope === s.id ? "default" : "outline"}
-                className="h-auto min-h-12 flex-col gap-0.5 py-2"
+                className="h-auto min-h-12 flex-col gap-0.5 py-2 whitespace-normal"
                 aria-pressed={scope === s.id}
                 onClick={() => setScope(s.id)}
               >
                 {s.label}
-                <span className="text-xs font-normal opacity-80">{s.hint}</span>
+                <span className="text-center text-xs font-normal opacity-80">
+                  {s.hint}
+                </span>
               </Button>
             ))}
           </fieldset>

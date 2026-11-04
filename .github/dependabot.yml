@@ -1,0 +1,13 @@
+# .github/dependabot.yml
+# Mantiene al día los SHA con que se fijan las actions de los workflows (cadena de suministro, ISO 27001 A.8.28).
+# POR QUÉ: solo actions; las dependencias de npm las cubre `pnpm audit` en CI sin abrir PRs de versiones.
+
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]

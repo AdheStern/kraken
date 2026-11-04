@@ -41,6 +41,13 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         viewport: { width: 820, height: 1180 },
         hasTouch: true,
+        // POR QUÉ: el escaneo con cámara se prueba con la cámara simulada del navegador, sin pedir permiso.
+        launchOptions: {
+          args: [
+            "--use-fake-device-for-media-stream",
+            "--use-fake-ui-for-media-stream",
+          ],
+        },
         ...(isCi ? {} : { channel: "msedge" }),
       },
     },

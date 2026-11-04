@@ -10,7 +10,7 @@ export const WAREHOUSE_MANUAL: Manual = {
     {
       heading: "Salidas con el POS",
       steps: [
-        "Elige el almacén y escanea el serial o el código (o búscalo).",
+        "Elige el almacén y escanea el serial o el código con el lector, o con «Cámara» si el equipo no tiene lector (la primera vez el navegador pide permiso).",
         "Elige el destino: un CV con reserva, un ticket abierto o uso interno con su motivo.",
         "Confirmar salida y descarga el comprobante PDF (no lleva costos).",
       ],

@@ -266,7 +266,7 @@ Con el ticket abierto, la interfaz muestra el **consumo proyectado** con el mism
 - **Ajuste:** se pide (`MANUAL`, `CONTEO` o `TRASPASO`) y entra al libro solo al aprobarse, revalidado contra el stock del momento; lo decide el gerente del área de la solicitud, Administración o el GG, nunca quien lo pidió. Lo que entra vale al promedio vigente o, sin stock, al costo indicado.
 - **Conteo físico:** completo (lo no contado es faltante) o parcial; se compara con la foto del sistema reconstruida desde el libro al empezar y pide un ajuste por el delta (en serializados, por seriales). Sin diferencias no pide nada: es la verificación del criterio de salida.
 - **Kardex** por producto y almacén con saldo, costo y documento de origen. Costos y kardex solo para Almacén, Administración, GG y gerente de área; comercial e ingeniero consultan cantidades. Quien ve un ticket ve los materiales que se le despacharon (neto de devoluciones, con sus seriales y sin costos).
-- **POS interno:** almacén → escanear o buscar código/serial → destino (CV, ticket, uso interno) → confirmar → comprobante PDF (sin costos). Quien solo tiene el rol Almacén entra directo al POS.
+- **POS interno:** almacén → escanear (lector que actúa como teclado o la cámara del equipo, también en traspasos y conteos; decisión 2026-11-04) o buscar código/serial → destino (CV, ticket, uso interno) → confirmar → comprobante PDF (sin costos). Quien solo tiene el rol Almacén entra directo al POS.
 - Valoración: costo promedio ponderado por producto y almacén, llevado como cantidad + valor total (`NUMERIC(18,2)`); el promedio se deriva y la última unidad que sale se lleva el resto, sin centavos huérfanos (confirmado por DIMA, 2026-10-22).
 
 ### 2.9 Roles y permisos
@@ -497,6 +497,7 @@ model HourMovement {
 | Jobs | pg-boss en un proceso `worker` |
 | Excel | ExcelJS |
 | PDF (comprobante del POS) | pdf-lib (fuentes estándar embebidas; solo genera) |
+| Lectura con cámara (POS, traspasos, conteo) | `@zxing/browser` + `@zxing/library` 0.21 (código de barras y QR; se carga al abrir la cámara). La 0.23 registra un aviso por cuadro |
 | Texto enriquecido (lecciones aprendidas) | Tiptap (`@tiptap/react`, `starter-kit`, `markdown`) con una barra propia de botones shadcn; shadcn no trae editor |
 | Correo | Cliente de Microsoft Graph app-only |
 | Paquetes | pnpm |
@@ -871,7 +872,7 @@ Duraciones estimadas para un desarrollador asistido por Claude; DIMANET prepara 
 **F4 · Inventario y POS (~3–4 semanas)**
 - Esquema `inv`, libro, costo promedio, seriales, reservas [OPUS] — hecho (valor total + promedio derivado; libro de reservas; `lockStocks` en un solo orden)
 - Ingresos, salidas, traspasos en dos pasos, ajustes con aprobación, kardex [SONNET] — hecho (`/inventario`, kardex, `/inventario/ingresos/nuevo` con pegar desde Excel, traspasos, ajustes, devoluciones, `/admin/almacenes`)
-- POS para tablet con lector y comprobante PDF [SONNET] — hecho (`/inventario/pos`, `/api/inventory/receipts/{id}.pdf`)
+- POS para tablet con lector o cámara y comprobante PDF [SONNET] — hecho (`/inventario/pos`, `/api/inventory/receipts/{id}.pdf`; la cámara exige https y `Permissions-Policy: camera=(self)`)
 - Toma de inventario inicial [operación] — herramientas listas: ingreso de origen «inventario inicial» y conteo físico (`/inventario/conteo`); el inventario real se carga al desplegar en producción
 - E2E del recorrido ingreso → traspaso → reserva → POS → comprobante (`tests/e2e/inventory.spec.ts`, proyecto tablet) — hecho
 - *Sale cuando:* el stock del sistema coincide con el conteo físico en los tres almacenes.

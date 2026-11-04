@@ -2,6 +2,7 @@
 // Recorrido de la F4 (AGENTS.md §11) con el almacenero: entra al POS, ingresa un producto nuevo pegando desde
 // Excel, lo traspasa a Santa Cruz con una diferencia, despacha al CV demo que reservó un FortiGate y descarga el
 // comprobante, registra la devolución de esa salida; Administración ve el ingreso con costos y el comercial no.
+// También abre la cámara del POS (simulada) para cuidar que la cabecera Permissions-Policy la permita.
 import { type Browser, expect, type Page, test } from "@playwright/test";
 import { storageFor } from "./users";
 
@@ -116,4 +117,22 @@ test("Administración ve el costo del ingreso y el comercial solo cantidades", a
   await expect(
     commercial.getByRole("columnheader", { name: "Valor USD" }),
   ).toHaveCount(0);
+});
+
+test("el POS abre la cámara para escanear", async ({ browser }) => {
+  const context = await browser.newContext({
+    storageState: storageFor("almacen"),
+    permissions: ["camera"],
+  });
+  const page = await context.newPage();
+  await page.goto("/inventario/pos");
+  await page.getByRole("button", { name: "Escanear con la cámara" }).click();
+  const dialog = page.getByRole("dialog", { name: "Escanear con la cámara" });
+  await expect(dialog.getByText("Buscando un código…")).toBeVisible();
+  await expect
+    .poll(() =>
+      dialog.locator("video").evaluate((v: HTMLVideoElement) => v.videoWidth),
+    )
+    .toBeGreaterThan(0);
+  await expect(dialog.getByRole("alert")).toHaveCount(0);
 });

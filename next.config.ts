@@ -26,9 +26,10 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  // POR QUÉ: la cámara se abre solo en este origen, para escanear códigos en inventario (§2.8).
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+    value: "camera=(self), microphone=(), geolocation=(), payment=(), usb=()",
   },
   // REGLA: HSTS lo envía la app (la FortiGate termina TLS y no lo agrega); también reemplaza a
   // upgrade-insecure-requests, que rompería el E2E por http en localhost.

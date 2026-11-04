@@ -1,12 +1,13 @@
 // src/features/inventory/components/pos-scanner.tsx
-// Campo de escaneo del POS: el lector actúa como teclado y termina con Enter; tras cada lectura dice qué entró o
-// por qué no, y el foco vuelve al campo.
+// Campo de escaneo del POS: el lector actúa como teclado y termina con Enter, o se lee con la cámara; tras cada
+// lectura dice qué entró o por qué no, y el foco vuelve al campo.
 "use client";
 
 import { ScanLine } from "lucide-react";
 import { useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { CameraScanDialog } from "./camera-scan-dialog";
 
 type Props = { onScan: (text: string) => { ok: boolean; message: string } };
 
@@ -27,19 +28,28 @@ export function PosScanner({ onScan }: Props) {
         ref.current?.focus();
       }}
     >
-      <div className="relative">
-        <ScanLine
-          className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted-foreground"
-          aria-hidden="true"
-        />
-        <Input
-          ref={ref}
-          autoFocus
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder="Escanea el serial o el código"
-          aria-label="Escanear serial o código"
-          className="h-14 pl-12 font-mono text-lg"
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <ScanLine
+            className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted-foreground"
+            aria-hidden="true"
+          />
+          <Input
+            ref={ref}
+            autoFocus
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="Escanea el serial o el código"
+            aria-label="Escanear serial o código"
+            className="h-14 pl-12 font-mono text-lg"
+          />
+        </div>
+        <CameraScanDialog
+          onScan={(text) => {
+            const result = onScan(text);
+            setFeedback(result);
+            return result;
+          }}
         />
       </div>
       <p

@@ -35,11 +35,7 @@ export default function CountPage({
         title="Conteo físico"
         description="Escanea o escribe lo que hay. Se compara con el sistema en el momento en que abriste esta pantalla; lo que se mueva mientras cuentas no cuenta como diferencia."
       />
-      <Suspense
-        fallback={
-          <Skeleton className="mx-auto h-96 w-full max-w-xl rounded-xl" />
-        }
-      >
+      <Suspense fallback={<Skeleton className="h-96 w-full rounded-xl" />}>
         <Count searchParams={searchParams} />
       </Suspense>
     </main>

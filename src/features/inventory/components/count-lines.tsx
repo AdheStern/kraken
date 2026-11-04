@@ -1,6 +1,6 @@
 // src/features/inventory/components/count-lines.tsx
-// Lo contado: por producto la cantidad (se escribe; cada lectura suma una) o los seriales leídos, con su botón
-// para quitarlos. Objetivos de 48 px para usar en tablet (AGENTS.md §5 POS y conteo).
+// Lo contado como tarjetas: por producto la cantidad (se escribe; cada lectura o toque suma una) o los seriales
+// leídos, con su botón para quitarlos. Objetivos de 48 px para usar en tablet (AGENTS.md §5 POS y conteo).
 "use client";
 
 import { X } from "lucide-react";
@@ -27,10 +27,19 @@ export function CountLines({ lines, onChange }: Props) {
         ? lines.map((l) => (l === line ? next : l))
         : lines.filter((l) => l !== line),
     );
+  if (lines.length === 0)
+    return (
+      <p className="rounded-xl border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
+        Toca un producto o escanea lo que encuentres para contarlo.
+      </p>
+    );
   return (
-    <ul className="kr-solid divide-y divide-border/60 rounded-xl">
+    <ul className="grid gap-2">
       {lines.map((line) => (
-        <li key={line.code} className="grid gap-2 px-4 py-3">
+        <li
+          key={line.code}
+          className="grid gap-2 rounded-xl border bg-background/40 p-3 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95"
+        >
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="font-mono text-sm font-medium">{line.code}</p>

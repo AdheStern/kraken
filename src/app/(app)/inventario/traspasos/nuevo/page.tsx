@@ -33,11 +33,7 @@ export default function NewTransferPage({
         title="Nuevo traspaso"
         description="Solo viaja lo disponible: lo reservado para un CV se queda en su almacén."
       />
-      <Suspense
-        fallback={
-          <Skeleton className="mx-auto h-96 w-full max-w-xl rounded-xl" />
-        }
-      >
+      <Suspense fallback={<Skeleton className="h-96 w-full rounded-xl" />}>
         <NewTransfer searchParams={searchParams} />
       </Suspense>
     </main>

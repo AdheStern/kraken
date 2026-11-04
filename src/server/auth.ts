@@ -3,8 +3,9 @@
 // de emergencia del administrador del sistema (AGENTS.md ADR-05).
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { APIError, createAuthMiddleware } from "better-auth/api";
+import { APIError, createAuthMiddleware, isAPIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
+import { auditFailedSignIn, auditSignIn } from "@/server/audit/audit-sign-in";
 import {
   canSignInWithPassword,
   ensureUserProfile,
@@ -62,11 +63,21 @@ export const auth = betterAuth({
       const email: unknown = ctx.body?.email;
       // TRAMPA: mismo error que una contraseña incorrecta para no revelar qué correos existen.
       if (typeof email !== "string" || !(await canSignInWithPassword(email))) {
+        await auditFailedSignIn(email, "SIN_ACCESO_CON_CONTRASENA");
         throw APIError.from("UNAUTHORIZED", {
           code: "INVALID_EMAIL_OR_PASSWORD",
           message: "Invalid email or password",
         });
       }
+    }),
+    // POR QUÉ: una contraseña incorrecta o una cuenta desactivada no lanza aquí; llega como el error devuelto.
+    after: createAuthMiddleware(async (ctx) => {
+      const returned = ctx.context.returned;
+      if (ctx.path === "/sign-in/email" && isAPIError(returned))
+        await auditFailedSignIn(
+          ctx.body?.email,
+          returned.body?.code ?? "ERROR",
+        );
     }),
   },
   databaseHooks: {
@@ -93,6 +104,7 @@ export const auth = betterAuth({
             });
           }
         },
+        after: (session, ctx) => auditSignIn(session, ctx),
       },
     },
   },

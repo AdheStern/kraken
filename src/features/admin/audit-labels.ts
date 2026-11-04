@@ -26,6 +26,11 @@ export const AUDIT_ENTITY_LABELS: Record<string, string> = {
   "doc.proyecto": "Proyecto de documentación",
   "doc.documento": "Documento",
   "tickets.solicitud": "Solicitud de ticket",
+  "tickets.adjunto": "Adjunto de ticket",
+  "inv.movimiento": "Comprobante de inventario",
+  "dash.tablero": "Tablero",
+  "auth.user": "Inicio de sesión",
+  "auth.intento": "Intento de inicio de sesión",
 };
 
 export const AUDIT_ACTION_LABELS: Record<string, string> = {
@@ -54,6 +59,10 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   QUITAR: "quitó",
   DESCARTAR: "descartó",
   RETIRAR: "retiró",
+  DESCARGAR: "descargó",
+  EXPORTAR: "exportó",
+  INICIAR_SESION: "inició sesión como",
+  INICIO_FALLIDO: "falló el inicio de sesión de",
 };
 
 export function auditEntityLabel(entity: string): string {

@@ -44,6 +44,7 @@ const LOOKUPS: Record<string, Lookup> = {
     })),
   "core.usuario_perfil": userNames,
   "core.usuario_rol": userNames,
+  "auth.user": userNames,
   "cv.cv": async (ids) =>
     (await prisma.cv.findMany(byId(ids))).map((c) => ({
       id: c.id,
@@ -65,8 +66,14 @@ const LOOKUPS: Record<string, Lookup> = {
     ).map((b) => ({ id: b.id, label: b.cvLine.description })),
 };
 
-// POR QUÉ: el parámetro y el grupo de Entra ya se guardan con un id legible (la clave, el Id. del grupo).
-const SELF_NAMED = new Set(["core.parametro", "core.grupo_entra_rol"]);
+// POR QUÉ: el parámetro, el grupo de Entra, el intento y el tablero ya se guardan con un id legible (la clave,
+// el Id. del grupo, el correo, el nombre del tablero).
+const SELF_NAMED = new Set([
+  "core.parametro",
+  "core.grupo_entra_rol",
+  "auth.intento",
+  "dash.tablero",
+]);
 
 export async function resolveAuditSubjects(
   refs: Ref[],

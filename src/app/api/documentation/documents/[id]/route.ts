@@ -2,8 +2,10 @@
 // Descarga de un documento de un proyecto de documentación con authz (AGENTS.md §7, §2.10).
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { recordAccess } from "@/server/audit/record-access";
 import { scopeDocProjectQuery } from "@/server/authz/scope-doc-project-query";
 import { prisma } from "@/server/db";
+import { attachmentDisposition } from "@/server/files/attachment-disposition";
 import { safeContentType } from "@/server/files/safe-content-type";
 import { selectFileStore } from "@/server/files/select-file-store";
 import { log } from "@/server/log";
@@ -31,12 +33,18 @@ export async function GET(
   const store = selectFileStore();
   if (!document || !store)
     return new NextResponse("No encontrado.", { status: 404 });
+  await recordAccess({
+    actorId: user.id,
+    entity: "doc.documento",
+    entityId: id,
+    action: "DESCARGAR",
+  });
   try {
     const data = await store.get(document.storagePath);
     return new NextResponse(Buffer.from(data), {
       headers: {
         "content-type": safeContentType(document.mimeType),
-        "content-disposition": `attachment; filename*=UTF-8''${encodeURIComponent(document.fileName)}`,
+        "content-disposition": attachmentDisposition(document.fileName),
         "cache-control": "private, no-store",
         // POR QUÉ: el editor de lecciones manda este hash al guardar para no pisar la edición de otra persona.
         etag: `"${document.sha256}"`,

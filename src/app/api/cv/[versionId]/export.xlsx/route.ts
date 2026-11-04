@@ -2,9 +2,11 @@
 // Descarga una versión de CV en la plantilla oficial PA-PR-03-RE-01, con authz (AGENTS.md §2.9 y §7).
 import type { NextRequest } from "next/server";
 import { getCvExportData } from "@/features/sales-control/queries/get-cv-export-data";
+import { recordAccess } from "@/server/audit/record-access";
 import { canExportCvVersion } from "@/server/authz/cv-permissions";
 import { scopeCvQuery } from "@/server/authz/scope-cv-query";
 import { prisma } from "@/server/db";
+import { attachmentDisposition } from "@/server/files/attachment-disposition";
 import { loadCvAccess } from "@/server/sales-control/cv-access";
 import { exportCvToXlsx } from "@/server/sales-control/export/excel-cv-exporter";
 import { getSessionUser } from "@/server/session";
@@ -39,11 +41,19 @@ export async function GET(
 
   const data = await getCvExportData(versionId);
   if (!data) return new Response("No encontramos ese CV.", { status: 404 });
+  await recordAccess({
+    actorId: user.id,
+    entity: "cv.version",
+    entityId: versionId,
+    action: "EXPORTAR",
+  });
   const file = await exportCvToXlsx(data);
   return new Response(new Uint8Array(file), {
     headers: {
       "content-type": XLSX_TYPE,
-      "content-disposition": `attachment; filename="CV ${data.versionLabel}.xlsx"`,
+      "content-disposition": attachmentDisposition(
+        `CV ${data.versionLabel}.xlsx`,
+      ),
       "cache-control": "private, no-store",
     },
   });

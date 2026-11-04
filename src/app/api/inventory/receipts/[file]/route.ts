@@ -4,6 +4,8 @@
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { getReceipt } from "@/features/inventory/queries/get-receipt";
+import { recordAccess } from "@/server/audit/record-access";
+import { attachmentDisposition } from "@/server/files/attachment-disposition";
 import { buildReceiptPdf } from "@/server/inventory/receipt-pdf";
 import { getSessionUser } from "@/server/session";
 
@@ -25,11 +27,19 @@ export async function GET(
       : null;
   if (!receipt)
     return new Response("No encontramos ese comprobante.", { status: 404 });
+  await recordAccess({
+    actorId: user.id,
+    entity: "inv.movimiento",
+    entityId: id,
+    action: "DESCARGAR",
+  });
   const pdf = await buildReceiptPdf(receipt);
   return new Response(new Uint8Array(pdf), {
     headers: {
       "content-type": "application/pdf",
-      "content-disposition": `attachment; filename="${receipt.title} ${receipt.number}.pdf"`,
+      "content-disposition": attachmentDisposition(
+        `${receipt.title} ${receipt.number}.pdf`,
+      ),
       "cache-control": "private, no-store",
     },
   });

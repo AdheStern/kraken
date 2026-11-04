@@ -20,6 +20,7 @@ import { getOperationsDashboard } from "@/features/dashboards/queries/get-operat
 import { getSalesDashboard } from "@/features/dashboards/queries/get-sales-dashboard";
 import { loadDashboardContext } from "@/features/dashboards/queries/load-dashboard-context";
 import { periodToken } from "@/features/dashboards/schemas/dashboard-filters";
+import { recordAccess } from "@/server/audit/record-access";
 import {
   canSeeEngineersDashboard,
   canSeeOperationsDashboard,
@@ -102,6 +103,13 @@ export async function GET(
     return new Response("No tienes permiso para exportar este tablero.", {
       status: 403,
     });
+  await recordAccess({
+    actorId: user.id,
+    entity: "dash.tablero",
+    entityId: board,
+    action: "EXPORTAR",
+    detail: params,
+  });
   const file = await sheetsToXlsx(spec.title, sheets);
   return new Response(new Uint8Array(file), {
     headers: {

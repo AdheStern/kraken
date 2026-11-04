@@ -1,7 +1,8 @@
 // tests/e2e/inventory.spec.ts
 // Recorrido de la F4 (AGENTS.md §11) con el almacenero: entra al POS, ingresa un producto nuevo pegando desde
-// Excel, lo traspasa a Santa Cruz con una diferencia, despacha al CV demo que reservó un FortiGate y descarga el
-// comprobante, registra la devolución de esa salida; Administración ve el ingreso con costos y el comercial no.
+// Excel, lo traspasa a Santa Cruz con una diferencia, toca el mosaico del FortiGate que reservó el CV demo, elige
+// su serial, lo despacha y descarga el comprobante, registra la devolución de esa salida; Administración ve el
+// ingreso con costos y el comercial no.
 // También abre la cámara del POS (simulada) para cuidar que la cabecera Permissions-Policy la permita.
 import { type Browser, expect, type Page, test } from "@playwright/test";
 import { storageFor } from "./users";
@@ -16,6 +17,11 @@ async function as(
 ): Promise<Page> {
   const context = await browser.newContext({ storageState: storageFor(role) });
   return context.newPage();
+}
+
+// POR QUÉ: el proyecto tablet corre en vertical, donde el panel de la operación empieza plegado.
+async function openPanel(page: Page, title: "Salida" | "Traspaso") {
+  await page.getByRole("button", { name: new RegExp(`^${title} ·`) }).click();
 }
 
 async function scan(page: Page, text: string) {
@@ -61,6 +67,7 @@ test("traspasa a Santa Cruz y la diferencia queda en tránsito", async ({
   await page.getByLabel("Almacén de destino").click();
   await page.getByRole("option", { name: "Almacén Santa Cruz" }).click();
   for (let i = 0; i < 3; i++) await scan(page, CODE);
+  await openPanel(page, "Traspaso");
   await page.getByRole("button", { name: "Crear y enviar" }).click();
   await page.waitForURL(/\/inventario\/traspasos\/[0-9a-f-]{36}$/);
   await expect(page.getByText("En tránsito").first()).toBeVisible();
@@ -80,8 +87,15 @@ test("despacha el FortiGate reservado por el CV demo y el comprobante es un PDF"
   const page = await as(browser, "almacen");
   await page.goto("/inventario/pos?almacen=LP");
   await page.waitForLoadState("networkidle");
-  await scan(page, "FG100F0001");
-  await expect(page.getByText("FG-100F · serial FG100F0001")).toBeVisible();
+  // Se toca el mosaico del FortiGate y se elige su serial, como en la caja de un supermercado.
+  await page.getByRole("button", { name: /^FG-100F,/ }).click();
+  const picker = page.getByRole("dialog", { name: "Seriales de FG-100F" });
+  await picker.getByRole("button", { name: "FG100F0001" }).click();
+  await picker.getByRole("button", { name: "Listo · 1 unidad" }).click();
+  await openPanel(page, "Salida");
+  await expect(
+    page.getByRole("button", { name: "Quitar el serial FG100F0001" }),
+  ).toBeVisible();
   await page.getByRole("button", { name: /Minera Illimani/ }).click();
   await page.getByRole("button", { name: "Confirmar salida" }).click();
   await expect(page.getByText(/Salida N\.º \d+ registrada/)).toBeVisible();

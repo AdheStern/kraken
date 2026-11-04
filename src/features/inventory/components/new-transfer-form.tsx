@@ -1,6 +1,6 @@
 // src/features/inventory/components/new-transfer-form.tsx
-// Alta de un traspaso: origen y destino, lo que viaja escaneado o buscado como en el POS (con sus seriales) y
-// notas; se guarda como borrador o se envía de una vez (AGENTS.md §2.8).
+// Alta de un traspaso: origen y destino, lo que viaja tocado o escaneado como en el POS (con sus seriales) y
+// notas; se guarda como borrador o se envía de una vez (AGENTS.md §2.8). Mismo marco de mosaicos que el POS.
 "use client";
 
 import { LoaderCircle, Send } from "lucide-react";
@@ -14,9 +14,10 @@ import { OptionSelect } from "@/components/ui/option-select";
 import { createTransfer } from "../actions/create-transfer";
 import { sendTransfer } from "../actions/send-transfer";
 import type { PosCatalogItem, WarehouseTab } from "../types";
-import { applyScan, type CartLine, lineQuantity } from "./pos-cart";
-import { PosCartList } from "./pos-cart-list";
-import { PosScanner } from "./pos-scanner";
+import { CartTiles } from "./cart-tiles";
+import { type CartLine, lineQuantity } from "./pos-cart";
+import { PosProductPicker } from "./pos-product-picker";
+import { PosWorkspace } from "./pos-workspace";
 
 type Props = {
   warehouses: WarehouseTab[];
@@ -38,12 +39,6 @@ export function NewTransferForm({ warehouses, origin, catalog }: Props) {
     warehouses
       .filter((w) => w.id !== exclude)
       .map((w) => ({ id: w.id, label: w.name }));
-
-  function onScan(text: string) {
-    const result = applyScan(cart, catalog, text);
-    if (result.ok) setCart(result.cart);
-    return result;
-  }
 
   async function save(send: boolean) {
     if (!destinationId) return setError("Elige el almacén de destino.");
@@ -70,75 +65,86 @@ export function NewTransferForm({ warehouses, origin, catalog }: Props) {
     router.push(`/inventario/traspasos/${created.data.transferId}`);
   }
 
+  const units = cart.reduce((sum, l) => sum + lineQuantity(l), 0);
   return (
-    <div className="mx-auto grid w-full max-w-xl gap-5">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="grid gap-1.5">
-          <Label className="text-xs text-muted-foreground">Desde</Label>
-          <OptionSelect
-            aria-label="Almacén de origen"
-            value={origin.id}
-            options={options(null)}
-            onValueChange={(id) => {
-              const code = warehouses.find((w) => w.id === id)?.code;
-              if (code)
-                router.push(
-                  `/inventario/traspasos/nuevo?origen=${encodeURIComponent(code)}`,
-                );
-            }}
-            className="h-12 w-full"
+    <PosWorkspace
+      title="Traspaso"
+      summary={units === 1 ? "1 artículo" : `${units} artículos`}
+      products={
+        <>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-1.5">
+              <Label className="text-xs text-muted-foreground">Desde</Label>
+              <OptionSelect
+                aria-label="Almacén de origen"
+                value={origin.id}
+                options={options(null)}
+                onValueChange={(id) => {
+                  const code = warehouses.find((w) => w.id === id)?.code;
+                  if (code)
+                    router.push(
+                      `/inventario/traspasos/nuevo?origen=${encodeURIComponent(code)}`,
+                    );
+                }}
+                className="h-12 w-full"
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label className="text-xs text-muted-foreground">Hacia</Label>
+              <OptionSelect
+                aria-label="Almacén de destino"
+                value={destinationId}
+                options={options(origin.id)}
+                onValueChange={setDestinationId}
+                className="h-12 w-full"
+              />
+            </div>
+          </div>
+          <PosProductPicker catalog={catalog} cart={cart} onChange={setCart} />
+        </>
+      }
+      panel={
+        <>
+          <CartTiles cart={cart} onChange={setCart} />
+          <Input
+            value={notes}
+            placeholder="Notas (opcional)"
+            aria-label="Notas"
+            className="h-12"
+            onChange={(e) => setNotes(e.target.value)}
           />
-        </div>
-        <div className="grid gap-1.5">
-          <Label className="text-xs text-muted-foreground">Hacia</Label>
-          <OptionSelect
-            aria-label="Almacén de destino"
-            value={destinationId}
-            options={options(origin.id)}
-            onValueChange={setDestinationId}
-            className="h-12 w-full"
-          />
-        </div>
-      </div>
-      <PosScanner onScan={onScan} />
-      {cart.length > 0 && <PosCartList cart={cart} onChange={setCart} />}
-      <Input
-        value={notes}
-        placeholder="Notas (opcional)"
-        aria-label="Notas"
-        className="h-12"
-        onChange={(e) => setNotes(e.target.value)}
-      />
-      {error && (
-        <p role="alert" className="text-sm text-destructive">
-          {error}
-        </p>
-      )}
-      <div className="grid gap-2 sm:grid-cols-2">
-        <Button
-          variant="outline"
-          className="h-12"
-          disabled={cart.length === 0 || pending !== null}
-          onClick={() => save(false)}
-        >
-          {pending === "draft" && (
-            <LoaderCircle className="animate-spin" aria-hidden="true" />
+          {error && (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
           )}
-          Guardar borrador
-        </Button>
-        <Button
-          className="h-12"
-          disabled={cart.length === 0 || pending !== null}
-          onClick={() => save(true)}
-        >
-          {pending === "send" ? (
-            <LoaderCircle className="animate-spin" aria-hidden="true" />
-          ) : (
-            <Send aria-hidden="true" />
-          )}
-          Crear y enviar
-        </Button>
-      </div>
-    </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              variant="outline"
+              className="h-12"
+              disabled={cart.length === 0 || pending !== null}
+              onClick={() => save(false)}
+            >
+              {pending === "draft" && (
+                <LoaderCircle className="animate-spin" aria-hidden="true" />
+              )}
+              Guardar borrador
+            </Button>
+            <Button
+              className="h-12"
+              disabled={cart.length === 0 || pending !== null}
+              onClick={() => save(true)}
+            >
+              {pending === "send" ? (
+                <LoaderCircle className="animate-spin" aria-hidden="true" />
+              ) : (
+                <Send aria-hidden="true" />
+              )}
+              Crear y enviar
+            </Button>
+          </div>
+        </>
+      }
+    />
   );
 }

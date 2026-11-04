@@ -1,6 +1,6 @@
 // src/app/(app)/inventario/pos/page.tsx
-// POS interno: salidas a CV, ticket o uso interno escaneando seriales o códigos, en una columna para tablet
-// (AGENTS.md §2.8, §5). Solo para quien opera inventario (§2.9).
+// POS interno: salidas a CV, ticket o uso interno tocando los mosaicos de productos o escaneando seriales o
+// códigos, pensado para tablet (AGENTS.md §2.8, §5). Solo para quien opera inventario (§2.9).
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -23,13 +23,9 @@ export default function PosPage({
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-8 sm:px-6">
       <ModuleHeading
         title="POS interno"
-        description="Escanea lo que sale, elige a dónde va y confirma; el comprobante queda listo para descargar."
+        description="Toca o escanea lo que sale, elige a dónde va y confirma; el comprobante queda listo para descargar."
       />
-      <Suspense
-        fallback={
-          <Skeleton className="mx-auto h-96 w-full max-w-xl rounded-xl" />
-        }
-      >
+      <Suspense fallback={<Skeleton className="h-96 w-full rounded-xl" />}>
         <Pos searchParams={searchParams} />
       </Suspense>
     </main>

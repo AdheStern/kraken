@@ -1,6 +1,6 @@
-// src/features/inventory/components/pos-cart-list.tsx
-// Carrito del POS con cifras grandes y objetivos táctiles de 48 px: cantidad con − y +, o los seriales escaneados
-// con su botón para quitarlos (AGENTS.md §5 "POS interno: una sola columna, pensado para tablet").
+// src/features/inventory/components/cart-tiles.tsx
+// Lo que lleva la operación (salida, traspaso) como tarjetas, con cifras grandes y objetivos táctiles de 48 px:
+// cantidad con − y +, o los seriales con su botón para quitarlos (AGENTS.md §5 "POS interno", pensado para tablet).
 "use client";
 
 import { Minus, Plus, X } from "lucide-react";
@@ -10,39 +10,46 @@ import { type CartLine, lineQuantity } from "./pos-cart";
 
 type Props = { cart: CartLine[]; onChange: (cart: CartLine[]) => void };
 
-export function PosCartList({ cart, onChange }: Props) {
+export function CartTiles({ cart, onChange }: Props) {
   const replace = (line: CartLine, next: CartLine | null) =>
     onChange(
       next && lineQuantity(next) > 0
         ? cart.map((l) => (l === line ? next : l))
         : cart.filter((l) => l !== line),
     );
+  if (cart.length === 0)
+    return (
+      <p className="rounded-xl border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
+        Toca un producto o escanea su código para agregarlo.
+      </p>
+    );
   return (
-    <ul className="kr-solid divide-y divide-border/60 rounded-xl">
+    <ul className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2">
       {cart.map((line) => (
         <li
           key={line.item.productId}
-          className="grid gap-2 px-4 py-3 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-top-1"
+          className="grid content-start gap-2 rounded-xl border bg-background/40 p-3 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95"
         >
-          <div className="flex items-start gap-3">
-            <div className="min-w-0 flex-1">
-              <p className="font-mono text-sm font-medium">{line.item.code}</p>
-              <p className="truncate text-sm text-muted-foreground">
-                {line.item.description} · disponibles{" "}
-                {formatQuantity(line.item.availableQuantity)}
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="truncate font-mono text-sm font-medium">
+                {line.item.code}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                disp. {formatQuantity(line.item.availableQuantity)}
               </p>
             </div>
-            <span className="text-3xl font-semibold tabular-nums">
+            <span className="text-3xl leading-none font-semibold tabular-nums">
               {lineQuantity(line)}
             </span>
           </div>
           {line.item.isSerialized ? (
-            <ul className="flex flex-wrap gap-2">
+            <ul className="grid gap-1.5">
               {line.serials.map((serial) => (
                 <li key={serial}>
                   <Button
                     variant="outline"
-                    className="h-12 font-mono"
+                    className="h-12 w-full justify-between font-mono"
                     aria-label={`Quitar el serial ${serial}`}
                     onClick={() =>
                       replace(line, {
@@ -58,10 +65,10 @@ export function PosCartList({ cart, onChange }: Props) {
               ))}
             </ul>
           ) : (
-            <div className="flex gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <Button
                 variant="outline"
-                className="size-12"
+                className="h-12"
                 aria-label={`Una menos de ${line.item.code}`}
                 onClick={() =>
                   replace(line, { ...line, quantity: line.quantity - 1 })
@@ -71,7 +78,7 @@ export function PosCartList({ cart, onChange }: Props) {
               </Button>
               <Button
                 variant="outline"
-                className="size-12"
+                className="h-12"
                 aria-label={`Una más de ${line.item.code}`}
                 onClick={() =>
                   replace(line, { ...line, quantity: line.quantity + 1 })

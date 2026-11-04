@@ -1,6 +1,6 @@
 // src/features/inventory/components/pos-screen.tsx
-// POS interno para tablet (AGENTS.md §2.8, §5): almacén → escanear o buscar → carrito → destino → confirmar →
-// comprobante. Una columna; el campo de escaneo vuelve a tener el foco tras cada lectura.
+// POS interno para tablet (AGENTS.md §2.8, §5): almacén → tocar o escanear los productos → salida → destino →
+// confirmar → comprobante. Como un POS de supermercado: mosaicos a la izquierda y la salida en el panel.
 "use client";
 
 import { LoaderCircle } from "lucide-react";
@@ -15,11 +15,12 @@ import type {
   PosCatalogItem,
   WarehouseTab,
 } from "../types";
-import { applyScan, type CartLine, lineQuantity } from "./pos-cart";
-import { PosCartList } from "./pos-cart-list";
+import { CartTiles } from "./cart-tiles";
+import { type CartLine, lineQuantity } from "./pos-cart";
 import { type PosDestination, PosDestinationPicker } from "./pos-destination";
 import { PosDone } from "./pos-done";
-import { PosScanner } from "./pos-scanner";
+import { PosProductPicker } from "./pos-product-picker";
+import { PosWorkspace } from "./pos-workspace";
 
 const STORED_WAREHOUSE = "kraken.pos.almacen";
 
@@ -76,12 +77,6 @@ export function PosScreen({
   );
   const canConfirm = cart.length > 0 && isReady(destination) && !isPending;
 
-  function onScan(text: string) {
-    const result = applyScan(cart, catalog, text);
-    if (result.ok) setCart(result.cart);
-    return result;
-  }
-
   async function confirm() {
     setIsPending(true);
     setError(null);
@@ -111,43 +106,54 @@ export function PosScreen({
   }
 
   if (done) return <PosDone {...done} onRestart={restart} />;
+  const units = cart.reduce((sum, l) => sum + lineQuantity(l), 0);
   return (
-    <div className="mx-auto grid w-full max-w-xl gap-5">
-      <OptionSelect
-        aria-label="Almacén"
-        value={warehouse.code}
-        options={warehouses.map((w) => ({ id: w.code, label: w.name }))}
-        onValueChange={(code) =>
-          code &&
-          router.push(`/inventario/pos?almacen=${encodeURIComponent(code)}`)
-        }
-        className="h-12 w-full text-base"
-      />
-      <PosScanner onScan={onScan} />
-      {cart.length > 0 && <PosCartList cart={cart} onChange={setCart} />}
-      {cart.length > 0 && (
-        <PosDestinationPicker
-          value={destination}
-          reservations={visibleReservations}
-          onChange={setDestination}
-        />
-      )}
-      {error && (
-        <p role="alert" className="text-sm text-destructive">
-          {error}
-        </p>
-      )}
-      <Button
-        className="h-14 text-base"
-        disabled={!canConfirm}
-        onClick={confirm}
-      >
-        {isPending && (
-          <LoaderCircle className="animate-spin" aria-hidden="true" />
-        )}
-        Confirmar salida
-      </Button>
-    </div>
+    <PosWorkspace
+      title="Salida"
+      summary={units === 1 ? "1 artículo" : `${units} artículos`}
+      products={
+        <>
+          <OptionSelect
+            aria-label="Almacén"
+            value={warehouse.code}
+            options={warehouses.map((w) => ({ id: w.code, label: w.name }))}
+            onValueChange={(code) =>
+              code &&
+              router.push(`/inventario/pos?almacen=${encodeURIComponent(code)}`)
+            }
+            className="h-12 w-full text-base"
+          />
+          <PosProductPicker catalog={catalog} cart={cart} onChange={setCart} />
+        </>
+      }
+      panel={
+        <>
+          <CartTiles cart={cart} onChange={setCart} />
+          {cart.length > 0 && (
+            <PosDestinationPicker
+              value={destination}
+              reservations={visibleReservations}
+              onChange={setDestination}
+            />
+          )}
+          {error && (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
+          <Button
+            className="h-14 text-base"
+            disabled={!canConfirm}
+            onClick={confirm}
+          >
+            {isPending && (
+              <LoaderCircle className="animate-spin" aria-hidden="true" />
+            )}
+            Confirmar salida
+          </Button>
+        </>
+      }
+    />
   );
 }
 

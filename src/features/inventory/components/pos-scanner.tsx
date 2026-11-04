@@ -4,15 +4,20 @@
 "use client";
 
 import { ScanLine } from "lucide-react";
-import { useRef, useState } from "react";
+import { type RefObject, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { CameraScanDialog } from "./camera-scan-dialog";
 
-type Props = { onScan: (text: string) => { ok: boolean; message: string } };
+type Props = {
+  onScan: (text: string) => { ok: boolean; message: string };
+  // Para que la pantalla devuelva el foco al campo tras tocar un mosaico.
+  inputRef?: RefObject<HTMLInputElement | null>;
+};
 
-export function PosScanner({ onScan }: Props) {
-  const ref = useRef<HTMLInputElement>(null);
+export function PosScanner({ onScan, inputRef }: Props) {
+  const ownRef = useRef<HTMLInputElement>(null);
+  const ref = inputRef ?? ownRef;
   const [value, setValue] = useState("");
   const [feedback, setFeedback] = useState<{
     ok: boolean;

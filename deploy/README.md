@@ -180,6 +180,28 @@ sudo chown root:root /etc/kraken/tls/kraken.pem && sudo chmod 600 /etc/kraken/tl
 - **Respaldos y restauración de prueba:** los opera DIMANET con pgBackRest por SSH y cron desde ops01; los archivos
   de `backup/` y `scripts/restore-test.sh` están **pendientes de adaptar** a ese esquema.
 
+## TLS entre la app y la base (ISO 27001 A.8.24)
+
+Hoy `DATABASE_URL` va sin TLS por `:5000`. HAProxy lo pasa en modo TCP, así que el cifrado puede ir de punta a punta
+hasta Postgres sin tocar `haproxy.cfg`. Se activa en este orden; cada paso es compatible con el anterior:
+
+1. **Certificado en db01** (y en db02 cuando exista), emitido por la CA interna de DIMA: `ssl = on`,
+   `ssl_cert_file` y `ssl_key_file` en la sección `postgresql.parameters` de Patroni, y `patronictl reload`. Las
+   conexiones sin TLS siguen entrando.
+2. **CA en los nodos de app:** `/etc/kraken/tls/db-ca.pem` (root:deploy, 640) y el montaje
+   `- /etc/kraken/tls/db-ca.pem:/etc/kraken/tls/db-ca.pem:ro` en los servicios `app`, `worker` y `migrate` de
+   `app/compose.yml` (en el mismo PR que este paso; sin el archivo en el nodo el contenedor no arranca).
+3. **URLs:** agregar a `DATABASE_URL` y `MIGRATION_DATABASE_URL`
+   `?sslmode=verify-ca&uselibpqcompat=true&sslrootcert=/etc/kraken/tls/db-ca.pem` y desplegar.
+   TRAMPA: el driver `pg` trata `sslmode=require` como `verify-full`, y el nombre `host.docker.internal` no está
+   en el certificado: la conexión falla. `verify-ca` con la CA interna (no una pública) verifica la cadena sin el
+   nombre. Comprobar con `SELECT ssl, version FROM pg_stat_ssl WHERE pid = pg_backend_pid();` desde la app.
+4. **Exigirlo:** en `pg_hba` de Patroni, `hostssl` en lugar de `host` para `kraken_app`, `kraken_migrator` y
+   `kraken_lectura` desde la red de los nodos de app; `patronictl reload`. Desde aquí una conexión sin TLS se
+   rechaza.
+
+Staging no lo necesita mientras su Postgres viva en la misma red de Docker que la app.
+
 ## Recuperación ante desastre en Azure (en frío)
 
 > **Pendiente de adaptar:** este procedimiento supone Postgres 16 y el repo2 de `backup/` en Azure. La base real es

@@ -1,6 +1,6 @@
 // src/features/inventory/components/pos-cart.ts
 // Carrito del POS (AGENTS.md §2.8): qué significa lo escaneado (un serial o un código del almacén) y cómo cambia
-// el carrito. Puro: el lector de códigos actúa como teclado y termina con Enter.
+// el carrito, por escaneo o tocando el mosaico del producto. Puro: el lector actúa como teclado y termina con Enter.
 import type { PosCatalogItem } from "../types";
 
 export type CartLine = {
@@ -57,6 +57,34 @@ export function applyScan(
     cart: upsert(cart, byCode, (l) => ({ ...l, quantity: l.quantity + 1 })),
     message: `${byCode.code} · +1`,
   };
+}
+
+// POR QUÉ: un serializado identifica cada unidad; tocar su mosaico abre el selector de seriales, no suma.
+export function addUnit(
+  cart: readonly CartLine[],
+  item: PosCatalogItem,
+): ScanResult {
+  if (item.isSerialized)
+    return {
+      ok: false,
+      message: `${item.code} lleva serial: elige o escanea cada unidad.`,
+    };
+  return {
+    ok: true,
+    cart: upsert(cart, item, (l) => ({ ...l, quantity: l.quantity + 1 })),
+    message: `${item.code} · +1`,
+  };
+}
+
+export function setSerials(
+  cart: readonly CartLine[],
+  item: PosCatalogItem,
+  serials: readonly string[],
+): CartLine[] {
+  const next = upsert(cart, item, (l) => ({ ...l, serials: [...serials] }));
+  return serials.length > 0
+    ? next
+    : next.filter((l) => l.item.productId !== item.productId);
 }
 
 export function lineQuantity(line: CartLine): number {

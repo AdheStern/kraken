@@ -28,6 +28,7 @@ export async function getPosCatalog(
             code: true,
             description: true,
             isSerialized: true,
+            technology: { select: { name: true } },
             serialUnits: {
               where: { warehouseId },
               select: { serial: true },
@@ -73,6 +74,7 @@ export async function getPosCatalog(
         .minus(reservedQuantity.toString())
         .toFixed(2),
       serials: product.serialUnits.map((u) => u.serial),
+      technology: product.technology?.name ?? null,
     })),
     reservations: reservations.map((r) => ({
       reservationId: r.id,

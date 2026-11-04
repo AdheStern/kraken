@@ -79,6 +79,8 @@ export type PosCatalogItem = {
   isSerialized: boolean;
   availableQuantity: string;
   serials: string[];
+  // POR QUÉ: los mosaicos del POS se filtran por tecnología, como las secciones de un supermercado.
+  technology: string | null;
 };
 
 export type PendingReservation = {

@@ -145,15 +145,13 @@ test("Administración ve el costo del ingreso y el comercial solo cantidades", a
 }) => {
   const admin = await as(browser, "administracion");
   await admin.goto(`/inventario?almacen=LP&q=${CODE}`);
-  await expect(
-    admin.getByRole("columnheader", { name: "Valor USD" }),
-  ).toBeVisible();
+  await expect(admin.getByText("Valor USD", { exact: true })).toBeVisible();
   const commercial = await as(browser, "comercial");
   await commercial.goto(`/inventario?almacen=LP&q=${CODE}`);
   await expect(commercial.getByText(CODE)).toBeVisible();
-  await expect(
-    commercial.getByRole("columnheader", { name: "Valor USD" }),
-  ).toHaveCount(0);
+  await expect(commercial.getByText("Valor USD", { exact: true })).toHaveCount(
+    0,
+  );
 });
 
 test("el POS abre la cámara para escanear", async ({ browser }) => {

@@ -8,8 +8,8 @@ import { ModuleHeading } from "@/components/app-shell/module-heading";
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InventoryActions } from "@/features/inventory/components/inventory-actions";
+import { StockCards } from "@/features/inventory/components/stock-cards";
 import { StockSearch } from "@/features/inventory/components/stock-search";
-import { StockTable } from "@/features/inventory/components/stock-table";
 import { WarehouseTabs } from "@/features/inventory/components/warehouse-tabs";
 import { listStock } from "@/features/inventory/queries/list-stock";
 import { listWarehouseTabs } from "@/features/inventory/queries/list-warehouse-tabs";
@@ -73,7 +73,7 @@ async function InventoryResults({
         />
       </div>
       {rows.length > 0 ? (
-        <StockTable
+        <StockCards
           rows={rows}
           warehouseCode={active.code}
           showCosts={canSeeInventoryCosts(user)}

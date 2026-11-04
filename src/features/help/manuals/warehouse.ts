@@ -10,7 +10,8 @@ export const WAREHOUSE_MANUAL: Manual = {
     {
       heading: "Salidas con el POS",
       steps: [
-        "Elige el almacén y escanea el serial o el código con el lector, o con «Cámara» si el equipo no tiene lector (la primera vez el navegador pide permiso).",
+        "Elige el almacén y toca cada producto que sale: suma una unidad; si lleva serial, marca los seriales que salen. También puedes escanear con el lector o con «Cámara» (la primera vez el navegador pide permiso).",
+        "En la tablet vertical, la salida queda en la barra de abajo: tócala para verla y confirmar.",
         "Elige el destino: un CV con reserva, un ticket abierto o uso interno con su motivo.",
         "Confirmar salida y descarga el comprobante PDF (no lleva costos).",
       ],
@@ -20,7 +21,8 @@ export const WAREHOUSE_MANUAL: Manual = {
       heading: "Ingresos",
       steps: [
         "Inventario → Registrar ingreso: origen (compra local, importación o inventario inicial), PO y el costo de cada línea (puede ser 0).",
-        "Puedes pegar las filas desde Excel. Un código que no existe crea el producto «por revisar» para Administración.",
+        "Toca cada producto del catálogo y escribe cantidad, costo y seriales; «Producto nuevo» crea uno «por revisar» para Administración.",
+        "Para cargas grandes, usa la pestaña «Pegar desde Excel».",
         "Los productos serializados entran con un serial por unidad.",
       ],
       link: {

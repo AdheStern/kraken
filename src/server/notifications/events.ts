@@ -32,6 +32,9 @@ export const NOTIFICATION_EVENTS = {
   SLA_ALERTA: "Un ticket se acerca a su SLA o lo superó",
   SISTEMA_CORREO_FALLIDO: "Un correo no se pudo enviar",
   SISTEMA_CORREO_PRUEBA: "Correo de prueba",
+  SEGURIDAD_INTENTOS_FALLIDOS:
+    "Intentos fallidos repetidos de inicio de sesión",
+  SEGURIDAD_CUENTA_EMERGENCIA: "Se usó la cuenta de emergencia",
 } as const;
 
 export type NotificationEvent = keyof typeof NOTIFICATION_EVENTS;

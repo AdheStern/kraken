@@ -4,6 +4,7 @@ import { bagsCheckThresholdsJob } from "./handlers/bags-check-thresholds";
 import { bagsExpireJob } from "./handlers/bags-expire";
 import { fxFetchOfficialJob } from "./handlers/fx-fetch-official";
 import { mailDispatchJob } from "./handlers/mail-dispatch";
+import { securityWatchJob } from "./handlers/security-watch";
 import { slaEvaluateJob } from "./handlers/sla-evaluate";
 import { timersStaleJob } from "./handlers/timers-stale";
 
@@ -21,4 +22,5 @@ export const JOBS: readonly JobDefinition[] = [
   timersStaleJob,
   slaEvaluateJob,
   bagsCheckThresholdsJob,
+  securityWatchJob,
 ];

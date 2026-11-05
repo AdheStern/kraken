@@ -635,7 +635,7 @@ type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { code: Error
 | `bags.expire` | 00:05 diario (America/La_Paz) | Vence bolsas, registra `VENCIMIENTO` sin actor, avisa N días antes y el día del vencimiento, una vez cada aviso (implementado) |
 | `sla.evaluate` | Cada 5 min | Recalcula el SLA de los tickets abiertos y avisa al 75% (implementado) |
 | `timers.stale` | Cada 30 min | Contadores abiertos más de 10 h, un aviso por registro al ingeniero y al encargado (implementado) |
-| `approvals.reminder` | 09:00 días hábiles | Solicitudes con más de 24 h |
+| `approvals.reminder` | 09:00 de lunes a viernes, salvo feriado nacional | Un aviso por aprobador con sus solicitudes pendientes de más de 24 h y la antigüedad de la más vieja; una vez por día (`recordado_en`) (implementado) |
 | `security.watch` | Cada 5 min | Sobre el tramo de 5 min cerrado: avisa a los administradores del sistema (bandeja y correo) cuando una cuenta cruza 5 contraseñas fallidas en 15 min y de cada inicio de sesión con contraseña de la cuenta de emergencia; lee `audit.evento` (ISO 27001 A.8.16, decisión 2026-11-04; implementado) |
 
 **Códigos de error:** `UNAUTHENTICATED`, `FORBIDDEN`, `VALIDATION`, `NOT_FOUND`, `CONFLICT`, `INVALID_STATE`, `INSUFFICIENT_BALANCE`, `INSUFFICIENT_STOCK`, `EXTERNAL_UNAVAILABLE`, `INTERNAL`. La interfaz traduce cada código a un mensaje que dice qué hacer.

@@ -172,6 +172,8 @@ model CvApprovalRequest {
   decidedById String?        @map("decidida_por_id")
   createdAt   DateTime       @default(now()) @map("creado_en") @db.Timestamptz
   decidedAt   DateTime?      @map("decidida_en") @db.Timestamptz
+  // Último recordatorio del job approvals.reminder: uno por día de negocio (§7).
+  remindedAt  DateTime?      @map("recordado_en") @db.Timestamptz
 
   version   CvVersion    @relation(fields: [versionId], references: [id], onDelete: Cascade)
   area      Area?        @relation(fields: [areaId], references: [id])

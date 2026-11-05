@@ -1,12 +1,13 @@
 // src/features/inventory/components/inventory-actions.tsx
-// Accesos del inventario según lo que el usuario puede hacer (AGENTS.md §2.9): traspasos, ajustes, conteo, POS,
-// devoluciones e ingresos; en TRANSITO no hay salidas, devoluciones ni ingresos.
+// Accesos del inventario según lo que el usuario puede hacer (AGENTS.md §2.9): rastrear un serial, traspasos,
+// ajustes, conteo, POS, devoluciones e ingresos; en TRANSITO no hay salidas, devoluciones ni ingresos.
 import {
   ArrowLeftRight,
   ClipboardCheck,
   PackagePlus,
   ScaleIcon,
   ScanLine,
+  SearchCode,
   Undo2,
 } from "lucide-react";
 import Link from "next/link";
@@ -29,6 +30,10 @@ export function InventoryActions({
   const outline = buttonVariants({ variant: "outline" });
   return (
     <div className="flex flex-wrap gap-2">
+      <Link href="/inventario/seriales" className={outline}>
+        <SearchCode aria-hidden="true" />
+        Rastrear serial
+      </Link>
       {canOperate && (
         <Link href="/inventario/traspasos" className={outline}>
           <ArrowLeftRight aria-hidden="true" />

@@ -51,5 +51,13 @@ export const WAREHOUSE_MANUAL: Manual = {
         label: "Registrar una devolución",
       },
     },
+    {
+      heading: "Rastrear un serial",
+      steps: [
+        "Inventario → Rastrear serial: escribe, escanea o lee con la cámara el serial del equipo.",
+        "Ves su recorrido: con qué PO entró, por qué traspasos pasó, a qué CV o ticket salió, si volvió, y el CV donde se vendió con su vigencia (útil para la garantía o el soporte).",
+      ],
+      link: { href: "/inventario/seriales", label: "Rastrear un serial" },
+    },
   ],
 };

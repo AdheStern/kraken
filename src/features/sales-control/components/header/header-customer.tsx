@@ -46,6 +46,8 @@ export function HeaderCustomer({
         label="Cliente"
         htmlFor="cv-customer"
         hint="Se fija al crear el CV."
+        // POR QUÉ: la razón social suele ser larga; en una columna se cortaba.
+        className="sm:col-span-2 lg:col-span-4"
       >
         <Input id="cv-customer" value={customerName} readOnly disabled />
       </FormField>

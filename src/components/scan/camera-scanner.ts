@@ -1,7 +1,16 @@
-// src/features/inventory/components/camera-scanner.ts
+// src/components/scan/camera-scanner.ts
 // Abre la cámara trasera y decodifica códigos de barras y QR con zxing; traduce los errores del navegador a qué
 // hacer. Solo en el cliente: la librería se carga al abrir la cámara.
 import type { IScannerControls } from "@zxing/browser";
+
+const RETRY_DELAY_MS = 500;
+// TRAMPA: al reabrir la cámara apenas se soltó, el navegador puede decir por un instante que no hay o que está
+// ocupada; un segundo intento la encuentra.
+const TRANSIENT_ERRORS = new Set([
+  "NotFoundError",
+  "NotReadableError",
+  "AbortError",
+]);
 
 export async function startCamera(
   video: HTMLVideoElement | null,
@@ -28,14 +37,23 @@ export async function startCamera(
   const reader = new BrowserMultiFormatReader(
     new Map([[DecodeHintType.POSSIBLE_FORMATS, formats]]),
   );
-  return reader.decodeFromConstraints(
-    { audio: false, video: { facingMode: { ideal: "environment" } } },
-    video,
-    (result) => {
-      const text = result?.getText().trim();
-      if (text) onText(text);
-    },
-  );
+  const open = () =>
+    reader.decodeFromConstraints(
+      { audio: false, video: { facingMode: { ideal: "environment" } } },
+      video,
+      (result) => {
+        const text = result?.getText().trim();
+        if (text) onText(text);
+      },
+    );
+  try {
+    return await open();
+  } catch (cause) {
+    if (!(cause instanceof DOMException) || !TRANSIENT_ERRORS.has(cause.name))
+      throw cause;
+    await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+    return open();
+  }
 }
 
 export function cameraErrorMessage(cause: unknown): string {

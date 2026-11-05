@@ -2,7 +2,12 @@
 // Filas del ingreso cargadas por mosaicos (AGENTS.md §2.8): una por código, ocupan la primera fila vacía y nunca
 // dejan la grilla sin filas.
 import { describe, expect, it } from "vitest";
-import { EMPTY_ROW, removeReceiptRow, upsertReceiptRow } from "./receipt-draft";
+import {
+  appendSerial,
+  EMPTY_ROW,
+  removeReceiptRow,
+  upsertReceiptRow,
+} from "./receipt-draft";
 
 const row = (code: string, quantity: string) => ({
   ...EMPTY_ROW,
@@ -35,5 +40,17 @@ describe("removeReceiptRow", () => {
       row("B", "1"),
     ]);
     expect(removeReceiptRow([row("A", "1")], "A")).toEqual([EMPTY_ROW]);
+  });
+});
+
+describe("appendSerial", () => {
+  it("suma el serial leído una sola vez, sin distinguir mayúsculas", () => {
+    const one = appendSerial("", "FG1");
+    expect(one).toEqual({ serials: "FG1", added: true });
+    expect(appendSerial(one.serials, "FG2").serials).toBe("FG1\nFG2");
+    expect(appendSerial("fg1, FG2", "FG1")).toEqual({
+      serials: "fg1, FG2",
+      added: false,
+    });
   });
 });

@@ -3,7 +3,8 @@
 // Excel, lo traspasa a Santa Cruz con una diferencia, toca el mosaico del FortiGate que reservó el CV demo, elige
 // su serial, lo despacha y descarga el comprobante, registra la devolución de esa salida; Administración ve el
 // ingreso con costos y el comercial no.
-// También abre la cámara del POS (simulada) para cuidar que la cabecera Permissions-Policy la permita.
+// También abre la cámara (simulada) en el POS y en el producto nuevo del ingreso, para cuidar que la cabecera
+// Permissions-Policy la permita.
 import { type Browser, expect, type Page, test } from "@playwright/test";
 import { storageFor } from "./users";
 
@@ -170,4 +171,35 @@ test("el POS abre la cámara para escanear", async ({ browser }) => {
     )
     .toBeGreaterThan(0);
   await expect(dialog.getByRole("alert")).toHaveCount(0);
+  // POR QUÉ: cerrar la ventana suelta la cámara simulada; si no, la prueba siguiente la encuentra ocupada.
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await context.close();
+});
+
+test("el producto nuevo del ingreso lee su código con la cámara", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    storageState: storageFor("almacen"),
+    permissions: ["camera"],
+  });
+  const page = await context.newPage();
+  await page.goto("/inventario/ingresos/nuevo?almacen=LP");
+  await page.getByRole("button", { name: "Producto nuevo" }).click();
+  await page
+    .getByRole("button", { name: "Leer el código con la cámara" })
+    .click();
+  // El diálogo de la cámara se abre encima del de la línea.
+  const camera = page.getByRole("dialog", {
+    name: "Leer el código con la cámara",
+  });
+  await expect(camera.getByText("Buscando un código…")).toBeVisible();
+  await expect
+    .poll(() =>
+      camera.locator("video").evaluate((v: HTMLVideoElement) => v.videoWidth),
+    )
+    .toBeGreaterThan(0);
+  await expect(camera.getByRole("alert")).toHaveCount(0);
+  await context.close();
 });

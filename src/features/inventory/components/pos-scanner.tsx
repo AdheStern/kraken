@@ -5,9 +5,9 @@
 
 import { ScanLine } from "lucide-react";
 import { type RefObject, useRef, useState } from "react";
+import { CameraScanDialog } from "@/components/scan/camera-scan-dialog";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { CameraScanDialog } from "./camera-scan-dialog";
 
 type Props = {
   onScan: (text: string) => { ok: boolean; message: string };

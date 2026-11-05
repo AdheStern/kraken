@@ -1,6 +1,6 @@
-// src/features/inventory/components/camera-scan-dialog.tsx
+// src/components/scan/camera-scan-dialog.tsx
 // Escaneo con la cámara del equipo (AGENTS.md §2.8): alternativa al lector físico. Lee de forma continua para
-// pasar varios seriales sin cerrar, y cada lectura entra por el mismo camino que el lector.
+// pasar varios seriales sin cerrar, o una sola vez (`once`) para llenar un campo, como el código de un producto.
 "use client";
 
 import type { IScannerControls } from "@zxing/browser";
@@ -22,9 +22,20 @@ import { cameraErrorMessage, startCamera } from "./camera-scanner";
 const REPEAT_PAUSE_MS = 2000;
 
 type Feedback = { ok: boolean; message: string };
-type Props = { onScan: (text: string) => Feedback };
+type Props = {
+  onScan: (text: string) => Feedback;
+  // Cierra tras la primera lectura aceptada: para llenar un campo con un solo código.
+  once?: boolean;
+  label?: string;
+  triggerClassName?: string;
+};
 
-export function CameraScanDialog({ onScan }: Props) {
+export function CameraScanDialog({
+  onScan,
+  once = false,
+  label = "Escanear con la cámara",
+  triggerClassName = "h-14 px-4",
+}: Props) {
   const [open, setOpen] = useState(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -33,8 +44,8 @@ export function CameraScanDialog({ onScan }: Props) {
           <Button
             type="button"
             variant="outline"
-            className="h-14 px-4"
-            aria-label="Escanear con la cámara"
+            className={triggerClassName}
+            aria-label={label}
           />
         }
       >
@@ -43,19 +54,26 @@ export function CameraScanDialog({ onScan }: Props) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Escanear con la cámara</DialogTitle>
+          <DialogTitle>{label}</DialogTitle>
           <DialogDescription>
-            Apunta al código de barras o QR. Puedes escanear varios seguidos;
-            cierra cuando termines.
+            {once
+              ? "Apunta al código de barras o QR; la ventana se cierra al leerlo."
+              : "Apunta al código de barras o QR. Puedes escanear varios seguidos; cierra cuando termines."}
           </DialogDescription>
         </DialogHeader>
-        <CameraView onScan={onScan} />
+        <CameraView
+          onScan={(text) => {
+            const result = onScan(text);
+            if (once && result.ok) setOpen(false);
+            return result;
+          }}
+        />
       </DialogContent>
     </Dialog>
   );
 }
 
-function CameraView({ onScan }: Props) {
+function CameraView({ onScan }: Pick<Props, "onScan">) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const lastRef = useRef({ text: "", at: 0 });
   const [error, setError] = useState<string | null>(null);

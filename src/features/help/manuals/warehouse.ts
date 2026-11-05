@@ -21,7 +21,7 @@ export const WAREHOUSE_MANUAL: Manual = {
       heading: "Ingresos",
       steps: [
         "Inventario → Registrar ingreso: origen (compra local, importación o inventario inicial), PO y el costo de cada línea (puede ser 0).",
-        "Toca cada producto del catálogo y escribe cantidad, costo y seriales; «Producto nuevo» crea uno «por revisar» para Administración.",
+        "Toca cada producto del catálogo y escribe cantidad, costo y seriales; «Producto nuevo» crea uno «por revisar» para Administración. El código y los seriales se pueden leer con la cámara.",
         "Para cargas grandes, usa la pestaña «Pegar desde Excel».",
         "Los productos serializados entran con un serial por unidad.",
       ],

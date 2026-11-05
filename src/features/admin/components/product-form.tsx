@@ -1,10 +1,12 @@
 // src/features/admin/components/product-form.tsx
-// Ficha de un producto: código, descripción, tecnología, unidad, tipo y si lleva serial (AGENTS.md §2.1, §2.8).
+// Ficha de un producto: código (escrito o leído con la cámara), descripción, tecnología, unidad, tipo y si lleva
+// serial (AGENTS.md §2.1, §2.8).
 "use client";
 
 import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { useMarkCreated } from "@/components/forms/fresh-after-create";
+import { CameraScanDialog } from "@/components/scan/camera-scan-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -34,7 +36,7 @@ export function ProductForm({ product, options }: Props) {
     isSerialized: product?.isSerialized ?? false,
   });
   const set = (patch: Partial<typeof draft>) =>
-    setDraft({ ...draft, ...patch });
+    setDraft((current) => ({ ...current, ...patch }));
 
   async function save() {
     setSaved(false);
@@ -58,11 +60,23 @@ export function ProductForm({ product, options }: Props) {
         save();
       }}
     >
-      <LabeledInput
-        label="Código"
-        value={draft.code}
-        onChange={(code) => set({ code })}
-      />
+      <div className="flex items-end gap-2">
+        <LabeledInput
+          label="Código"
+          value={draft.code}
+          onChange={(code) => set({ code })}
+          className="flex-1"
+        />
+        <CameraScanDialog
+          once
+          label="Leer el código con la cámara"
+          triggerClassName="h-9 px-3"
+          onScan={(text) => {
+            set({ code: text });
+            return { ok: true, message: `Código leído: ${text}` };
+          }}
+        />
+      </div>
       <LabeledSelect
         label="Tipo"
         value={draft.itemType}

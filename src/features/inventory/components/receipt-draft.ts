@@ -38,3 +38,15 @@ export function removeReceiptRow(
   const rest = rows.filter((r) => !sameCode(r, code));
   return rest.length > 0 ? rest : [EMPTY_ROW];
 }
+
+// REGLA: un serial no se repite en el ingreso (parseReceiptRows); la cámara lee el mismo código muchas veces.
+export function appendSerial(
+  serials: string,
+  serial: string,
+): { serials: string; added: boolean } {
+  const value = serial.trim();
+  const current = serials.split(/[\s,;]+/).filter(Boolean);
+  if (!value || current.some((s) => s.toUpperCase() === value.toUpperCase()))
+    return { serials, added: false };
+  return { serials: [...current, value].join("\n"), added: true };
+}

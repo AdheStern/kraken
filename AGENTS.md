@@ -497,7 +497,7 @@ model HourMovement {
 | Jobs | pg-boss en un proceso `worker` |
 | Excel | ExcelJS |
 | PDF (comprobante del POS) | pdf-lib (fuentes estándar embebidas; solo genera) |
-| Lectura con cámara (POS, traspasos, conteo) | `@zxing/browser` + `@zxing/library` 0.21 (código de barras y QR; se carga al abrir la cámara). La 0.23 registra un aviso por cuadro |
+| Lectura con cámara (POS, traspasos, conteo, código de un producto nuevo y seriales del ingreso) | `@zxing/browser` + `@zxing/library` 0.21 (código de barras y QR; se carga al abrir la cámara), en `src/components/scan/` para que la usen inventario y administración. La 0.23 registra un aviso por cuadro |
 | Texto enriquecido (lecciones aprendidas) | Tiptap (`@tiptap/react`, `starter-kit`, `markdown`) con una barra propia de botones shadcn; shadcn no trae editor |
 | Correo | Cliente de Microsoft Graph app-only |
 | Paquetes | pnpm |

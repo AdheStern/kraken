@@ -4,6 +4,7 @@
 "use client";
 
 import { useState } from "react";
+import { CameraScanDialog } from "@/components/scan/camera-scan-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,6 +21,7 @@ import {
   parseReceiptRows,
   type ReceiptDraftRow,
 } from "@/domain/inventory/parse-receipt-rows";
+import { appendSerial } from "./receipt-draft";
 
 // `isNew`: el código no está en el catálogo; se crea «por revisar» para Administración.
 export type ReceiptItemDraft = {
@@ -86,14 +88,27 @@ function ItemFields({
       </DialogHeader>
       {draft.isNew && (
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Código">
-            <Input
-              autoFocus
-              value={row.code}
-              onChange={(e) => set({ code: e.target.value })}
-              className="h-12 font-mono"
+          <div className="flex items-end gap-2">
+            <div className="flex-1">
+              <Field label="Código">
+                <Input
+                  autoFocus
+                  value={row.code}
+                  onChange={(e) => set({ code: e.target.value })}
+                  className="h-12 font-mono"
+                />
+              </Field>
+            </div>
+            <CameraScanDialog
+              once
+              label="Leer el código con la cámara"
+              triggerClassName="h-12 px-3"
+              onScan={(text) => {
+                set({ code: text });
+                return { ok: true, message: `Código leído: ${text}` };
+              }}
             />
-          </Field>
+          </div>
           <Field label="Descripción">
             <Input
               value={row.description}
@@ -125,15 +140,28 @@ function ItemFields({
         </Field>
       </div>
       {(draft.isSerialized || draft.isNew) && (
-        <Field label="Seriales (uno por línea, o separados por coma)">
-          <Textarea
-            autoFocus={draft.isSerialized && !draft.isNew}
-            rows={4}
-            value={row.serials}
-            onChange={(e) => set({ serials: e.target.value })}
-            className="font-mono"
+        <div className="grid gap-2">
+          <Field label="Seriales (uno por línea, o separados por coma)">
+            <Textarea
+              autoFocus={draft.isSerialized && !draft.isNew}
+              rows={4}
+              value={row.serials}
+              onChange={(e) => set({ serials: e.target.value })}
+              className="font-mono"
+            />
+          </Field>
+          <CameraScanDialog
+            label="Leer seriales con la cámara"
+            triggerClassName="h-12 w-full"
+            onScan={(text) => {
+              const next = appendSerial(row.serials, text);
+              if (!next.added)
+                return { ok: false, message: `El serial ${text} ya está.` };
+              set({ serials: next.serials });
+              return { ok: true, message: `Serial ${text} agregado.` };
+            }}
           />
-        </Field>
+        </div>
       )}
       <p
         className={

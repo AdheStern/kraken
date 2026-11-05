@@ -20,6 +20,7 @@ import { OpeningBalanceBadge } from "@/features/sales-control/components/opening
 import { ApprovalPanel } from "@/features/sales-control/components/versions/approval-panel";
 import { BagEffectsNote } from "@/features/sales-control/components/versions/bag-effects-note";
 import { CvVersionBar } from "@/features/sales-control/components/versions/cv-version-bar";
+import type { RenewableLine } from "@/features/sales-control/components/versions/renew-cv-dialog";
 import { VersionHistory } from "@/features/sales-control/components/versions/version-history";
 import { getCvContactOptions } from "@/features/sales-control/queries/get-cv-contact-options";
 import { getCvEditor } from "@/features/sales-control/queries/get-cv-editor";
@@ -27,7 +28,10 @@ import { getCvFormOptions } from "@/features/sales-control/queries/get-cv-form-o
 import { getCvGridOptions } from "@/features/sales-control/queries/get-cv-grid-options";
 import { getCvHoursView } from "@/features/sales-control/queries/get-cv-hours-view";
 import { getCvLeasing } from "@/features/sales-control/queries/get-cv-leasing";
-import { getCvLines } from "@/features/sales-control/queries/get-cv-lines";
+import {
+  type CvLinesDraft,
+  getCvLines,
+} from "@/features/sales-control/queries/get-cv-lines";
 import type { CvEditorData } from "@/features/sales-control/types";
 import { canCreateCv } from "@/server/authz/cv-permissions";
 import { getDecimalParameter } from "@/server/parameters";
@@ -77,7 +81,7 @@ async function CvEditor({
   params,
   searchParams,
 }: Pick<PageProps<"/cv/[id]">, "params" | "searchParams">) {
-  const [{ id }, { v }] = await Promise.all([params, searchParams]);
+  const [{ id }, { v, renovar }] = await Promise.all([params, searchParams]);
   const user = await requireUser();
   const editor = await loadCvEditor(user, id, toVersionNumber(v));
   if (!editor) {
@@ -124,7 +128,14 @@ async function CvEditor({
         <CvStatusBadge status={header.status} />
         {header.isOpeningBalance && <OpeningBalanceBadge />}
         <div className="ml-auto">
-          <CvVersionBar editor={editor} canDuplicate={canCreateCv(user)} />
+          <CvVersionBar
+            editor={editor}
+            canDuplicate={canCreateCv(user)}
+            renewable={
+              header.status === "APROBADA" ? renewableLines(lines.lines) : []
+            }
+            openRenewal={renovar === "1"}
+          />
         </div>
         <p className="basis-full text-sm text-muted-foreground">
           {header.title} · {header.customerName} · {header.cityName}
@@ -206,4 +217,19 @@ function EditorSkeleton() {
 
 function toVersionNumber(v: string | string[] | undefined): number | undefined {
   return Number.isInteger(Number(v)) ? Number(v) : undefined;
+}
+
+function renewableLines(lines: CvLinesDraft["lines"]): RenewableLine[] {
+  return lines.flatMap((line) =>
+    line.kind === "ITEM" && line.id && line.coverageEnd
+      ? [
+          {
+            id: line.id,
+            description: line.description,
+            coverageStart: line.coverageStart,
+            coverageEnd: line.coverageEnd,
+          },
+        ]
+      : [],
+  );
 }

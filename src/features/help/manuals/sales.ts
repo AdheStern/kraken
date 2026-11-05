@@ -12,6 +12,7 @@ export const SALES_MANUAL: Manual = {
       steps: [
         "Control de Venta → Nuevo Control de Venta. El número (por ejemplo 132LP-26) se asigna al crearlo y nunca se reutiliza.",
         "Para los CV mensuales de licencias o Azure, abre uno anterior y usa Duplicar.",
+        "Para renovar soporte, suscripciones o licencias, abre el CV aprobado y usa Renovar (o «Renovar» en las renovaciones próximas del tablero): eliges las líneas con vigencia y nace un CV nuevo con sus precios y la vigencia del periodo siguiente. Kraken te avisa 60 y 15 días antes de que venzan.",
         "En la cabecera completa el contacto, el cliente final, la orden de compra y los TC de costo y de venta. El contacto se elige entre los registrados del cliente (Administración → Clientes) y llena nombre, correo y teléfono, que puedes corregir. El TC oficial del BCB es solo referencia: si te desvías mucho verás un aviso.",
       ],
       link: { href: "/cv", label: "Ir a Control de Venta" },

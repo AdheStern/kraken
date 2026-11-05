@@ -90,8 +90,17 @@ export function SalesFollowup({ pipeline, approvals, renewals }: Props) {
                 >
                   {item.customerName} · {item.description}
                 </Link>
-                <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-                  {item.daysLeft} d
+                <span className="flex shrink-0 items-baseline gap-2">
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {item.daysLeft} d
+                  </span>
+                  <Link
+                    href={`/cv/${item.cvId}?renovar=1`}
+                    className="text-xs font-medium text-primary hover:underline"
+                    aria-label={`Renovar ${item.description} de ${item.customerName}`}
+                  >
+                    Renovar
+                  </Link>
                 </span>
               </li>
             ))}

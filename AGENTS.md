@@ -154,7 +154,7 @@ Los datos de cliente y cliente final se copian en cada versión (snapshot).
 
 **Sección de leasing o arrendamiento:** se mantiene aunque se use poco. Es una lista separada (proveedor, línea, código, descripción, cantidad, costo, notas, PO#) con su propio total de costo. No afecta la venta. Se exporta en su bloque.
 
-**Productividad:** *Duplicar CV* (número nuevo; para los CV mensuales de licencias y Azure) · *Pegar desde Excel* en la grilla.
+**Productividad:** *Duplicar CV* (número nuevo; para los CV mensuales de licencias y Azure) · *Renovar* (decisión 2026-11-05): desde la versión aprobada, un CV nuevo solo con las líneas con vigencia elegidas, sus precios, sin PO, activación, seriales ni leasing, y la vigencia del periodo siguiente (`shiftCoverage`: por meses si el periodo son meses completos, si no por días) · *Pegar desde Excel* en la grilla.
 
 ### 2.2 Factor, precio y tipo de cambio
 
@@ -615,7 +615,7 @@ type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { code: Error
 ```
 
 **Actions:**
-- CV: `createCv`, `duplicateCv`, `updateCvHeader`, `upsertCvLines`, `upsertCvLeasing`, `submitCvVersion`, `decideApproval`, `createCvVersion`, `voidCv`, `updatePostSaleDetails` (datos posventa, §2.3). El factor por lote o tecnología se aplica en el editor (`applyFactorToDrafts`) y lo recalcula y valida `upsertCvLines` al guardar.
+- CV: `createCv`, `duplicateCv`, `createRenewalCv`, `updateCvHeader`, `upsertCvLines`, `upsertCvLeasing`, `submitCvVersion`, `decideApproval`, `createCvVersion`, `voidCv`, `updatePostSaleDetails` (datos posventa, §2.3). El factor por lote o tecnología se aplica en el editor (`applyFactorToDrafts`) y lo recalcula y valida `upsertCvLines` al guardar.
 - Horas: `adjustHourBag`, `closeHourBag`, `applyPendingHours`
 - Tickets: `createTicket`, `assignOwner`, `setTicketBags`, `createSubtask`, `updateSubtask`, `addComment`, `createProject`, `startTimer`, `pauseTimer`, `resumeTimer`, `stopTimer`, `addManualTimeEntry`, `deleteTimeEntry`, `changeTicketStatus`, `closeTicket`, `reopenTicket`, `setProjectStatus`, `uploadTicketAttachment`, `deleteTicketAttachment`; solicitudes: `createTicketRequest`, `discardTicketRequest`, `withdrawTicketRequest` (`createTicket` recibe `requestId` y la enlaza)
 - Inventario: `registerReceipt`, `dispatchItems`, `returnItems`, `findDispatchTicket`, `createTransfer`, `sendTransfer`, `receiveTransfer`, `cancelTransfer`, `requestAdjustment`, `requestManualAdjustment`, `decideAdjustment`, `submitInventoryCount`; almacenes: `upsertWarehouse`, `setWarehouseActive`

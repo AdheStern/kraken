@@ -1,5 +1,6 @@
 // src/features/sales-control/components/versions/cv-version-bar.tsx
-// Acciones de la versión: elegir versión, abrir una nueva (con motivo), anular, comparar, exportar y duplicar.
+// Acciones de la versión: elegir versión, abrir una nueva (con motivo), anular, comparar, exportar, renovar y
+// duplicar.
 // Solo aparecen las acciones que la máquina de estados permite (AGENTS.md §8).
 "use client";
 
@@ -17,13 +18,22 @@ import { voidCv } from "../../actions/void-cv";
 import type { CvEditorData } from "../../types";
 import { DuplicateCvButton } from "../duplicate-cv-button";
 import { ReasonDialog } from "./reason-dialog";
+import { type RenewableLine, RenewCvDialog } from "./renew-cv-dialog";
 
 type Props = {
   editor: CvEditorData;
   canDuplicate: boolean;
+  // Líneas con vigencia de la versión aprobada que se muestra; vacío si no se puede renovar.
+  renewable: RenewableLine[];
+  openRenewal: boolean;
 };
 
-export function CvVersionBar({ editor, canDuplicate }: Props) {
+export function CvVersionBar({
+  editor,
+  canDuplicate,
+  renewable,
+  openRenewal,
+}: Props) {
   const router = useRouter();
   const { header, versions, versionNumber, isLatest, latestStatus, canManage } =
     editor;
@@ -109,6 +119,13 @@ export function CvVersionBar({ editor, canDuplicate }: Props) {
           destructive
           onConfirm={(reason) => voidCv({ cvId: header.cvId, reason })}
           onDone={() => router.refresh()}
+        />
+      )}
+      {canDuplicate && renewable.length > 0 && (
+        <RenewCvDialog
+          cvId={header.cvId}
+          lines={renewable}
+          autoOpen={openRenewal}
         />
       )}
       {canDuplicate && <DuplicateCvButton cvId={header.cvId} />}

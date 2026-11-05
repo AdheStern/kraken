@@ -143,7 +143,7 @@ Los datos de cliente y cliente final se copian en cada versión (snapshot).
 | Unidad, cantidad | Unidad del catálogo (`HORAS`, `MESES`, `PIEZA`, `UNIDAD`, `METROS`, `ROLLO`…). Cantidad con hasta 2 decimales. |
 | Costo, factor, precio | Ver 2.2. |
 | Seriales | Lista por línea. |
-| Vigencia | Inicio y fin para soporte, suscripciones y licencias → tablero de renovaciones. |
+| Vigencia | Inicio y fin para soporte, suscripciones y licencias → tablero de renovaciones y aviso de renovación a los vendedores del CV y al gerente del área de la línea, a los días del parámetro `cv.aviso_renovacion_dias` (60 y 15), una vez por linaje y umbral (decisión 2026-11-05). |
 | Rango de activación | Solo si el tipo es `INTANGIBLE` (licencias): inicio y fin en que se activarán, opcional. Es distinto de la vigencia (cuánto dura). Va antes de Observaciones; al cambiar de tipo se borra. En el Excel, renglón «Activación: dd/mm/aaaa – dd/mm/aaaa» de Observaciones (decisión 2026-10-30). |
 | PO#, observaciones | Orden de compra al proveedor, notas técnicas. Las observaciones admiten varias líneas (Alt+Enter, como en Excel). |
 | Línea de nota | `kind = NOTA`, sin importe ("Initial Term - 36 Months…"). Se exporta como fila de texto. |
@@ -636,6 +636,7 @@ type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { code: Error
 | `sla.evaluate` | Cada 5 min | Recalcula el SLA de los tickets abiertos y avisa al 75% (implementado) |
 | `timers.stale` | Cada 30 min | Contadores abiertos más de 10 h, un aviso por registro al ingeniero y al encargado (implementado) |
 | `approvals.reminder` | 09:00 de lunes a viernes, salvo feriado nacional | Un aviso por aprobador con sus solicitudes pendientes de más de 24 h y la antigüedad de la más vieja; una vez por día (`recordado_en`) (implementado) |
+| `renewals.notify` | 07:00 diario (America/La_Paz) | Líneas de versiones aprobadas vigentes (sin saldo inicial ni anulados) cuya vigencia cruza un umbral de `cv.aviso_renovacion_dias`: un aviso por CV a vendedores y gerentes del área; `cv.aviso_renovacion` evita repetirlo por linaje (implementado) |
 | `security.watch` | Cada 5 min | Sobre el tramo de 5 min cerrado: avisa a los administradores del sistema (bandeja y correo) cuando una cuenta cruza 5 contraseñas fallidas en 15 min y de cada inicio de sesión con contraseña de la cuenta de emergencia; lee `audit.evento` (ISO 27001 A.8.16, decisión 2026-11-04; implementado) |
 
 **Códigos de error:** `UNAUTHENTICATED`, `FORBIDDEN`, `VALIDATION`, `NOT_FOUND`, `CONFLICT`, `INVALID_STATE`, `INSUFFICIENT_BALANCE`, `INSUFFICIENT_STOCK`, `EXTERNAL_UNAVAILABLE`, `INTERNAL`. La interfaz traduce cada código a un mensaje que dice qué hacer.

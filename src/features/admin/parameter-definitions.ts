@@ -7,6 +7,7 @@ import { z } from "zod";
 
 export const PARAMETER_KEYS = [
   "cv.umbral_gg_usd",
+  "cv.aviso_renovacion_dias",
   "fx.desvio_max_pct",
   "horas.alerta_consumo_pct",
   "horas.aviso_vencimiento_dias",
@@ -53,6 +54,22 @@ const percentList = z
   )
   .transform((list) => [...new Set(list)].sort((a, b) => a - b));
 
+const dayList = z
+  .string()
+  .transform((v) =>
+    v
+      .split(/[,;\s]+/)
+      .filter(Boolean)
+      .map(Number),
+  )
+  .refine(
+    (list) =>
+      list.length > 0 &&
+      list.every((n) => Number.isInteger(n) && n >= 1 && n <= 365),
+    "Escribe días enteros entre 1 y 365, separados por comas (60, 15).",
+  )
+  .transform((list) => [...new Set(list)].sort((a, b) => b - a));
+
 export const PARAMETER_DEFINITIONS: Record<ParameterKey, ParameterDefinition> =
   {
     "cv.umbral_gg_usd": {
@@ -64,6 +81,13 @@ export const PARAMETER_DEFINITIONS: Record<ParameterKey, ParameterDefinition> =
         100_000_000,
         "Escribe un monto en USD mayor a 0, con hasta 2 decimales.",
       ),
+    },
+    "cv.aviso_renovacion_dias": {
+      label: "Aviso de renovación",
+      help: "Días antes del fin de vigencia de una línea (soporte, suscripción, licencia) en que se avisa a los vendedores del CV y al gerente del área; uno por cada número.",
+      unit: "días",
+      placeholder: "60, 15",
+      parse: dayList,
     },
     "fx.desvio_max_pct": {
       label: "Desvío máximo del tipo de cambio",

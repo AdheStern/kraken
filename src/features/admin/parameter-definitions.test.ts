@@ -31,6 +31,14 @@ describe("parámetros del sistema", () => {
     expect(parse("horas.alerta_consumo_pct", "80.5").success).toBe(false);
   });
 
+  it("los avisos de renovación son días enteros, sin repetir y de mayor a menor", () => {
+    expect(parse("cv.aviso_renovacion_dias", "15, 60 15").data).toEqual([
+      60, 15,
+    ]);
+    expect(parse("cv.aviso_renovacion_dias", "0").success).toBe(false);
+    expect(parse("cv.aviso_renovacion_dias", "400").success).toBe(false);
+  });
+
   it("el aviso de vencimiento son días enteros entre 1 y 365", () => {
     expect(parse("horas.aviso_vencimiento_dias", "30").data).toBe(30);
     expect(parse("horas.aviso_vencimiento_dias", "0").success).toBe(false);

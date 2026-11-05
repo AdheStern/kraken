@@ -113,3 +113,15 @@ model CvLeasingLine {
   @@map("leasing_linea")
   @@schema("cv")
 }
+
+// POR QUÉ: un aviso por linaje (no por línea) para que una versión nueva del CV no repita el aviso (§2.1 Vigencia).
+model CvRenewalNotice {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  originLineId String   @map("linea_origen_id") @db.Uuid
+  days         Int      @map("dias")
+  sentAt       DateTime @default(now()) @map("enviado_en") @db.Timestamptz
+
+  @@unique([originLineId, days])
+  @@map("aviso_renovacion")
+  @@schema("cv")
+}

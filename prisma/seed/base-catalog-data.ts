@@ -80,6 +80,12 @@ export const PARAMETERS = [
       "% de desvío del TC ingresado frente al oficial que dispara la advertencia",
   },
   {
+    key: "cv.aviso_renovacion_dias",
+    value: [60, 15],
+    description:
+      "Días antes del fin de vigencia de una línea en que se avisa su renovación (lista)",
+  },
+  {
     key: "horas.alerta_consumo_pct",
     value: [80, 100],
     description: "% de consumo de una bolsa que dispara un aviso (lista)",

@@ -9,6 +9,7 @@ export const NOTIFICATION_EVENTS = {
   CV_NUEVA_VERSION: "Nueva versión de un CV",
   CV_ANULADO: "CV anulado",
   CV_RECORDATORIO: "CV que siguen esperando tu aprobación",
+  CV_RENOVACION: "Una vigencia de un CV está por vencer",
   BOLSA_UMBRAL: "Una bolsa de horas superó un umbral de consumo",
   BOLSA_AGOTADA: "Una bolsa de horas se agotó",
   BOLSA_AJUSTADA: "Ajuste manual de una bolsa de horas",

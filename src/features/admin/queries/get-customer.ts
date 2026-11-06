@@ -1,11 +1,15 @@
 // src/features/admin/queries/get-customer.ts
-// Un cliente con todos sus contactos y sus sucursales (activos primero), para su ficha en la administración.
-// LIMITACIÓN: sin alcance por usuario; la página solo se abre con canManageCommercialCatalogs.
+// Un cliente con sus sucursales y los contactos que el usuario ve (activos primero), para su ficha.
+import type { SessionUser } from "@/server/authz/roles";
+import { scopeContactQuery } from "@/server/authz/scope-contact-query";
 import { prisma } from "@/server/db";
 import type { CustomerDetail } from "../types";
 import { CONTACT_SELECT, toContactView } from "./contact-view";
 
-export async function getCustomer(id: string): Promise<CustomerDetail | null> {
+export async function getCustomer(
+  user: SessionUser,
+  id: string,
+): Promise<CustomerDetail | null> {
   const customer = await prisma.customer.findUnique({
     where: { id },
     select: {
@@ -30,6 +34,7 @@ export async function getCustomer(id: string): Promise<CustomerDetail | null> {
         },
       },
       contacts: {
+        where: scopeContactQuery(user),
         orderBy: [{ isActive: "desc" }, { name: "asc" }],
         select: CONTACT_SELECT,
       },

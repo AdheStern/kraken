@@ -55,8 +55,8 @@ const ITEMS: Record<NavKey, { href: string; label: string; icon: LucideIcon }> =
     },
     aprobaciones: { href: "/aprobaciones", label: "Aprobaciones", icon: Stamp },
     contactos: {
-      href: "/clientes/contactos",
-      label: "Contactos",
+      href: "/clientes",
+      label: "Clientes",
       icon: BookUser,
     },
     admin: {

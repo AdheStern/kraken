@@ -3,7 +3,6 @@
 // clientes, hasta 5 por grupo. REGLA: cada grupo pasa por su alcance (regla 7) y solo aparece si el rol lo ve.
 // POR QUÉ: el CV se busca por número y cliente, no por título: el título de un borrador no lo ve Administración.
 
-import { canManageCommercialCatalogs } from "@/server/authz/admin-permissions";
 import { canBrowseContacts } from "@/server/authz/contact-permissions";
 import { canListCvs } from "@/server/authz/cv-permissions";
 import { canUseDocumentation } from "@/server/authz/documentation-permissions";
@@ -34,7 +33,7 @@ export async function searchEverything(
   if (canSeeTickets(user)) groups.push(await tickets(user, query, q, false));
   if (canSeeInventory(user)) groups.push(...(await inventory(q)));
   if (canUseDocumentation(user)) groups.push(await docProjects(user, q));
-  if (canManageCommercialCatalogs(user)) groups.push(await customers(q));
+  if (canBrowseContacts(user)) groups.push(await customers(q));
   if (canBrowseContacts(user)) groups.push(await searchContacts(user, query));
   return groups.filter((g) => g.items.length > 0);
 }
@@ -154,7 +153,7 @@ async function customers(q: Match): Promise<SearchGroup> {
   });
   return group(
     "Clientes",
-    rows.map((r) => item(r.id, r.name, r.taxId, `/admin/clientes/${r.id}`)),
+    rows.map((r) => item(r.id, r.name, r.taxId, `/clientes/${r.id}`)),
   );
 }
 

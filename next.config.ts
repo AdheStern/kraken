@@ -70,9 +70,18 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
-  // POR QUÉ: el inicio de cada rol vive en /inicio (AGENTS.md §5); la raíz solo redirige.
+  // POR QUÉ: el inicio de cada rol vive en /inicio (AGENTS.md §5); la raíz solo redirige. Los clientes salieron
+  // de Administración (decisión 2026-11-06); los enlaces guardados siguen llegando.
   async redirects() {
-    return [{ source: "/", destination: "/inicio", permanent: false }];
+    return [
+      { source: "/", destination: "/inicio", permanent: false },
+      { source: "/admin/clientes", destination: "/clientes", permanent: true },
+      {
+        source: "/admin/clientes/:path*",
+        destination: "/clientes/:path*",
+        permanent: true,
+      },
+    ];
   },
 };
 

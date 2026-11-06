@@ -42,7 +42,7 @@ export const ADMIN_GROUPS: readonly AdminGroup[] = [
         "clientes",
         "Clientes",
         "Datos, NIT y contactos de cada cliente.",
-        "/admin/clientes",
+        "/clientes",
         "commercial",
       ),
       section(

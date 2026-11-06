@@ -1,5 +1,6 @@
 // src/features/admin/components/branches-panel.tsx
-// Sucursales o subdirecciones de un cliente en otras ciudades: alta, edición y baja (decisión 2026-11-06).
+// Sucursales o subdirecciones de un cliente en otras ciudades: alta, edición y baja para quien gestiona clientes;
+// el resto solo las ve (decisión 2026-11-06).
 "use client";
 
 import { MapPin, Pencil, Plus } from "lucide-react";
@@ -15,24 +16,32 @@ type Props = {
   customerId: string;
   branches: CustomerBranchView[];
   municipalities: CustomerFormOptions["municipalities"];
+  canManage: boolean;
 };
 
-export function BranchesPanel({ customerId, branches, municipalities }: Props) {
+export function BranchesPanel({
+  customerId,
+  branches,
+  municipalities,
+  canManage,
+}: Props) {
   const { isPending, error, run } = useAdminAction();
   return (
     <div className="grid gap-3">
-      <div className="flex justify-end">
-        <BranchDialog
-          customerId={customerId}
-          municipalities={municipalities}
-          trigger={
-            <Button size="sm">
-              <Plus aria-hidden="true" />
-              Nueva sucursal
-            </Button>
-          }
-        />
-      </div>
+      {canManage && (
+        <div className="flex justify-end">
+          <BranchDialog
+            customerId={customerId}
+            municipalities={municipalities}
+            trigger={
+              <Button size="sm">
+                <Plus aria-hidden="true" />
+                Nueva sucursal
+              </Button>
+            }
+          />
+        </div>
+      )}
       {error && (
         <p role="alert" className="text-sm text-destructive">
           {error}
@@ -68,35 +77,39 @@ export function BranchesPanel({ customerId, branches, municipalities }: Props) {
                     .join(" · ") || "Sin dirección"}
                 </p>
               </div>
-              <BranchDialog
-                customerId={customerId}
-                branch={b}
-                municipalities={municipalities}
-                trigger={
+              {canManage && (
+                <>
+                  <BranchDialog
+                    customerId={customerId}
+                    branch={b}
+                    municipalities={municipalities}
+                    trigger={
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Editar ${b.name}`}
+                      >
+                        <Pencil aria-hidden="true" />
+                      </Button>
+                    }
+                  />
                   <Button
                     variant="ghost"
-                    size="icon"
-                    aria-label={`Editar ${b.name}`}
+                    size="sm"
+                    disabled={isPending}
+                    onClick={() =>
+                      run(() =>
+                        setCustomerBranchActive({
+                          id: b.id,
+                          isActive: !b.isActive,
+                        }),
+                      )
+                    }
                   >
-                    <Pencil aria-hidden="true" />
+                    {b.isActive ? "Dar de baja" : "Reactivar"}
                   </Button>
-                }
-              />
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={isPending}
-                onClick={() =>
-                  run(() =>
-                    setCustomerBranchActive({
-                      id: b.id,
-                      isActive: !b.isActive,
-                    }),
-                  )
-                }
-              >
-                {b.isActive ? "Dar de baja" : "Reactivar"}
-              </Button>
+                </>
+              )}
             </li>
           ))}
         </ul>

@@ -18,6 +18,7 @@ const REASONS: Record<MatchReason, string> = {
 type Props = {
   customerId: string;
   matches: ContactMatch[];
+  canTransfer: boolean;
   isPending: boolean;
   onPick: (match: ContactMatch) => void;
   onCreateAnyway: () => void;
@@ -26,6 +27,7 @@ type Props = {
 export function DuplicateMatches({
   customerId,
   matches,
+  canTransfer,
   isPending,
   onPick,
   onCreateAnyway,
@@ -67,7 +69,7 @@ export function DuplicateMatches({
               >
                 {isHere
                   ? "Ya es contacto aquí"
-                  : m.isActive
+                  : canTransfer && m.isActive
                     ? `Transferir desde ${m.customerName}`
                     : "Es esta persona: agregar aquí"}
               </Button>

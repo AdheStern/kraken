@@ -23,7 +23,7 @@ export function PersonHistory({
             {p.position ?? "Sin cargo"} ·{" "}
             {canManage ? (
               <Link
-                href={`/admin/clientes/${p.customerId}?pestana=contactos`}
+                href={`/clientes/${p.customerId}?pestana=contactos`}
                 className="underline-offset-4 hover:underline"
               >
                 {p.customerName}

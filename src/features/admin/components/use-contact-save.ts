@@ -1,6 +1,7 @@
 // src/features/admin/components/use-contact-save.ts
 // Guardar un contacto con el aviso de duplicados (decisión 2026-11-06): al crear se busca primero si la persona ya
-// existe; si existe se elige usarla (agregarle el puesto o transferirla) o crear otra persona.
+// existe; si existe se elige usarla (agregarle el puesto o transferirla) o crear otra persona. Transferir es de
+// quien gestiona contactos; el resto le agrega el puesto aquí (§2.9).
 "use client";
 
 import { useState } from "react";
@@ -24,10 +25,16 @@ export type ContactForm = {
 type Options = {
   customerId: string;
   contactId: string | null;
+  canTransfer: boolean;
   onDone: () => void;
 };
 
-export function useContactSave({ customerId, contactId, onDone }: Options) {
+export function useContactSave({
+  customerId,
+  contactId,
+  canTransfer,
+  onDone,
+}: Options) {
   const { isPending, error, run } = useAdminAction();
   // null = aún no se buscó; [] = se buscó y se eligió crear otra persona.
   const [matches, setMatches] = useState<ContactMatch[] | null>(null);
@@ -55,7 +62,8 @@ export function useContactSave({ customerId, contactId, onDone }: Options) {
   }
 
   async function pickMatch(match: ContactMatch, form: ContactForm) {
-    const moves = match.isActive && match.customerId !== customerId;
+    const moves =
+      canTransfer && match.isActive && match.customerId !== customerId;
     await finish(
       await run(() =>
         moves

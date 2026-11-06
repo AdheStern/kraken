@@ -21,7 +21,7 @@ const NAV_LETTERS: Partial<Record<NavKey, [string, string]>> = {
   horas: ["H", "Bolsas de horas"],
   inventario: ["N", "Inventario"],
   documentacion: ["D", "Documentación"],
-  contactos: ["O", "Contactos"],
+  contactos: ["O", "Clientes"],
   clienteInicio: ["I", "Inicio"],
   clienteTickets: ["T", "Tickets"],
   clienteBolsas: ["H", "Bolsas de horas"],

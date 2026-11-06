@@ -26,6 +26,7 @@ type Props = {
   customerId: string;
   contact?: CustomerContactView;
   options: ContactFormOptions;
+  canManage: boolean;
   trigger: ReactElement;
 };
 
@@ -40,6 +41,7 @@ export function ContactDialog({
   customerId,
   contact,
   options,
+  canManage,
   trigger,
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -60,6 +62,7 @@ export function ContactDialog({
     useContactSave({
       customerId,
       contactId: contact?.id ?? null,
+      canTransfer: canManage,
       onDone: () => setOpen(false),
     });
   const form = { ...text, ...links };
@@ -144,6 +147,7 @@ export function ContactDialog({
           <DuplicateMatches
             customerId={customerId}
             matches={matches}
+            canTransfer={canManage}
             isPending={isPending}
             onPick={(match) => pickMatch(match, form)}
             onCreateAnyway={() => createAnyway(form)}

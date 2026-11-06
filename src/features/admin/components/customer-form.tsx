@@ -1,5 +1,6 @@
 // src/features/admin/components/customer-form.tsx
-// Ficha de un cliente (razón social, NIT, rubro, tipo, contacto general y municipio): alta o edición.
+// Ficha de un cliente (razón social, NIT, rubro, tipo, contacto general y municipio): alta o edición; de solo
+// lectura para quien no gestiona clientes (decisión 2026-11-06).
 "use client";
 
 import { LoaderCircle } from "lucide-react";
@@ -37,9 +38,11 @@ const FIELDS: {
 export function CustomerForm({
   customer,
   options,
+  readOnly = false,
 }: {
   customer?: CustomerDetail;
   options: CustomerFormOptions;
+  readOnly?: boolean;
 }) {
   const { isPending, error, run } = useAdminAction();
   const markCreated = useMarkCreated();
@@ -66,7 +69,7 @@ export function CustomerForm({
         () => upsertCustomer(input),
         (data) => {
           markCreated();
-          return `/admin/clientes/${data.id}`;
+          return `/clientes/${data.id}`;
         },
       );
     setSaved(await run(() => upsertCustomer(input)));
@@ -80,41 +83,47 @@ export function CustomerForm({
         save();
       }}
     >
-      {FIELDS.map((f) => (
-        <LabeledInput
-          key={f.key}
-          label={f.label}
-          type={f.type}
-          value={draft[f.key]}
-          onChange={(value) => setDraft({ ...draft, [f.key]: value })}
-          className={f.wide ? "sm:col-span-2" : undefined}
+      <fieldset disabled={readOnly} className="contents">
+        {FIELDS.map((f) => (
+          <LabeledInput
+            key={f.key}
+            label={f.label}
+            type={f.type}
+            value={draft[f.key]}
+            onChange={(value) => setDraft({ ...draft, [f.key]: value })}
+            className={f.wide ? "sm:col-span-2" : undefined}
+          />
+        ))}
+        <CustomerClassificationFields
+          value={classification}
+          onChange={(patch) =>
+            setClassification({ ...classification, ...patch })
+          }
+          options={options}
+          legacyCity={customer?.city ?? null}
         />
-      ))}
-      <CustomerClassificationFields
-        value={classification}
-        onChange={(patch) => setClassification({ ...classification, ...patch })}
-        options={options}
-        legacyCity={customer?.city ?? null}
-      />
-      <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
-        <Button type="submit" disabled={isPending}>
-          {isPending && (
-            <LoaderCircle className="animate-spin" aria-hidden="true" />
+      </fieldset>
+      {!readOnly && (
+        <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
+          <Button type="submit" disabled={isPending}>
+            {isPending && (
+              <LoaderCircle className="animate-spin" aria-hidden="true" />
+            )}
+            {customer ? "Guardar cambios" : "Crear cliente"}
+          </Button>
+          {saved && !error && (
+            <output className="block text-sm text-muted-foreground">
+              Guardado. Un CV en borrador toma estos datos al guardar su
+              cabecera; los enviados o aprobados conservan su copia.
+            </output>
           )}
-          {customer ? "Guardar cambios" : "Crear cliente"}
-        </Button>
-        {saved && !error && (
-          <output className="block text-sm text-muted-foreground">
-            Guardado. Un CV en borrador toma estos datos al guardar su cabecera;
-            los enviados o aprobados conservan su copia.
-          </output>
-        )}
-        {error && (
-          <p role="alert" className="text-sm text-destructive">
-            {error}
-          </p>
-        )}
-      </div>
+          {error && (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
+        </div>
+      )}
     </form>
   );
 }

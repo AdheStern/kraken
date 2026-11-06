@@ -1,6 +1,6 @@
 // src/features/admin/components/contacts-panel.tsx
 // Contactos de un cliente: los puestos activos y, aparte, los anteriores (quien se fue o se dio de baja), con el
-// alta en un diálogo (decisión 2026-11-06).
+// alta en un diálogo. Exportar, editar, transferir y dar de baja, solo quien gestiona contactos (decisión 2026-11-06).
 "use client";
 
 import { FileDown, Plus } from "lucide-react";
@@ -14,24 +14,29 @@ type Props = {
   customerId: string;
   contacts: CustomerContactView[];
   options: ContactFormOptions;
+  canManage: boolean;
 };
 
-export function ContactsPanel({ customerId, contacts, options }: Props) {
+export function ContactsPanel(props: Props) {
+  const { customerId, contacts, options, canManage } = props;
   const active = contacts.filter((c) => c.isActive);
   const former = contacts.filter((c) => !c.isActive);
   return (
     <div className="grid gap-3">
       <div className="flex flex-wrap justify-end gap-2">
-        <a
-          href={`/api/customers/contacts.xlsx?cliente=${customerId}&todos=1`}
-          className={buttonVariants({ variant: "outline", size: "sm" })}
-        >
-          <FileDown aria-hidden="true" />
-          Exportar a Excel
-        </a>
+        {canManage && (
+          <a
+            href={`/api/customers/contacts.xlsx?cliente=${customerId}&todos=1`}
+            className={buttonVariants({ variant: "outline", size: "sm" })}
+          >
+            <FileDown aria-hidden="true" />
+            Exportar a Excel
+          </a>
+        )}
         <ContactDialog
           customerId={customerId}
           options={options}
+          canManage={canManage}
           trigger={
             <Button size="sm">
               <Plus aria-hidden="true" />
@@ -46,7 +51,7 @@ export function ContactsPanel({ customerId, contacts, options }: Props) {
           correo y teléfono quedan a mano para armar el CV.
         </KrakenEmpty>
       ) : (
-        <List customerId={customerId} contacts={active} options={options} />
+        <List {...props} contacts={active} />
       )}
       {former.length > 0 && (
         <section className="grid gap-2" aria-labelledby="contactos-anteriores">
@@ -56,14 +61,14 @@ export function ContactsPanel({ customerId, contacts, options }: Props) {
           >
             Anteriores · {former.length}
           </h3>
-          <List customerId={customerId} contacts={former} options={options} />
+          <List {...props} contacts={former} />
         </section>
       )}
     </div>
   );
 }
 
-function List({ customerId, contacts, options }: Props) {
+function List({ customerId, contacts, options, canManage }: Props) {
   return (
     <ul className="kr-surface divide-y divide-border/60 rounded-xl">
       {contacts.map((c) => (
@@ -72,6 +77,7 @@ function List({ customerId, contacts, options }: Props) {
           customerId={customerId}
           contact={c}
           options={options}
+          canManage={canManage}
         />
       ))}
     </ul>

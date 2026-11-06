@@ -79,7 +79,7 @@ export const SALES_TOURS = {
         element: '[aria-label="Buscar contacto"]',
         title: "Busca en todos los clientes",
         description:
-          "Por nombre, cargo, correo, teléfono, cliente o municipio («/» te trae aquí). Filtra por área o por quién lo atiende.",
+          "Por nombre, cargo, correo, teléfono, cliente o municipio («/» te trae aquí). Filtra por área o por quién lo atiende. Si no gestionas contactos, ves los de tus áreas.",
       },
       {
         element: '[data-tour="contactos-lista"]',

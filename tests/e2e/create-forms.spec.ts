@@ -20,7 +20,7 @@ test.describe("Administración", () => {
   test("al volver de la ficha del cliente creado, el alta está en blanco", async ({
     page,
   }) => {
-    await page.goto("/admin/clientes/nuevo");
+    await page.goto("/clientes/nuevo");
     await page
       .getByRole("textbox", { name: "Razón social" })
       .fill(`Cliente E2E ${STAMP}`);
@@ -29,7 +29,7 @@ test.describe("Administración", () => {
     await pick(page, "customer-industry", "Minería");
     await pick(page, "customer-municipality", "Yacuiba");
     await page.getByRole("button", { name: "Crear cliente" }).click();
-    await expect(page).toHaveURL(/\/admin\/clientes\/[0-9a-f-]{36}$/);
+    await expect(page).toHaveURL(/\/clientes\/[0-9a-f-]{36}$/);
     await expect(page.getByRole("combobox", { name: "Municipio" })).toHaveValue(
       "Yacuiba",
     );

@@ -1,5 +1,5 @@
-// src/app/(app)/admin/clientes/nuevo/page.tsx
-// Alta de un cliente; al crearlo se abre su ficha para agregar contactos.
+// src/app/(app)/clientes/nuevo/page.tsx
+// Alta de un cliente; al crearlo se abre su ficha para agregar contactos. Solo quien gestiona clientes (§2.9).
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AdminBackLink } from "@/features/admin/components/admin-back-link";
 import { CustomerForm } from "@/features/admin/components/customer-form";
 import { getCustomerFormOptions } from "@/features/admin/queries/get-customer-form-options";
-import { canManageCommercialCatalogs } from "@/server/authz/admin-permissions";
+import { canManageCustomers } from "@/server/authz/contact-permissions";
 import { requireUser } from "@/server/session";
 
 export const metadata: Metadata = { title: "Nuevo cliente" };
@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: "Nuevo cliente" };
 export default function NewCustomerPage() {
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6">
-      <AdminBackLink href="/admin/clientes" label="Clientes" />
+      <AdminBackLink href="/clientes" label="Clientes" />
       <ModuleHeading
         title="Nuevo cliente"
         description="Con la razón social basta para crearlo; el NIT evita que se registre dos veces."
@@ -31,7 +31,7 @@ export default function NewCustomerPage() {
 
 async function GuardedForm() {
   const user = await requireUser();
-  if (!canManageCommercialCatalogs(user)) notFound();
+  if (!canManageCustomers(user)) notFound();
   return (
     <FreshAfterCreate>
       <CustomerForm options={await getCustomerFormOptions()} />

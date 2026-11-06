@@ -1,6 +1,6 @@
-// src/app/(app)/admin/clientes/[id]/page.tsx
-// Ficha de un cliente en pestañas: sus datos, sus sucursales y sus contactos (AGENTS.md §5 Administración,
-// decisión 2026-11-06); ?pestana= abre una.
+// src/app/(app)/clientes/[id]/page.tsx
+// Ficha de un cliente en pestañas: sus datos, sus sucursales y sus contactos (decisión 2026-11-06); ?pestana= abre
+// una. Quien no gestiona clientes la ve de solo lectura, agrega contactos y ve los de sus áreas (§2.9).
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache, Suspense } from "react";
@@ -16,30 +16,36 @@ import { CustomerTabs } from "@/features/admin/components/customer-tabs";
 import { getContactFormOptions } from "@/features/admin/queries/get-contact-form-options";
 import { getCustomer } from "@/features/admin/queries/get-customer";
 import { getCustomerFormOptions } from "@/features/admin/queries/get-customer-form-options";
-import { canManageCommercialCatalogs } from "@/server/authz/admin-permissions";
+import {
+  canBrowseContacts,
+  canManageContacts,
+  canManageCustomers,
+} from "@/server/authz/contact-permissions";
+import type { SessionUser } from "@/server/authz/roles";
 import { requireUser } from "@/server/session";
 
 // POR QUÉ: cache() comparte la lectura entre el título de la pestaña y la página.
 const loadCustomer = cache(async (id: string) => {
   const user = await requireUser();
-  if (!canManageCommercialCatalogs(user)) return null;
-  return z.uuid().safeParse(id).success ? getCustomer(id) : null;
+  if (!canBrowseContacts(user) || !z.uuid().safeParse(id).success) return null;
+  const customer = await getCustomer(user, id);
+  return customer ? { user, customer } : null;
 });
 
 export async function generateMetadata({
   params,
-}: PageProps<"/admin/clientes/[id]">): Promise<Metadata> {
-  const customer = await loadCustomer((await params).id);
-  return { title: customer?.name ?? "Cliente" };
+}: PageProps<"/clientes/[id]">): Promise<Metadata> {
+  const loaded = await loadCustomer((await params).id);
+  return { title: loaded?.customer.name ?? "Cliente" };
 }
 
 export default function CustomerPage({
   params,
   searchParams,
-}: PageProps<"/admin/clientes/[id]">) {
+}: PageProps<"/clientes/[id]">) {
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6">
-      <AdminBackLink href="/admin/clientes" label="Clientes" />
+      <AdminBackLink href="/clientes" label="Clientes" />
       <Suspense fallback={<Skeleton className="h-96 w-full rounded-xl" />}>
         <Customer params={params} searchParams={searchParams} />
       </Suspense>
@@ -52,12 +58,14 @@ const TABS = ["datos", "sucursales", "contactos"];
 async function Customer({
   params,
   searchParams,
-}: Pick<PageProps<"/admin/clientes/[id]">, "params" | "searchParams">) {
-  const [customer, { pestana }] = await Promise.all([
+}: Pick<PageProps<"/clientes/[id]">, "params" | "searchParams">) {
+  const [loaded, { pestana }] = await Promise.all([
     params.then(({ id }) => loadCustomer(id)),
     searchParams,
   ]);
-  if (!customer) notFound();
+  if (!loaded) notFound();
+  const { user, customer } = loaded;
+  const can = permissions(user);
   const [options, contactOptions] = await Promise.all([
     getCustomerFormOptions(),
     getContactFormOptions(),
@@ -72,7 +80,12 @@ async function Customer({
             : "Dado de baja: no se ofrece en los CV nuevos. Reactívalo para volver a venderle."
         }
         actions={
-          <CustomerStatusButton id={customer.id} isActive={customer.isActive} />
+          can.manageCustomer && (
+            <CustomerStatusButton
+              id={customer.id}
+              isActive={customer.isActive}
+            />
+          )
         }
       />
       <CustomerTabs
@@ -90,6 +103,7 @@ async function Customer({
             key={customer.id}
             customer={customer}
             options={options}
+            readOnly={!can.manageCustomer}
           />
         }
         branches={
@@ -97,12 +111,14 @@ async function Customer({
             customerId={customer.id}
             branches={customer.branches}
             municipalities={options.municipalities}
+            canManage={can.manageCustomer}
           />
         }
         contacts={
           <ContactsPanel
             customerId={customer.id}
             contacts={customer.contacts}
+            canManage={can.manageContacts}
             options={{
               ...contactOptions,
               municipalities: options.municipalities,
@@ -115,4 +131,11 @@ async function Customer({
       />
     </>
   );
+}
+
+function permissions(user: SessionUser) {
+  return {
+    manageCustomer: canManageCustomers(user),
+    manageContacts: canManageContacts(user),
+  };
 }

@@ -1,6 +1,6 @@
 // src/features/admin/components/contact-row.tsx
 // Un puesto de contacto: sus datos, municipio y sucursal, áreas, quiénes lo atienden y, si ya no está, desde/hasta
-// y el motivo; se edita en un diálogo, se da de baja o se reactiva (decisión 2026-11-06).
+// y el motivo; quien gestiona contactos lo edita, transfiere, da de baja o reactiva (decisión 2026-11-06).
 "use client";
 
 import Link from "next/link";
@@ -17,9 +17,15 @@ type Props = {
   customerId: string;
   contact: CustomerContactView;
   options: ContactFormOptions;
+  canManage: boolean;
 };
 
-export function ContactRow({ customerId, contact: c, options }: Props) {
+export function ContactRow({
+  customerId,
+  contact: c,
+  options,
+  canManage,
+}: Props) {
   const { isPending, error, run } = useAdminAction();
   const details = [
     c.position,
@@ -67,7 +73,7 @@ export function ContactRow({ customerId, contact: c, options }: Props) {
             {period && <span>{period}</span>}
           </div>
         </div>
-        {c.isActive && (
+        {canManage && c.isActive && (
           <TransferContactDialog
             contact={c}
             customers={options.customers}
@@ -83,11 +89,12 @@ export function ContactRow({ customerId, contact: c, options }: Props) {
             }
           />
         )}
-        {c.isActive && (
+        {canManage && c.isActive && (
           <ContactDialog
             customerId={customerId}
             contact={c}
             options={options}
+            canManage
             trigger={
               <Button variant="ghost" size="sm" aria-label={`Editar ${c.name}`}>
                 Editar
@@ -95,19 +102,21 @@ export function ContactRow({ customerId, contact: c, options }: Props) {
             }
           />
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled={isPending}
-          aria-label={`${c.isActive ? "Dar de baja" : "Reactivar"} ${c.name}`}
-          onClick={() =>
-            run(() =>
-              setCustomerContactActive({ id: c.id, isActive: !c.isActive }),
-            )
-          }
-        >
-          {c.isActive ? "Dar de baja" : "Reactivar"}
-        </Button>
+        {canManage && (
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={isPending}
+            aria-label={`${c.isActive ? "Dar de baja" : "Reactivar"} ${c.name}`}
+            onClick={() =>
+              run(() =>
+                setCustomerContactActive({ id: c.id, isActive: !c.isActive }),
+              )
+            }
+          >
+            {c.isActive ? "Dar de baja" : "Reactivar"}
+          </Button>
+        )}
       </div>
       {error && (
         <p role="alert" className="text-sm text-destructive">

@@ -35,7 +35,7 @@ export function CustomerTable({ customers, search }: Props) {
           )}
         >
           <Link
-            href={`/admin/clientes/${c.id}`}
+            href={`/clientes/${c.id}`}
             className="truncate font-medium after:absolute after:inset-0 hover:underline"
           >
             {c.name}

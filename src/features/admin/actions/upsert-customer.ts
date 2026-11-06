@@ -5,8 +5,9 @@
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
 import { recordAudit } from "@/server/audit/record-audit";
+import { canManageCustomers } from "@/server/authz/contact-permissions";
 import { prisma, runInTransaction } from "@/server/db";
-import { guardAdmin } from "../admin-guard";
+import { guardCustomers } from "../customer-guard";
 import {
   type CustomerInput,
   customerSchema,
@@ -15,7 +16,10 @@ import {
 export async function upsertCustomer(
   input: CustomerInput,
 ): Promise<ActionResult<{ id: string }>> {
-  const { user, denied } = await guardAdmin("commercial", "clientes");
+  const { user, denied } = await guardCustomers(
+    canManageCustomers,
+    "crear o editar clientes",
+  );
   if (denied) return denied;
   const parsed = customerSchema.safeParse(input);
   if (!parsed.success)

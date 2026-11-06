@@ -1,7 +1,8 @@
 // src/features/admin/queries/find-contact-candidates.ts
 // Puestos de contacto que podrían ser la misma persona que se va a crear: mismo correo, el teléfono termina igual
 // o el nombre comparte su apellido (decisión 2026-11-06). findContactMatches decide; esto solo acota la búsqueda.
-// LIMITACIÓN: sin alcance por usuario; lo usa el alta de contactos, que exige gestionar el catálogo.
+// LIMITACIÓN: con el alcance de quien crea (regla 7): un duplicado fuera de sus áreas no se avisa; lo unifica
+// después quien gestiona contactos.
 
 import type { MatchCandidate } from "@/domain/customers/contact-matching";
 import {
@@ -9,15 +10,20 @@ import {
   normalizeEmail,
   normalizePhone,
 } from "@/domain/customers/contact-normalize";
+import type { SessionUser } from "@/server/authz/roles";
+import { scopeContactQuery } from "@/server/authz/scope-contact-query";
 import { prisma } from "@/server/db";
 
 const TAKE = 50;
 
-export async function findContactCandidates(input: {
-  name: string;
-  email: string | null;
-  phone: string | null;
-}): Promise<MatchCandidate[]> {
+export async function findContactCandidates(
+  user: SessionUser,
+  input: {
+    name: string;
+    email: string | null;
+    phone: string | null;
+  },
+): Promise<MatchCandidate[]> {
   const email = normalizeEmail(input.email);
   const phone = normalizePhone(input.phone);
   const lastName = normalizeContactName(input.name).split(" ").at(-1) ?? "";
@@ -32,7 +38,7 @@ export async function findContactCandidates(input: {
   ];
   if (or.length === 0) return [];
   const rows = await prisma.customerContact.findMany({
-    where: { OR: or },
+    where: { AND: [{ OR: or }, scopeContactQuery(user)] },
     take: TAKE,
     select: {
       id: true,

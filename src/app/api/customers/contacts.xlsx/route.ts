@@ -1,12 +1,12 @@
 // src/app/api/customers/contacts.xlsx/route.ts
 // Descarga el directorio de contactos en Excel con los mismos filtros de la pantalla: todos o los de un cliente
-// (decisión 2026-11-06). Solo quien puede ver el directorio; queda en la auditoría de accesos (ADR-14).
+// (decisión 2026-11-06). Solo quien gestiona contactos (decisión 2026-11-06); queda en la auditoría de accesos (ADR-14).
 import type { NextRequest } from "next/server";
 import { toContactFilters } from "@/features/customers/contact-filters";
 import { contactsSheet } from "@/features/customers/export/contacts-sheet";
 import { listContacts } from "@/features/customers/queries/list-contacts";
 import { recordAccess } from "@/server/audit/record-access";
-import { canBrowseContacts } from "@/server/authz/contact-permissions";
+import { canManageContacts } from "@/server/authz/contact-permissions";
 import { sheetsToXlsx } from "@/server/dashboards/sheets-to-xlsx";
 import { attachmentDisposition } from "@/server/files/attachment-disposition";
 import { getSessionUser } from "@/server/session";
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       status: 401,
     });
   // TRAMPA: sin permiso responde 404, para no revelar que existe.
-  if (!canBrowseContacts(user))
+  if (!canManageContacts(user))
     return new Response("No encontrado.", { status: 404 });
   const filters = toContactFilters(
     Object.fromEntries(request.nextUrl.searchParams),

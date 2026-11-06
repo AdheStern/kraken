@@ -8,13 +8,14 @@ import { toBusinessDate } from "@/domain/calendar/business-date";
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
 import { recordAudit } from "@/server/audit/record-audit";
+import { canManageContacts } from "@/server/authz/contact-permissions";
 import { systemClock } from "@/server/clock";
 import {
   TransferError,
   transferContactPosition,
 } from "@/server/customers/transfer-contact-position";
 import { runInTransaction } from "@/server/db";
-import { guardAdmin } from "../admin-guard";
+import { guardCustomers } from "../customer-guard";
 import { customerContactSchema } from "../schemas/customer-schemas";
 
 const schema = customerContactSchema.omit({ id: true, personId: true }).extend({
@@ -25,7 +26,10 @@ const schema = customerContactSchema.omit({ id: true, personId: true }).extend({
 export async function transferCustomerContact(
   input: z.input<typeof schema>,
 ): Promise<ActionResult<{ id: string }>> {
-  const { user, denied } = await guardAdmin("commercial", "clientes");
+  const { user, denied } = await guardCustomers(
+    canManageContacts,
+    "transferir contactos",
+  );
   if (denied) return denied;
   const parsed = schema.safeParse(input);
   if (!parsed.success)

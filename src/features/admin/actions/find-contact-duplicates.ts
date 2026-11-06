@@ -9,7 +9,8 @@ import {
 } from "@/domain/customers/contact-matching";
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
-import { guardAdmin } from "../admin-guard";
+import { canCreateContacts } from "@/server/authz/contact-permissions";
+import { guardCustomers } from "../customer-guard";
 import { findContactCandidates } from "../queries/find-contact-candidates";
 
 const schema = z.object({
@@ -21,7 +22,10 @@ const schema = z.object({
 export async function findContactDuplicates(
   input: z.input<typeof schema>,
 ): Promise<ActionResult<ContactMatch[]>> {
-  const { denied } = await guardAdmin("commercial", "clientes");
+  const { user, denied } = await guardCustomers(
+    canCreateContacts,
+    "crear contactos",
+  );
   if (denied) return denied;
   const parsed = schema.safeParse(input);
   if (!parsed.success)
@@ -30,7 +34,7 @@ export async function findContactDuplicates(
       "Escribe al menos el nombre del contacto.",
     );
   try {
-    const candidates = await findContactCandidates(parsed.data);
+    const candidates = await findContactCandidates(user, parsed.data);
     return actionOk(findContactMatches(parsed.data, candidates));
   } catch (error) {
     return toActionError(error, "findContactDuplicates");

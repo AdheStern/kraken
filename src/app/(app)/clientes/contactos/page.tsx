@@ -13,7 +13,10 @@ import { ContactDirectory } from "@/features/customers/components/contact-direct
 import { ContactFiltersBar } from "@/features/customers/components/contact-filters-bar";
 import { toContactFilters } from "@/features/customers/contact-filters";
 import { listContacts } from "@/features/customers/queries/list-contacts";
-import { canBrowseContacts } from "@/server/authz/contact-permissions";
+import {
+  canBrowseContacts,
+  canManageContacts,
+} from "@/server/authz/contact-permissions";
 import { requireUser } from "@/server/session";
 
 export const metadata: Metadata = { title: "Contactos" };
@@ -53,13 +56,15 @@ async function Directory({
         tour="contactos"
         description="Las personas con quienes trata DIMA en cada cliente, dónde están y quiénes las atienden."
         actions={
-          <a
-            href={`/api/customers/contacts.xlsx?${query}`}
-            className={buttonVariants({ variant: "outline" })}
-          >
-            <FileDown aria-hidden="true" />
-            Exportar a Excel
-          </a>
+          canManageContacts(user) && (
+            <a
+              href={`/api/customers/contacts.xlsx?${query}`}
+              className={buttonVariants({ variant: "outline" })}
+            >
+              <FileDown aria-hidden="true" />
+              Exportar a Excel
+            </a>
+          )
         }
       />
       <ContactFiltersBar
@@ -69,7 +74,7 @@ async function Directory({
       />
       <p className="text-xs text-muted-foreground">
         {contacts.length === 200
-          ? "Primeros 200; afina la búsqueda o exporta todo."
+          ? "Primeros 200; afina la búsqueda."
           : `${contacts.length} contactos`}
       </p>
       <ContactDirectory contacts={contacts} />

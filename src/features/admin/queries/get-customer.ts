@@ -3,6 +3,7 @@
 // LIMITACIÓN: sin alcance por usuario; la página solo se abre con canManageCommercialCatalogs.
 import { prisma } from "@/server/db";
 import type { CustomerDetail } from "../types";
+import { CONTACT_SELECT, toContactView } from "./contact-view";
 
 export async function getCustomer(id: string): Promise<CustomerDetail | null> {
   const customer = await prisma.customer.findUnique({
@@ -30,21 +31,15 @@ export async function getCustomer(id: string): Promise<CustomerDetail | null> {
       },
       contacts: {
         orderBy: [{ isActive: "desc" }, { name: "asc" }],
-        select: {
-          id: true,
-          name: true,
-          position: true,
-          email: true,
-          phone: true,
-          isActive: true,
-        },
+        select: CONTACT_SELECT,
       },
     },
   });
   if (!customer) return null;
-  const { branches, ...rest } = customer;
+  const { branches, contacts, ...rest } = customer;
   return {
     ...rest,
+    contacts: contacts.map(toContactView),
     branches: branches.map((b) => ({
       id: b.id,
       name: b.name,

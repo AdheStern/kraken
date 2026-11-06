@@ -50,6 +50,28 @@ test.describe("Administración", () => {
       .click();
     await dialog.getByRole("button", { name: "Agregar sucursal" }).click();
     await expect(page.getByText("Planta Yacuiba")).toBeVisible();
+    // Contactos con municipio y áreas de DIMA (decisión 2026-11-06).
+    await page.getByRole("tab", { name: /Contactos/ }).click();
+    await page.getByRole("button", { name: "Nuevo contacto" }).click();
+    const contact = page.getByRole("dialog", { name: "Nuevo contacto" });
+    await contact
+      .getByRole("textbox", { name: "Nombre" })
+      .fill("Rosa Choque E2E");
+    await contact.getByRole("textbox", { name: "Cargo" }).fill("Jefa de TI");
+    await contact.locator("#contact-municipality").fill("Yacuiba");
+    await page
+      .getByRole("option", { name: /Yacuiba/ })
+      .first()
+      .click();
+    await contact.locator("#contact-areas").fill("DIMANET");
+    await page
+      .getByRole("option", { name: /DIMANET/ })
+      .first()
+      .click();
+    await contact.getByRole("heading", { name: "Nuevo contacto" }).click();
+    await contact.getByRole("button", { name: "Agregar contacto" }).click();
+    await expect(page.getByText("Rosa Choque E2E")).toBeVisible();
+    await expect(page.getByText(/Jefa de TI · Yacuiba/)).toBeVisible();
 
     // TRAMPA: la ficha recién creada sigue montada y oculta; getByRole ignora lo oculto, getByLabel no.
     await page.goBack();

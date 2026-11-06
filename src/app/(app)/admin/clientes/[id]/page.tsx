@@ -13,6 +13,7 @@ import { ContactsPanel } from "@/features/admin/components/contacts-panel";
 import { CustomerForm } from "@/features/admin/components/customer-form";
 import { CustomerStatusButton } from "@/features/admin/components/customer-status-button";
 import { CustomerTabs } from "@/features/admin/components/customer-tabs";
+import { getContactFormOptions } from "@/features/admin/queries/get-contact-form-options";
 import { getCustomer } from "@/features/admin/queries/get-customer";
 import { getCustomerFormOptions } from "@/features/admin/queries/get-customer-form-options";
 import { canManageCommercialCatalogs } from "@/server/authz/admin-permissions";
@@ -57,7 +58,10 @@ async function Customer({
     searchParams,
   ]);
   if (!customer) notFound();
-  const options = await getCustomerFormOptions();
+  const [options, contactOptions] = await Promise.all([
+    getCustomerFormOptions(),
+    getContactFormOptions(),
+  ]);
   return (
     <>
       <ModuleHeading
@@ -99,6 +103,13 @@ async function Customer({
           <ContactsPanel
             customerId={customer.id}
             contacts={customer.contacts}
+            options={{
+              ...contactOptions,
+              municipalities: options.municipalities,
+              branches: customer.branches
+                .filter((b) => b.isActive)
+                .map((b) => ({ id: b.id, label: b.name })),
+            }}
           />
         }
       />

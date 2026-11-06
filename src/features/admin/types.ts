@@ -22,13 +22,35 @@ export type CustomerRow = {
   isActive: boolean;
 };
 
+// Puesto de una persona en el cliente (decisión 2026-11-06); fechas como «yyyy-MM-dd».
 export type CustomerContactView = {
   id: string;
+  personId: string;
   name: string;
   position: string | null;
   email: string | null;
   phone: string | null;
+  municipalityId: string | null;
+  municipalityLabel: string | null;
+  branchId: string | null;
+  branchName: string | null;
+  areaIds: string[];
+  areaCodes: string[];
+  userIds: string[];
+  userNames: string[];
+  startedOn: string | null;
+  endedOn: string | null;
+  exitReason: string | null;
   isActive: boolean;
+};
+
+type Option = { id: string; label: string; hint?: string };
+
+export type ContactFormOptions = {
+  municipalities: Option[];
+  branches: Option[];
+  areas: Option[];
+  users: Option[];
 };
 
 export type CustomerDetail = {

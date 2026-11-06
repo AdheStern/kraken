@@ -16,6 +16,7 @@ export function SearchButton() {
       className="h-8 gap-2 text-muted-foreground"
       onClick={() => registry?.trigger("search")}
       aria-label="Buscar en Kraken"
+      data-tour="buscar"
     >
       <Search aria-hidden="true" />
       <span className="hidden sm:inline">Buscar</span>

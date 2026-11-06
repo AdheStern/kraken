@@ -77,9 +77,11 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
               <Suspense fallback={null}>
                 <HeaderTimer />
               </Suspense>
-              <Suspense fallback={<Skeleton className="size-8 rounded-md" />}>
-                <NotificationBell />
-              </Suspense>
+              <span data-tour="avisos" className="inline-flex">
+                <Suspense fallback={<Skeleton className="size-8 rounded-md" />}>
+                  <NotificationBell />
+                </Suspense>
+              </span>
               <ShortcutsButton />
               <ModeToggle className="size-8" />
             </div>

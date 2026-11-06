@@ -45,6 +45,7 @@ model UserProfile {
   adjustmentsDecided      AdjustmentRequest[]      @relation("AdjustmentDecider")
   inboxItems              InboxItem[]
   notificationPreferences NotificationPreference[]
+  toursSeen               TourSeen[]
   goalsUpdated            Goal[]
   docProjectsOwned        DocProject[]             @relation("DocProjectOwner")
   docProjectsCreated      DocProject[]             @relation("DocProjectCreator")
@@ -54,5 +55,18 @@ model UserProfile {
   ticketRequestsHandled   TicketRequest[]          @relation("TicketRequestHandler")
 
   @@map("usuario_perfil")
+  @@schema("core")
+}
+
+// Recorridos guiados ya vistos: se ofrecen solos una vez por persona y pantalla (decisión 2026-11-05).
+model TourSeen {
+  userId String   @map("usuario_id")
+  tourId String   @map("recorrido")
+  seenAt DateTime @default(now()) @map("visto_en") @db.Timestamptz
+
+  user UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@id([userId, tourId])
+  @@map("recorrido_visto")
   @@schema("core")
 }

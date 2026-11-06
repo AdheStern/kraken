@@ -372,7 +372,7 @@ Prisma 7: `prisma.config.ts` en la raíz (esquema multiarchivo en `prisma/schema
 | Esquema | Tablas |
 |---|---|
 | `auth` | Better Auth: `user`, `session`, `account`, `verification` (no tocar sus columnas) |
-| `core` | `area`, `ciudad`, `usuario_perfil`, `rol`, `usuario_rol`, `grupo_entra_rol`, `cliente`, `cliente_contacto`, `proveedor`, `tecnologia`, `unidad`, `tipo_servicio`, `producto`, `horario_oficina`, `horario_franja`, `feriado`, `parametro` |
+| `core` | `area`, `ciudad`, `usuario_perfil`, `rol`, `usuario_rol`, `grupo_entra_rol`, `cliente`, `cliente_contacto`, `proveedor`, `tecnologia`, `unidad`, `tipo_servicio`, `producto`, `horario_oficina`, `horario_franja`, `feriado`, `parametro`, `recorrido_visto` |
 | `fx` | `tipo_cambio` (fecha de vigencia, compra, venta, fuente, obtenido_en) |
 | `cv` | `numerador`, `cv`, `version`, `version_vendedor` (vendedores N–N), `grupo`, `linea`, `linea_serial`, `leasing_linea`, `solicitud_aprobacion`, `adjunto` |
 | `horas` | `bolsa` (`tipo` `HORAS` o `VIGENCIA`, `vigente_desde`, `sin_tope`), `bolsa_area`, `movimiento`, `pendiente_sin_bolsa` |
@@ -500,6 +500,7 @@ model HourMovement {
 | PDF (comprobante del POS) | pdf-lib (fuentes estándar embebidas; solo genera) |
 | Lectura con cámara (POS, traspasos, conteo, código de un producto nuevo y seriales del ingreso) | `@zxing/browser` + `@zxing/library` 0.21 (código de barras y QR; se carga al abrir la cámara), en `src/components/scan/` para que la usen inventario y administración. La 0.23 registra un aviso por cuadro |
 | Texto enriquecido (lecciones aprendidas) | Tiptap (`@tiptap/react`, `starter-kit`, `markdown`) con una barra propia de botones shadcn; shadcn no trae editor |
+| Recorrido guiado | driver.js 1.10 (MIT, sin dependencias; se carga al abrir un recorrido): pasos por pantalla en `src/features/help/tours/tour-registry.ts` anclados a `data-tour`; los que no se dibujan para un rol se saltan; se ofrece solo una vez por persona y pantalla (`core.recorrido_visto`) y se repite con «Recorrido» (decisión 2026-11-05) |
 | Correo | Cliente de Microsoft Graph app-only |
 | Paquetes | pnpm |
 

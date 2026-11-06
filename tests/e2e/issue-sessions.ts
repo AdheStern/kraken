@@ -6,6 +6,7 @@
 import { createHmac, randomBytes, randomUUID } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { TOURS } from "@/features/help/tours/tour-registry";
 import { PrismaClient } from "@/generated/prisma/client";
 import { E2E_USERS, storageFor } from "./users";
 
@@ -26,6 +27,11 @@ async function main() {
       const expiresAt = new Date(Date.now() + SESSION_MS);
       await db.session.create({
         data: { id: randomUUID(), token, userId: user.id, expiresAt },
+      });
+      // POR QUÉ: el recorrido que se abre solo taparía los clics de las demás pruebas; su prueba lo abre a pedido.
+      await db.tourSeen.createMany({
+        data: Object.keys(TOURS).map((tourId) => ({ userId: user.id, tourId })),
+        skipDuplicates: true,
       });
       // TRAMPA: misma firma que Better Auth (HMAC-SHA256 en base64 tras el último punto).
       const signature = createHmac("sha256", secret)

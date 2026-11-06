@@ -43,6 +43,7 @@
     "date-fns": "^4.4.0",
     "date-fns-tz": "^3.2.0",
     "decimal.js": "^10.6.0",
+    "driver.js": "1.10.2",
     "exceljs": "^4.4.0",
     "lucide-react": "^1.55.0",
     "motion": "13.4.6",

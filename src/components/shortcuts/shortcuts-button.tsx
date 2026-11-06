@@ -16,6 +16,7 @@ export function ShortcutsButton() {
       className="hidden size-8 md:inline-flex"
       onClick={() => registry?.openHelp()}
       aria-label="Atajos de teclado"
+      data-tour="atajos"
       title="Atajos de teclado (?)"
     >
       <Keyboard aria-hidden="true" />

@@ -7,6 +7,7 @@ import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toBusinessDate } from "@/domain/calendar/business-date";
 import { MonthStrip } from "@/features/dashboards/components/month-strip";
+import { PageTour } from "@/features/help/components/page-tour";
 import {
   HomeNetwork,
   type HomeNode,
@@ -54,11 +55,16 @@ async function Home() {
   const today = dayFormat.format(new Date(`${toBusinessDate(now)}T00:00:00Z`));
   return (
     <>
-      <HomeNetwork
-        greeting={`Hola, ${summary.firstName}`}
-        subtitle={`${today[0].toUpperCase()}${today.slice(1)} · ${headline(summary)}`}
-        nodes={toNodes(summary)}
-      />
+      <div className="-mb-3 flex justify-end">
+        <PageTour id="inicio" />
+      </div>
+      <div data-tour="inicio-red">
+        <HomeNetwork
+          greeting={`Hola, ${summary.firstName}`}
+          subtitle={`${today[0].toUpperCase()}${today.slice(1)} · ${headline(summary)}`}
+          nodes={toNodes(summary)}
+        />
+      </div>
       <Suspense fallback={<Skeleton className="h-28 w-full rounded-xl" />}>
         <MonthStrip user={user} />
       </Suspense>

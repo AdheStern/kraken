@@ -5,6 +5,7 @@ import { expect, type Page, test } from "@playwright/test";
 import { storageFor } from "./users";
 
 test.use({ storageState: storageFor("administracion") });
+test.describe.configure({ mode: "serial" });
 
 const STAMP = Date.now();
 const EMAIL = `mario.${STAMP}@empresa.bo`;
@@ -50,4 +51,32 @@ test("un contacto con el mismo correo se transfiere sin duplicarse", async ({
     page.getByRole("heading", { name: /Anteriores · 1/ }),
   ).toBeVisible();
   await expect(page.getByText(/Pasó a Empresa Destino/)).toBeVisible();
+});
+
+test("el directorio encuentra al contacto, muestra su historial y exporta a Excel", async ({
+  page,
+}) => {
+  await page.goto(`/clientes/contactos?q=${STAMP}&todos=1`);
+  await expect(page.getByText(`Mario Vargas ${STAMP}`).first()).toBeVisible();
+  const href = await page
+    .getByRole("link", { name: /Exportar a Excel/ })
+    .getAttribute("href");
+  const file = await page.request.get(href ?? "");
+  expect(file.status()).toBe(200);
+  expect(file.headers()["content-type"]).toContain("spreadsheetml");
+
+  await page
+    .getByRole("link", { name: new RegExp(`Mario Vargas ${STAMP}`) })
+    .first()
+    .click();
+  await page.waitForURL(/\/clientes\/contactos\/[0-9a-f-]{36}$/);
+  await expect(page.getByText(/Pasó a Empresa Destino/)).toBeVisible();
+
+  await page.keyboard.press("Control+k");
+  await page
+    .getByRole("textbox", { name: "Buscar en Kraken" })
+    .fill(`Vargas ${STAMP}`);
+  await expect(
+    page.getByRole("region", { name: "Contactos" }).getByRole("button").first(),
+  ).toBeVisible();
 });

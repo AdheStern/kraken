@@ -26,6 +26,19 @@ export const ADMINISTRATION_MANUAL: Manual = {
       link: { href: "/admin", label: "Ir a Administración" },
     },
     {
+      heading: "Clientes y contactos",
+      steps: [
+        "La ficha del cliente tiene pestañas: Datos (rubro, tipo de empresa y municipio), Sucursales y Contactos.",
+        "Al agregar un contacto, Kraken avisa si esa persona ya existe en este cliente o en otro: transfiérela o agrégale el puesto, así su historial queda en una sola ficha.",
+        "Si alguien cambia de empresa, usa «Transferir» en su fila: su puesto aquí queda cerrado con fecha y motivo, y empieza en la nueva empresa con su nuevo cargo, correo y teléfono.",
+        "Contactos (en el menú) busca en todos los clientes y exporta a Excel exactamente lo que ves; el nombre abre su historial de empresas.",
+      ],
+      link: {
+        href: "/clientes/contactos",
+        label: "Abrir el directorio de contactos",
+      },
+    },
+    {
       heading: "Inventario",
       steps: [
         "Ves el stock con costos y el kardex de cada producto, y operas como Almacén (POS, ingresos, traspasos y devoluciones).",

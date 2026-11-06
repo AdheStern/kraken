@@ -56,7 +56,7 @@ test.describe("Administración", () => {
     const contact = page.getByRole("dialog", { name: "Nuevo contacto" });
     await contact
       .getByRole("textbox", { name: "Nombre" })
-      .fill("Rosa Choque E2E");
+      .fill(`Rosa Choque ${STAMP}`);
     await contact.getByRole("textbox", { name: "Cargo" }).fill("Jefa de TI");
     await contact.locator("#contact-municipality").fill("Yacuiba");
     await page
@@ -70,7 +70,7 @@ test.describe("Administración", () => {
       .click();
     await contact.getByRole("heading", { name: "Nuevo contacto" }).click();
     await contact.getByRole("button", { name: "Agregar contacto" }).click();
-    await expect(page.getByText("Rosa Choque E2E")).toBeVisible();
+    await expect(page.getByText(`Rosa Choque ${STAMP}`)).toBeVisible();
     await expect(page.getByText(/Jefa de TI · Yacuiba/)).toBeVisible();
 
     // TRAMPA: la ficha recién creada sigue montada y oculta; getByRole ignora lo oculto, getByLabel no.

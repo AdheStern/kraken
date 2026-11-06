@@ -72,4 +72,21 @@ export const SALES_TOURS = {
       },
     ],
   },
+  contactos: {
+    title: "Contactos",
+    steps: [
+      {
+        element: '[aria-label="Buscar contacto"]',
+        title: "Busca en todos los clientes",
+        description:
+          "Por nombre, cargo, correo, teléfono, cliente o municipio («/» te trae aquí). Filtra por área o por quién lo atiende.",
+      },
+      {
+        element: '[data-tour="contactos-lista"]',
+        title: "Cada persona, una ficha",
+        description:
+          "Su nombre abre su historial de empresas: si cambió de trabajo, ahí ves dónde estuvo.",
+      },
+    ],
+  },
 } satisfies Record<string, TourDefinition>;

@@ -2,6 +2,7 @@
 // Recorridos guiados que el rol puede repetir desde la ayuda, con la pantalla donde se abren (decisión 2026-11-05).
 // REGLA: cada uno solo si el rol abre esa pantalla, con las mismas funciones de authz que el riel (§2.9).
 import { visibleBoards } from "@/features/dashboards/queries/load-dashboard-context";
+import { canBrowseContacts } from "@/server/authz/contact-permissions";
 import { canApproveCvs, canListCvs } from "@/server/authz/cv-permissions";
 import { canUseDocumentation } from "@/server/authz/documentation-permissions";
 import { canSeeHourBags } from "@/server/authz/hour-bag-permissions";
@@ -36,6 +37,7 @@ export function listVisibleTours(user: SessionUser): VisibleTour[] {
     ["pos", "/inventario/pos", canOperateInventory(user)],
     ["ingreso", "/inventario/ingresos/nuevo", canOperateInventory(user)],
     ["documentacion", "/documentacion", canUseDocumentation(user)],
+    ["contactos", "/clientes/contactos", canBrowseContacts(user)],
   ];
   return candidates.flatMap(([id, href, isVisible]) =>
     isVisible ? [tour(id, href)] : [],

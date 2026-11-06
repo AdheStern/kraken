@@ -39,6 +39,17 @@ export const SALES_MANUAL: Manual = {
       ],
     },
     {
+      heading: "Contactos de tus clientes",
+      steps: [
+        "Contactos (en el menú) busca a las personas de todos los clientes por nombre, correo, teléfono, cliente o municipio, y filtra por área o por quién las atiende.",
+        "Exportar a Excel descarga la lista que estás viendo; el nombre abre su historial de empresas.",
+      ],
+      link: {
+        href: "/clientes/contactos",
+        label: "Abrir el directorio de contactos",
+      },
+    },
+    {
       heading: "Tus cifras",
       steps: [
         "Tableros → Ventas muestra tus ventas aprobadas, tu pipeline y las renovaciones de los próximos 90 días.",

@@ -3,6 +3,7 @@
 // y el motivo; se edita en un diálogo, se da de baja o se reactiva (decisión 2026-11-06).
 "use client";
 
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -42,7 +43,15 @@ export function ContactRow({ customerId, contact: c, options }: Props) {
         )}
       >
         <div className="min-w-0 flex-1">
-          <p className="truncate font-medium">{c.name}</p>
+          <p className="truncate font-medium">
+            <Link
+              href={`/clientes/contactos/${c.personId}`}
+              className="underline-offset-4 hover:underline"
+              title="Ver su historial de empresas"
+            >
+              {c.name}
+            </Link>
+          </p>
           {details && (
             <p className="truncate text-muted-foreground">{details}</p>
           )}

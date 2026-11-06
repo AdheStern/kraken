@@ -6,6 +6,7 @@
 "use client";
 
 import {
+  BookUser,
   Boxes,
   ChartColumn,
   FileSpreadsheet,
@@ -53,6 +54,11 @@ const ITEMS: Record<NavKey, { href: string; label: string; icon: LucideIcon }> =
       icon: FolderOpen,
     },
     aprobaciones: { href: "/aprobaciones", label: "Aprobaciones", icon: Stamp },
+    contactos: {
+      href: "/clientes/contactos",
+      label: "Contactos",
+      icon: BookUser,
+    },
     admin: {
       href: "/admin",
       label: "Administración",

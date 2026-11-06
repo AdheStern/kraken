@@ -7,6 +7,7 @@ import { countPendingAdjustments } from "@/features/inventory/queries/count-pend
 import { listPendingApprovals } from "@/features/sales-control/queries/list-pending-approvals";
 import { countPendingTicketRequests } from "@/features/tickets/queries/count-pending-ticket-requests";
 import { canOpenAdmin } from "@/server/authz/admin-permissions";
+import { canBrowseContacts } from "@/server/authz/contact-permissions";
 import { canApproveCvs, canListCvs } from "@/server/authz/cv-permissions";
 import { canUseDocumentation } from "@/server/authz/documentation-permissions";
 import { canSeeHourBags } from "@/server/authz/hour-bag-permissions";
@@ -56,6 +57,7 @@ export async function RoleNav() {
       badge: await countPendingAdjustments(user),
     });
   if (canUseDocumentation(user)) entries.push({ key: "documentacion" });
+  if (canBrowseContacts(user)) entries.push({ key: "contactos" });
   if (canApproveCvs(user)) {
     const pending = await listPendingApprovals(user);
     entries.push({ key: "aprobaciones", badge: pending.length });

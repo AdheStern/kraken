@@ -12,6 +12,7 @@ export type NavKey =
   | "horas"
   | "inventario"
   | "documentacion"
+  | "contactos"
   | "aprobaciones"
   | "admin"
   // Portal de clientes (AGENTS.md §2.11).

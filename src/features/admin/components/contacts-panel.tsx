@@ -3,9 +3,9 @@
 // alta en un diálogo (decisión 2026-11-06).
 "use client";
 
-import { Plus } from "lucide-react";
+import { FileDown, Plus } from "lucide-react";
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import type { ContactFormOptions, CustomerContactView } from "../types";
 import { ContactDialog } from "./contact-dialog";
 import { ContactRow } from "./contact-row";
@@ -21,7 +21,14 @@ export function ContactsPanel({ customerId, contacts, options }: Props) {
   const former = contacts.filter((c) => !c.isActive);
   return (
     <div className="grid gap-3">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-2">
+        <a
+          href={`/api/customers/contacts.xlsx?cliente=${customerId}&todos=1`}
+          className={buttonVariants({ variant: "outline", size: "sm" })}
+        >
+          <FileDown aria-hidden="true" />
+          Exportar a Excel
+        </a>
         <ContactDialog
           customerId={customerId}
           options={options}

@@ -40,9 +40,10 @@ model Municipality {
   name         String  @map("nombre")
   isActive     Boolean @default(true) @map("activo")
 
-  department Department       @relation(fields: [departmentId], references: [id])
+  department Department        @relation(fields: [departmentId], references: [id])
   customers  Customer[]
   branches   CustomerBranch[]
+  contacts   CustomerContact[]
 
   @@unique([departmentId, name])
   @@map("municipio")
@@ -115,28 +116,88 @@ model CustomerBranch {
   isActive       Boolean  @default(true) @map("activa")
   createdAt      DateTime @default(now()) @map("creado_en") @db.Timestamptz
 
-  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  municipality Municipality? @relation(fields: [municipalityId], references: [id])
+  customer     Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  municipality Municipality?     @relation(fields: [municipalityId], references: [id])
+  contacts     CustomerContact[]
 
   @@index([customerId])
   @@map("cliente_sucursal")
   @@schema("core")
 }
 
+// Una persona de contacto: la misma ficha aunque cambie de empresa; sus puestos son cliente_contacto (decisión
+// 2026-11-06). El nombre normalizado (sin tildes ni mayúsculas) sirve para avisar duplicados.
+model ContactPerson {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  name           String   @map("nombre")
+  normalizedName String   @map("nombre_normalizado")
+  personalEmail  String?  @map("correo_personal")
+  personalPhone  String?  @map("telefono_personal")
+  createdAt      DateTime @default(now()) @map("creado_en") @db.Timestamptz
+
+  positions CustomerContact[]
+
+  @@index([normalizedName])
+  @@map("persona_contacto")
+  @@schema("core")
+}
+
+// Puesto de una persona en un cliente: cargo, datos corporativos, municipio, sucursal, áreas de DIMA con las que
+// trata y quiénes de DIMA lo atienden; desde/hasta guardan su historial (decisión 2026-11-06).
+// POR QUÉ: el nombre se copia de la persona; CV, documentación y auditoría lo leen de aquí sin cambios.
+// REGLA: una persona tiene a lo sumo un puesto activo en cada cliente.
 model CustomerContact {
-  id         String  @id @default(uuid(7)) @db.Uuid
-  customerId String  @map("cliente_id") @db.Uuid
-  name       String  @map("nombre")
-  position   String? @map("cargo")
-  email      String? @map("correo")
-  phone      String? @map("telefono")
-  isActive   Boolean @default(true) @map("activo")
+  id             String    @id @default(uuid(7)) @db.Uuid
+  customerId     String    @map("cliente_id") @db.Uuid
+  personId       String    @map("persona_id") @db.Uuid
+  name           String    @map("nombre")
+  position       String?   @map("cargo")
+  email          String?   @map("correo")
+  phone          String?   @map("telefono")
+  municipalityId String?   @map("municipio_id") @db.Uuid
+  branchId       String?   @map("sucursal_id") @db.Uuid
+  startedOn      DateTime? @map("desde") @db.Date
+  endedOn        DateTime? @map("hasta") @db.Date
+  exitReason     String?   @map("motivo_salida")
+  isActive       Boolean   @default(true) @map("activo")
 
-  customer    Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  docProjects DocProject[]
+  customer     Customer              @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  person       ContactPerson         @relation(fields: [personId], references: [id])
+  municipality Municipality?         @relation(fields: [municipalityId], references: [id])
+  branch       CustomerBranch?       @relation(fields: [branchId], references: [id])
+  areas        CustomerContactArea[]
+  assignees    CustomerContactUser[]
+  docProjects  DocProject[]
 
+  @@unique([personId, customerId], map: "puesto_activo_unico", where: raw("activo"))
   @@index([customerId])
+  @@index([personId])
   @@map("cliente_contacto")
+  @@schema("core")
+}
+
+model CustomerContactArea {
+  contactId String @map("contacto_id") @db.Uuid
+  areaId    String @map("area_id") @db.Uuid
+
+  contact CustomerContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  area    Area            @relation(fields: [areaId], references: [id])
+
+  @@id([contactId, areaId])
+  @@map("cliente_contacto_area")
+  @@schema("core")
+}
+
+// Quiénes de DIMA atienden al contacto; solo informativo, no da permisos ni avisos.
+model CustomerContactUser {
+  contactId String @map("contacto_id") @db.Uuid
+  userId    String @map("usuario_id")
+
+  contact CustomerContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  user    UserProfile     @relation(fields: [userId], references: [userId])
+
+  @@id([contactId, userId])
+  @@map("cliente_contacto_usuario")
   @@schema("core")
 }
 

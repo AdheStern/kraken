@@ -47,6 +47,7 @@ model UserProfile {
   notificationPreferences NotificationPreference[]
   toursSeen               TourSeen[]
   ticketConformities      TicketConformity[]
+  customerContacts        CustomerContactUser[]
   goalsUpdated            Goal[]
   docProjectsOwned        DocProject[]             @relation("DocProjectOwner")
   docProjectsCreated      DocProject[]             @relation("DocProjectCreator")

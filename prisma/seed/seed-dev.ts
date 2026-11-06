@@ -1,5 +1,6 @@
 // prisma/seed/seed-dev.ts
 // Carga idempotente de DESARROLLO (`pnpm db:seed:dev`): catálogos base + datos demo y usuarios. Nunca en producción.
+import { createContactPosition } from "@/server/customers/create-contact-position";
 import type { Tx } from "@/server/db";
 import { prisma } from "@/server/db";
 import { seedBaseCatalogs } from "./base-catalogs";
@@ -63,9 +64,8 @@ async function seedDevCatalogs(tx: Tx) {
     const contacts = data.CUSTOMER_CONTACTS[customer.name] ?? [];
     if (await tx.customerContact.count({ where: { customerId: found.id } }))
       continue;
-    await tx.customerContact.createMany({
-      data: contacts.map((c) => ({ ...c, customerId: found.id })),
-    });
+    for (const contact of contacts)
+      await createContactPosition(tx, { ...contact, customerId: found.id });
   }
   await seedProducts(tx);
 }

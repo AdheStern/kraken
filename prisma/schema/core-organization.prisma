@@ -43,6 +43,7 @@ model Area {
   adjustmentRequests AdjustmentRequest[]
   goals              Goal[]
   ticketRequests     TicketRequest[]
+  customerContacts   CustomerContactArea[]
 
   @@map("area")
   @@schema("core")

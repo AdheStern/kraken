@@ -1,8 +1,10 @@
 // tests/integration/doc-project-data.int.test.ts
 // Cabecera de un proyecto de documentación contra la base (AGENTS.md §2.10): el contacto es del cliente, el
 // encargado está activo y un cliente dado de baja solo se conserva si el proyecto ya lo tenía.
+
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
+import { createContactPosition } from "@/server/customers/create-contact-position";
 import { toDocProjectData } from "@/server/documentation/doc-project-data";
 import { createTestPrisma, createUserWithRoles } from "./test-db";
 
@@ -15,9 +17,9 @@ async function fixture() {
   ]);
   const customer = await db.customer.create({ data: { name: "Cliente A" } });
   const other = await db.customer.create({ data: { name: "Cliente B" } });
-  const contact = await db.customerContact.create({
-    data: { customerId: other.id, name: "Contacto de B" },
-  });
+  const contact = await db.$transaction((tx) =>
+    createContactPosition(tx, { customerId: other.id, name: "Contacto de B" }),
+  );
   const technology = await db.technology.create({
     data: { name: `Tec ${randomUUID()}` },
   });

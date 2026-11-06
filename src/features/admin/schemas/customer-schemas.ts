@@ -43,10 +43,16 @@ export type CustomerInput = z.input<typeof customerSchema>;
 export const customerContactSchema = z.object({
   id: z.uuid().nullable(),
   customerId: z.uuid(),
+  // Persona ya registrada a la que se le agrega este puesto (aviso de duplicados); sin ella se crea una nueva.
+  personId: z.uuid().nullable().optional(),
   name: z.string().trim().min(2, "Escribe el nombre del contacto.").max(120),
   position: text(80),
   email,
   phone: text(40),
+  municipalityId: z.uuid().nullable().optional(),
+  branchId: z.uuid().nullable().optional(),
+  areaIds: z.array(z.uuid()).max(20).optional(),
+  userIds: z.array(z.string().min(1)).max(20).optional(),
 });
 
 export type CustomerContactInput = z.input<typeof customerContactSchema>;

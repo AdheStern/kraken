@@ -20,6 +20,7 @@ const row = (
   slaPct,
   medianResolutionMinutes: null,
   latePct: null,
+  satisfiedPct: null,
 });
 
 describe("toEngineerSort", () => {

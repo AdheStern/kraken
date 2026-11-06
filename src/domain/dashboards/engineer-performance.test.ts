@@ -45,6 +45,7 @@ const ticket = (over: Partial<EngineerTicket>): EngineerTicket => ({
   closedAt: null,
   chargedMinutes: 0,
   slaOutcomes: [],
+  conformities: [],
   ...over,
 });
 
@@ -122,6 +123,44 @@ describe("summarizeEngineer", () => {
       chargedMinutes: 270,
       sla: { met: 1, missed: 1, pct: 50 },
       medianResolutionMinutes: 240,
+    });
+  });
+});
+
+describe("satisfacción del cliente por ingeniero", () => {
+  it("cuenta las respuestas a sus tickets a cargo dentro del periodo", () => {
+    const answer = (
+      at: string,
+      isSatisfied: boolean,
+      rating: number | null,
+    ) => ({
+      at: lp(at),
+      isSatisfied,
+      rating,
+    });
+    const result = summarizeEngineer({
+      window: { start: lp("2026-10-01T00:00"), end: lp("2026-11-01T00:00") },
+      capacityMinutes: null,
+      entries: [],
+      tickets: [
+        ticket({
+          conformities: [
+            answer("2026-10-10T10:00", true, 5),
+            answer("2026-09-30T10:00", false, null),
+          ],
+        }),
+        ticket({
+          id: "t2",
+          isOwner: false,
+          conformities: [answer("2026-10-11T10:00", false, null)],
+        }),
+      ],
+      subtasksCompleted: 0,
+    });
+    expect(result.satisfaction).toEqual({
+      answers: 1,
+      satisfiedPct: 100,
+      averageRating: 5,
     });
   });
 });

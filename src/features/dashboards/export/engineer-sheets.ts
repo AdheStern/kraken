@@ -26,6 +26,7 @@ export function engineersSheets(board: {
         { header: "SLA %", key: "sla", format: "pct" },
         { header: "Mediana de resolución (h)", key: "median" },
         { header: "Registros tardíos %", key: "late", format: "pct" },
+        { header: "Clientes conformes %", key: "satisfied", format: "pct" },
       ],
       rows: board.rows.map((r) => ({
         name: r.name,
@@ -38,6 +39,7 @@ export function engineersSheets(board: {
         sla: r.slaPct,
         median: hours(r.medianResolutionMinutes),
         late: r.latePct,
+        satisfied: r.satisfiedPct,
       })),
     },
   ];
@@ -80,6 +82,11 @@ export function engineerDetailSheets(detail: EngineerDetail): SheetSpec[] {
         { label: "Registros", value: p.entries.total },
         { label: "Registros manuales", value: p.entries.manual },
         { label: "Registros tardíos %", value: p.entries.latePct },
+        {
+          label: "Clientes conformes %",
+          value: p.satisfaction.satisfiedPct,
+        },
+        { label: "Nota media (1 a 5)", value: p.satisfaction.averageRating },
       ],
     },
     {

@@ -21,6 +21,7 @@ describe("engineersSheets", () => {
           slaPct: 50,
           medianResolutionMinutes: null,
           latePct: 0,
+          satisfiedPct: 100,
         },
       ],
     });
@@ -37,6 +38,7 @@ describe("engineersSheets", () => {
         sla: 50,
         median: null,
         late: 0,
+        satisfied: 100,
       },
     ]);
   });
@@ -60,6 +62,7 @@ describe("engineerDetailSheets", () => {
         participated: 2,
         chargedMinutes: 120,
         sla: { met: 1, missed: 0, pct: 100 },
+        satisfaction: { answers: 1, satisfiedPct: 100, averageRating: 5 },
         medianResolutionMinutes: 120,
         entries: { total: 1, manual: 0, late: 0, latePct: 0 },
         subtasksCompleted: 0,

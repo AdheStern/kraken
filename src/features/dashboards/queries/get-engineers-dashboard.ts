@@ -60,6 +60,7 @@ function toRow({ userId, name, performance: p }: EngineerFacts): EngineerRow {
     slaPct: p.sla.pct,
     medianResolutionMinutes: p.medianResolutionMinutes,
     latePct: p.entries.latePct,
+    satisfiedPct: p.satisfaction.satisfiedPct,
   };
 }
 

@@ -169,6 +169,7 @@ export type EngineerRow = {
   slaPct: number | null;
   medianResolutionMinutes: number | null;
   latePct: number | null;
+  satisfiedPct: number | null;
 };
 
 export type EngineerTicketRow = {

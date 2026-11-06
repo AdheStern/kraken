@@ -1,6 +1,6 @@
 // src/features/dashboards/components/engineers-table.tsx
 // Desempeño por ingeniero del periodo: tiempo real, utilización, fuera de horario, tickets, descontado, SLA,
-// mediana de resolución y registros tardíos; se ordena por cualquier columna y cada fila abre su detalle (AGENTS.md
+// mediana de resolución, registros tardíos y clientes conformes; se ordena por cualquier columna y cada fila abre su detalle (AGENTS.md
 // §6). Sin montos.
 import { ArrowDown, ArrowUp } from "lucide-react";
 import Link from "next/link";
@@ -25,6 +25,7 @@ const COLUMNS: [EngineerSortKey, string][] = [
   ["slaPct", "SLA"],
   ["medianResolutionMinutes", "Mediana resolución"],
   ["latePct", "Tardíos"],
+  ["satisfiedPct", "Conformes"],
 ];
 
 export function EngineersTable({
@@ -85,6 +86,7 @@ export function EngineersTable({
                   : formatMinutes(Math.round(r.medianResolutionMinutes))}
               </Cell>
               <Cell>{pct(r.latePct)}</Cell>
+              <Cell>{pct(r.satisfiedPct)}</Cell>
             </tr>
           ))}
         </tbody>

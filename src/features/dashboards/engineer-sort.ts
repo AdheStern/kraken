@@ -14,6 +14,7 @@ export const ENGINEER_SORT_KEYS = [
   "slaPct",
   "medianResolutionMinutes",
   "latePct",
+  "satisfiedPct",
 ] as const satisfies readonly (keyof EngineerRow)[];
 
 export type EngineerSortKey = (typeof ENGINEER_SORT_KEYS)[number];

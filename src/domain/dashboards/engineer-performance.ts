@@ -1,9 +1,11 @@
 // src/domain/dashboards/engineer-performance.ts
 // Desempeño de un ingeniero en un periodo: su tiempo real (dentro y fuera de horario), utilización, tickets a cargo
-// y en los que participó, horas descontadas, SLA, mediana de resolución y calidad de sus registros (AGENTS.md §6).
+// y en los que participó, horas descontadas, SLA, mediana de resolución, satisfacción del cliente y calidad de sus
+// registros (AGENTS.md §6).
 import type { BusinessCalendar } from "../calendar/business-calendar";
 import type { TimeInterval } from "../calendar/split-by-business-hours";
 import {
+  customerSatisfaction,
   lateEntriesPct,
   medianResolutionMinutes,
   outsideHoursShare,
@@ -30,6 +32,8 @@ export type EngineerTicket = {
   // Neto descontado de sus bolsas (summarizeTicketWork), en minutos.
   chargedMinutes: number;
   slaOutcomes: SlaOutcome[];
+  // Respuestas de conformidad del cliente a sus resoluciones (§2.11).
+  conformities: { isSatisfied: boolean; rating: number | null; at: Date }[];
 };
 
 export type EngineerPerformance = {
@@ -44,6 +48,7 @@ export type EngineerPerformance = {
   participated: number;
   chargedMinutes: number;
   sla: { met: number; missed: number; pct: number | null };
+  satisfaction: ReturnType<typeof customerSatisfaction>;
   medianResolutionMinutes: number | null;
   entries: {
     total: number;
@@ -89,6 +94,10 @@ export function summarizeEngineer(input: {
     // REGLA: el descuento es por ticket; se atribuye a su encargado, en el periodo en que se cerró (§6).
     chargedMinutes: closed.reduce((sum, t) => sum + t.chargedMinutes, 0),
     sla: slaCompliance(owned.flatMap((t) => t.slaOutcomes)),
+    // REGLA: la conformidad se atribuye al encargado, en el periodo en que el cliente respondió (decisión 2026-11-05).
+    satisfaction: customerSatisfaction(
+      owned.flatMap((t) => t.conformities.filter((c) => within(c.at, window))),
+    ),
     medianResolutionMinutes: medianResolutionMinutes(resolved),
     entries: entryQuality(clipped),
     subtasksCompleted: input.subtasksCompleted,

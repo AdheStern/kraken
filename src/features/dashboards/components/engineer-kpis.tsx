@@ -1,6 +1,6 @@
 // src/features/dashboards/components/engineer-kpis.tsx
 // Cifras de un ingeniero en el periodo: tiempo real y su reparto por horario, utilización, tickets a cargo, lo
-// descontado, SLA, resolución, subtareas y calidad de registros (AGENTS.md §6). Sin montos.
+// descontado, SLA, resolución, satisfacción del cliente, subtareas y calidad de registros (AGENTS.md §6). Sin montos.
 import { formatMinutes } from "@/lib/format-minutes";
 import type { EngineerDetail } from "../types";
 import { KpiTile } from "./kpi-tile";
@@ -53,6 +53,14 @@ export function EngineerKpis({
           ? "—"
           : formatMinutes(Math.round(p.medianResolutionMinutes)),
       hint: "de la creación a la resolución, tickets a su cargo",
+    },
+    {
+      label: "Satisfacción del cliente",
+      value: pct(p.satisfaction.satisfiedPct),
+      hint:
+        p.satisfaction.answers === 0
+          ? "Sin respuestas de conformidad en el periodo"
+          : `${p.satisfaction.answers} respuestas · nota media ${p.satisfaction.averageRating ?? "—"} de 5 (tickets a su cargo)`,
     },
     {
       label: "Registros",

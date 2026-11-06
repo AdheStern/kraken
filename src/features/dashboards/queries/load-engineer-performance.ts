@@ -155,15 +155,22 @@ async function loadTickets(
       customer: { select: { name: true } },
       subtasks: { select: { assigneeId: true } },
       slaMeasurements: { select: { status: true } },
+      conformities: {
+        select: { isSatisfied: true, rating: true, createdAt: true },
+      },
       hourMovements: {
         where: { kind: { in: ["CONSUMO", "REVERSO"] } },
         select: { bagId: true, minutes: true },
       },
     },
   });
-  return rows.map(({ slaMeasurements, hourMovements, ...t }) => ({
+  return rows.map(({ slaMeasurements, hourMovements, conformities, ...t }) => ({
     ...t,
     slaOutcomes: slaMeasurements.map((m) => m.status),
+    conformities: conformities.map(({ createdAt, ...c }) => ({
+      ...c,
+      at: createdAt,
+    })),
     // REGLA: lo descontado tiene una sola definición (summarizeTicketWork, §6).
     chargedMinutes: summarizeTicketWork([], hourMovements).chargedMinutes,
   }));

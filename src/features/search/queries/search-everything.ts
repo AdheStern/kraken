@@ -4,6 +4,7 @@
 // POR QUÉ: el CV se busca por número y cliente, no por título: el título de un borrador no lo ve Administración.
 
 import { canManageCommercialCatalogs } from "@/server/authz/admin-permissions";
+import { canBrowseContacts } from "@/server/authz/contact-permissions";
 import { canListCvs } from "@/server/authz/cv-permissions";
 import { canUseDocumentation } from "@/server/authz/documentation-permissions";
 import { canSeeInventory } from "@/server/authz/inventory-permissions";
@@ -15,6 +16,7 @@ import { scopeTicketQuery } from "@/server/authz/scope-ticket-query";
 import { canSeeTickets } from "@/server/authz/ticket-permissions";
 import { prisma } from "@/server/db";
 import type { SearchGroup, SearchItem } from "../types";
+import { searchContacts } from "./search-contacts";
 
 const TAKE = 5;
 
@@ -33,6 +35,7 @@ export async function searchEverything(
   if (canSeeInventory(user)) groups.push(...(await inventory(q)));
   if (canUseDocumentation(user)) groups.push(await docProjects(user, q));
   if (canManageCommercialCatalogs(user)) groups.push(await customers(q));
+  if (canBrowseContacts(user)) groups.push(await searchContacts(user, query));
   return groups.filter((g) => g.items.length > 0);
 }
 

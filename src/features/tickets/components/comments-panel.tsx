@@ -4,9 +4,8 @@
 "use client";
 
 import { LoaderCircle } from "lucide-react";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { PersonAvatar } from "@/components/app-shell/person-avatar";
-import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,10 +22,6 @@ export function CommentsPanel({ ticketId, comments, canComment }: Props) {
   const [body, setBody] = useState("");
   const [isPublic, setIsPublic] = useState(false);
   const { run, isPending, error } = useTicketAction();
-  const bodyRef = useRef<HTMLTextAreaElement>(null);
-  useShortcuts(
-    canComment ? { "ticket.comment": () => bodyRef.current?.focus() } : {},
-  );
 
   async function send() {
     if (await run(() => addComment({ ticketId, body, isPublic }))) setBody("");
@@ -39,7 +34,7 @@ export function CommentsPanel({ ticketId, comments, canComment }: Props) {
           <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">
             Comentario
             <Textarea
-              ref={bodyRef}
+              data-comment-body
               rows={3}
               value={body}
               onChange={(e) => setBody(e.target.value)}

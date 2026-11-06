@@ -101,6 +101,11 @@ export const SHORTCUTS = {
     description: "Escribir un comentario",
     section: "Detalle del ticket",
   },
+  "ticket.manual": {
+    keys: "Alt+R",
+    description: "Cargar un registro de tiempo manual",
+    section: "Detalle del ticket",
+  },
   "inv.scan": {
     keys: "/",
     description: "Ir al escáner",

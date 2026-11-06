@@ -102,13 +102,17 @@ async function TicketsResults({
     pick("vista") === "mios",
     pick("proyecto"),
   ];
+  const text = (pick("q") ?? "").replace(/^#/, "").toLowerCase();
   // POR QUÉ: se filtra en memoria para que las opciones de los filtros no se encojan al elegir una.
   const visible = tickets.filter(
     (t) =>
       (!customerId || t.customerId === customerId) &&
       (!areaCode || t.areaCodes.includes(areaCode)) &&
       (!mine || t.owner?.id === user.id) &&
-      (!projectId || t.projectId === projectId),
+      (!projectId || t.projectId === projectId) &&
+      (!text ||
+        String(t.number).startsWith(text) ||
+        t.title.toLowerCase().includes(text)),
   );
   const customers = [
     ...new Map(tickets.map((t) => [t.customerId, t.customerName])).entries(),

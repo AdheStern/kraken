@@ -49,7 +49,10 @@ export function ManualEntryForm({ ticketId, targets }: Props) {
   }
 
   return (
-    <div className="kr-surface flex flex-col gap-3 rounded-xl p-4">
+    <div
+      data-manual-entry
+      className="kr-surface flex flex-col gap-3 rounded-xl p-4"
+    >
       <div className="grid gap-3 sm:grid-cols-[1fr_7rem_7rem_1fr_auto] sm:items-end">
         <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">
           Fecha

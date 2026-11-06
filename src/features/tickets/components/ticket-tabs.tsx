@@ -4,6 +4,7 @@
 "use client";
 
 import { useState } from "react";
+import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
 import { GooeyNav } from "@/components/ui/gooey-nav";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import type { TicketMaterials } from "@/features/inventory/queries/list-ticket-materials";
@@ -30,6 +31,23 @@ export function TicketTabs({ detail, bags, time, materials, summary }: Props) {
   const isFinished =
     detail.ticket.status === "CERRADO" || detail.ticket.status === "CANCELADO";
   const [tab, setTab] = useState(summary ? "resumen" : "subtareas");
+  // POR QUÉ: el atajo abre la pestaña y espera a que se dibuje para llevar el foco a su campo.
+  const openAndFocus = (key: string, selector: string) => {
+    setTab(key);
+    requestAnimationFrame(() =>
+      document.querySelector<HTMLElement>(selector)?.focus(),
+    );
+  };
+  useShortcuts(
+    isFinished
+      ? {}
+      : {
+          "ticket.comment": () =>
+            openAndFocus("comentarios", "[data-comment-body]"),
+          "ticket.manual": () =>
+            openAndFocus("registros", "[data-manual-entry] input"),
+        },
+  );
   const items = [
     ...(summary ? [{ key: "resumen", label: "Resumen" }] : []),
     {

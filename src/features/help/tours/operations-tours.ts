@@ -9,7 +9,8 @@ export const OPERATIONS_TOURS = {
       {
         element: at("ticket-filtros"),
         title: "Filtros",
-        description: "Por cliente, área o solo los tuyos.",
+        description:
+          "Busca por número o título («/» te lleva al buscador) y filtra por cliente, área o solo los tuyos.",
       },
       {
         element: at("ticket-tablero"),

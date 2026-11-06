@@ -3,6 +3,7 @@
 // el administrador ya cambió. La usan `pnpm db:seed:base` (producción) y el seed de desarrollo.
 import type { Tx } from "@/server/db";
 import * as data from "./base-catalog-data";
+import { BOLIVIA_DEPARTMENTS } from "./bolivia-municipalities";
 import { upsertRoles } from "./roles";
 
 export async function seedBaseCatalogs(tx: Tx): Promise<number> {
@@ -26,6 +27,8 @@ export async function seedBaseCatalogs(tx: Tx): Promise<number> {
   }
   created += await seedNamed(tx, "technology", data.TECHNOLOGIES);
   created += await seedNamed(tx, "serviceType", data.SERVICE_TYPES);
+  created += await seedIndustries(tx);
+  created += await seedMunicipalities(tx);
   for (const parameter of data.PARAMETERS) {
     if (await tx.parameter.findUnique({ where: { key: parameter.key } }))
       continue;
@@ -80,6 +83,38 @@ async function seedNamed(
     if (model === "technology") await tx.technology.create({ data: { name } });
     else await tx.serviceType.create({ data: { name } });
     created++;
+  }
+  return created;
+}
+
+async function seedIndustries(tx: Tx): Promise<number> {
+  let created = 0;
+  for (const name of data.INDUSTRIES) {
+    const where = { name: { equals: name, mode: "insensitive" as const } };
+    if (await tx.industry.findFirst({ where })) continue;
+    await tx.industry.create({ data: { name } });
+    created++;
+  }
+  return created;
+}
+
+// POR QUÉ: createMany con skipDuplicates (única por departamento y nombre) carga los 340 en una consulta por
+// departamento y respeta los que el administrador ya agregó o dio de baja.
+async function seedMunicipalities(tx: Tx): Promise<number> {
+  let created = 0;
+  for (const department of BOLIVIA_DEPARTMENTS) {
+    const { id } = await tx.department.upsert({
+      where: { code: department.code },
+      create: { code: department.code, name: department.name },
+      update: {},
+    });
+    const result = await tx.municipality.createMany({
+      data: department.municipalities
+        .split("|")
+        .map((name) => ({ departmentId: id, name })),
+      skipDuplicates: true,
+    });
+    created += result.count;
   }
   return created;
 }

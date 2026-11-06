@@ -9,23 +9,80 @@ enum ItemType {
   @@schema("core")
 }
 
-model Customer {
-  id             String   @id @default(uuid(7)) @db.Uuid
-  name           String   @map("razon_social")
-  taxId          String?  @map("nit")
-  email          String?  @map("correo")
-  phone          String?  @map("telefono")
-  address        String?  @map("direccion")
-  city           String?  @map("ciudad")
-  country        String?  @map("pais")
-  isActive       Boolean  @default(true) @map("activo")
-  // Qué permite el portal a la cuenta del cliente; siempre ve sus tickets y sus horas descontadas (§2.11).
-  portalSeesBags Boolean  @default(false) @map("portal_ve_bolsas")
-  portalRequests Boolean  @default(false) @map("portal_pide_trabajo")
-  portalComments Boolean  @default(false) @map("portal_comenta")
-  createdAt      DateTime @default(now()) @map("creado_en") @db.Timestamptz
-  updatedAt      DateTime @updatedAt @map("actualizado_en") @db.Timestamptz
+// Tipo de empresa del cliente (decisión 2026-11-06); lista fija.
+enum CompanyType {
+  PUBLICA
+  PRIVADA
+  MIXTA
+  ONG
+  ORGANISMO_INTERNACIONAL
+  OTRA
 
+  @@schema("core")
+}
+
+// Departamentos y municipios de Bolivia: la ubicación de clientes, sucursales y contactos (decisión 2026-11-06).
+// POR QUÉ: aparte de core.ciudad, que son las ciudades operativas de DIMA (correlativo, feriados, almacén).
+model Department {
+  id   String @id @default(uuid(7)) @db.Uuid
+  code String @unique @map("codigo")
+  name String @unique @map("nombre")
+
+  municipalities Municipality[]
+
+  @@map("departamento")
+  @@schema("core")
+}
+
+model Municipality {
+  id           String  @id @default(uuid(7)) @db.Uuid
+  departmentId String  @map("departamento_id") @db.Uuid
+  name         String  @map("nombre")
+  isActive     Boolean @default(true) @map("activo")
+
+  department Department @relation(fields: [departmentId], references: [id])
+  customers  Customer[]
+
+  @@unique([departmentId, name])
+  @@map("municipio")
+  @@schema("core")
+}
+
+// Rubro del cliente: catálogo simple que mantiene Administración (decisión 2026-11-06).
+model Industry {
+  id       String  @id @default(uuid(7)) @db.Uuid
+  name     String  @unique @map("nombre")
+  isActive Boolean @default(true) @map("activo")
+
+  customers Customer[]
+
+  @@map("rubro")
+  @@schema("core")
+}
+
+model Customer {
+  id             String       @id @default(uuid(7)) @db.Uuid
+  name           String       @map("razon_social")
+  taxId          String?      @map("nit")
+  email          String?      @map("correo")
+  phone          String?      @map("telefono")
+  address        String?      @map("direccion")
+  // POR QUÉ: texto libre de antes del catálogo de municipios; se muestra mientras no se elija un municipio.
+  city           String?      @map("ciudad")
+  country        String?      @map("pais")
+  municipalityId String?      @map("municipio_id") @db.Uuid
+  industryId     String?      @map("rubro_id") @db.Uuid
+  companyType    CompanyType? @map("tipo_empresa")
+  isActive       Boolean      @default(true) @map("activo")
+  // Qué permite el portal a la cuenta del cliente; siempre ve sus tickets y sus horas descontadas (§2.11).
+  portalSeesBags Boolean      @default(false) @map("portal_ve_bolsas")
+  portalRequests Boolean      @default(false) @map("portal_pide_trabajo")
+  portalComments Boolean      @default(false) @map("portal_comenta")
+  createdAt      DateTime     @default(now()) @map("creado_en") @db.Timestamptz
+  updatedAt      DateTime     @updatedAt @map("actualizado_en") @db.Timestamptz
+
+  municipality        Municipality?     @relation(fields: [municipalityId], references: [id])
+  industry            Industry?         @relation(fields: [industryId], references: [id])
   contacts            CustomerContact[]
   cvs                 Cv[]
   endCustomerVersions CvVersion[]

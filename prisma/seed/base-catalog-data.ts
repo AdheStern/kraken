@@ -59,6 +59,26 @@ export const TECHNOLOGIES = [
   "VMWARE",
 ];
 
+// Rubros iniciales de los clientes (decisión 2026-11-06); Administración los ajusta en su catálogo.
+export const INDUSTRIES = [
+  "Banca y finanzas",
+  "Seguros",
+  "Telecomunicaciones",
+  "Gobierno central",
+  "Gobierno subnacional",
+  "Minería",
+  "Hidrocarburos y energía",
+  "Salud",
+  "Educación",
+  "Retail y consumo",
+  "Industria",
+  "Agroindustria",
+  "Transporte y logística",
+  "Construcción",
+  "Servicios profesionales",
+  "ONG y cooperación",
+];
+
 // POR QUÉ: única corrección a la hoja: "Instalacíón" llevaba una tilde de más.
 export const SERVICE_TYPES = [
   "Servicios de Soporte, Mantenimiento y Garantías",

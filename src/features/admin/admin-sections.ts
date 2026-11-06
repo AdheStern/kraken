@@ -6,6 +6,7 @@ export type AdminAccess = "system" | "commercial";
 export type AdminSectionKey =
   | "clientes"
   | "proveedores"
+  | "rubros"
   | "productos"
   | "areas"
   | "ciudades"
@@ -49,6 +50,13 @@ export const ADMIN_GROUPS: readonly AdminGroup[] = [
         "Proveedores",
         "Un proveedor por empresa; la modalidad va en la línea del CV.",
         "/admin/catalogos/proveedores",
+        "commercial",
+      ),
+      section(
+        "rubros",
+        "Rubros",
+        "El rubro de cada cliente: banca, minería, gobierno…",
+        "/admin/catalogos/rubros",
         "commercial",
       ),
       section(

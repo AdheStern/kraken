@@ -26,5 +26,7 @@ export async function hasSimpleCatalogDuplicate(
       return (await prisma.serviceType.count({ where })) > 0;
     case "proveedores":
       return (await prisma.supplier.count({ where })) > 0;
+    case "rubros":
+      return (await prisma.industry.count({ where })) > 0;
   }
 }

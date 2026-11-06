@@ -24,6 +24,8 @@ export async function listSimpleCatalog(
       return (await prisma.serviceType.findMany(byName)).map((r) => item(r));
     case "proveedores":
       return (await prisma.supplier.findMany(byName)).map((r) => item(r, r));
+    case "rubros":
+      return (await prisma.industry.findMany(byName)).map((r) => item(r));
   }
 }
 

@@ -5,6 +5,7 @@ import {
   Building2,
   CalendarDays,
   Cpu,
+  Factory,
   FolderTree,
   KeyRound,
   Layers,
@@ -27,6 +28,7 @@ import type { AdminSection, AdminSectionKey } from "../admin-sections";
 const ICONS: Record<AdminSectionKey, LucideIcon> = {
   clientes: Building2,
   proveedores: Truck,
+  rubros: Factory,
   productos: Package,
   areas: Layers,
   ciudades: MapPin,

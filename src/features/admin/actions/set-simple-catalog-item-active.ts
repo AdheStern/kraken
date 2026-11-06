@@ -41,6 +41,7 @@ export async function setSimpleCatalogItemActive(
       else if (kind === "unidades") await tx.unit.update(args);
       else if (kind === "tecnologias") await tx.technology.update(args);
       else if (kind === "tipos-servicio") await tx.serviceType.update(args);
+      else if (kind === "rubros") await tx.industry.update(args);
       else await tx.supplier.update(args);
       await recordAudit(tx, {
         actorId: user.id,

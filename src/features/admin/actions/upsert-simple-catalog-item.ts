@@ -121,5 +121,9 @@ async function write(
             })
           ).id
         : (await tx.supplier.create({ data: { name, taxId } })).id;
+    case "rubros":
+      return id
+        ? (await tx.industry.update({ where: { id }, data: { name } })).id
+        : (await tx.industry.create({ data: { name } })).id;
   }
 }

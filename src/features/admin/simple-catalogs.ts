@@ -1,6 +1,6 @@
 // src/features/admin/simple-catalogs.ts
 // Catálogos simples (nombre, y a veces código, NIT o marca de horas) que comparten pantalla y acciones.
-// POR QUÉ: seis catálogos casi idénticos; un registro evita seis copias de la misma pantalla (§9, DRY).
+// POR QUÉ: siete catálogos casi idénticos; un registro evita seis copias de la misma pantalla (§9, DRY).
 import type { AdminAccess } from "./admin-sections";
 
 export const SIMPLE_CATALOG_KINDS = [
@@ -10,6 +10,7 @@ export const SIMPLE_CATALOG_KINDS = [
   "unidades",
   "tipos-servicio",
   "proveedores",
+  "rubros",
 ] as const;
 
 export type SimpleCatalogKind = (typeof SIMPLE_CATALOG_KINDS)[number];
@@ -91,6 +92,14 @@ export const SIMPLE_CATALOGS: Record<SimpleCatalogKind, SimpleCatalogConfig> = {
     access: "commercial",
     table: "core.proveedor",
     hasTaxId: true,
+  },
+  rubros: {
+    title: "Rubros",
+    singular: "rubro",
+    description:
+      "El rubro de cada cliente (banca, minería, gobierno…). Dar de baja uno no lo quita de los clientes que ya lo tienen.",
+    access: "commercial",
+    table: "core.rubro",
   },
 };
 

@@ -11,6 +11,7 @@ export async function getAdminOverview(): Promise<AdminCounts> {
   const [
     clientes,
     proveedores,
+    rubros,
     productos,
     areas,
     ciudades,
@@ -25,6 +26,7 @@ export async function getAdminOverview(): Promise<AdminCounts> {
   ] = await Promise.all([
     prisma.customer.count(active),
     prisma.supplier.count(active),
+    prisma.industry.count(active),
     prisma.product.count(active),
     prisma.area.count(active),
     prisma.city.count(active),
@@ -42,6 +44,7 @@ export async function getAdminOverview(): Promise<AdminCounts> {
   return {
     clientes,
     proveedores,
+    rubros,
     productos,
     areas,
     ciudades,

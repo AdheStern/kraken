@@ -29,6 +29,7 @@ const LOOKUPS: Record<string, Lookup> = {
     named(await prisma.serviceType.findMany(byId(ids))),
   "core.proveedor": async (ids) =>
     named(await prisma.supplier.findMany(byId(ids))),
+  "core.rubro": async (ids) => named(await prisma.industry.findMany(byId(ids))),
   "core.cliente": async (ids) =>
     named(await prisma.customer.findMany(byId(ids))),
   "core.cliente_contacto": async (ids) =>

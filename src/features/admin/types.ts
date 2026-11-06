@@ -51,6 +51,7 @@ export type ContactFormOptions = {
   branches: Option[];
   areas: Option[];
   users: Option[];
+  customers: Option[];
 };
 
 export type CustomerDetail = {

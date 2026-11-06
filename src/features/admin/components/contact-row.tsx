@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { setCustomerContactActive } from "../actions/set-customer-contact-active";
 import type { ContactFormOptions, CustomerContactView } from "../types";
 import { ContactDialog } from "./contact-dialog";
+import { TransferContactDialog } from "./transfer-contact-dialog";
 import { useAdminAction } from "./use-admin-action";
 
 type Props = {
@@ -57,6 +58,22 @@ export function ContactRow({ customerId, contact: c, options }: Props) {
             {period && <span>{period}</span>}
           </div>
         </div>
+        {c.isActive && (
+          <TransferContactDialog
+            contact={c}
+            customers={options.customers}
+            currentCustomerId={customerId}
+            trigger={
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label={`Transferir a ${c.name}`}
+              >
+                Transferir
+              </Button>
+            }
+          />
+        )}
         {c.isActive && (
           <ContactDialog
             customerId={customerId}

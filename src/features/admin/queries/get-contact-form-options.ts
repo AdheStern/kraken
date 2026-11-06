@@ -1,5 +1,6 @@
 // src/features/admin/queries/get-contact-form-options.ts
-// Opciones del puesto de contacto: áreas activas y personas de DIMA activas que pueden atenderlo (decisión
+// Opciones del puesto de contacto: áreas activas, personas de DIMA que pueden atenderlo y los clientes activos a los
+// que se puede transferir (decisión
 // 2026-11-06). LIMITACIÓN: sin alcance; son catálogos y la ficha exige canManageCommercialCatalogs.
 import { prisma } from "@/server/db";
 import type { ContactFormOptions } from "../types";
@@ -7,7 +8,7 @@ import type { ContactFormOptions } from "../types";
 export async function getContactFormOptions(): Promise<
   Omit<ContactFormOptions, "branches" | "municipalities">
 > {
-  const [areas, users] = await Promise.all([
+  const [areas, users, customers] = await Promise.all([
     prisma.area.findMany({
       where: { isActive: true },
       orderBy: { code: "asc" },
@@ -19,6 +20,11 @@ export async function getContactFormOptions(): Promise<
       orderBy: { user: { name: "asc" } },
       select: { userId: true, user: { select: { name: true, email: true } } },
     }),
+    prisma.customer.findMany({
+      where: { isActive: true },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, taxId: true },
+    }),
   ]);
   return {
     areas: areas.map((a) => ({ id: a.id, label: a.code, hint: a.name })),
@@ -26,6 +32,11 @@ export async function getContactFormOptions(): Promise<
       id: u.userId,
       label: u.user.name,
       hint: u.user.email,
+    })),
+    customers: customers.map((c) => ({
+      id: c.id,
+      label: c.name,
+      hint: c.taxId ?? undefined,
     })),
   };
 }

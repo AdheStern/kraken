@@ -17,10 +17,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { upsertCustomerContact } from "../actions/upsert-customer-contact";
 import type { ContactFormOptions, CustomerContactView } from "../types";
+import { DuplicateMatches } from "./duplicate-matches";
 import { LabeledInput } from "./labeled-input";
-import { useAdminAction } from "./use-admin-action";
+import { useContactSave } from "./use-contact-save";
 
 type Props = {
   customerId: string;
@@ -42,7 +42,6 @@ export function ContactDialog({
   options,
   trigger,
 }: Props) {
-  const { isPending, error, run } = useAdminAction();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState({
     name: contact?.name ?? "",
@@ -57,17 +56,13 @@ export function ContactDialog({
     userIds: contact?.userIds ?? [],
   });
 
-  async function save() {
-    const ok = await run(() =>
-      upsertCustomerContact({
-        id: contact?.id ?? null,
-        customerId,
-        ...text,
-        ...links,
-      }),
-    );
-    if (ok) setOpen(false);
-  }
+  const { isPending, error, matches, save, pickMatch, createAnyway } =
+    useContactSave({
+      customerId,
+      contactId: contact?.id ?? null,
+      onDone: () => setOpen(false),
+    });
+  const form = { ...text, ...links };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -83,7 +78,7 @@ export function ContactDialog({
           className="grid gap-3 sm:grid-cols-2"
           onSubmit={(event) => {
             event.preventDefault();
-            save();
+            save(form);
           }}
         >
           {TEXT.map(([key, label]) => (
@@ -145,13 +140,26 @@ export function ContactDialog({
             />
           </FormField>
         </form>
+        {matches && matches.length > 0 && (
+          <DuplicateMatches
+            customerId={customerId}
+            matches={matches}
+            isPending={isPending}
+            onPick={(match) => pickMatch(match, form)}
+            onCreateAnyway={() => createAnyway(form)}
+          />
+        )}
         {error && (
           <p role="alert" className="text-sm text-destructive">
             {error}
           </p>
         )}
         <DialogFooter>
-          <Button type="submit" form="contact-form" disabled={isPending}>
+          <Button
+            type="submit"
+            form="contact-form"
+            disabled={isPending || (matches?.length ?? 0) > 0}
+          >
             {isPending && (
               <LoaderCircle className="animate-spin" aria-hidden="true" />
             )}

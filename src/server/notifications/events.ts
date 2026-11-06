@@ -27,6 +27,7 @@ export const NOTIFICATION_EVENTS = {
   AJUSTE_DECIDIDO: "Se decidió tu ajuste de inventario",
   TICKET_ASIGNADO: "Te asignaron un ticket o una subtarea",
   TICKET_ACTIVIDAD_CLIENTE: "Un cliente comentó o adjuntó en su ticket",
+  TICKET_CONFORMIDAD: "Un cliente respondió si quedó conforme con su ticket",
   SOLICITUD_NUEVA: "Alguien pidió un ticket a tu área",
   SOLICITUD_DESCARTADA: "Se descartó tu solicitud de ticket",
   SOLICITUD_ESTADO: "Cambió el estado del ticket que pediste",

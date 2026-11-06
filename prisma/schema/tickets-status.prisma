@@ -11,10 +11,33 @@ model TicketStatusEvent {
   actorId    String?       @map("actor_id")
   occurredAt DateTime      @default(now()) @map("ocurrido_en") @db.Timestamptz
 
-  ticket Ticket       @relation(fields: [ticketId], references: [id])
-  actor  UserProfile? @relation(fields: [actorId], references: [userId])
+  ticket     Ticket            @relation(fields: [ticketId], references: [id])
+  actor      UserProfile?      @relation(fields: [actorId], references: [userId])
+  conformity TicketConformity?
 
   @@index([ticketId, occurredAt])
   @@map("evento_estado")
+  @@schema("tickets")
+}
+
+// Conformidad del cliente con la resolución de su ticket, una por cada paso a RESUELTO (§2.11, decisión
+// 2026-11-05). REGLA: inmutable (trigger) y con nota de 1 a 5 solo si está conforme; si no, comentario obligatorio
+// (CHECK en prisma/sql/tickets-conformidad.sql).
+model TicketConformity {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  ticketId      String   @map("ticket_id") @db.Uuid
+  statusEventId String   @unique @map("evento_estado_id") @db.Uuid
+  isSatisfied   Boolean  @map("conforme")
+  rating        Int?     @map("calificacion")
+  comment       String?  @map("comentario")
+  authorId      String   @map("autor_id")
+  createdAt     DateTime @default(now()) @map("creado_en") @db.Timestamptz
+
+  ticket      Ticket            @relation(fields: [ticketId], references: [id])
+  statusEvent TicketStatusEvent @relation(fields: [statusEventId], references: [id])
+  author      UserProfile       @relation(fields: [authorId], references: [userId])
+
+  @@index([ticketId])
+  @@map("conformidad")
   @@schema("tickets")
 }

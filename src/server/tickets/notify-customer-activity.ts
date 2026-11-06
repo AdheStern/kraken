@@ -1,11 +1,15 @@
 // src/server/tickets/notify-customer-activity.ts
-// Avisa a DIMA cuando la cuenta de un cliente comenta o adjunta en su ticket (AGENTS.md §2.11): al encargado o,
-// si el ticket aún no tiene, a los coordinadores de sus áreas.
+// Avisa a DIMA cuando la cuenta de un cliente comenta, adjunta o responde su conformidad en su ticket (AGENTS.md
+// §2.11): al encargado o, si el ticket aún no tiene, a los coordinadores de sus áreas.
 import type { SessionUser } from "@/server/authz/roles";
 import type { Tx } from "@/server/db";
 import { notify } from "@/server/notifications/notify";
 
-type Activity = { kind: "COMENTARIO" } | { kind: "ADJUNTO"; fileName: string };
+type Activity =
+  | { kind: "COMENTARIO" }
+  | { kind: "ADJUNTO"; fileName: string }
+  | { kind: "CONFORME"; rating: number }
+  | { kind: "NO_CONFORME" };
 
 export async function notifyCustomerActivity(
   tx: Tx,
@@ -29,6 +33,21 @@ export async function notifyCustomerActivity(
         tx,
         ticket.areas.map((a) => a.areaId),
       );
+  if (activity.kind === "CONFORME" || activity.kind === "NO_CONFORME") {
+    const isSatisfied = activity.kind === "CONFORME";
+    await notify(tx, {
+      event: "TICKET_CONFORMIDAD",
+      userIds,
+      title: isSatisfied
+        ? `El cliente quedó conforme con el ticket #${ticket.number} (${activity.rating} de 5)`
+        : `El cliente no quedó conforme con el ticket #${ticket.number}`,
+      body: isSatisfied
+        ? `${user.name} calificó «${ticket.title}». Ya se puede cerrar.`
+        : `${user.name} explicó por qué en un comentario público; el ticket volvió a En progreso.`,
+      link: `/tickets/${ticketId}`,
+    });
+    return;
+  }
   const what =
     activity.kind === "COMENTARIO"
       ? "comentó"

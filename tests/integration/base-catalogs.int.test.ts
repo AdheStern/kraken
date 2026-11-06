@@ -48,7 +48,7 @@ describe("seedBaseCatalogs", () => {
     expect(await db.serviceType.count()).toBeGreaterThanOrEqual(
       data.SERVICE_TYPES.length,
     );
-    expect(await db.role.count()).toBe(10);
+    expect(await db.role.count()).toBe(11);
   });
 
   it("no reactiva un catálogo dado de baja", async () => {

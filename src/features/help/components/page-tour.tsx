@@ -1,6 +1,7 @@
 // src/features/help/components/page-tour.tsx
-// Botón «Recorrido» de una pantalla: la primera vez que la persona entra se ofrece solo; después, a pedido
-// (driver.js, decisión 2026-11-05). Los pasos cuyo elemento no existe para su rol se saltan.
+// Botón «Recorrido» de una pantalla: la primera vez que la persona entra se ofrece solo; después, a pedido o con
+// ?recorrido=1 desde la ayuda (driver.js, decisión 2026-11-05). Los pasos cuyo elemento no existe para su rol se
+// saltan.
 "use client";
 
 import { Compass } from "lucide-react";
@@ -18,7 +19,10 @@ export function PageTour({ id }: { id: TourId }) {
 
   useEffect(() => {
     let cancelled = false;
+    const asked =
+      new URLSearchParams(window.location.search).get("recorrido") === "1";
     const timer = setTimeout(async () => {
+      if (asked) return !cancelled && start();
       const seen = await wasTourSeen(id);
       if (!cancelled && seen.ok && !seen.data) start();
     }, AUTO_START_DELAY_MS);

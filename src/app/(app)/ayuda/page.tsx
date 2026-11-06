@@ -1,6 +1,6 @@
 // src/app/(app)/ayuda/page.tsx
 // Manuales cortos por rol dentro de la app (AGENTS.md §12 F6) y preguntas frecuentes: abre el manual del rol del
-// usuario y deja consultar los demás con ?rol=; al final, los atajos de teclado.
+// usuario y deja consultar los demás con ?rol=; los recorridos guiados del rol y los atajos de teclado.
 // TRAMPA: con Cache Components, leer la sesión fuera de <Suspense> impide prerenderizar y rompe el build.
 import type { Metadata } from "next";
 import { Suspense } from "react";
@@ -9,7 +9,9 @@ import { ShortcutsReference } from "@/components/shortcuts/shortcuts-reference";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HelpFaq } from "@/features/help/components/help-faq";
 import { ManualView } from "@/features/help/components/manual-view";
+import { ToursList } from "@/features/help/components/tours-list";
 import { chooseManual } from "@/features/help/manual-registry";
+import { listVisibleTours } from "@/features/help/queries/list-visible-tours";
 import { requireUser } from "@/server/session";
 
 export const metadata: Metadata = { title: "Ayuda" };
@@ -39,5 +41,10 @@ async function HelpContent({
     user.roles.map((role) => role.code),
     requested,
   );
-  return <ManualView choice={choice} />;
+  return (
+    <>
+      <ManualView choice={choice} />
+      <ToursList tours={listVisibleTours(user)} />
+    </>
+  );
 }

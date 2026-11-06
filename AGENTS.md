@@ -501,7 +501,7 @@ model HourMovement {
 | PDF (comprobante del POS) | pdf-lib (fuentes estándar embebidas; solo genera) |
 | Lectura con cámara (POS, traspasos, conteo, código de un producto nuevo y seriales del ingreso) | `@zxing/browser` + `@zxing/library` 0.21 (código de barras y QR; se carga al abrir la cámara), en `src/components/scan/` para que la usen inventario y administración. La 0.23 registra un aviso por cuadro |
 | Texto enriquecido (lecciones aprendidas) | Tiptap (`@tiptap/react`, `starter-kit`, `markdown`) con una barra propia de botones shadcn; shadcn no trae editor |
-| Recorrido guiado | driver.js 1.10 (MIT, sin dependencias; se carga al abrir un recorrido): pasos por pantalla en `src/features/help/tours/tour-registry.ts` anclados a `data-tour`; los que no se dibujan para un rol se saltan; se ofrece solo una vez por persona y pantalla (`core.recorrido_visto`) y se repite con «Recorrido» (decisión 2026-11-05) |
+| Recorrido guiado | driver.js 1.10 (MIT, sin dependencias; se carga al abrir un recorrido): pasos por pantalla en `src/features/help/tours/tour-registry.ts` anclados a `data-tour`; los que no se dibujan para un rol se saltan; se ofrece solo una vez por persona y pantalla (`core.recorrido_visto`) y se repite con «Recorrido» o desde la lista de `/ayuda` (`?recorrido=1` lo arranca, `listVisibleTours` filtra por rol) (decisión 2026-11-05) |
 | Correo | Cliente de Microsoft Graph app-only |
 | Paquetes | pnpm |
 

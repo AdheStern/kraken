@@ -31,3 +31,18 @@ test("el recorrido de Control de Venta señala los filtros", async ({
     "cv-filtros",
   );
 });
+
+test("la ayuda lista los recorridos del rol y cada uno arranca solo", async ({
+  page,
+}) => {
+  await page.goto("/ayuda");
+  const tours = page.getByRole("region", { name: "Recorridos guiados" });
+  await expect(tours.getByRole("link", { name: "Aprobaciones" })).toHaveCount(
+    0,
+  );
+  await tours.getByRole("link", { name: "Control de Venta" }).click();
+  await page.waitForURL(/\/cv\?recorrido=1$/);
+  await expect(
+    page.locator(".driver-popover").getByText("Encuentra tus CV"),
+  ).toBeVisible();
+});

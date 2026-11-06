@@ -3,9 +3,11 @@
 // quiénes lo atienden. Al agregar crea la persona o usa una ya registrada (decisión 2026-11-06).
 "use server";
 
+import { toBusinessDate } from "@/domain/calendar/business-date";
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";
 import { toActionError } from "@/server/action-errors";
 import { recordAudit } from "@/server/audit/record-audit";
+import { systemClock } from "@/server/clock";
 import { createContactPosition } from "@/server/customers/create-contact-position";
 import { updateContactPosition } from "@/server/customers/update-contact-position";
 import { runInTransaction } from "@/server/db";
@@ -31,7 +33,10 @@ export async function upsertCustomerContact(
         : null;
       const after = id
         ? await updateContactPosition(tx, id, data)
-        : await createContactPosition(tx, data);
+        : await createContactPosition(tx, {
+            ...data,
+            startedOn: new Date(toBusinessDate(systemClock.now())),
+          });
       await recordAudit(tx, {
         actorId: user.id,
         entity: "core.cliente_contacto",

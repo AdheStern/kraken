@@ -42,6 +42,7 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   REVISAR: "dio por revisado",
   DUPLICAR: "duplicó",
   RENOVAR: "creó como renovación",
+  TRANSFERIR: "transfirió a otra empresa",
   ENVIAR: "envió a aprobación",
   APROBAR: "aprobó",
   RECHAZAR: "rechazó",

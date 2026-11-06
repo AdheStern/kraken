@@ -2,13 +2,17 @@
 // Filtro de visibilidad de bolsas de horas según los roles (AGENTS.md §2.9, fila "Bolsas: ver saldo").
 // REGLA: todo listado de bolsas pasa por aquí; prohibido escribir condiciones de visibilidad a mano (regla 7).
 import type { Prisma } from "@/generated/prisma/client";
-import { hasRole, memberAreaIds, type SessionUser } from "./roles";
+import {
+  hasRole,
+  memberAreaIds,
+  type SessionUser,
+  seesEverything,
+} from "./roles";
 
 const NOTHING: Prisma.HourBagWhereInput = { id: { in: [] } };
 
 export function scopeHourBagQuery(user: SessionUser): Prisma.HourBagWhereInput {
-  if (hasRole(user, "GERENTE_GENERAL") || hasRole(user, "ADMINISTRACION"))
-    return {};
+  if (seesEverything(user) || hasRole(user, "ADMINISTRACION")) return {};
 
   const visible: Prisma.HourBagWhereInput[] = [];
   // REGLA: todo miembro de un área (cualquier rol con esa área) ve todas sus bolsas, con su historial (§2.9).

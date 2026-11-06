@@ -5,6 +5,7 @@ import {
   areaIdsWithRole,
   hasRole,
   type SessionUser,
+  seesEverything,
 } from "@/server/authz/roles";
 import { prisma } from "@/server/db";
 
@@ -17,8 +18,7 @@ export type FilterOptions = { areas: FilterOption[]; cities: FilterOption[] };
 export async function getFilterOptions(
   user: SessionUser,
 ): Promise<FilterOptions> {
-  const seesAll =
-    hasRole(user, "GERENTE_GENERAL") || hasRole(user, "ADMINISTRACION");
+  const seesAll = seesEverything(user) || hasRole(user, "ADMINISTRACION");
   const ownAreaIds = [
     ...areaIdsWithRole(user, "GERENTE_AREA"),
     ...areaIdsWithRole(user, "COORDINADOR_SOPORTE"),

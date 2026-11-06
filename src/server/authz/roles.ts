@@ -26,6 +26,14 @@ export function hasRole(user: SessionUser, code: RoleCode): boolean {
   return user.roles.some((role) => role.code === code);
 }
 
+// REGLA: Desarrollo de Negocios ve lo mismo que el gerente general, sin heredar sus decisiones (aprobar CV,
+// ajustes, metas, cerrar tickets) (decisión 2026-11-06).
+export function seesEverything(user: SessionUser): boolean {
+  return (
+    hasRole(user, "GERENTE_GENERAL") || hasRole(user, "DESARROLLO_NEGOCIOS")
+  );
+}
+
 // La sesión de una cuenta de cliente trae solo el rol CLIENTE (session.ts, §2.11).
 export function isCustomerAccount(user: SessionUser): boolean {
   return hasRole(user, "CLIENTE");

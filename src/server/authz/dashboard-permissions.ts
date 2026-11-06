@@ -2,11 +2,17 @@
 // Permisos de los tableros (AGENTS.md §2.9, fila "Tableros", y §6): quién ve el económico, el operativo y el de
 // inventario, y quién define las metas.
 import { canSeeInventoryCosts } from "./inventory-permissions";
-import { areaIdsWithRole, hasRole, type SessionUser } from "./roles";
+import {
+  areaIdsWithRole,
+  hasRole,
+  type SessionUser,
+  seesEverything,
+} from "./roles";
 
 // REGLA: el económico muestra costos y márgenes; lo ven quienes los ven en los CV (§2.9 "CV: costos y margen").
 const SALES_VIEWERS = [
   "GERENTE_GENERAL",
+  "DESARROLLO_NEGOCIOS",
   "GERENTE_AREA",
   "COMERCIAL",
   "ADMINISTRACION",
@@ -15,6 +21,7 @@ const SALES_VIEWERS = [
 // POR QUÉ: el operativo no lleva montos; el ingeniero se ve solo a sí mismo (lo recortan los alcances).
 const OPERATIONS_VIEWERS = [
   "GERENTE_GENERAL",
+  "DESARROLLO_NEGOCIOS",
   "GERENTE_AREA",
   "COORDINADOR_SOPORTE",
   "INGENIERO",
@@ -37,7 +44,7 @@ export function canSeeEngineersDashboard(user: SessionUser): boolean {
 // POR QUÉ: quien solo se ve a sí mismo (el ingeniero) entra directo a su detalle, sin listado.
 export function seesOtherEngineers(user: SessionUser): boolean {
   return (
-    hasRole(user, "GERENTE_GENERAL") ||
+    seesEverything(user) ||
     areaIdsWithRole(user, "GERENTE_AREA").length > 0 ||
     areaIdsWithRole(user, "COORDINADOR_SOPORTE").length > 0
   );

@@ -2,7 +2,12 @@
 // De qué ingenieros ve la utilización cada rol en el tablero operativo (AGENTS.md §2.9 "Tableros", §6).
 // REGLA: todo listado de ingenieros de los tableros pasa por aquí (regla 7).
 import type { Prisma } from "@/generated/prisma/client";
-import { areaIdsWithRole, hasRole, type SessionUser } from "./roles";
+import {
+  areaIdsWithRole,
+  hasRole,
+  type SessionUser,
+  seesEverything,
+} from "./roles";
 
 const NOTHING: Prisma.UserProfileWhereInput = { userId: { in: [] } };
 
@@ -13,7 +18,7 @@ export function scopeEngineerQuery(
   const isEngineer: Prisma.UserProfileWhereInput = {
     roles: { some: { role: { code: "INGENIERO" } } },
   };
-  if (hasRole(user, "GERENTE_GENERAL")) return isEngineer;
+  if (seesEverything(user)) return isEngineer;
 
   const areaIds = [
     ...new Set([

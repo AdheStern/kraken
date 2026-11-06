@@ -5,6 +5,7 @@ import { areaIdsWithRole, hasRole, type SessionUser } from "./roles";
 
 const STOCK_VIEWERS = [
   "GERENTE_GENERAL",
+  "DESARROLLO_NEGOCIOS",
   "GERENTE_AREA",
   "COMERCIAL",
   "INGENIERO",
@@ -15,6 +16,7 @@ const STOCK_VIEWERS = [
 // REGLA: comercial e ingeniero consultan solo cantidades; el ingeniero nunca recibe costos (regla 12).
 const COST_VIEWERS = [
   "GERENTE_GENERAL",
+  "DESARROLLO_NEGOCIOS",
   "GERENTE_AREA",
   "ALMACEN",
   "ADMINISTRACION",

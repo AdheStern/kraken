@@ -3,7 +3,12 @@
 // puede tener líneas de varias áreas (AGENTS.md §2.9 "CV: costos y margen", §6).
 // REGLA: toda lectura de ventas, pipeline o renovaciones pasa por aquí (regla 7).
 import type { Prisma } from "@/generated/prisma/client";
-import { areaIdsWithRole, hasRole, type SessionUser } from "./roles";
+import {
+  areaIdsWithRole,
+  hasRole,
+  type SessionUser,
+  seesEverything,
+} from "./roles";
 
 const NOTHING: Prisma.CvLineWhereInput = { id: { in: [] } };
 
@@ -12,7 +17,7 @@ const NOTHING: Prisma.CvLineWhereInput = { id: { in: [] } };
 export function scopeSalesLineQuery(
   user: SessionUser,
 ): Prisma.CvLineWhereInput {
-  if (hasRole(user, "GERENTE_GENERAL")) return {};
+  if (seesEverything(user)) return {};
 
   const visible: Prisma.CvLineWhereInput[] = [];
   if (hasRole(user, "COMERCIAL") || hasRole(user, "GERENTE_AREA")) {

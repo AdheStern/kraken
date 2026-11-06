@@ -2,12 +2,17 @@
 // Filtro de visibilidad de proyectos, el contenedor de tickets (AGENTS.md §2.6; misma lógica que "Tickets: ver" §2.9).
 // REGLA: todo listado de proyectos pasa por aquí (regla 7).
 import type { Prisma } from "@/generated/prisma/client";
-import { areaIdsWithRole, hasRole, type SessionUser } from "./roles";
+import {
+  areaIdsWithRole,
+  hasRole,
+  type SessionUser,
+  seesEverything,
+} from "./roles";
 
 const NOTHING: Prisma.ProjectWhereInput = { id: { in: [] } };
 
 export function scopeProjectQuery(user: SessionUser): Prisma.ProjectWhereInput {
-  if (hasRole(user, "GERENTE_GENERAL")) return {};
+  if (seesEverything(user)) return {};
   const visible: Prisma.ProjectWhereInput[] = [];
   const areaIds = [
     ...new Set([

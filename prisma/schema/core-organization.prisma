@@ -12,6 +12,8 @@ enum RoleCode {
   ALMACEN
   ADMINISTRACION
   ADMIN_SISTEMA
+  // Desarrollo de Negocios (decisión 2026-11-06): ve lo que ve el GG y gestiona clientes y contactos; no aprueba.
+  DESARROLLO_NEGOCIOS
   // Cuenta de una empresa cliente en el portal (AGENTS.md §2.11): nunca se combina con roles internos.
   CLIENTE
 

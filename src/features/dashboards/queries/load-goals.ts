@@ -5,7 +5,11 @@ import type { MonthlyGoal } from "@/domain/dashboards/goal-progress";
 import { monthKey } from "@/domain/dashboards/period";
 import type { Prisma } from "@/generated/prisma/client";
 import type { GoalIndicator } from "@/generated/prisma/enums";
-import { hasRole, type SessionUser } from "@/server/authz/roles";
+import {
+  hasRole,
+  type SessionUser,
+  seesEverything,
+} from "@/server/authz/roles";
 import { scopeGoalQuery } from "@/server/authz/scope-goal-query";
 import { prisma } from "@/server/db";
 
@@ -43,7 +47,6 @@ function areaFilter(
   areaId: string | null,
 ): Prisma.GoalWhereInput {
   if (areaId) return { areaId };
-  const seesCompany =
-    hasRole(user, "GERENTE_GENERAL") || hasRole(user, "ADMINISTRACION");
+  const seesCompany = seesEverything(user) || hasRole(user, "ADMINISTRACION");
   return seesCompany ? { areaId: null } : {};
 }

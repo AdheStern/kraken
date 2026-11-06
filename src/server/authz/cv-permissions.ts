@@ -1,7 +1,12 @@
 // src/server/authz/cv-permissions.ts
 // Permisos sobre un CV concreto (AGENTS.md §2.9): crear, editar el borrador, ver costos, exportar y aprobar.
 // Funciones puras sobre los roles del usuario y los datos mínimos del CV; cada fila de §2.9 tiene su test.
-import { areaIdsWithRole, hasRole, type SessionUser } from "./roles";
+import {
+  areaIdsWithRole,
+  hasRole,
+  type SessionUser,
+  seesEverything,
+} from "./roles";
 
 export type CvAccessFacts = {
   createdById: string;
@@ -14,7 +19,7 @@ export type CvAccessFacts = {
 // tickets desde el ticket, sin listado (regla 12).
 export function canListCvs(user: SessionUser): boolean {
   return (
-    hasRole(user, "GERENTE_GENERAL") ||
+    seesEverything(user) ||
     hasRole(user, "GERENTE_AREA") ||
     hasRole(user, "COMERCIAL") ||
     hasRole(user, "PREVENTA") ||
@@ -69,7 +74,7 @@ export function canEditPostSaleDetails(
 
 // REGLA: un ingeniero nunca recibe costos ni márgenes; ese rol no otorga nada aquí (regla 12).
 export function canSeeCvCosts(user: SessionUser, cv: CvAccessFacts): boolean {
-  if (hasRole(user, "GERENTE_GENERAL")) return true;
+  if (seesEverything(user)) return true;
   if (hasRole(user, "COMERCIAL") && isOwnCv(user, cv)) return true;
   const managedAreaIds = areaIdsWithRole(user, "GERENTE_AREA");
   if (cv.lineAreaIds.some((areaId) => managedAreaIds.includes(areaId)))

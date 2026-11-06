@@ -18,6 +18,7 @@ import type { Manual } from "./types";
 // REGLA: un manual por rol; un rol nuevo en el enum no compila hasta tener el suyo.
 export const MANUALS: Record<RoleCode, Manual> = {
   GERENTE_GENERAL: withRequests(GENERAL_MANAGER_MANUAL),
+  DESARROLLO_NEGOCIOS: withRequests(GENERAL_MANAGER_MANUAL),
   GERENTE_AREA: withRequests(AREA_MANAGER_MANUAL),
   COMERCIAL: withRequests(SALES_MANUAL),
   PREVENTA: withRequests(PRESALES_MANUAL),

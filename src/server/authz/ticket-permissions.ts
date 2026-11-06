@@ -13,6 +13,7 @@ export type TicketAccess = {
 
 const TICKET_VIEWERS = [
   "GERENTE_GENERAL",
+  "DESARROLLO_NEGOCIOS",
   "GERENTE_AREA",
   "COORDINADOR_SOPORTE",
   "COMERCIAL",

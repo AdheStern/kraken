@@ -11,6 +11,7 @@ import { RoleNav } from "@/components/app-shell/role-nav";
 import { SidebarFx } from "@/components/app-shell/sidebar-fx";
 import { SidebarUser } from "@/components/app-shell/sidebar-user";
 import { KrakenMark } from "@/components/brand/kraken-mark";
+import { SearchButton } from "@/components/shortcuts/search-button";
 import { ShortcutsButton } from "@/components/shortcuts/shortcuts-button";
 import { ShortcutsProvider } from "@/components/shortcuts/shortcuts-provider";
 import { ModeToggle } from "@/components/theme/mode-toggle";
@@ -72,6 +73,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
               </span>
             </Link>
             <div className="ml-auto flex items-center gap-1">
+              <SearchButton />
               <Suspense fallback={null}>
                 <HeaderTimer />
               </Suspense>

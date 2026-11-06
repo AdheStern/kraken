@@ -30,6 +30,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { CommandPalette } from "@/features/search/components/command-palette";
 import type { NavEntry, NavKey } from "./nav-entries";
 import { NavShortcuts } from "./nav-shortcuts";
 
@@ -81,6 +82,12 @@ export function AppNav({ entries }: { entries: readonly NavEntry[] }) {
     <SidebarGroup>
       <NavShortcuts
         targets={entries.map(({ key }) => ({ key, href: ITEMS[key].href }))}
+      />
+      <CommandPalette
+        pages={entries.map(({ key }) => ({
+          label: ITEMS[key].label,
+          href: ITEMS[key].href,
+        }))}
       />
       <SidebarGroupContent>
         <Suspense fallback={<NavItems entries={entries} activePath={null} />}>

@@ -32,3 +32,17 @@ test("escribir «gc» en un campo no navega", async ({ page }) => {
   await expect(page).toHaveURL(/\/cv/);
   await expect(search).toHaveValue("gt");
 });
+
+test("Ctrl+K busca un CV por su cliente y lo abre con Enter", async ({
+  page,
+}) => {
+  await page.goto("/inicio");
+  await page.waitForLoadState("networkidle");
+  await page.keyboard.press("Control+k");
+  const search = page.getByRole("textbox", { name: "Buscar en Kraken" });
+  await search.fill("Minera");
+  const results = page.getByRole("region", { name: "Control de Venta" });
+  await expect(results.getByRole("button").first()).toBeVisible();
+  await search.press("Enter");
+  await page.waitForURL(/\/cv\/[0-9a-f-]{36}$/);
+});

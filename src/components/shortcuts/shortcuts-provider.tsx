@@ -19,6 +19,8 @@ import { ShortcutsDialog } from "./shortcuts-dialog";
 type Registry = {
   register: (id: ShortcutId, run: () => void) => () => void;
   openHelp: () => void;
+  // Ejecuta un atajo registrado como si se hubiera pulsado (botones de la cabecera).
+  trigger: (id: ShortcutId) => void;
 };
 
 export const ShortcutsContext = createContext<Registry | null>(null);
@@ -59,7 +61,11 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ register, openHelp: () => setHelpOpen(true) }),
+    () => ({
+      register,
+      openHelp: () => setHelpOpen(true),
+      trigger: (id: ShortcutId) => handlers.current.get(id)?.(),
+    }),
     [register],
   );
   return (

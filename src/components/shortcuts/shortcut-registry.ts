@@ -40,6 +40,11 @@ const NAV = Object.fromEntries(
 
 export const SHORTCUTS = {
   help: { keys: "?", description: "Ver todos los atajos", section: "General" },
+  search: {
+    keys: "Ctrl+K",
+    description: "Buscar en todo Kraken",
+    section: "General",
+  },
   ...NAV,
   "cv.save": {
     keys: "Ctrl+S",

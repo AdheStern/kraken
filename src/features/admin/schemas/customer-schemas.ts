@@ -23,8 +23,19 @@ export const customerSchema = z.object({
   email,
   phone: text(40),
   address: text(200),
-  city: text(80),
   country: text(80),
+  industryId: z.uuid().nullable(),
+  companyType: z
+    .enum([
+      "PUBLICA",
+      "PRIVADA",
+      "MIXTA",
+      "ONG",
+      "ORGANISMO_INTERNACIONAL",
+      "OTRA",
+    ])
+    .nullable(),
+  municipalityId: z.uuid().nullable(),
 });
 
 export type CustomerInput = z.input<typeof customerSchema>;

@@ -1,6 +1,6 @@
 // src/features/admin/types.ts
 // Tipos de presentación de la administración (nunca entidades Prisma completas).
-import type { RoleCode } from "@/generated/prisma/enums";
+import type { CompanyType, RoleCode } from "@/generated/prisma/enums";
 import type { RoleAreaRule } from "./role-area-rules";
 
 export type SimpleCatalogItem = {
@@ -40,8 +40,17 @@ export type CustomerDetail = {
   address: string | null;
   city: string | null;
   country: string | null;
+  industryId: string | null;
+  companyType: CompanyType | null;
+  municipalityId: string | null;
   isActive: boolean;
   contacts: CustomerContactView[];
+};
+
+// Opciones de la ficha del cliente (decisión 2026-11-06); el municipio lleva su departamento como ayuda.
+export type CustomerFormOptions = {
+  industries: { id: string; label: string }[];
+  municipalities: { id: string; label: string; hint: string }[];
 };
 
 export type ItemTypeCode = "HARDWARE" | "INTANGIBLE" | "SERVICIO";

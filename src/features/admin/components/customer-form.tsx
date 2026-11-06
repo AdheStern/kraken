@@ -1,5 +1,5 @@
 // src/features/admin/components/customer-form.tsx
-// Ficha de un cliente (razón social, NIT, contacto general y ubicación): alta o edición.
+// Ficha de un cliente (razón social, NIT, rubro, tipo, contacto general y municipio): alta o edición.
 "use client";
 
 import { LoaderCircle } from "lucide-react";
@@ -7,12 +7,16 @@ import { useState } from "react";
 import { useMarkCreated } from "@/components/forms/fresh-after-create";
 import { Button } from "@/components/ui/button";
 import { upsertCustomer } from "../actions/upsert-customer";
-import type { CustomerDetail } from "../types";
+import type { CustomerDetail, CustomerFormOptions } from "../types";
+import {
+  type Classification,
+  CustomerClassificationFields,
+} from "./customer-classification-fields";
 import { LabeledInput } from "./labeled-input";
 import { useAdminAction } from "./use-admin-action";
 
 type Draft = Record<
-  "name" | "taxId" | "email" | "phone" | "address" | "city" | "country",
+  "name" | "taxId" | "email" | "phone" | "address" | "country",
   string
 >;
 
@@ -27,11 +31,16 @@ const FIELDS: {
   { key: "email", label: "Correo", type: "email" },
   { key: "phone", label: "Teléfono" },
   { key: "address", label: "Dirección" },
-  { key: "city", label: "Ciudad" },
   { key: "country", label: "País" },
 ];
 
-export function CustomerForm({ customer }: { customer?: CustomerDetail }) {
+export function CustomerForm({
+  customer,
+  options,
+}: {
+  customer?: CustomerDetail;
+  options: CustomerFormOptions;
+}) {
   const { isPending, error, run } = useAdminAction();
   const markCreated = useMarkCreated();
   const [saved, setSaved] = useState(false);
@@ -41,13 +50,17 @@ export function CustomerForm({ customer }: { customer?: CustomerDetail }) {
     email: customer?.email ?? "",
     phone: customer?.phone ?? "",
     address: customer?.address ?? "",
-    city: customer?.city ?? "",
     country: customer?.country ?? "Bolivia",
+  });
+  const [classification, setClassification] = useState<Classification>({
+    industryId: customer?.industryId ?? null,
+    companyType: customer?.companyType ?? null,
+    municipalityId: customer?.municipalityId ?? null,
   });
 
   async function save() {
     setSaved(false);
-    const input = { id: customer?.id ?? null, ...draft };
+    const input = { id: customer?.id ?? null, ...draft, ...classification };
     if (!customer)
       return run(
         () => upsertCustomer(input),
@@ -77,6 +90,12 @@ export function CustomerForm({ customer }: { customer?: CustomerDetail }) {
           className={f.wide ? "sm:col-span-2" : undefined}
         />
       ))}
+      <CustomerClassificationFields
+        value={classification}
+        onChange={(patch) => setClassification({ ...classification, ...patch })}
+        options={options}
+        legacyCity={customer?.city ?? null}
+      />
       <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
         <Button type="submit" disabled={isPending}>
           {isPending && (

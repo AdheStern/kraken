@@ -20,8 +20,12 @@ export async function upsertCustomer(
   const parsed = customerSchema.safeParse(input);
   if (!parsed.success)
     return actionError("VALIDATION", parsed.error.issues[0].message);
-  const { id, ...data } = parsed.data;
+  const { id, ...fields } = parsed.data;
   try {
+    const data = {
+      ...fields,
+      city: await municipalityName(fields.municipalityId),
+    };
     const twin = await findTwin(data.name, data.taxId, id);
     if (twin)
       return actionError(
@@ -49,6 +53,19 @@ export async function upsertCustomer(
   } catch (error) {
     return toActionError(error, "upsertCustomer");
   }
+}
+
+// POR QUÉ: la ciudad de texto la copia cada versión del CV y su Excel (snapshot, §2.1); se llena con el municipio
+// para que sigan funcionando sin cambios. Sin municipio no se toca la que escribieron antes del catálogo.
+async function municipalityName(
+  id: string | null,
+): Promise<string | undefined> {
+  if (!id) return undefined;
+  const municipality = await prisma.municipality.findUnique({
+    where: { id },
+    select: { name: true },
+  });
+  return municipality?.name;
 }
 
 // POR QUÉ: un cliente repetido parte su historial de CV y sus bolsas en dos.

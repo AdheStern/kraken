@@ -25,8 +25,17 @@ test.describe("Administración", () => {
       .getByRole("textbox", { name: "Razón social" })
       .fill(`Cliente E2E ${STAMP}`);
     await page.getByRole("textbox", { name: "NIT" }).fill(String(STAMP));
+    // Rubro y municipio del catálogo (decisión 2026-11-06): cualquier municipio de Bolivia, no solo LP, SC y CB.
+    await pick(page, "customer-industry", "Minería");
+    await pick(page, "customer-municipality", "Yacuiba");
     await page.getByRole("button", { name: "Crear cliente" }).click();
     await expect(page).toHaveURL(/\/admin\/clientes\/[0-9a-f-]{36}$/);
+    await expect(page.getByRole("combobox", { name: "Municipio" })).toHaveValue(
+      "Yacuiba",
+    );
+    await expect(page.getByRole("combobox", { name: "Rubro" })).toHaveValue(
+      "Minería",
+    );
 
     // TRAMPA: la ficha recién creada sigue montada y oculta; getByRole ignora lo oculto, getByLabel no.
     await page.goBack();
@@ -36,6 +45,9 @@ test.describe("Administración", () => {
     await expect(page.getByRole("textbox", { name: "NIT" })).toHaveValue("");
     await expect(page.getByRole("textbox", { name: "País" })).toHaveValue(
       "Bolivia",
+    );
+    await expect(page.getByRole("combobox", { name: "Municipio" })).toHaveValue(
+      "",
     );
   });
 });

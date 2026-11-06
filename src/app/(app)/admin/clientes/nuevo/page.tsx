@@ -8,6 +8,7 @@ import { FreshAfterCreate } from "@/components/forms/fresh-after-create";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminBackLink } from "@/features/admin/components/admin-back-link";
 import { CustomerForm } from "@/features/admin/components/customer-form";
+import { getCustomerFormOptions } from "@/features/admin/queries/get-customer-form-options";
 import { canManageCommercialCatalogs } from "@/server/authz/admin-permissions";
 import { requireUser } from "@/server/session";
 
@@ -33,7 +34,7 @@ async function GuardedForm() {
   if (!canManageCommercialCatalogs(user)) notFound();
   return (
     <FreshAfterCreate>
-      <CustomerForm />
+      <CustomerForm options={await getCustomerFormOptions()} />
     </FreshAfterCreate>
   );
 }

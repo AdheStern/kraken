@@ -11,6 +11,7 @@ import { ContactsPanel } from "@/features/admin/components/contacts-panel";
 import { CustomerForm } from "@/features/admin/components/customer-form";
 import { CustomerStatusButton } from "@/features/admin/components/customer-status-button";
 import { getCustomer } from "@/features/admin/queries/get-customer";
+import { getCustomerFormOptions } from "@/features/admin/queries/get-customer-form-options";
 import { canManageCommercialCatalogs } from "@/server/authz/admin-permissions";
 import { requireUser } from "@/server/session";
 
@@ -59,7 +60,11 @@ async function Customer({
           <CustomerStatusButton id={customer.id} isActive={customer.isActive} />
         }
       />
-      <CustomerForm key={customer.id} customer={customer} />
+      <CustomerForm
+        key={customer.id}
+        customer={customer}
+        options={await getCustomerFormOptions()}
+      />
       <section className="grid gap-3" aria-labelledby="contactos">
         <h2 id="contactos" className="text-sm font-medium">
           Contactos

@@ -16,6 +16,9 @@ export async function getCustomer(id: string): Promise<CustomerDetail | null> {
       address: true,
       city: true,
       country: true,
+      industryId: true,
+      companyType: true,
+      municipalityId: true,
       isActive: true,
       contacts: {
         orderBy: [{ isActive: "desc" }, { name: "asc" }],

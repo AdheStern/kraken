@@ -14,6 +14,7 @@ export const GENERAL_MANAGER_MANUAL: Manual = {
         "Cada cifra se compara con el periodo anterior y, si hay meta, muestra el avance.",
         "Exportar a Excel descarga exactamente lo que estás viendo, con los mismos filtros.",
         "Ingenieros compara el desempeño de cada ingeniero (tiempo, utilización, SLA, tickets) y abre su detalle con sus tickets.",
+        "Operación muestra la satisfacción de los clientes y el uso de las horas vendidas por cliente, tecnología o área: «sin bolsa» señala a quién se le cotizó de menos.",
       ],
       link: { href: "/tableros", label: "Abrir los tableros" },
     },

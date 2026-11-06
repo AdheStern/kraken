@@ -12,9 +12,10 @@ export const CUSTOMER_PORTAL_MANUAL: Manual = {
       steps: [
         "Tickets lista los de tu empresa, abiertos y cerrados. Abre uno para ver su avance y sus comentarios públicos.",
         "Un ticket cerrado muestra las horas que se descontaron de tu contrato.",
+        "Cuando DIMA lo resuelve te pregunta si quedaste conforme: califica de 1 a 5 estrellas o, si algo falta, cuéntalo y el ticket vuelve a trabajarse.",
         "Si tu empresa lo tiene habilitado, puedes pedir trabajo, comentar, adjuntar archivos y ver el saldo de tus bolsas de horas.",
       ],
-      link: { href: "/tickets", label: "Abrir tus tickets" },
+      link: { href: "/cliente/tickets", label: "Abrir tus tickets" },
     },
   ],
 };

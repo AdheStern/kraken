@@ -53,6 +53,7 @@ export const SUPPORT_COORDINATOR_MANUAL: Manual = {
       heading: "Cerrar y reabrir",
       steps: [
         "Cuando el encargado lo deja en Resuelto, Cerrar ticket descuenta las horas de las bolsas en orden.",
+        "Si el cliente usa el portal, responde si quedó conforme: con nota te avisa y ya puedes cerrar; si no, su motivo queda como comentario y el ticket vuelve a En progreso.",
         "No se cierra con contadores activos o en pausa: pide al ingeniero que termine el suyo.",
         "Lo que no alcanzó queda como horas pendientes sin bolsa y avisa al comercial y al gerente.",
         "Reabrir el ticket exige un motivo; lo descontado se mantiene y al volver a cerrar solo se cobra el trabajo nuevo.",

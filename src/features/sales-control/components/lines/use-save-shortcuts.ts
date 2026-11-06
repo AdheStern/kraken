@@ -3,23 +3,15 @@
 "use client";
 
 import { useEffect } from "react";
+import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
 
 export function useSaveShortcuts(onSave: () => void, isDirty: boolean) {
+  useShortcuts({ "cv.save": onSave });
   useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
-        event.preventDefault();
-        onSave();
-      }
-    };
     const onLeave = (event: BeforeUnloadEvent) => {
       if (isDirty) event.preventDefault();
     };
-    window.addEventListener("keydown", onKey);
     window.addEventListener("beforeunload", onLeave);
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      window.removeEventListener("beforeunload", onLeave);
-    };
-  }, [onSave, isDirty]);
+    return () => window.removeEventListener("beforeunload", onLeave);
+  }, [isDirty]);
 }

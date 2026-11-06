@@ -562,6 +562,7 @@ Inicio de sesión (Entra ID) → inicio según rol: GG → tablero ejecutivo; ge
 - **Bolsas de un cliente:** tarjetas con anillo de consumo, modalidad, alcance y vencimiento; el libro enlaza al ticket que originó cada movimiento.
 - **Panel de TC:** TC del día, vigencia, fuente, variación, serie de 90 días, TC promedio del mes.
 - **POS interno, traspaso, ingreso y conteo:** como la caja de un supermercado, para tablet (decisión 2026-11-04): los productos como mosaicos con chips por tecnología y búsqueda a la izquierda, y la operación en un panel fijo a la derecha (en vertical, una barra abajo que se despliega). El ingreso suma la pestaña «Pegar desde Excel»; el conteo muestra lo contado, nunca lo que espera el sistema. El stock de `/inventario` se ve en tarjetas.
+- **Atajos de teclado** (decisión 2026-11-05): `Ctrl+K` busca en todo, `?` abre el resumen de los atajos que valen en la pantalla, «G» y luego una letra lleva a cada módulo que el rol ve y `Alt+letra` ejecuta acciones de la pantalla; mientras se escribe en un campo solo valen los que llevan Ctrl o Alt. Una sola definición en `src/components/shortcuts/shortcut-registry.ts` (la usan el resumen y `/ayuda`); `Alt+D`, `Alt+E` y `Alt+F` no se usan porque Edge y Chrome los toman.
 - Los estados vacíos y los errores dicen qué hacer ("No tienes CV en borrador. Crea uno o duplica uno anterior."), nunca solo "No hay datos".
 
 ### Exportación a Excel (plantilla `PA-PR-03-RE-01`, hoja "CONTROL DE VENTAS V2")

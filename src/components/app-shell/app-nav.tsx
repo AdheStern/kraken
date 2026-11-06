@@ -31,6 +31,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import type { NavEntry, NavKey } from "./nav-entries";
+import { NavShortcuts } from "./nav-shortcuts";
 
 const ITEMS: Record<NavKey, { href: string; label: string; icon: LucideIcon }> =
   {
@@ -78,6 +79,9 @@ const ITEMS: Record<NavKey, { href: string; label: string; icon: LucideIcon }> =
 export function AppNav({ entries }: { entries: readonly NavEntry[] }) {
   return (
     <SidebarGroup>
+      <NavShortcuts
+        targets={entries.map(({ key }) => ({ key, href: ITEMS[key].href }))}
+      />
       <SidebarGroupContent>
         <Suspense fallback={<NavItems entries={entries} activePath={null} />}>
           <ActiveNavItems entries={entries} />

@@ -1,10 +1,11 @@
 // src/app/(app)/ayuda/page.tsx
 // Manuales cortos por rol dentro de la app (AGENTS.md §12 F6) y preguntas frecuentes: abre el manual del rol del
-// usuario y deja consultar los demás con ?rol=.
+// usuario y deja consultar los demás con ?rol=; al final, los atajos de teclado.
 // TRAMPA: con Cache Components, leer la sesión fuera de <Suspense> impide prerenderizar y rompe el build.
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
+import { ShortcutsReference } from "@/components/shortcuts/shortcuts-reference";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HelpFaq } from "@/features/help/components/help-faq";
 import { ManualView } from "@/features/help/components/manual-view";
@@ -23,6 +24,7 @@ export default function HelpPage({ searchParams }: PageProps<"/ayuda">) {
       <Suspense fallback={<Skeleton className="h-96 w-full rounded-xl" />}>
         <HelpContent searchParams={searchParams} />
       </Suspense>
+      <ShortcutsReference />
       <HelpFaq />
     </main>
   );

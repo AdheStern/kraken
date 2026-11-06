@@ -109,7 +109,14 @@ export function PosScreen({
     setDone(null);
   }
 
-  if (done) return <PosDone {...done} onRestart={restart} />;
+  if (done)
+    return (
+      <PosDone
+        {...done}
+        onRestart={restart}
+        withDeliveryNote={destination.kind === "CV"}
+      />
+    );
   const units = cart.reduce((sum, l) => sum + lineQuantity(l), 0);
 
   return (

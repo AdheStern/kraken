@@ -129,6 +129,11 @@ test("despacha el FortiGate reservado por el CV demo y el comprobante es un PDF"
   const response = await page.request.get(href ?? "");
   expect(response.status()).toBe(200);
   expect(response.headers()["content-type"]).toBe("application/pdf");
+  // La salida fue a un CV: también lleva su acta de entrega para que el cliente la firme.
+  const acta = await page
+    .getByRole("link", { name: "Descargar acta de entrega" })
+    .getAttribute("href");
+  expect((await page.request.get(acta ?? "")).status()).toBe(200);
 
   // El equipo vuelve: devolución de esa salida por el número de su comprobante.
   const heading = await page

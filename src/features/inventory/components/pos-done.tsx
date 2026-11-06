@@ -1,5 +1,6 @@
 // src/features/inventory/components/pos-done.tsx
-// Confirmación de una salida del POS o de una devolución: su número, el comprobante y la siguiente.
+// Confirmación de una salida del POS o de una devolución: su número, el comprobante (y el acta de entrega si fue
+// a un CV) y la siguiente.
 import { CircleCheck, FileDown } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 
@@ -9,6 +10,7 @@ type Props = {
   onRestart: () => void;
   title?: string;
   restartLabel?: string;
+  withDeliveryNote?: boolean;
 };
 
 export function PosDone({
@@ -17,6 +19,7 @@ export function PosDone({
   onRestart,
   title = "Salida",
   restartLabel = "Nueva salida",
+  withDeliveryNote = false,
 }: Props) {
   return (
     <section
@@ -38,6 +41,18 @@ export function PosDone({
           <FileDown aria-hidden="true" />
           Descargar comprobante
         </a>
+        {withDeliveryNote && (
+          <a
+            href={`/api/inventory/receipts/${movementId}.pdf?acta=1`}
+            className={buttonVariants({
+              variant: "outline",
+              className: "h-12 sm:col-span-2 sm:order-first",
+            })}
+          >
+            <FileDown aria-hidden="true" />
+            Descargar acta de entrega
+          </a>
+        )}
         <Button className="h-12" onClick={onRestart} autoFocus>
           {restartLabel}
         </Button>

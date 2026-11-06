@@ -1,6 +1,7 @@
 // src/server/inventory/receipt-pdf.ts
 // Comprobante PDF de una salida o devolución del POS (AGENTS.md §2.8, §7): número, fecha, almacén, destino,
 // líneas con seriales, quién lo registró y firmas. Sin costos: el comprobante viaja con la mercadería (regla 12).
+// Para una salida a un CV también el acta de entrega al cliente, con los datos de quien recibe (decisión 2026-11-05).
 import {
   PDFDocument,
   type PDFFont,
@@ -18,6 +19,8 @@ export type ReceiptData = {
   documentRef: string | null;
   notes: string | null;
   actor: string;
+  // Cliente del CV de una salida a un CV; sin él no hay acta de entrega.
+  customer: string | null;
   lines: {
     code: string;
     description: string;
@@ -39,9 +42,13 @@ type Writer = {
   bold: PDFFont;
 };
 
-export async function buildReceiptPdf(data: ReceiptData): Promise<Uint8Array> {
+export async function buildReceiptPdf(
+  data: ReceiptData,
+  asDeliveryNote = false,
+): Promise<Uint8Array> {
+  const title = asDeliveryNote ? "Acta de entrega" : data.title;
   const doc = await PDFDocument.create();
-  doc.setTitle(`${data.title} N.º ${data.number}`);
+  doc.setTitle(`${title} N.º ${data.number}`);
   doc.setCreator("Kraken by DIMA");
   const w: Writer = {
     doc,
@@ -50,9 +57,16 @@ export async function buildReceiptPdf(data: ReceiptData): Promise<Uint8Array> {
     regular: await doc.embedFont(StandardFonts.Helvetica),
     bold: await doc.embedFont(StandardFonts.HelveticaBold),
   };
-  text(w, `${data.title} N.º ${data.number}`, { size: 18, font: w.bold });
+  text(w, `${title} N.º ${data.number}`, { size: 18, font: w.bold });
   text(w, `Kraken by DIMA · ${data.issuedAt}`, { color: MUTED });
   w.y -= 12;
+  if (asDeliveryNote && data.customer) {
+    text(
+      w,
+      `DIMA Ltda. entrega a ${data.customer} los equipos y materiales detallados, que el cliente recibe conformes en cantidad y estado.`,
+    );
+    w.y -= 6;
+  }
   for (const [label, value] of [
     ["Almacén", data.warehouse],
     ["Destino", data.destination],
@@ -71,7 +85,7 @@ export async function buildReceiptPdf(data: ReceiptData): Promise<Uint8Array> {
       });
   }
   w.y -= 48;
-  signatures(w);
+  signatures(w, asDeliveryNote);
   return doc.save();
 }
 
@@ -102,13 +116,16 @@ function text(
   }
 }
 
-function signatures(w: Writer) {
+function signatures(w: Writer, asDeliveryNote: boolean) {
   const half = (A4[0] - MARGIN * 2) / 2;
   if (w.y < MARGIN + 24) {
     w.page = w.doc.addPage(A4);
     w.y = A4[1] - MARGIN - 48;
   }
-  for (const [index, label] of ["Entrega (Almacén)", "Recibe"].entries()) {
+  const labels = asDeliveryNote
+    ? ["Entrega (DIMA)", "Recibe: nombre, CI, firma y fecha"]
+    : ["Entrega (Almacén)", "Recibe"];
+  for (const [index, label] of labels.entries()) {
     const x = MARGIN + index * half;
     w.page.drawLine({
       start: { x, y: w.y },

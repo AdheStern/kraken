@@ -14,6 +14,7 @@ const data: ReceiptData = {
   documentRef: "PO-77",
   notes: "Entrega en obra − piso 3 🚚",
   actor: "Ana Almacén",
+  customer: "Banco Andino",
   lines: [
     {
       code: "C9300-48P-E",
@@ -31,6 +32,11 @@ describe("buildReceiptPdf", () => {
     const doc = await PDFDocument.load(bytes);
     expect(doc.getTitle()).toBe("Salida N.º 42");
     expect(doc.getPageCount()).toBe(1);
+  });
+
+  it("como acta de entrega lleva su título (decisión 2026-11-05)", async () => {
+    const doc = await PDFDocument.load(await buildReceiptPdf(data, true));
+    expect(doc.getTitle()).toBe("Acta de entrega N.º 42");
   });
 
   it("pasa a otra página cuando las líneas no caben", async () => {

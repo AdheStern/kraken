@@ -4,6 +4,7 @@
 "use client";
 
 import { CircleAlert } from "lucide-react";
+import { CameraScanDialog } from "@/components/scan/camera-scan-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
@@ -147,17 +148,35 @@ export function LineDetailSheet({
                     </span>
                   </p>
                 ) : (
-                  <Label className="flex items-start gap-2 text-sm font-normal">
-                    <Checkbox
-                      checked={line.saveAsProduct}
-                      disabled={disabled}
-                      onCheckedChange={(checked) =>
-                        onChange({ saveAsProduct: checked === true })
-                      }
-                    />
-                    Agregar al catálogo como producto nuevo. Queda marcado
-                    «creado desde CV» para revisión.
-                  </Label>
+                  <>
+                    {!disabled && (
+                      <div className="flex flex-wrap items-center gap-2 text-sm">
+                        <span className="text-muted-foreground">
+                          Código: {line.code || "sin código"}
+                        </span>
+                        <CameraScanDialog
+                          once
+                          label="Leer el código con la cámara"
+                          triggerClassName="h-8 px-3"
+                          onScan={(text) => {
+                            onChange({ code: text });
+                            return { ok: true, message: `Código ${text}` };
+                          }}
+                        />
+                      </div>
+                    )}
+                    <Label className="flex items-start gap-2 text-sm font-normal">
+                      <Checkbox
+                        checked={line.saveAsProduct}
+                        disabled={disabled}
+                        onCheckedChange={(checked) =>
+                          onChange({ saveAsProduct: checked === true })
+                        }
+                      />
+                      Agregar al catálogo como producto nuevo. Queda marcado
+                      «creado desde CV» para revisión.
+                    </Label>
+                  </>
                 )}
               </section>
             </div>

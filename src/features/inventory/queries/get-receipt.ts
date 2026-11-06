@@ -67,6 +67,10 @@ export async function getReceipt(
     documentRef: movement.documentRef,
     notes: movement.notes,
     actor: movement.actor.user.name,
+    customer:
+      movement.kind === "SALIDA"
+        ? (movement.cvLine?.version.cv.customer.name ?? null)
+        : null,
     lines: groupLines(movement.lines),
   };
 }

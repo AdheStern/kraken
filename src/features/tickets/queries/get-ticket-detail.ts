@@ -43,7 +43,10 @@ export async function getTicketDetail(
       },
       statusEvents: {
         orderBy: { occurredAt: "desc" },
-        include: { actor: { select: { user: { select: { name: true } } } } },
+        include: {
+          actor: { select: { user: { select: { name: true } } } },
+          conformity: { select: { isSatisfied: true, rating: true } },
+        },
       },
     },
   });
@@ -78,6 +81,9 @@ export async function getTicketDetail(
       firstResponseAt: t.firstResponseAt?.toISOString() ?? null,
       resolvedAt: t.resolvedAt?.toISOString() ?? null,
       closedAt: t.closedAt?.toISOString() ?? null,
+      conformity:
+        t.statusEvents.find((e) => e.toStatus === "RESUELTO")?.conformity ??
+        null,
       sla: t.slaMeasurements.map((m) => toSlaBadge(m, alertPct)),
     },
     permissions,

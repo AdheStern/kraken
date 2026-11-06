@@ -9,6 +9,7 @@ import { summarizeHoursFlow } from "./hours-kpis";
 import { inventoryTurnover, stockValueAt } from "./inventory-kpis";
 import { median, sharePct } from "./stats";
 import {
+  customerSatisfaction,
   lateEntriesPct,
   medianResolutionMinutes,
   outsideHoursShare,
@@ -143,5 +144,25 @@ describe("estadísticos", () => {
     expect(median([5])).toBe(5);
     expect(sharePct(1, 3)).toBe(33.3);
     expect(sharePct(1, 0)).toBeNull();
+  });
+});
+
+describe("satisfacción del cliente", () => {
+  it("% conforme sobre las respuestas y promedio de las notas", () => {
+    expect(
+      customerSatisfaction([
+        { isSatisfied: true, rating: 5 },
+        { isSatisfied: true, rating: 4 },
+        { isSatisfied: false, rating: null },
+      ]),
+    ).toEqual({ answers: 3, satisfiedPct: 66.7, averageRating: 4.5 });
+  });
+
+  it("sin respuestas no hay porcentaje ni promedio", () => {
+    expect(customerSatisfaction([])).toEqual({
+      answers: 0,
+      satisfiedPct: null,
+      averageRating: null,
+    });
   });
 });

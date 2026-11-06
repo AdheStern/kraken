@@ -37,6 +37,12 @@ export async function getCustomerTicket(
         orderBy: { createdAt: "asc" },
         select: { id: true, fileName: true, sizeBytes: true, createdAt: true },
       },
+      statusEvents: {
+        where: { toStatus: "RESUELTO" },
+        orderBy: { occurredAt: "desc" },
+        take: 1,
+        select: { conformity: { select: { isSatisfied: true, rating: true } } },
+      },
     },
   });
   if (!ticket) return null;
@@ -60,5 +66,12 @@ export async function getCustomerTicket(
       user.customer?.comments === true &&
       !["CERRADO", "CANCELADO"].includes(ticket.status),
     filesEnabled: selectFileStore() !== null,
+    conformity: {
+      canAnswer:
+        ticket.status === "RESUELTO" &&
+        ticket.statusEvents.length > 0 &&
+        !ticket.statusEvents[0].conformity,
+      answer: ticket.statusEvents[0]?.conformity ?? null,
+    },
   };
 }

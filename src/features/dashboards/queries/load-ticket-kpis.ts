@@ -1,8 +1,10 @@
 // src/features/dashboards/queries/load-ticket-kpis.ts
 // Indicadores de tickets del periodo: SLA de los resueltos, abiertos por estado, mediana de resolución,
-// registros tardíos y tiempo fuera de horario (AGENTS.md §2.6, §2.7 y §6). Alcance de scopeTicketQuery.
+// registros tardíos, tiempo fuera de horario y satisfacción del cliente (AGENTS.md §2.6, §2.7, §2.11 y §6).
+// Alcance de scopeTicketQuery.
 import { toBusinessDate } from "@/domain/calendar/business-date";
 import {
+  customerSatisfaction,
   lateEntriesPct,
   medianResolutionMinutes,
   outsideHoursShare,
@@ -21,6 +23,7 @@ type TicketKpis = Pick<
   | "medianResolutionMinutes"
   | "lateEntriesPct"
   | "outsideHoursPct"
+  | "satisfaction"
 >;
 
 const OPEN = [
@@ -37,7 +40,7 @@ export async function loadTicketKpis(
 ): Promise<TicketKpis> {
   const inPeriod = { gte: filters.start, lt: filters.end };
   const tickets = ticketFilter(user, filters);
-  const [measurements, open, resolved, entries] = await Promise.all([
+  const [measurements, open, resolved, entries, answers] = await Promise.all([
     prisma.slaMeasurement.findMany({
       where: { ticket: { AND: [tickets, { resolvedAt: inPeriod }] } },
       select: { kind: true, status: true },
@@ -59,6 +62,10 @@ export async function loadTicketKpis(
         isLate: true,
         ticket: { select: { cityId: true } },
       },
+    }),
+    prisma.ticketConformity.findMany({
+      where: { createdAt: inPeriod, ticket: tickets },
+      select: { isSatisfied: true, rating: true },
     }),
   ]);
   const of = (kind: "PRIMERA_RESPUESTA" | "RESOLUCION") =>
@@ -83,6 +90,7 @@ export async function loadTicketKpis(
     ),
     lateEntriesPct: lateEntriesPct(entries),
     outsideHoursPct: await outsidePct(entries, filters),
+    satisfaction: customerSatisfaction(answers),
   };
 }
 

@@ -39,4 +39,9 @@ export type CustomerTicketDetail = CustomerTicketRow & {
   // Comenta y adjunta si su empresa lo permite y hay dónde guardar archivos (§2.11, ADR-16).
   canComment: boolean;
   filesEnabled: boolean;
+  // Respuesta a la última resolución; canAnswer si está resuelto y aún no respondió (§2.11).
+  conformity: {
+    canAnswer: boolean;
+    answer: { isSatisfied: boolean; rating: number | null } | null;
+  };
 };

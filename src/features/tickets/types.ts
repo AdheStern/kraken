@@ -71,6 +71,8 @@ export type TicketHeader = {
   resolvedAt: string | null;
   closedAt: string | null;
   sla: SlaBadgeData[];
+  // Respuesta del cliente a la última resolución (§2.11); null si no respondió.
+  conformity: { isSatisfied: boolean; rating: number | null } | null;
 };
 
 export type SubtaskView = {

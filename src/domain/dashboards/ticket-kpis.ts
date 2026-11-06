@@ -55,3 +55,26 @@ export function outsideHoursShare(
     outsidePct: sharePct(outsideMs, insideMs + outsideMs),
   };
 }
+
+// Satisfacción del cliente con las resoluciones del periodo (§2.11, decisión 2026-11-05): % conforme sobre las
+// respuestas y promedio de las notas de los conformes, con un decimal.
+export function customerSatisfaction(
+  answers: readonly { isSatisfied: boolean; rating: number | null }[],
+) {
+  const ratings = answers.flatMap((a) =>
+    a.isSatisfied && a.rating !== null ? [a.rating] : [],
+  );
+  return {
+    answers: answers.length,
+    satisfiedPct: sharePct(
+      answers.filter((a) => a.isSatisfied).length,
+      answers.length,
+    ),
+    averageRating:
+      ratings.length === 0
+        ? null
+        : Math.round(
+            (ratings.reduce((s, r) => s + r, 0) * 10) / ratings.length,
+          ) / 10,
+  };
+}

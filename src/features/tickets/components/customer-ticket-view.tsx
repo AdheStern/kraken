@@ -5,6 +5,7 @@ import { Download } from "lucide-react";
 import { formatMinutes } from "@/lib/format-minutes";
 import type { CustomerTicketDetail } from "../customer-portal-types";
 import { PRIORITY_LABELS, STATUS_LABELS } from "../ticket-labels";
+import { CustomerConformityCard } from "./customer-conformity-card";
 import { CustomerTicketReply } from "./customer-ticket-reply";
 import { formatDateTime } from "./ticket-dates";
 
@@ -38,6 +39,16 @@ export function CustomerTicketView({
       `SLA · ${SLA_KIND[s.kind]}`,
       SLA_STATUS[s.status],
     ]),
+    ...(ticket.conformity.answer
+      ? [
+          [
+            "Tu conformidad",
+            ticket.conformity.answer.isSatisfied
+              ? `Conforme · ${ticket.conformity.answer.rating} de 5`
+              : "No conforme",
+          ] as [string, string],
+        ]
+      : []),
   ];
   return (
     <div className="grid gap-5">
@@ -49,6 +60,9 @@ export function CustomerTicketView({
           {ticket.description}
         </p>
       </header>
+      {ticket.conformity.canAnswer && (
+        <CustomerConformityCard ticketId={ticket.id} />
+      )}
       <dl className="kr-surface grid gap-x-6 gap-y-3 rounded-xl p-5 sm:grid-cols-3">
         {facts.map(([label, value]) => (
           <div key={label}>

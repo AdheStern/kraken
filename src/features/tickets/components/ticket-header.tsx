@@ -40,6 +40,16 @@ export function TicketHeader({ ticket, actions }: Props) {
       ticket.closedAt ? "Cerrado" : "Resuelto",
       formatDateTime(ticket.closedAt ?? ticket.resolvedAt),
     ],
+    ...(ticket.conformity
+      ? [
+          [
+            "Cliente",
+            ticket.conformity.isSatisfied
+              ? `Conforme · ★ ${ticket.conformity.rating} de 5`
+              : "No conforme",
+          ] as [string, ReactNode],
+        ]
+      : []),
   ];
   return (
     <section className="kr-solid flex flex-col gap-4 rounded-xl p-5">

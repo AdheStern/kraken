@@ -1,6 +1,6 @@
 // src/features/dashboards/components/operations-kpis.tsx
 // Fila de cifras del tablero operativo: horas vendidas y consumidas (ponderadas y reales), uso en contratos por
-// vigencia, SLA de resolución y bolsas en riesgo hoy (AGENTS.md §6). Sin montos: lo ve también el ingeniero (regla 12).
+// vigencia, SLA de resolución, satisfacción del cliente y bolsas en riesgo hoy (AGENTS.md §6). Sin montos: lo ve también el ingeniero (regla 12).
 import { formatMinutes } from "@/lib/format-minutes";
 import type { OperationsDashboard } from "../types";
 import { KpiTile } from "./kpi-tile";
@@ -13,7 +13,7 @@ export function OperationsKpis({ board }: { board: OperationsDashboard }) {
   return (
     <section
       aria-label="Cifras del periodo"
-      className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+      className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5"
     >
       <KpiTile
         label="Horas vendidas"
@@ -29,6 +29,15 @@ export function OperationsKpis({ board }: { board: OperationsDashboard }) {
         label="SLA de resolución"
         value={pct(sla.resolution.pct)}
         hint={`${sla.resolution.met} cumplidos · ${sla.resolution.missed} incumplidos · primera respuesta ${pct(sla.firstResponse.pct)}`}
+      />
+      <KpiTile
+        label="Satisfacción del cliente"
+        value={pct(board.satisfaction.satisfiedPct)}
+        hint={
+          board.satisfaction.answers === 0
+            ? "Sin respuestas de conformidad en el periodo"
+            : `${board.satisfaction.answers} respuestas · nota media ${board.satisfaction.averageRating ?? "—"} de 5`
+        }
       />
       <KpiTile
         label="Bolsas en riesgo hoy"

@@ -114,6 +114,11 @@ export type OperationsDashboard = {
   lateEntriesPct: number | null;
   outsideHoursPct: number | null;
   utilization: UtilizationRow[];
+  satisfaction: {
+    answers: number;
+    satisfiedPct: number | null;
+    averageRating: number | null;
+  };
 };
 
 export type WarehouseValue = {

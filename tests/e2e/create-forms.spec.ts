@@ -36,6 +36,20 @@ test.describe("Administración", () => {
     await expect(page.getByRole("combobox", { name: "Rubro" })).toHaveValue(
       "Minería",
     );
+    // Sucursales en su pestaña (decisión 2026-11-06).
+    await page.getByRole("tab", { name: /Sucursales/ }).click();
+    await page.getByRole("button", { name: "Nueva sucursal" }).click();
+    const dialog = page.getByRole("dialog", { name: "Nueva sucursal" });
+    await dialog
+      .getByRole("textbox", { name: /^Nombre/ })
+      .fill("Planta Yacuiba");
+    await dialog.locator("#branch-municipality").fill("Yacuiba");
+    await page
+      .getByRole("option", { name: /Yacuiba/ })
+      .first()
+      .click();
+    await dialog.getByRole("button", { name: "Agregar sucursal" }).click();
+    await expect(page.getByText("Planta Yacuiba")).toBeVisible();
 
     // TRAMPA: la ficha recién creada sigue montada y oculta; getByRole ignora lo oculto, getByLabel no.
     await page.goBack();

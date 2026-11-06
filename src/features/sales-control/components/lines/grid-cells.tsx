@@ -73,13 +73,16 @@ export function TextAreaCell({
       onKeyDown={(event) => {
         if (event.key !== "Enter" || !event.altKey) return;
         event.preventDefault();
-        const { selectionStart: start, selectionEnd: end } =
-          event.currentTarget;
+        // TRAMPA: el cursor se coloca en el mismo evento; diferirlo (requestAnimationFrame) movía la primera tecla
+        // escrita rápido al final del texto. React no toca el cursor si el valor que recibe ya es el del campo.
         const field = event.currentTarget;
-        onValueChange(`${value.slice(0, start)}\n${value.slice(end)}`);
-        requestAnimationFrame(() =>
-          field.setSelectionRange(start + 1, start + 1),
+        field.setRangeText(
+          "\n",
+          field.selectionStart,
+          field.selectionEnd,
+          "end",
         );
+        onValueChange(field.value);
       }}
       className={cn(
         CELL,

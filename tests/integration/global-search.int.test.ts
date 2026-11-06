@@ -35,6 +35,11 @@ describe("searchEverything", () => {
     ).toMatchObject([{ id: own.cv.id, hint: own.customer.name }]);
     const theirs = await searchEverything(seller, other.customer.name);
     expect(theirs.find((g) => g.label === "Control de Venta")).toBeUndefined();
-    expect(theirs.find((g) => g.label === "Clientes")).toBeUndefined();
+    // REGLA: la ficha del cliente es para todo el personal (decisión 2026-11-06); el CV ajeno, no.
+    expect(theirs.find((g) => g.label === "Clientes")?.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ href: `/clientes/${other.customer.id}` }),
+      ]),
+    );
   });
 });

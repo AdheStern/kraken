@@ -45,6 +45,20 @@ export type CustomerDetail = {
   municipalityId: string | null;
   isActive: boolean;
   contacts: CustomerContactView[];
+  branches: CustomerBranchView[];
+};
+
+// Sucursal de un cliente (decisión 2026-11-06); coordenadas como texto exacto (NUMERIC), nunca number.
+export type CustomerBranchView = {
+  id: string;
+  name: string;
+  address: string | null;
+  municipalityId: string | null;
+  municipalityLabel: string | null;
+  phone: string | null;
+  latitude: string | null;
+  longitude: string | null;
+  isActive: boolean;
 };
 
 // Opciones de la ficha del cliente (decisión 2026-11-06); el municipio lleva su departamento como ayuda.

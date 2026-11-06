@@ -40,8 +40,9 @@ model Municipality {
   name         String  @map("nombre")
   isActive     Boolean @default(true) @map("activo")
 
-  department Department @relation(fields: [departmentId], references: [id])
+  department Department       @relation(fields: [departmentId], references: [id])
   customers  Customer[]
+  branches   CustomerBranch[]
 
   @@unique([departmentId, name])
   @@map("municipio")
@@ -84,6 +85,7 @@ model Customer {
   municipality        Municipality?     @relation(fields: [municipalityId], references: [id])
   industry            Industry?         @relation(fields: [industryId], references: [id])
   contacts            CustomerContact[]
+  branches            CustomerBranch[]
   cvs                 Cv[]
   endCustomerVersions CvVersion[]
   hourBags            HourBag[]
@@ -96,6 +98,28 @@ model Customer {
 
   @@index([taxId])
   @@map("cliente")
+  @@schema("core")
+}
+
+// Sucursal o subdirección de un cliente en otra ciudad (decisión 2026-11-06). Coordenadas opcionales para el
+// mapa, que llega después.
+model CustomerBranch {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  customerId     String   @map("cliente_id") @db.Uuid
+  name           String   @map("nombre")
+  address        String?  @map("direccion")
+  municipalityId String?  @map("municipio_id") @db.Uuid
+  phone          String?  @map("telefono")
+  latitude       Decimal? @map("latitud") @db.Decimal(9, 6)
+  longitude      Decimal? @map("longitud") @db.Decimal(9, 6)
+  isActive       Boolean  @default(true) @map("activa")
+  createdAt      DateTime @default(now()) @map("creado_en") @db.Timestamptz
+
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  municipality Municipality? @relation(fields: [municipalityId], references: [id])
+
+  @@index([customerId])
+  @@map("cliente_sucursal")
   @@schema("core")
 }
 

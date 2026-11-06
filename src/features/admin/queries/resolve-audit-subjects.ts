@@ -34,6 +34,8 @@ const LOOKUPS: Record<string, Lookup> = {
     named(await prisma.customer.findMany(byId(ids))),
   "core.cliente_contacto": async (ids) =>
     named(await prisma.customerContact.findMany(byId(ids))),
+  "core.cliente_sucursal": async (ids) =>
+    named(await prisma.customerBranch.findMany(byId(ids))),
   "core.feriado": async (ids) =>
     named(await prisma.holiday.findMany(byId(ids))),
   "core.horario_oficina": async (ids) =>

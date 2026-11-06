@@ -7,6 +7,7 @@ import type {
   OperationsDashboard,
   SalesDashboard,
 } from "../types";
+import { usageSheet } from "./usage-sheet";
 
 // POR QUÉ: el monto llega como texto exacto; Excel guarda números y el formato de celda muestra 2 decimales.
 const n = (value: string | null) => (value === null ? null : Number(value));
@@ -113,6 +114,14 @@ export function operationsSheets(board: OperationsDashboard): SheetSpec[] {
         { label: "Fuera de horario %", value: board.outsideHoursPct },
         { label: "Registros tardíos %", value: board.lateEntriesPct },
         { label: "Bolsas en riesgo hoy", value: board.bagsAtRisk.count },
+        {
+          label: "Clientes conformes %",
+          value: board.satisfaction.satisfiedPct,
+        },
+        {
+          label: "Nota media (1 a 5)",
+          value: board.satisfaction.averageRating,
+        },
       ],
     },
     {
@@ -130,6 +139,7 @@ export function operationsSheets(board: OperationsDashboard): SheetSpec[] {
         pct: u.pct,
       })),
     },
+    usageSheet(board.hoursUsage),
   ];
 }
 

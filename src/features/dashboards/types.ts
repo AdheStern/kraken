@@ -1,7 +1,9 @@
 // src/features/dashboards/types.ts
 // Tipos de presentación de los tableros (nunca entidades Prisma completas). Montos como texto con 2 decimales
 // para no pasar por number (regla 3); tiempo en minutos enteros (regla 4).
+
 import type { EngineerPerformance as EngineerPerformanceView } from "@/domain/dashboards/engineer-performance";
+import type { UsageRow } from "@/domain/dashboards/hours-usage";
 import type { SalesDimension } from "@/domain/dashboards/sales-breakdown";
 import type { BagSummary } from "@/features/hours/types";
 
@@ -104,6 +106,13 @@ export type UtilizationRow = {
   pct: number | null;
 };
 
+// Uso de las horas vendidas por grupo (decisión 2026-11-05); las filas salen de hoursUsageBreakdown.
+export type HoursUsageView = {
+  byCustomer: UsageRow[];
+  byTechnology: UsageRow[];
+  byArea: UsageRow[];
+};
+
 export type OperationsDashboard = {
   periodLabel: string;
   hours: HoursFlowView;
@@ -114,6 +123,7 @@ export type OperationsDashboard = {
   lateEntriesPct: number | null;
   outsideHoursPct: number | null;
   utilization: UtilizationRow[];
+  hoursUsage: HoursUsageView;
   satisfaction: {
     answers: number;
     satisfiedPct: number | null;

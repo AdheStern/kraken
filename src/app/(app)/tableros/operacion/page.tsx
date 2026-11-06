@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardHeader } from "@/features/dashboards/components/dashboard-header";
+import { HoursUsagePanel } from "@/features/dashboards/components/hours-usage-panel";
 import { OperationsKpis } from "@/features/dashboards/components/operations-kpis";
 import { OperationsPanels } from "@/features/dashboards/components/operations-panels";
 import { UtilizationTable } from "@/features/dashboards/components/utilization-table";
@@ -45,6 +46,7 @@ async function OperationsBoard({
       />
       <OperationsKpis board={board} />
       <OperationsPanels board={board} />
+      <HoursUsagePanel usage={board.hoursUsage} />
       <UtilizationTable rows={board.utilization} />
     </>
   );

@@ -162,5 +162,15 @@ describe("tablero operativo", () => {
       termUsedMinutes: 0,
       pendingMinutes: 30,
     });
+    // Uso de las horas vendidas (decisión 2026-11-05): la bolsa del cliente y lo pendiente sin bolsa.
+    expect(board.hoursUsage.byCustomer).toMatchObject([
+      {
+        bags: 1,
+        soldMinutes: 780,
+        consumedMinutes: 270,
+        pendingMinutes: 30,
+        usagePct: 34.6,
+      },
+    ]);
   });
 });

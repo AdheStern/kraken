@@ -1,6 +1,6 @@
 // src/features/dashboards/queries/get-operations-dashboard.ts
 // Tablero operativo de un periodo: horas, bolsas en riesgo, SLA, tickets, registros y utilización (AGENTS.md
-// §6). Sin montos: lo ve también el ingeniero, recortado a lo suyo por los alcances (regla 12).
+// §6), y el uso de las horas vendidas por cliente, tecnología y área. Sin montos: lo ve también el ingeniero, recortado a lo suyo por los alcances (regla 12).
 import type { Clock } from "@/domain/clock";
 import { type PeriodRef, resolvePeriod } from "@/domain/dashboards/period";
 import { listHourBags } from "@/features/hours/queries/list-hour-bags";
@@ -9,6 +9,7 @@ import { systemClock } from "@/server/clock";
 import { prisma } from "@/server/db";
 import type { OperationsDashboard } from "../types";
 import { loadHoursFlow } from "./load-hours-flow";
+import { loadHoursUsage } from "./load-hours-usage";
 import { loadTicketKpis } from "./load-ticket-kpis";
 import { loadUtilization } from "./load-utilization";
 
@@ -28,18 +29,20 @@ export async function getOperationsDashboard(
     start: period.start,
     end: end > period.start ? end : period.start,
   };
-  const [hours, tickets, utilization, bags, areaCode] = await Promise.all([
-    loadHoursFlow(user, filters),
-    loadTicketKpis(user, filters),
-    loadUtilization(user, window, input.areaId),
-    listHourBags(user),
-    input.areaId
-      ? prisma.area.findUnique({
-          where: { id: input.areaId },
-          select: { code: true },
-        })
-      : null,
-  ]);
+  const [hours, tickets, utilization, bags, areaCode, hoursUsage] =
+    await Promise.all([
+      loadHoursFlow(user, filters),
+      loadTicketKpis(user, filters),
+      loadUtilization(user, window, input.areaId),
+      listHourBags(user),
+      input.areaId
+        ? prisma.area.findUnique({
+            where: { id: input.areaId },
+            select: { code: true },
+          })
+        : null,
+      loadHoursUsage(user, filters),
+    ]);
   // POR QUÉ: las bolsas en riesgo son una foto de hoy, no del periodo; el filtro de área usa sus códigos.
   const atRisk = bags.filter(
     (bag) =>
@@ -52,5 +55,6 @@ export async function getOperationsDashboard(
     bagsAtRisk: { count: atRisk.length, top: atRisk.slice(0, TOP_BAGS) },
     ...tickets,
     utilization,
+    hoursUsage,
   };
 }

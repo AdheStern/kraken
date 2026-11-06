@@ -27,7 +27,10 @@ export function ApprovalInbox({
     );
   }
   return (
-    <ul className="kr-surface divide-y divide-border/60 rounded-xl">
+    <ul
+      data-tour="aprob-lista"
+      className="kr-surface divide-y divide-border/60 rounded-xl"
+    >
       {items.map((item) => (
         <InboxRow key={item.requestId} item={item} now={now} />
       ))}

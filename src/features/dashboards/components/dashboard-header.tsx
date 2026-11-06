@@ -35,6 +35,7 @@ export function DashboardHeader({
             : `Tablero de ${BOARD_LABELS[active].toLowerCase()}`
         }
         description={description}
+        tour="tableros"
         actions={
           exportHref && (
             <a

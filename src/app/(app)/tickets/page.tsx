@@ -30,6 +30,7 @@ export default function TicketsPage({ searchParams }: PageProps<"/tickets">) {
     <main className="mx-auto flex w-full max-w-[1720px] flex-col gap-5 px-4 py-8 sm:px-6">
       <ModuleHeading
         title="Tickets"
+        tour="tickets"
         description="Soporte y proyectos con su encargado; al cerrarlos se descuentan sus horas de las bolsas."
         actions={
           <div className="flex flex-wrap items-center gap-2">

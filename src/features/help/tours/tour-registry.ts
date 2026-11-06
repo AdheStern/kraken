@@ -2,16 +2,10 @@
 // Recorridos guiados por pantalla (driver.js, decisión 2026-11-05): cada paso apunta a un elemento con
 // `data-tour` (o a un rótulo accesible). REGLA: un paso cuyo elemento no se dibuja para ese rol se salta solo, así
 // cada rol recorre solo lo que puede usar.
-
-export type TourStep = {
-  element?: string;
-  title: string;
-  description: string;
-};
-
-export type TourDefinition = { title: string; steps: TourStep[] };
-
-const at = (name: string) => `[data-tour="${name}"]`;
+import { INVENTORY_TOURS } from "./inventory-tours";
+import { OPERATIONS_TOURS } from "./operations-tours";
+import { SALES_TOURS } from "./sales-tours";
+import { at, type TourDefinition } from "./tour-types";
 
 export const TOURS = {
   inicio: {
@@ -54,6 +48,37 @@ export const TOURS = {
       },
     ],
   },
+  tableros: {
+    title: "Tableros",
+    steps: [
+      {
+        element: '[aria-label="Tableros"]',
+        title: "Tus tableros",
+        description:
+          "Ventas, operación, ingenieros, inventario y metas, según tu rol.",
+      },
+      {
+        element: at("tablero-filtros"),
+        title: "Periodo y filtros",
+        description:
+          "Cambia el periodo, el área o la ciudad. El botón de Excel exporta lo que ves.",
+      },
+    ],
+  },
+  documentacion: {
+    title: "Documentación",
+    steps: [
+      {
+        element: at("doc-lista"),
+        title: "Proyectos",
+        description:
+          "Cada proyecto tiene una carpeta por fase con sus documentos y lecciones aprendidas, guardados en SharePoint.",
+      },
+    ],
+  },
+  ...SALES_TOURS,
+  ...OPERATIONS_TOURS,
+  ...INVENTORY_TOURS,
 } satisfies Record<string, TourDefinition>;
 
 export type TourId = keyof typeof TOURS;

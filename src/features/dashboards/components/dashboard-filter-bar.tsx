@@ -55,6 +55,7 @@ export function DashboardFilterBar({
 
   return (
     <div
+      data-tour="tablero-filtros"
       className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap"
       data-pending={isPending || undefined}
     >

@@ -34,7 +34,7 @@ export function BagFilters({ customers }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row">
+    <div data-tour="bolsas-filtros" className="flex flex-col gap-2 sm:flex-row">
       <Select
         value={customer}
         onValueChange={(v) => update("cliente", String(v))}

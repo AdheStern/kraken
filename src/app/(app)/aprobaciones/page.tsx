@@ -16,6 +16,7 @@ export default function ApprovalsPage() {
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-8 sm:px-6">
       <ModuleHeading
         title="Aprobaciones"
+        tour="aprobaciones"
         description="CV que esperan tu decisión, del más antiguo al más reciente. Las demás áreas deciden en paralelo."
       />
       <Suspense fallback={<Skeleton className="h-64 w-full rounded-xl" />}>

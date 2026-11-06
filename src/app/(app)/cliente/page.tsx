@@ -1,12 +1,14 @@
 // src/app/(app)/cliente/page.tsx
 // Inicio del portal de clientes: tickets abiertos, cerrados en el mes, horas descontadas y los más recientes
 // (AGENTS.md §2.11). Solo para la cuenta de una empresa cliente.
+
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { summarizeCustomerTickets } from "@/domain/tickets/summarize-customer-tickets";
+import { PageTour } from "@/features/help/components/page-tour";
 import { CustomerTicketList } from "@/features/tickets/components/customer-ticket-list";
 import { listCustomerTickets } from "@/features/tickets/queries/list-customer-tickets";
 import { formatMinutes } from "@/lib/format-minutes";
@@ -46,9 +48,12 @@ async function Home() {
   ];
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-[-0.02em]">
-        Hola, {user.name}
-      </h1>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-2xl font-semibold tracking-[-0.02em]">
+          Hola, {user.name}
+        </h1>
+        <PageTour id="cliente" />
+      </div>
       <dl className="grid gap-3 sm:grid-cols-3">
         {cards.map(([label, value]) => (
           <div key={label} className="kr-surface rounded-xl p-4">

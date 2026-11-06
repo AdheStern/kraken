@@ -20,6 +20,7 @@ export default function HourBagsPage({ searchParams }: PageProps<"/horas">) {
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-8 sm:px-6">
       <ModuleHeading
         title="Bolsas de horas"
+        tour="horas"
         description="Horas vendidas en los CV aprobados, su consumo y su vencimiento."
       />
       <Suspense fallback={<Skeleton className="h-72 w-full rounded-xl" />}>

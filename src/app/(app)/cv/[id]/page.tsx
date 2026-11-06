@@ -1,6 +1,7 @@
 // src/app/(app)/cv/[id]/page.tsx
 // Editor de un CV: encabezado con versión y acciones, aprobaciones, cabecera plegable, líneas, leasing e
 // historial. `?v=` muestra una versión anterior en solo lectura (AGENTS.md §2.3 y §5, Editor de CV).
+
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -8,6 +9,7 @@ import { notFound } from "next/navigation";
 import { cache, Suspense } from "react";
 import { NodeMark } from "@/components/app-shell/node-mark";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageTour } from "@/features/help/components/page-tour";
 import { getVersionBagEffects } from "@/features/hours/queries/get-version-bag-effects";
 import { StockEffectsNote } from "@/features/inventory/components/stock-effects-note";
 import { getVersionStockEffects } from "@/features/inventory/queries/get-version-stock-effects";
@@ -127,7 +129,8 @@ async function CvEditor({
         </h1>
         <CvStatusBadge status={header.status} />
         {header.isOpeningBalance && <OpeningBalanceBadge />}
-        <div className="ml-auto">
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <PageTour id="cv-editor" />
           <CvVersionBar
             editor={editor}
             canDuplicate={canCreateCv(user)}

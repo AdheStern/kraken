@@ -22,6 +22,7 @@ export default function CvListPage({ searchParams }: PageProps<"/cv">) {
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-8 sm:px-6">
       <ModuleHeading
         title="Control de Venta"
+        tour="cv-lista"
         description="Tus CV y los que puedes ver por tu rol."
         actions={
           <Suspense fallback={<Skeleton className="h-8 w-28" />}>

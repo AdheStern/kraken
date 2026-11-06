@@ -24,7 +24,10 @@ export function TicketActions({ ticket, permissions, engineers }: Props) {
     run(() => changeTicketStatus({ ticketId: ticket.id, to }));
   if (transitions.length === 0 && !canClose) return null;
   return (
-    <div className="flex flex-col gap-2 border-t border-border/60 pt-4">
+    <div
+      data-tour="ticket-acciones"
+      className="flex flex-col gap-2 border-t border-border/60 pt-4"
+    >
       <div className="flex flex-wrap items-center gap-2">
         {transitions
           .filter((to) => to !== "CANCELADO")

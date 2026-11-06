@@ -39,7 +39,7 @@ export function CvLinesToolbar(props: Props) {
   // POR QUÉ: el atajo pulsa el mismo botón; deshabilitado (cambios sin guardar) no hace nada.
   useShortcuts({ "cv.submit": () => submitRef.current?.click() });
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div data-tour="cv-barra" className="flex flex-wrap items-center gap-2">
       <h2 className="mr-auto text-base font-semibold">Líneas</h2>
       <form
         className="flex items-center gap-1 rounded-lg border px-1.5 py-1"

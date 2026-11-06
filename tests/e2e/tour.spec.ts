@@ -17,3 +17,17 @@ test("el recorrido de Inicio se abre a pedido y avanza", async ({ page }) => {
   await page.keyboard.press("Escape");
   await expect(popover).toHaveCount(0);
 });
+
+test("el recorrido de Control de Venta señala los filtros", async ({
+  page,
+}) => {
+  await page.goto("/cv");
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("button", { name: "Recorrido" }).click();
+  const popover = page.locator(".driver-popover");
+  await expect(popover.getByText("Encuentra tus CV")).toBeVisible();
+  await expect(page.locator(".driver-active-element")).toHaveAttribute(
+    "data-tour",
+    "cv-filtros",
+  );
+});

@@ -94,7 +94,12 @@ export function NewTicketDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
-        render={<Button size={initialValues ? "sm" : "default"} />}
+        render={
+          <Button
+            size={initialValues ? "sm" : "default"}
+            data-tour={initialValues ? undefined : "nuevo-ticket"}
+          />
+        }
       >
         <Plus aria-hidden="true" />
         {triggerLabel}

@@ -32,6 +32,7 @@ export default function NewReceiptPage({
       </Link>
       <ModuleHeading
         title="Registrar ingreso"
+        tour="ingreso"
         description="Toca cada producto para cargar su cantidad, costo y seriales, o pega las filas desde Excel (código, descripción, cantidad, costo unitario USD y seriales separados por coma). Un código que no existe crea el producto para que Administración lo revise."
       />
       <Suspense fallback={<Skeleton className="h-96 w-full rounded-xl" />}>

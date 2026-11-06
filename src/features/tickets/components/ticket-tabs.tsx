@@ -60,6 +60,7 @@ export function TicketTabs({ detail, bags, time, materials, summary }: Props) {
   ];
   return (
     <Tabs
+      data-tour="ticket-pestanas"
       value={tab}
       onValueChange={(value) => setTab(String(value))}
       className="gap-4"

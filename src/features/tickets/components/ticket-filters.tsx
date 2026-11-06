@@ -26,7 +26,7 @@ export function TicketFilters({ customers, areas, canFilterMine }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row">
+    <div data-tour="ticket-filtros" className="flex flex-col gap-2 sm:flex-row">
       <OptionSelect
         aria-label="Filtrar por cliente"
         className="h-9 sm:w-72"

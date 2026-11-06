@@ -42,7 +42,7 @@ export function CvVersionBar({
     canManage && nextVersionState(latestStatus, "ANULAR") !== null;
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div data-tour="cv-versiones" className="flex flex-wrap items-center gap-2">
       {versions.length > 1 && (
         <OptionSelect
           aria-label="Versión"

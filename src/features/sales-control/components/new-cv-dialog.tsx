@@ -69,7 +69,7 @@ export function NewCvDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button />}>
+      <DialogTrigger render={<Button data-tour="nuevo-cv" />}>
         <Plus aria-hidden="true" />
         Nuevo CV
       </DialogTrigger>

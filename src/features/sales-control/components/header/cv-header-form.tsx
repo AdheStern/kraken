@@ -72,6 +72,7 @@ export function CvHeaderForm({
 
   return (
     <Collapsible
+      data-tour="cv-cabecera"
       open={isOpen}
       onOpenChange={setIsOpen}
       className="kr-surface rounded-xl"

@@ -29,7 +29,7 @@ export function InventoryActions({
   const code = encodeURIComponent(warehouseCode);
   const outline = buttonVariants({ variant: "outline" });
   return (
-    <div className="flex flex-wrap gap-2">
+    <div data-tour="inv-acciones" className="flex flex-wrap gap-2">
       <Link href="/inventario/seriales" className={outline}>
         <SearchCode aria-hidden="true" />
         Rastrear serial

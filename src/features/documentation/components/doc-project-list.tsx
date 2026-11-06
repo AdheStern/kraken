@@ -20,7 +20,10 @@ export function DocProjectList({ projects, search }: Props) {
       </KrakenEmpty>
     );
   return (
-    <ul className="kr-solid divide-y divide-border/60 rounded-xl">
+    <ul
+      data-tour="doc-lista"
+      className="kr-solid divide-y divide-border/60 rounded-xl"
+    >
       {projects.map((p) => (
         <li key={p.id}>
           <Link

@@ -25,6 +25,7 @@ export function PosWorkspace({ products, title, summary, panel }: Props) {
         {products}
       </section>
       <aside
+        data-tour="pos-panel"
         aria-label={title}
         className="kr-solid sticky bottom-3 z-20 flex max-h-[80dvh] flex-col overflow-hidden rounded-xl lg:top-4 lg:bottom-auto lg:max-h-[calc(100dvh-2rem)]"
       >

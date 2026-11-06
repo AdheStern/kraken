@@ -31,7 +31,7 @@ export function CvListTable({
   if (rows.length === 0) return <EmptyState isFiltered={isFiltered} />;
 
   return (
-    <div className="kr-surface overflow-x-auto rounded-xl">
+    <div data-tour="cv-lista" className="kr-surface overflow-x-auto rounded-xl">
       <Table>
         <TableHeader>
           <TableRow>

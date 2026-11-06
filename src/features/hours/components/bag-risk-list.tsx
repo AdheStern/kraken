@@ -16,7 +16,7 @@ export function BagRiskList({ bags, isFiltered }: Props) {
   const active = bags.filter((b) => b.riskGroup === "ACTIVA");
   const inactive = bags.filter((b) => b.riskGroup === "INACTIVA");
   return (
-    <div className="flex flex-col gap-6">
+    <div data-tour="bolsas-lista" className="flex flex-col gap-6">
       {atRisk.length > 0 && (
         <Section
           title="En riesgo"

@@ -23,7 +23,10 @@ export function CustomerTicketList({
       </p>
     );
   return (
-    <ul className="kr-solid divide-y divide-border/60 rounded-xl">
+    <ul
+      data-tour="cliente-tickets"
+      className="kr-solid divide-y divide-border/60 rounded-xl"
+    >
       {tickets.map((t) => (
         <li key={t.id}>
           <Link

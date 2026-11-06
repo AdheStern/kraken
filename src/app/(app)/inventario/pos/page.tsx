@@ -23,6 +23,7 @@ export default function PosPage({
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-8 sm:px-6">
       <ModuleHeading
         title="POS interno"
+        tour="pos"
         description="Toca o escanea lo que sale, elige a dónde va y confirma; el comprobante queda listo para descargar."
       />
       <Suspense fallback={<Skeleton className="h-96 w-full rounded-xl" />}>

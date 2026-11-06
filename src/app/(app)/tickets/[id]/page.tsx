@@ -1,12 +1,14 @@
 // src/app/(app)/tickets/[id]/page.tsx
 // Detalle de un ticket: cabecera con sus acciones y pestañas de trabajo (AGENTS.md §5 "Detalle del ticket").
 // Fuera del alcance del usuario responde 404 (§2.9 "Tickets: ver").
+
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache, Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageTour } from "@/features/help/components/page-tour";
 import { listTicketMaterials } from "@/features/inventory/queries/list-ticket-materials";
 import { AutoRefresh } from "@/features/tickets/components/auto-refresh";
 import { TicketActions } from "@/features/tickets/components/ticket-actions";
@@ -71,6 +73,9 @@ async function Ticket({ params }: Pick<PageProps<"/tickets/[id]">, "params">) {
   return (
     <>
       <AutoRefresh />
+      <div className="-mb-3 flex justify-end">
+        <PageTour id="ticket-detalle" />
+      </div>
       <TicketHeader
         ticket={detail.ticket}
         actions={

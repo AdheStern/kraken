@@ -4,6 +4,7 @@
 "use client";
 
 import { LoaderCircle, Pause, Play, Square } from "lucide-react";
+import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
 import { Button } from "@/components/ui/button";
 import { pauseTimer } from "../actions/pause-timer";
 import { resumeTimer } from "../actions/resume-timer";
@@ -18,6 +19,8 @@ type Props = {
   target?: { ticketId: string; subtaskId: string | null };
   size?: "sm" | "lg";
   startLabel?: string;
+  // Alt+I inicia, pausa o reanuda este contador; solo el contador grande del ticket lo toma.
+  withShortcut?: boolean;
 };
 
 export function TimerButtons({
@@ -25,8 +28,23 @@ export function TimerButtons({
   target,
   size = "lg",
   startLabel = "Iniciar",
+  withShortcut = false,
 }: Props) {
   const { run, isPending, error } = useTicketAction();
+  useShortcuts(
+    withShortcut
+      ? {
+          "ticket.timer": () => {
+            if (isPending) return;
+            if (!timer && target) run(() => startTimer(target));
+            else if (timer?.status === "CORRIENDO")
+              run(() => pauseTimer({ timerId: timer.timerId }));
+            else if (timer?.status === "PAUSADO")
+              run(() => resumeTimer({ timerId: timer.timerId }));
+          },
+        }
+      : {},
+  );
   const icon = (Icon: typeof Play) =>
     isPending ? (
       <LoaderCircle className="animate-spin" aria-hidden="true" />

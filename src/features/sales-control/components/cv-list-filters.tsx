@@ -4,7 +4,8 @@
 
 import { Search } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -24,6 +25,8 @@ export function CvListFilters() {
   const pathname = usePathname();
   const params = useSearchParams();
   const [search, setSearch] = useState(params.get("q") ?? "");
+  const searchRef = useRef<HTMLInputElement>(null);
+  useShortcuts({ "list.filter": () => searchRef.current?.focus() });
   const status = params.get("estado") ?? ALL;
 
   function update(key: string, value: string) {
@@ -50,6 +53,7 @@ export function CvListFilters() {
           aria-hidden="true"
         />
         <Input
+          ref={searchRef}
           type="search"
           value={search}
           onChange={(event) => setSearch(event.target.value)}

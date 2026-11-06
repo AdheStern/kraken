@@ -4,7 +4,8 @@
 "use client";
 
 import { Search } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useRef, useState } from "react";
+import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ProductTile, type TileItem } from "./product-tile";
@@ -31,6 +32,8 @@ export function ProductTileGrid({
 }: Props) {
   const [section, setSection] = useState(ALL);
   const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+  useShortcuts({ "inv.products": () => searchRef.current?.focus() });
   const sections = [...new Set(items.map(sectionOf))].sort(bySection);
   const visible = items.filter(
     (i) => (section === ALL || sectionOf(i) === section) && matches(i, query),
@@ -43,6 +46,7 @@ export function ProductTileGrid({
           aria-hidden="true"
         />
         <Input
+          ref={searchRef}
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}

@@ -16,6 +16,7 @@ import { LineDetailSheet } from "./line-detail-sheet";
 import { LinesNotice } from "./lines-notice";
 import { PostSaleToolbar } from "./post-sale-toolbar";
 import { type LinesState, useCvLinesState } from "./use-cv-lines-state";
+import { useLineShortcuts } from "./use-line-shortcuts";
 import { useLinesCommands } from "./use-lines-commands";
 import { useLinesPricing } from "./use-lines-pricing";
 import { useLinesSave } from "./use-lines-save";
@@ -77,6 +78,7 @@ export function CvLinesEditor({
     isDirty,
   );
   useSaveShortcuts(() => void save(), isDirty);
+  useLineShortcuts(canEdit, dispatch, setDetailKey);
 
   const commands = useLinesCommands({
     state,

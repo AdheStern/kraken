@@ -10,7 +10,8 @@ import {
   Send,
   StickyNote,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { OptionSelect } from "@/components/ui/option-select";
@@ -34,6 +35,9 @@ type Props = {
 
 export function CvLinesToolbar(props: Props) {
   const [technology, setTechnology] = useState<string | null>(null);
+  const submitRef = useRef<HTMLButtonElement>(null);
+  // POR QUÉ: el atajo pulsa el mismo botón; deshabilitado (cambios sin guardar) no hace nada.
+  useShortcuts({ "cv.submit": () => submitRef.current?.click() });
   return (
     <div className="flex flex-wrap items-center gap-2">
       <h2 className="mr-auto text-base font-semibold">Líneas</h2>
@@ -98,6 +102,7 @@ export function CvLinesToolbar(props: Props) {
       <ReasonDialog
         trigger={
           <Button
+            ref={submitRef}
             size="sm"
             variant="secondary"
             disabled={props.isDirty || props.isSaving}

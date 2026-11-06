@@ -101,6 +101,7 @@ export function CvItemRow({
 
   return (
     <tr
+      data-line-key={line.key}
       className="group/row border-b border-border/60 hover:bg-muted/40"
       style={rowColorStyle(color)}
     >

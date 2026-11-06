@@ -10,6 +10,7 @@ import { useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { FormField } from "@/components/forms/form-field";
+import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -55,6 +56,7 @@ export function NewCvDialog({
   // TRAMPA: con Cache Components la página no se desmonta al navegar (<Activity>); sin esto, al volver el
   // diálogo sigue abierto. El borrador se conserva hasta que se crea el CV.
   useLayoutEffect(() => () => setOpen(false), []);
+  useShortcuts({ "cv.new": () => setOpen(true) });
 
   async function onSubmit(values: CreateCvInput) {
     setServerError(null);

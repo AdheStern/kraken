@@ -46,10 +46,75 @@ export const SHORTCUTS = {
     section: "General",
   },
   ...NAV,
+  "cv.new": {
+    keys: "Alt+N",
+    description: "Nuevo CV",
+    section: "Control de Venta",
+  },
+  "list.filter": {
+    keys: "/",
+    description: "Ir al buscador de la lista",
+    section: "Listados",
+  },
+  "cv.addLine": {
+    keys: "Alt+N",
+    description: "Agregar una línea",
+    section: "Editor del CV",
+  },
+  "cv.addNote": {
+    keys: "Alt+M",
+    description: "Agregar una nota",
+    section: "Editor del CV",
+  },
+  "cv.addGroup": {
+    keys: "Alt+L",
+    description: "Agregar un lote",
+    section: "Editor del CV",
+  },
+  "cv.lineDetail": {
+    keys: "Alt+O",
+    description: "Abrir el detalle de la línea actual",
+    section: "Editor del CV",
+  },
   "cv.save": {
     keys: "Ctrl+S",
     description: "Guardar las líneas",
     section: "Editor del CV",
+  },
+  "cv.submit": {
+    keys: "Ctrl+Enter",
+    description: "Enviar a aprobación",
+    section: "Editor del CV",
+  },
+  "ticket.new": {
+    keys: "Alt+N",
+    description: "Nuevo ticket",
+    section: "Tickets",
+  },
+  "ticket.timer": {
+    keys: "Alt+I",
+    description: "Iniciar, pausar o reanudar tu contador",
+    section: "Detalle del ticket",
+  },
+  "ticket.comment": {
+    keys: "Alt+C",
+    description: "Escribir un comentario",
+    section: "Detalle del ticket",
+  },
+  "inv.scan": {
+    keys: "/",
+    description: "Ir al escáner",
+    section: "Inventario",
+  },
+  "inv.products": {
+    keys: "Alt+B",
+    description: "Buscar un producto",
+    section: "Inventario",
+  },
+  "inv.confirm": {
+    keys: "Ctrl+Enter",
+    description: "Confirmar la salida o el traspaso",
+    section: "Inventario",
   },
 } satisfies Record<string, ShortcutDefinition>;
 

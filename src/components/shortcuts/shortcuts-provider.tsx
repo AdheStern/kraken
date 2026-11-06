@@ -31,6 +31,8 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
   const [helpOpen, setHelpOpen] = useState(false);
 
   const register = useCallback((id: ShortcutId, run: () => void) => {
+    // POR QUÉ: borrar antes de volver a poner deja el registro más reciente al final del orden del Map.
+    handlers.current.delete(id);
     handlers.current.set(id, run);
     setActive([...handlers.current.keys()]);
     return () => {
@@ -50,7 +52,9 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
         .filter((keys) => !typing || isModified(keys));
       const result = resolveShortcut(combos, event, sequence, event.timeStamp);
       sequence = result.state;
-      const id = ids.find((i) => SHORTCUTS[i].keys === result.match);
+      // TRAMPA: con Cache Components la página anterior queda montada; si dos atajos comparten teclas (Alt+N en la
+      // lista y en el editor), gana el registrado más tarde, que es el de la pantalla que se ve.
+      const id = ids.findLast((i) => SHORTCUTS[i].keys === result.match);
       if (!id) return;
       event.preventDefault();
       if (id === "help") setHelpOpen(true);

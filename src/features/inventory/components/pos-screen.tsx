@@ -7,6 +7,7 @@ import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useMarkCreated } from "@/components/forms/fresh-after-create";
+import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
 import { Button } from "@/components/ui/button";
 import { OptionSelect } from "@/components/ui/option-select";
 import { dispatchItems } from "../actions/dispatch-items";
@@ -76,6 +77,9 @@ export function PosScreen({
     (r) => products.size === 1 && products.has(r.productId),
   );
   const canConfirm = cart.length > 0 && isReady(destination) && !isPending;
+  useShortcuts({
+    "inv.confirm": () => !done && canConfirm && void confirm(),
+  });
 
   async function confirm() {
     setIsPending(true);
@@ -107,6 +111,7 @@ export function PosScreen({
 
   if (done) return <PosDone {...done} onRestart={restart} />;
   const units = cart.reduce((sum, l) => sum + lineQuantity(l), 0);
+
   return (
     <PosWorkspace
       title="Salida"

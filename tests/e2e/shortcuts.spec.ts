@@ -46,3 +46,36 @@ test("Ctrl+K busca un CV por su cliente y lo abre con Enter", async ({
   await search.press("Enter");
   await page.waitForURL(/\/cv\/[0-9a-f-]{36}$/);
 });
+
+test("en el CV, Alt+N abre el alta y en el editor agrega una línea", async ({
+  page,
+}) => {
+  await page.goto("/cv");
+  await page.waitForLoadState("networkidle");
+  await page.keyboard.press("Alt+n");
+  await expect(
+    page.getByRole("dialog", { name: "Nuevo Control de Venta" }),
+  ).toBeVisible();
+  await page.locator("#new-cv-city").fill("La Paz");
+  await page
+    .getByRole("option", { name: /La Paz/ })
+    .first()
+    .click();
+  await page.locator("#new-cv-customer").fill("Banco Andino");
+  await page
+    .getByRole("option", { name: /Banco Andino/ })
+    .first()
+    .click();
+  await page.locator("#new-cv-title").fill(`CV atajos E2E ${Date.now()}`);
+  await page.getByRole("button", { name: "Crear CV" }).click();
+  await page.waitForURL(/\/cv\/[0-9a-f-]{36}$/);
+  await page.waitForLoadState("networkidle");
+
+  // POR QUÉ: tras crear, el editor llega por streaming; los atajos valen cuando la barra ya está.
+  await expect(page.getByRole("button", { name: "Lote" })).toBeVisible();
+  const rows = page.locator("tr[data-line-key]");
+  await expect(rows).toHaveCount(0);
+  await page.keyboard.press("Alt+n");
+  await page.keyboard.press("Alt+n");
+  await expect(rows).toHaveCount(2);
+});

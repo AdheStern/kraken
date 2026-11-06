@@ -6,6 +6,7 @@
 import { ScanLine } from "lucide-react";
 import { type RefObject, useRef, useState } from "react";
 import { CameraScanDialog } from "@/components/scan/camera-scan-dialog";
+import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +19,7 @@ type Props = {
 export function PosScanner({ onScan, inputRef }: Props) {
   const ownRef = useRef<HTMLInputElement>(null);
   const ref = inputRef ?? ownRef;
+  useShortcuts({ "inv.scan": () => ref.current?.focus() });
   const [value, setValue] = useState("");
   const [feedback, setFeedback] = useState<{
     ok: boolean;

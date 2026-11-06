@@ -7,6 +7,7 @@ import { LoaderCircle, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useMarkCreated } from "@/components/forms/fresh-after-create";
+import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -66,6 +67,10 @@ export function NewTransferForm({ warehouses, origin, catalog }: Props) {
   }
 
   const units = cart.reduce((sum, l) => sum + lineQuantity(l), 0);
+  useShortcuts({
+    "inv.confirm": () => cart.length > 0 && !pending && void save(true),
+  });
+
   return (
     <PosWorkspace
       title="Traspaso"

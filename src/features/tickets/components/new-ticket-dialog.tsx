@@ -8,6 +8,7 @@ import { LoaderCircle, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLayoutEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -59,6 +60,8 @@ export function NewTicketDialog({
   const [open, setOpen] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
+  // POR QUÉ: el alta prellenada de una solicitud no es «Nuevo ticket»; solo el botón general toma Alt+N.
+  useShortcuts(initialValues ? {} : { "ticket.new": () => setOpen(true) });
   const defaults = { ...DEFAULTS, ...initialValues };
   const form = useForm<CreateTicketInput>({
     resolver: zodResolver(createTicketSchema),

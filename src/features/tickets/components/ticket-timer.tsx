@@ -42,6 +42,7 @@ export function TicketTimer({ ticketId, time }: Props) {
             timer={mine}
             target={canLog ? { ticketId, subtaskId: null } : undefined}
             startLabel={shown ? "Iniciar el mío" : "Iniciar"}
+            withShortcut
           />
         )}
       </div>

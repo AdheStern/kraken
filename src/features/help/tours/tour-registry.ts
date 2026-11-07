@@ -32,7 +32,7 @@ export const TOURS = {
         element: at("atajos"),
         title: "Atajos de teclado",
         description:
-          "Pulsa «?» en cualquier pantalla para ver sus atajos. «G» y luego una letra lleva a cada módulo (G C, G T…).",
+          "Pulsa «?» en cualquier pantalla para ver sus atajos. «G + letra» lleva a cada módulo (G + C, G + T…) y Ctrl+K busca en todo y ejecuta las acciones de la pantalla.",
       },
       {
         element: at("avisos"),

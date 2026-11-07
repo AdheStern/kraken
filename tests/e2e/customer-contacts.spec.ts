@@ -77,10 +77,10 @@ test("el directorio encuentra al contacto, muestra su historial y exporta a Exce
 
   await page.keyboard.press("Control+k");
   await page
-    .getByRole("textbox", { name: "Buscar en Kraken" })
+    .getByRole("combobox", { name: "Buscar en Kraken" })
     .fill(`Vargas ${STAMP}`);
   await expect(
-    page.getByRole("region", { name: "Contactos" }).getByRole("button").first(),
+    page.getByRole("group", { name: "Contactos" }).getByRole("option").first(),
   ).toBeVisible();
 });
 

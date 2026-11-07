@@ -23,6 +23,7 @@ import { LayoutGroup, MotionConfig, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
+import { navShortcutId } from "@/components/shortcuts/shortcut-registry";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -93,6 +94,7 @@ export function AppNav({ entries }: { entries: readonly NavEntry[] }) {
         pages={entries.map(({ key }) => ({
           label: ITEMS[key].label,
           href: ITEMS[key].href,
+          shortcut: navShortcutId(key) ?? undefined,
         }))}
       />
       <SidebarGroupContent>

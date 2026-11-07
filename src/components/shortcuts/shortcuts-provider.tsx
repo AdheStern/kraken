@@ -19,11 +19,14 @@ import { ShortcutsDialog } from "./shortcuts-dialog";
 type Registry = {
   register: (id: ShortcutId, run: () => void) => () => void;
   openHelp: () => void;
-  // Ejecuta un atajo registrado como si se hubiera pulsado (botones de la cabecera).
+  // Ejecuta un atajo registrado como si se hubiera pulsado (botones de la cabecera y la paleta de Ctrl+K).
   trigger: (id: ShortcutId) => void;
 };
 
 export const ShortcutsContext = createContext<Registry | null>(null);
+// TRAMPA: los atajos activos van en otro contexto; en el del registro, cada alta cambiaría su valor, useShortcuts
+// volvería a registrar y el ciclo no terminaría. Los lee la paleta de Ctrl+K.
+export const ActiveShortcutsContext = createContext<readonly ShortcutId[]>([]);
 
 export function ShortcutsProvider({ children }: { children: ReactNode }) {
   const handlers = useRef(new Map<ShortcutId, () => void>());
@@ -74,7 +77,7 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
   );
   return (
     <ShortcutsContext value={value}>
-      {children}
+      <ActiveShortcutsContext value={active}>{children}</ActiveShortcutsContext>
       <ShortcutsDialog
         open={helpOpen}
         onOpenChange={setHelpOpen}

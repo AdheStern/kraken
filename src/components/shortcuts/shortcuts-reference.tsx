@@ -25,9 +25,10 @@ export function ShortcutsReference() {
           Atajos de teclado
         </h2>
         <p className="text-sm text-muted-foreground">
-          Pulsa «?» en cualquier pantalla para ver los que valen ahí. «G» y
-          luego una letra lleva a cada módulo que tu rol ve; mientras escribes
-          en un campo solo valen los que llevan Ctrl o Alt.
+          Pulsa «?» en cualquier pantalla para ver los que valen ahí. «G +
+          letra» lleva a cada módulo que tu rol ve y Ctrl+K busca en todo y
+          ejecuta las acciones de la pantalla; mientras escribes en un campo
+          solo valen los que llevan Ctrl o Alt.
         </p>
       </div>
       <div className="grid gap-5 sm:grid-cols-2">

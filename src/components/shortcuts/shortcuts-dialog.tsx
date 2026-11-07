@@ -31,9 +31,9 @@ export function ShortcutsDialog({ open, onOpenChange, active }: Props) {
         <DialogHeader>
           <DialogTitle>Atajos de teclado</DialogTitle>
           <DialogDescription>
-            Los que valen en esta pantalla. «G» y luego una letra lleva a cada
-            módulo; mientras escribes en un campo solo valen los que llevan Ctrl
-            o Alt.
+            Los que valen en esta pantalla. «G + letra» lleva a cada módulo y
+            Ctrl+K busca y ejecuta las acciones de la pantalla; mientras
+            escribes en un campo solo valen los que llevan Ctrl o Alt.
           </DialogDescription>
         </DialogHeader>
         <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto">

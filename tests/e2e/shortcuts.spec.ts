@@ -1,6 +1,7 @@
 // tests/e2e/shortcuts.spec.ts
-// Atajos de teclado (decisión 2026-11-05): «?» abre el resumen con los atajos que valen en la pantalla, «G» y
-// luego una letra lleva al módulo, y mientras se escribe en un campo las teclas sueltas no navegan.
+// Atajos de teclado (decisión 2026-11-05): «?» abre el resumen con los atajos que valen en la pantalla, «G + letra»
+// lleva al módulo, mientras se escribe en un campo las teclas sueltas no navegan y Ctrl+K ejecuta las acciones de la
+// pantalla (decisión 2026-11-07).
 import { expect, test } from "@playwright/test";
 import { storageFor } from "./users";
 
@@ -39,12 +40,27 @@ test("Ctrl+K busca un CV por su cliente y lo abre con Enter", async ({
   await page.goto("/inicio");
   await page.waitForLoadState("networkidle");
   await page.keyboard.press("Control+k");
-  const search = page.getByRole("textbox", { name: "Buscar en Kraken" });
+  const search = page.getByRole("combobox", { name: "Buscar en Kraken" });
   await search.fill("Minera");
-  const results = page.getByRole("region", { name: "Control de Venta" });
-  await expect(results.getByRole("button").first()).toBeVisible();
-  await search.press("Enter");
+  const results = page.getByRole("group", { name: "Control de Venta" });
+  await expect(results.getByRole("option").first()).toBeVisible();
+  await results.getByRole("option").first().click();
   await page.waitForURL(/\/cv\/[0-9a-f-]{36}$/);
+});
+
+test("Ctrl+K ejecuta una acción de la pantalla: Nuevo CV", async ({ page }) => {
+  await page.goto("/cv");
+  await page.waitForLoadState("networkidle");
+  await page.keyboard.press("Control+k");
+  const search = page.getByRole("combobox", { name: "Buscar en Kraken" });
+  await search.fill("nuevo cv");
+  await expect(
+    page.getByRole("group", { name: "Acciones" }).getByRole("option"),
+  ).toHaveText(/Nuevo CV/);
+  await search.press("Enter");
+  await expect(
+    page.getByRole("dialog", { name: "Nuevo Control de Venta" }),
+  ).toBeVisible();
 });
 
 test("en el CV, Alt+N abre el alta y en el editor agrega una línea", async ({

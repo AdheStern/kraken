@@ -7,8 +7,8 @@ import { FileDown, Plus } from "lucide-react";
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import { Button, buttonVariants } from "@/components/ui/button";
 import type { ContactFormOptions, CustomerContactView } from "../types";
-import { ContactDialog } from "./contact-dialog";
 import { ContactRow } from "./contact-row";
+import { ContactSheet } from "./contact-sheet";
 
 type Props = {
   customerId: string;
@@ -33,7 +33,7 @@ export function ContactsPanel(props: Props) {
             Exportar a Excel
           </a>
         )}
-        <ContactDialog
+        <ContactSheet
           customerId={customerId}
           options={options}
           canManage={canManage}

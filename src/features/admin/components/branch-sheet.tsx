@@ -1,4 +1,4 @@
-// src/features/admin/components/branch-dialog.tsx
+// src/features/admin/components/branch-sheet.tsx
 // Alta o edición de una sucursal del cliente: nombre, dirección, municipio, teléfono y coordenadas opcionales
 // (decisión 2026-11-06).
 "use client";
@@ -9,13 +9,13 @@ import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { upsertCustomerBranch } from "../actions/upsert-customer-branch";
 import type { CustomerBranchView, CustomerFormOptions } from "../types";
 import { LabeledInput } from "./labeled-input";
@@ -36,7 +36,7 @@ const TEXT_FIELDS = [
   ["longitude", "Longitud (opcional)"],
 ] as const;
 
-export function BranchDialog({
+export function BranchSheet({
   customerId,
   branch,
   municipalities,
@@ -68,17 +68,17 @@ export function BranchDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={trigger} />
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger render={trigger} />
+      <SheetContent className="w-full overflow-y-auto data-[side=right]:sm:max-w-lg">
+        <SheetHeader>
+          <SheetTitle>
             {branch ? `Editar ${branch.name}` : "Nueva sucursal"}
-          </DialogTitle>
-        </DialogHeader>
+          </SheetTitle>
+        </SheetHeader>
         <form
           id="branch-form"
-          className="grid gap-3 sm:grid-cols-2"
+          className="grid gap-3 px-4 sm:grid-cols-2"
           onSubmit={(event) => {
             event.preventDefault();
             save();
@@ -112,19 +112,19 @@ export function BranchDialog({
           ))}
         </form>
         {error && (
-          <p role="alert" className="text-sm text-destructive">
+          <p role="alert" className="px-4 text-sm text-destructive">
             {error}
           </p>
         )}
-        <DialogFooter>
+        <SheetFooter>
           <Button type="submit" form="branch-form" disabled={isPending}>
             {isPending && (
               <LoaderCircle className="animate-spin" aria-hidden="true" />
             )}
             {branch ? "Guardar cambios" : "Agregar sucursal"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

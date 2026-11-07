@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { setCustomerBranchActive } from "../actions/set-customer-branch-active";
 import type { CustomerBranchView, CustomerFormOptions } from "../types";
-import { BranchDialog } from "./branch-dialog";
+import { BranchSheet } from "./branch-sheet";
 import { useAdminAction } from "./use-admin-action";
 
 type Props = {
@@ -30,7 +30,7 @@ export function BranchesPanel({
     <div className="grid gap-3">
       {canManage && (
         <div className="flex justify-end">
-          <BranchDialog
+          <BranchSheet
             customerId={customerId}
             municipalities={municipalities}
             trigger={
@@ -79,7 +79,7 @@ export function BranchesPanel({
               </div>
               {canManage && (
                 <>
-                  <BranchDialog
+                  <BranchSheet
                     customerId={customerId}
                     branch={b}
                     municipalities={municipalities}

@@ -1,6 +1,6 @@
 // src/app/(app)/clientes/[id]/page.tsx
-// Ficha de un cliente en pestañas: sus datos, sus sucursales y sus contactos (decisión 2026-11-06); ?pestana= abre
-// una. Quien no gestiona clientes la ve de solo lectura, agrega contactos y ve los de sus áreas (§2.9).
+// Ficha de un cliente: sus datos arriba y, debajo, sus contactos y sucursales en pestañas (decisión 2026-11-07);
+// ?pestana= abre una. Quien no gestiona clientes la ve de solo lectura, agrega contactos y ve los de sus áreas (§2.9).
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache, Suspense } from "react";
@@ -53,7 +53,7 @@ export default function CustomerPage({
   );
 }
 
-const TABS = ["datos", "sucursales", "contactos"];
+const TABS = ["contactos", "sucursales"];
 
 async function Customer({
   params,
@@ -88,24 +88,22 @@ async function Customer({
           )
         }
       />
+      <CustomerForm
+        key={customer.id}
+        customer={customer}
+        options={options}
+        readOnly={!can.manageCustomer}
+      />
       <CustomerTabs
         initial={
           typeof pestana === "string" && TABS.includes(pestana)
             ? pestana
-            : "datos"
+            : "contactos"
         }
         counts={{
           branches: customer.branches.length,
           contacts: customer.contacts.length,
         }}
-        data={
-          <CustomerForm
-            key={customer.id}
-            customer={customer}
-            options={options}
-            readOnly={!can.manageCustomer}
-          />
-        }
         branches={
           <BranchesPanel
             customerId={customer.id}

@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { setCustomerContactActive } from "../actions/set-customer-contact-active";
 import type { ContactFormOptions, CustomerContactView } from "../types";
-import { ContactDialog } from "./contact-dialog";
-import { TransferContactDialog } from "./transfer-contact-dialog";
+import { ContactSheet } from "./contact-sheet";
+import { TransferContactSheet } from "./transfer-contact-sheet";
 import { useAdminAction } from "./use-admin-action";
 
 type Props = {
@@ -74,7 +74,7 @@ export function ContactRow({
           </div>
         </div>
         {canManage && c.isActive && (
-          <TransferContactDialog
+          <TransferContactSheet
             contact={c}
             customers={options.customers}
             currentCustomerId={customerId}
@@ -90,7 +90,7 @@ export function ContactRow({
           />
         )}
         {canManage && c.isActive && (
-          <ContactDialog
+          <ContactSheet
             customerId={customerId}
             contact={c}
             options={options}

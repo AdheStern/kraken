@@ -1,4 +1,4 @@
-// src/features/admin/components/transfer-contact-dialog.tsx
+// src/features/admin/components/transfer-contact-sheet.tsx
 // «Transferir a otra empresa»: la persona deja este cliente (hoy, con el motivo) y empieza en otro con su nuevo
 // cargo, correo y teléfono; sus áreas, responsables y municipio pasan igual (decisión 2026-11-06).
 "use client";
@@ -9,14 +9,14 @@ import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { transferCustomerContact } from "../actions/transfer-customer-contact";
 import type { ContactFormOptions, CustomerContactView } from "../types";
 import { LabeledInput } from "./labeled-input";
@@ -36,7 +36,7 @@ const FIELDS = [
   ["reason", "Motivo (opcional: «Pasó a …»)"],
 ] as const;
 
-export function TransferContactDialog({
+export function TransferContactSheet({
   contact,
   customers,
   currentCustomerId,
@@ -69,17 +69,17 @@ export function TransferContactDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={trigger} />
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Transferir a {contact.name}</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger render={trigger} />
+      <SheetContent className="w-full overflow-y-auto data-[side=right]:sm:max-w-lg">
+        <SheetHeader>
+          <SheetTitle>Transferir a {contact.name}</SheetTitle>
+          <SheetDescription>
             Su puesto aquí queda cerrado con fecha de hoy y su historial se
             conserva en su ficha.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-3 sm:grid-cols-2">
+          </SheetDescription>
+        </SheetHeader>
+        <div className="grid gap-3 px-4 sm:grid-cols-2">
           <FormField
             label="Nueva empresa"
             htmlFor="transfer-customer"
@@ -104,19 +104,19 @@ export function TransferContactDialog({
           ))}
         </div>
         {error && (
-          <p role="alert" className="text-sm text-destructive">
+          <p role="alert" className="px-4 text-sm text-destructive">
             {error}
           </p>
         )}
-        <DialogFooter>
+        <SheetFooter>
           <Button onClick={transfer} disabled={isPending || !customerId}>
             {isPending && (
               <LoaderCircle className="animate-spin" aria-hidden="true" />
             )}
             Transferir
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

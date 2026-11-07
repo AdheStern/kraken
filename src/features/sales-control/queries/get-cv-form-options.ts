@@ -13,7 +13,10 @@ export async function getCvFormOptions(): Promise<CvFormOptions> {
       prisma.serviceType.findMany({ where: active, orderBy: { name: "asc" } }),
       prisma.userProfile.findMany({
         where: active,
-        select: { userId: true, user: { select: { name: true, email: true } } },
+        select: {
+          userId: true,
+          user: { select: { name: true, email: true, image: true } },
+        },
         orderBy: { user: { name: "asc" } },
       }),
     ]);
@@ -31,6 +34,7 @@ export async function getCvFormOptions(): Promise<CvFormOptions> {
       id: p.userId,
       label: p.user.name,
       hint: p.user.email,
+      image: p.user.image,
     })),
   };
 }

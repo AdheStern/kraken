@@ -41,7 +41,11 @@ export function SubtasksPanel({
   const [title, setTitle] = useState("");
   const [assigneeId, setAssigneeId] = useState<string | null>(null);
   const { run, isPending, error } = useTicketAction();
-  const people = engineers.map((e) => ({ id: e.id, label: e.name }));
+  const people = engineers.map((e) => ({
+    id: e.id,
+    label: e.name,
+    image: e.image,
+  }));
 
   async function add() {
     if (await run(() => createSubtask({ ticketId, title, assigneeId }))) {

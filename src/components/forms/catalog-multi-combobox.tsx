@@ -1,5 +1,6 @@
 // src/components/forms/catalog-multi-combobox.tsx
-// Selector múltiple con búsqueda y fichas sobre un catálogo; devuelve la lista de ids elegidos.
+// Selector múltiple con búsqueda y fichas sobre un catálogo; devuelve la lista de ids elegidos. Las personas llevan
+// su foto en la ficha y en la lista.
 "use client";
 
 import {
@@ -14,7 +15,11 @@ import {
   ComboboxValue,
   useComboboxAnchor,
 } from "@/components/ui/combobox";
-import { type CatalogOption, useCatalogFilter } from "./catalog-combobox";
+import {
+  type CatalogOption,
+  OptionAvatar,
+  useCatalogFilter,
+} from "./catalog-combobox";
 
 type Props = {
   id?: string;
@@ -57,6 +62,7 @@ export function CatalogMultiCombobox({
           {(chosen: CatalogOption[]) =>
             chosen.map((option) => (
               <ComboboxChip key={option.id} showRemove={!disabled}>
+                <OptionAvatar option={option} className="size-4 text-[8px]" />
                 {option.label}
               </ComboboxChip>
             ))
@@ -75,6 +81,7 @@ export function CatalogMultiCombobox({
         <ComboboxList>
           {(option: CatalogOption) => (
             <ComboboxItem key={option.id} value={option}>
+              <OptionAvatar option={option} />
               <span className="truncate">{option.label}</span>
               {option.hint && (
                 <span className="ml-auto pl-3 text-xs text-muted-foreground">

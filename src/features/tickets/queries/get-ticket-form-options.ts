@@ -13,7 +13,12 @@ import { prisma } from "@/server/db";
 import { selectFileStore } from "@/server/files/select-file-store";
 import { MODALITY_LABELS } from "../ticket-labels";
 
-export type TicketOption = { id: string; label: string; hint?: string };
+export type TicketOption = {
+  id: string;
+  label: string;
+  hint?: string;
+  image?: string | null;
+};
 
 export type TicketFormOptions = {
   customers: TicketOption[];
@@ -49,7 +54,7 @@ export async function getTicketFormOptions(
         select: {
           userId: true,
           areaId: true,
-          user: { select: { user: { select: { name: true } } } },
+          user: { select: { user: { select: { name: true, image: true } } } },
         },
       }),
       listActiveBags(user),
@@ -134,7 +139,7 @@ function groupEngineers(
   roles: {
     userId: string;
     areaId: string | null;
-    user: { user: { name: string } };
+    user: { user: { name: string; image: string | null } };
   }[],
 ) {
   const byUser = new Map<string, TicketOption & { areaIds: string[] | null }>();
@@ -142,6 +147,7 @@ function groupEngineers(
     const entry = byUser.get(role.userId) ?? {
       id: role.userId,
       label: role.user.user.name,
+      image: role.user.user.image,
       areaIds: [],
     };
     if (role.areaId === null) entry.areaIds = null;

@@ -50,7 +50,7 @@ export type ContactFormOptions = {
   municipalities: Option[];
   branches: Option[];
   areas: Option[];
-  users: Option[];
+  users: (Option & { image: string | null })[];
   customers: Option[];
 };
 

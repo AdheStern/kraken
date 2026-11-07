@@ -25,7 +25,11 @@ export function AssignOwnerDialog({ ticketId, ownerId, engineers }: Props) {
   const [open, setOpen] = useState(false);
   const [chosen, setChosen] = useState<string | null>(ownerId);
   const { run, isPending, error } = useTicketAction();
-  const options = engineers.map((e) => ({ id: e.id, label: e.name }));
+  const options = engineers.map((e) => ({
+    id: e.id,
+    label: e.name,
+    image: e.image,
+  }));
 
   async function confirm() {
     if (!chosen) return;

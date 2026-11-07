@@ -19,7 +19,7 @@ export type CvFormOptions = {
   customers: Option[];
   technologies: Option[];
   serviceTypes: Option[];
-  people: Option[];
+  people: (Option & { image: string | null })[];
 };
 
 export type CvListRow = {

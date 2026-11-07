@@ -18,7 +18,10 @@ export async function getContactFormOptions(): Promise<
     prisma.userProfile.findMany({
       where: { isActive: true, customerId: null },
       orderBy: { user: { name: "asc" } },
-      select: { userId: true, user: { select: { name: true, email: true } } },
+      select: {
+        userId: true,
+        user: { select: { name: true, email: true, image: true } },
+      },
     }),
     prisma.customer.findMany({
       where: { isActive: true },
@@ -32,6 +35,7 @@ export async function getContactFormOptions(): Promise<
       id: u.userId,
       label: u.user.name,
       hint: u.user.email,
+      image: u.user.image,
     })),
     customers: customers.map((c) => ({
       id: c.id,

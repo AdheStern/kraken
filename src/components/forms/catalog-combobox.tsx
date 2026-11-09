@@ -1,10 +1,11 @@
 // src/components/forms/catalog-combobox.tsx
 // Selector con búsqueda sobre un catálogo ({ id, label, hint }) por etiqueta o ayuda; devuelve el id elegido o null.
 // Si las opciones son personas (traen image), muestra su foto de Microsoft o sus iniciales (decisión 2026-11-07).
-// Al abrirlo muestra todas las opciones; al escribir quedan las que coinciden. Es también la base de OptionSelect.
+// Al abrirlo muestra todas las opciones; al escribir quedan las que coinciden, la más parecida primero
+// (rankCatalogOptions; «La Paz, Achocalla» busca ayuda y etiqueta). Es también la base de OptionSelect.
 "use client";
 
-import type { ComponentProps } from "react";
+import { type ComponentProps, useState } from "react";
 import { PersonAvatar } from "@/components/app-shell/person-avatar";
 import {
   Combobox,
@@ -13,9 +14,9 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
-  useComboboxFilter,
 } from "@/components/ui/combobox";
 import { InputGroupAddon } from "@/components/ui/input-group";
+import { rankCatalogOptions, rankOption } from "@/lib/rank-catalog-options";
 import { cn } from "@/lib/utils";
 
 // POR QUÉ: image presente (aunque sea null) marca la opción como persona; null muestra sus iniciales.
@@ -47,10 +48,8 @@ type Props = {
 // POR QUÉ: también se busca por el texto de ayuda (NIT, código de ciudad, nombre del área), que los
 // placeholders ofrecen ("Nombre o NIT", "LP, SC o CB").
 export function useCatalogFilter() {
-  const { contains } = useComboboxFilter();
   return (option: CatalogOption, query: string) =>
-    contains(option.label, query) ||
-    (option.hint !== undefined && contains(option.hint, query));
+    rankOption(option, query) !== null;
 }
 
 export function CatalogCombobox({
@@ -68,12 +67,15 @@ export function CatalogCombobox({
   contentClassName,
 }: Props) {
   const selected = options.find((option) => option.id === value) ?? null;
-  const filter = useCatalogFilter();
+  const [query, setQuery] = useState("");
 
   return (
     <Combobox
       items={options}
-      filter={filter}
+      // POR QUÉ: Base UI filtra sin ordenar; con «la paz» el municipio La Paz quedaba entre los del departamento.
+      // Mientras el texto sea la etiqueta elegida, Base UI ignora esta lista y muestra todas.
+      filteredItems={rankCatalogOptions(options, query)}
+      onInputValueChange={setQuery}
       value={selected}
       onValueChange={(option) => onChange(option?.id ?? null)}
       itemToStringLabel={(option) => option.label}

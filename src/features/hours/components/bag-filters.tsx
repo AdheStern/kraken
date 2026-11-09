@@ -3,14 +3,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import type { BagStatus } from "@/generated/prisma/enums";
+import { OptionSelect } from "@/components/ui/option-select";
 import { STATUS_LABELS } from "./bag-labels";
 
 const ALL = "TODOS";
@@ -23,8 +16,6 @@ export function BagFilters({ customers }: Props) {
   const params = useSearchParams();
   const customer = params.get("cliente") ?? ALL;
   const status = params.get("estado") ?? ALL;
-  const customerName = (id: string) =>
-    customers.find((c) => c.id === id)?.name ?? "Cliente";
 
   function update(key: string, value: string) {
     const next = new URLSearchParams(params);
@@ -35,45 +26,25 @@ export function BagFilters({ customers }: Props) {
 
   return (
     <div data-tour="bolsas-filtros" className="flex flex-col gap-2 sm:flex-row">
-      <Select
-        value={customer}
-        onValueChange={(v) => update("cliente", String(v))}
-      >
-        <SelectTrigger className="h-9 sm:w-72" aria-label="Filtrar por cliente">
-          <SelectValue>
-            {(value: string) =>
-              value === ALL ? "Todos los clientes" : customerName(value)
-            }
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL}>Todos los clientes</SelectItem>
-          {customers.map((c) => (
-            <SelectItem key={c.id} value={c.id}>
-              {c.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select value={status} onValueChange={(v) => update("estado", String(v))}>
-        <SelectTrigger className="h-9 sm:w-44" aria-label="Filtrar por estado">
-          <SelectValue>
-            {(value: string) =>
-              value === ALL
-                ? "Todos los estados"
-                : STATUS_LABELS[value as BagStatus]
-            }
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL}>Todos los estados</SelectItem>
-          {Object.entries(STATUS_LABELS).map(([value, label]) => (
-            <SelectItem key={value} value={value}>
-              {label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <OptionSelect
+        value={customer === ALL ? null : customer}
+        options={customers.map((c) => ({ id: c.id, label: c.name }))}
+        emptyLabel="Todos los clientes"
+        onValueChange={(v) => update("cliente", v ?? ALL)}
+        className="sm:w-72"
+        aria-label="Filtrar por cliente"
+      />
+      <OptionSelect
+        value={status === ALL ? null : status}
+        options={Object.entries(STATUS_LABELS).map(([id, label]) => ({
+          id,
+          label,
+        }))}
+        emptyLabel="Todos los estados"
+        onValueChange={(v) => update("estado", v ?? ALL)}
+        className="sm:w-44"
+        aria-label="Filtrar por estado"
+      />
     </div>
   );
 }

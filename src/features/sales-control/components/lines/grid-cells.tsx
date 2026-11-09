@@ -14,6 +14,9 @@ const CELL =
   "hover:border-border focus:border-ring focus:bg-background focus:ring-2 focus:ring-ring/30 disabled:opacity-60 " +
   "aria-invalid:border-destructive/60 aria-invalid:bg-destructive/5";
 
+// POR QUÉ: los selectores y el rango de la grilla son un campo dentro de un grupo; su texto va como el de las celdas.
+export const CELL_INPUT = "[&_input]:px-2 [&_input]:text-[13px]";
+
 type CellBase = {
   row: number;
   col: number;
@@ -160,11 +163,9 @@ export function SelectCell({
       options={options}
       emptyLabel={placeholder}
       onValueChange={onValueChange}
-      // REGLA de la planilla: Enter baja de fila (grid-keyboard.ts); la lista se abre con flechas, espacio o clic.
-      onKeyDown={(event) => {
-        if (event.key === "Enter") event.preventBaseUIHandler();
-      }}
-      className={`${CELL} h-8 gap-1 pr-1 data-popup-open:border-ring [&_svg]:opacity-60`}
+      // REGLA de la planilla: con la lista cerrada, Enter baja de fila (grid-keyboard.ts); se abre al escribir,
+      // con las flechas o con un clic.
+      className={`${CELL} ${CELL_INPUT} px-0 pr-1 [&_svg]:opacity-60`}
     />
   );
 }

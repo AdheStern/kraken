@@ -4,13 +4,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { OptionSelect } from "@/components/ui/option-select";
 import { assignCitySchedule } from "../actions/assign-city-schedule";
 import type { CityScheduleView, ScheduleView } from "../types";
 
@@ -21,10 +15,6 @@ type Props = { cities: CityScheduleView[]; schedules: ScheduleView[] };
 export function CitySchedules({ cities, schedules }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const scheduleName = (id: string) =>
-    id === NONE
-      ? "Sin horario (todo fuera)"
-      : (schedules.find((s) => s.id === id)?.name ?? "Horario");
 
   async function assign(cityId: string, value: string) {
     setError(null);
@@ -48,27 +38,16 @@ export function CitySchedules({ cities, schedules }: Props) {
               <span className="font-medium tabular-nums">{city.code}</span>
               <span className="text-muted-foreground"> · {city.name}</span>
             </span>
-            <Select
+            <OptionSelect
               value={city.scheduleId ?? NONE}
-              onValueChange={(value) => assign(city.id, String(value))}
-            >
-              <SelectTrigger
-                className="w-full sm:w-56"
-                aria-label={`Horario de ${city.name}`}
-              >
-                <SelectValue>
-                  {(value: string) => scheduleName(value)}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {schedules.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>
-                    {s.name}
-                  </SelectItem>
-                ))}
-                <SelectItem value={NONE}>Sin horario (todo fuera)</SelectItem>
-              </SelectContent>
-            </Select>
+              options={[
+                ...schedules.map((s) => ({ id: s.id, label: s.name })),
+                { id: NONE, label: "Sin horario (todo fuera)" },
+              ]}
+              onValueChange={(value) => value && assign(city.id, value)}
+              className="w-full sm:w-56"
+              aria-label={`Horario de ${city.name}`}
+            />
           </li>
         ))}
       </ul>

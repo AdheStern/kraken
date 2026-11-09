@@ -7,7 +7,13 @@ import type { ReactNode } from "react";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import type { CvLineDraft } from "../../schemas/cv-lines-schema";
 import type { CvGridOptions } from "../../types";
-import { NumberCell, SelectCell, TextAreaCell, TextCell } from "./grid-cells";
+import {
+  CELL_INPUT,
+  NumberCell,
+  SelectCell,
+  TextAreaCell,
+  TextCell,
+} from "./grid-cells";
 import {
   type ColumnKey,
   ITEM_TYPE_OPTIONS,
@@ -168,7 +174,7 @@ export function catalogCells(
         onChange={(activationStart, activationEnd) =>
           onChange({ activationStart, activationEnd })
         }
-        className="h-8 rounded-[6px] border-transparent px-2 text-[13px] hover:border-border focus-visible:border-ring dark:bg-transparent"
+        className={`h-8 rounded-[6px] border-transparent hover:border-border dark:bg-transparent ${CELL_INPUT}`}
       />
     ),
     notes: (

@@ -5,13 +5,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { OptionSelect } from "@/components/ui/option-select";
 import type { PeriodKind } from "@/domain/dashboards/period";
 import type { FilterOption } from "../queries/get-filter-options";
 import type { PeriodOption } from "../schemas/dashboard-filters";
@@ -112,23 +106,14 @@ function FilterSelect({
   onChange,
   className,
 }: SelectProps) {
-  const labelOf = (id: string) =>
-    options.find((o) => o.id === id)?.label ?? label;
   return (
-    <Select value={value} onValueChange={(v) => onChange(String(v))}>
-      <SelectTrigger
-        className={`h-9 w-full ${className}`}
-        aria-label={`Filtrar por ${label.toLowerCase()}`}
-      >
-        <SelectValue>{(v: string) => labelOf(v)}</SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        {options.map((o) => (
-          <SelectItem key={o.id} value={o.id}>
-            {o.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <OptionSelect
+      value={value}
+      options={options}
+      onValueChange={(v) => v && onChange(v)}
+      placeholder={label}
+      className={className}
+      aria-label={`Filtrar por ${label.toLowerCase()}`}
+    />
   );
 }

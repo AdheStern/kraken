@@ -7,14 +7,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import type { CvVersionStatus } from "@/generated/prisma/enums";
+import { OptionSelect } from "@/components/ui/option-select";
 import { CV_STATUS_LABELS } from "./cv-status-badge";
 
 const ALL = "TODOS";
@@ -62,28 +55,17 @@ export function CvListFilters() {
           className="h-9 pl-8"
         />
       </div>
-      <Select
-        value={status}
-        onValueChange={(value) => update("estado", String(value))}
-      >
-        <SelectTrigger className="h-9 sm:w-48" aria-label="Filtrar por estado">
-          <SelectValue>
-            {(value: string) =>
-              value === ALL
-                ? "Todos los estados"
-                : CV_STATUS_LABELS[value as CvVersionStatus]
-            }
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL}>Todos los estados</SelectItem>
-          {Object.entries(CV_STATUS_LABELS).map(([value, label]) => (
-            <SelectItem key={value} value={value}>
-              {label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <OptionSelect
+        value={status === ALL ? null : status}
+        options={Object.entries(CV_STATUS_LABELS).map(([id, label]) => ({
+          id,
+          label,
+        }))}
+        emptyLabel="Todos los estados"
+        onValueChange={(value) => update("estado", value ?? ALL)}
+        className="sm:w-48"
+        aria-label="Filtrar por estado"
+      />
     </div>
   );
 }

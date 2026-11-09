@@ -1,8 +1,10 @@
 // src/components/forms/catalog-combobox.tsx
 // Selector con búsqueda sobre un catálogo ({ id, label, hint }) por etiqueta o ayuda; devuelve el id elegido o null.
 // Si las opciones son personas (traen image), muestra su foto de Microsoft o sus iniciales (decisión 2026-11-07).
+// Al abrirlo muestra todas las opciones; al escribir quedan las que coinciden. Es también la base de OptionSelect.
 "use client";
 
+import type { ComponentProps } from "react";
 import { PersonAvatar } from "@/components/app-shell/person-avatar";
 import {
   Combobox,
@@ -14,6 +16,7 @@ import {
   useComboboxFilter,
 } from "@/components/ui/combobox";
 import { InputGroupAddon } from "@/components/ui/input-group";
+import { cn } from "@/lib/utils";
 
 // POR QUÉ: image presente (aunque sea null) marca la opción como persona; null muestra sus iniciales.
 export type CatalogOption = {
@@ -31,6 +34,14 @@ type Props = {
   placeholder?: string;
   disabled?: boolean;
   invalid?: boolean;
+  // Sin él no se ofrece el botón de vaciar (OptionSelect: el vacío es una opción más, si la hay).
+  clearable?: boolean;
+  // Para formularios GET sin JavaScript: el id elegido viaja en un campo oculto.
+  name?: string;
+  // Atributos del campo de texto (aria-label, data-cell, title, onKeyDown…) y su tamaño.
+  inputProps?: ComponentProps<"input"> & Record<`data-${string}`, string>;
+  className?: string;
+  contentClassName?: string;
 };
 
 // POR QUÉ: también se busca por el texto de ayuda (NIT, código de ciudad, nombre del área), que los
@@ -50,6 +61,11 @@ export function CatalogCombobox({
   placeholder,
   disabled,
   invalid,
+  clearable = true,
+  name,
+  inputProps,
+  className,
+  contentClassName,
 }: Props) {
   const selected = options.find((option) => option.id === value) ?? null;
   const filter = useCatalogFilter();
@@ -67,12 +83,15 @@ export function CatalogCombobox({
       disabled={disabled}
     >
       <ComboboxInput
+        {...inputProps}
         id={id}
         placeholder={placeholder ?? "Buscar…"}
         aria-invalid={invalid || undefined}
-        showClear={selected !== null && !disabled}
+        showClear={clearable && selected !== null && !disabled}
         disabled={disabled}
-        className="w-full"
+        className={cn("w-full", className)}
+        // POR QUÉ: escribir reemplaza la opción elegida en vez de sumarse a su etiqueta, y filtra desde la primera letra.
+        onFocus={(event) => event.currentTarget.select()}
       >
         {selected && isPerson(selected) && (
           <InputGroupAddon align="inline-start">
@@ -86,7 +105,12 @@ export function CatalogCombobox({
       </ComboboxInput>
       {/* POR QUÉ: la lista crece hasta mostrar el nombre entero (razón social larga + NIT) aunque el campo sea angosto;
           con más de 32rem el nombre baja de renglón en vez de cortarse. */}
-      <ComboboxContent className="w-max max-w-[min(var(--available-width),32rem)]">
+      <ComboboxContent
+        className={cn(
+          "w-max max-w-[min(var(--available-width),32rem)]",
+          contentClassName,
+        )}
+      >
         <ComboboxEmpty>Sin coincidencias. Prueba con otro texto.</ComboboxEmpty>
         <ComboboxList>
           {(option: CatalogOption) => (
@@ -102,6 +126,7 @@ export function CatalogCombobox({
           )}
         </ComboboxList>
       </ComboboxContent>
+      {name && <input type="hidden" name={name} value={value ?? ""} />}
     </Combobox>
   );
 }

@@ -33,8 +33,11 @@ export function handleGridKeyDown(event: KeyboardEvent<HTMLElement>) {
 }
 
 // TRAMPA: en un selector las flechas abren y recorren sus opciones, y en un texto largo mueven el cursor entre
-// líneas; ahí solo Enter mueve de fila. Alt+Enter es la nueva línea del texto largo (grid-cells.tsx).
+// líneas; ahí solo Enter mueve de fila. Con la lista del selector abierta, Enter elige la opción resaltada.
+// Alt+Enter es la nueva línea del texto largo (grid-cells.tsx).
 function toDirection(event: KeyboardEvent, target: HTMLElement): -1 | 0 | 1 {
+  const isSelect = target.getAttribute("role") === "combobox";
+  if (isSelect && target.getAttribute("aria-expanded") === "true") return 0;
   if (
     event.key === "Enter" &&
     !event.ctrlKey &&
@@ -42,7 +45,7 @@ function toDirection(event: KeyboardEvent, target: HTMLElement): -1 | 0 | 1 {
     !event.altKey
   )
     return event.shiftKey ? -1 : 1;
-  if (target.dataset.slot === "select-trigger") return 0;
+  if (isSelect) return 0;
   if (target instanceof HTMLTextAreaElement) return 0;
   if (event.key === "ArrowDown") return 1;
   if (event.key === "ArrowUp") return -1;

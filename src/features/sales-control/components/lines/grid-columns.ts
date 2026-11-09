@@ -37,9 +37,9 @@ export const COLUMNS = {
   },
   totalSale: { label: "Venta total", width: 116, align: "right" },
   supplyMode: { label: "Modalidad", width: 128 },
-  itemType: { label: "Tipo", width: 112 },
+  itemType: { label: "Tipo", width: 128 },
   poNumber: { label: "PO#", width: 100 },
-  activation: { label: "Rango de activación", width: 220 },
+  activation: { label: "Rango de activación", width: 236 },
   notes: { label: "Observaciones", width: 200 },
   actions: { label: "", width: 180 },
 } as const satisfies Record<string, GridColumn>;

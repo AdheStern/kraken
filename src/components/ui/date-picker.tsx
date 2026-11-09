@@ -1,6 +1,6 @@
 // src/components/ui/date-picker.tsx
-// Selector de fecha con el Calendar de shadcn en un Popover: reemplaza al <input type="date"> nativo, cuyo
-// calendario pinta el sistema operativo (blanco en modo oscuro, en inglés). El valor es "YYYY-MM-DD" o "".
+// Selector de fecha: se escribe (dd/mm/aaaa, 9/11/26, 09112026…) o se elige en el Calendar de shadcn.
+// Reemplaza al <input type="date"> nativo, cuyo calendario pinta el sistema operativo. El valor es "YYYY-MM-DD" o "".
 "use client";
 
 import { es } from "date-fns/locale";
@@ -10,10 +10,11 @@ import {
   parseLocalDateText as toDate,
   toLocalDateText as toText,
 } from "@/lib/local-date-text";
-import { cn } from "@/lib/utils";
+import { formatTypedDate, parseTypedDate } from "@/lib/parse-typed-date";
 import { Button } from "./button";
 import { Calendar } from "./calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { DateField } from "./date-field";
+import { useTypedField } from "./use-typed-field";
 
 type Props = {
   value: string;
@@ -23,7 +24,7 @@ type Props = {
   name?: string;
   disabled?: boolean;
   placeholder?: string;
-  // Fecha opcional: muestra "Quitar fecha" en el calendario.
+  // Fecha opcional: se puede vaciar el campo y el calendario muestra "Quitar fecha".
   clearable?: boolean;
   min?: string;
   max?: string;
@@ -32,19 +33,13 @@ type Props = {
   "aria-invalid"?: boolean;
 };
 
-const display = new Intl.DateTimeFormat("es-BO", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-});
-
 export function DatePicker({
   value,
   onChange,
   id,
   name,
   disabled,
-  placeholder = "Elige una fecha",
+  placeholder = "dd/mm/aaaa",
   clearable,
   min,
   max,
@@ -53,35 +48,38 @@ export function DatePicker({
 }: Props) {
   const [open, setOpen] = useState(false);
   const selected = toDate(value);
+  const inRange = (iso: string) => (!min || iso >= min) && (!max || iso <= max);
+  const field = useTypedField({
+    shown: formatTypedDate(value),
+    read: (text) => {
+      if (text.trim() === "") return clearable ? "" : null;
+      const iso = parseTypedDate(text);
+      return iso && inRange(iso) ? formatTypedDate(iso) : null;
+    },
+    commit: (text) => onChange(parseTypedDate(text) ?? ""),
+  });
   const pick = (next: string) => {
     onChange(next);
     setOpen(false);
   };
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        render={
-          <Button
-            id={id}
-            type="button"
-            variant="outline"
-            disabled={disabled}
-            className={cn(
-              // POR QUÉ: con el borde y el fondo de Input, para que se lea como un campo más y no como un botón.
-              "w-full justify-start border-input bg-transparent px-2.5 font-normal hover:bg-transparent hover:text-foreground aria-expanded:bg-transparent dark:bg-input/30",
-              !selected && "text-muted-foreground",
-              className,
-            )}
-            {...aria}
-          />
-        }
+    <>
+      <DateField
+        icon={CalendarDays}
+        open={open}
+        onOpenChange={setOpen}
+        calendarLabel="Abrir el calendario"
+        formatHint="dd/mm/aaaa"
+        className={className}
+        input={{
+          ...field,
+          id,
+          disabled,
+          placeholder,
+          "aria-label": aria["aria-label"],
+          "aria-invalid": aria["aria-invalid"] || field.invalid || undefined,
+        }}
       >
-        <CalendarDays aria-hidden="true" className="text-muted-foreground" />
-        <span className="truncate">
-          {selected ? display.format(selected) : placeholder}
-        </span>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="single"
           locale={es}
@@ -104,8 +102,8 @@ export function DatePicker({
             Quitar fecha
           </Button>
         )}
-      </PopoverContent>
+      </DateField>
       {name && <input type="hidden" name={name} value={value} />}
-    </Popover>
+    </>
   );
 }

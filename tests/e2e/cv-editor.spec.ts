@@ -1,7 +1,8 @@
 // tests/e2e/cv-editor.spec.ts
 // Editor del CV (AGENTS.md §2.1): el contacto de la cabecera se elige entre los registrados del cliente y
 // prellena sus datos; las observaciones de una línea admiten varias líneas (Alt+Enter, como en Excel) y la
-// fila se colorea con la paleta de Excel; una línea pasa a subítem de la anterior y se numera 1.1.
+// fila se colorea con la paleta de Excel; la descripción crece con el texto; una línea pasa a subítem de la anterior
+// y se numera 1.1.
 import { expect, type Page, test } from "@playwright/test";
 import { storageFor } from "./users";
 
@@ -51,6 +52,14 @@ test("el contacto se elige del cliente y las observaciones son texto largo", asy
   await expect(notes).toHaveValue(
     "Entrega en dos partes\nSoporte desde la segunda",
   );
+
+  // POR QUÉ: los nombres largos de producto se leen enteros; la descripción crece con el texto.
+  const description = page.getByRole("textbox", { name: "Descripción" });
+  await description.fill(
+    "Veeam Data Platform Essentials Universal Subscription License. Includes Enterprise Plus Edition features and Production Support",
+  );
+  const height = await description.evaluate((el) => el.clientHeight);
+  expect(height).toBeGreaterThan(40);
 
   const row = page.locator("tr", { has: notes });
   await row.getByRole("button", { name: "Color de la fila" }).click();

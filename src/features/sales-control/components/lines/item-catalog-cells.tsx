@@ -5,7 +5,6 @@
 
 import type { ReactNode } from "react";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
-import type { CvLineDraft } from "../../schemas/cv-lines-schema";
 import type { CvGridOptions } from "../../types";
 import {
   CELL_INPUT,
@@ -46,24 +45,6 @@ export function catalogCells(
       />
     );
   };
-  const text = (
-    key: ColumnKey,
-    label: string,
-    value: string,
-    patch: (value: string) => Partial<CvLineDraft>,
-    error?: string,
-  ) => (
-    <TextCell
-      row={row}
-      col={col(key)}
-      label={label}
-      value={value}
-      error={error}
-      disabled={disabled}
-      onChange={(event) => onChange(patch(event.target.value))}
-    />
-  );
-
   return {
     area: select("area", "Área", issue("areaId")),
     code: (
@@ -81,12 +62,16 @@ export function catalogCells(
         onChange={(event) => onProductCode(event.target.value)}
       />
     ),
-    description: text(
-      "description",
-      "Descripción",
-      line.description,
-      (description) => ({ description }),
-      issue("description"),
+    description: (
+      <TextAreaCell
+        row={row}
+        col={col("description")}
+        label="Descripción"
+        value={line.description}
+        error={issue("description")}
+        disabled={disabled}
+        onValueChange={(description) => onChange({ description })}
+      />
     ),
     unit: select("unit", "Unidad"),
     quantity: (

@@ -7,8 +7,6 @@ import type { ProductOption } from "../../types";
 import type { ColumnKey } from "./grid-columns";
 import type { LinesAction } from "./use-cv-lines-state";
 
-// POR QUÉ: un bloque con tabuladores o saltos se reparte en celdas como en Excel; un valor suelto se pega normal.
-// En un texto largo los saltos son parte del texto: solo un bloque con tabuladores se reparte.
 export function blockPaste(
   event: ClipboardEvent<HTMLDivElement>,
   lines: CvLineDraft[],
@@ -20,13 +18,23 @@ export function blockPaste(
   const element = event.target as HTMLElement;
   const cell = element.dataset.cell;
   const text = event.clipboardData.getData("text/plain");
-  const block = element instanceof HTMLTextAreaElement ? /\t/ : /[\t\n]/;
-  if (!cell || !block.test(text.trimEnd())) return null;
+  if (!cell || !isBlockPaste(text, element instanceof HTMLTextAreaElement))
+    return null;
   const [row, col] = cell.split(":").map(Number);
   const line = lines[row];
   const column = columns[col];
   if (!line || !column) return null;
   return { target: { lineKey: line.key, column }, matrix: parseTsv(text) };
+}
+
+// POR QUÉ: un bloque con tabuladores o saltos se reparte en celdas como en Excel; un valor suelto se pega normal.
+// TRAMPA: en un texto largo (descripción, observaciones) los saltos son parte del texto. Lo copiado de Excel
+// termina siempre en un salto de línea: eso o un tabulador lo marcan como bloque, incluso una sola celda, que
+// así reemplaza la celda sin arrastrar el salto final.
+export function isBlockPaste(text: string, isTextArea: boolean): boolean {
+  if (text.includes("\t")) return true;
+  if (isTextArea) return /\r?\n$/.test(text) && text.trim() !== "";
+  return /\n/.test(text.trimEnd());
 }
 
 export function typeProductCode(

@@ -6,6 +6,7 @@
 import type { ComponentProps } from "react";
 import { Input } from "@/components/ui/input";
 import { OptionSelect } from "@/components/ui/option-select";
+import { Textarea } from "@/components/ui/textarea";
 import { parseDecimalText } from "@/domain/sales-control/parse-decimal-text";
 import { cn } from "@/lib/utils";
 
@@ -53,7 +54,7 @@ type TextAreaCellProps = CellBase & {
 };
 
 // REGLA de la planilla: Enter baja de fila como en las demás celdas; Alt+Enter agrega una línea, como en Excel.
-// Crece con el texto hasta unas 6 líneas y después desplaza.
+// Crece con el texto (descripciones y observaciones largas se leen enteras) hasta unas 6 líneas y después desplaza.
 export function TextAreaCell({
   row,
   col,
@@ -64,7 +65,7 @@ export function TextAreaCell({
   onValueChange,
 }: TextAreaCellProps) {
   return (
-    <textarea
+    <Textarea
       data-cell={`${row}:${col}`}
       aria-label={label}
       aria-invalid={error ? true : undefined}
@@ -89,7 +90,7 @@ export function TextAreaCell({
       }}
       className={cn(
         CELL,
-        "field-sizing-content h-auto max-h-32 min-h-8 resize-none py-1.5 leading-5",
+        "field-sizing-content h-auto max-h-32 min-h-8 resize-none py-1.5 leading-5 shadow-none focus-visible:ring-2 focus-visible:ring-ring/30 md:text-[13px] dark:bg-transparent",
       )}
     />
   );

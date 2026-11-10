@@ -31,6 +31,8 @@ export type CvListRow = {
   customerName: string;
   cityCode: string;
   status: CvVersionStatus;
+  // null: el usuario no ve costos de este CV (§2.9, regla 12).
+  totalCostUsd: string | null;
   totalSaleUsd: string;
   updatedAt: string;
   areas: string[];

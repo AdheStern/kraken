@@ -1,9 +1,13 @@
 // src/features/sales-control/queries/list-cvs.ts
-// Listado de CV visibles para el usuario, con su versión más reciente, sus áreas y sus vendedores
-// (AGENTS.md §2.9, regla 7).
+// Listado de CV visibles para el usuario, con su versión más reciente, sus áreas, sus vendedores y su costo
+// total solo si el usuario puede ver costos de ese CV (AGENTS.md §2.9, reglas 7 y 12).
 import { toCvVersionLabel } from "@/domain/sales-control/cv-code";
 import type { Prisma } from "@/generated/prisma/client";
 import type { CvVersionStatus } from "@/generated/prisma/enums";
+import {
+  type CvAccessFacts,
+  canSeeCvCosts,
+} from "@/server/authz/cv-permissions";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeCvQuery } from "@/server/authz/scope-cv-query";
 import { prisma } from "@/server/db";
@@ -34,6 +38,7 @@ export async function listCvs(
     select: {
       id: true,
       code: true,
+      createdById: true,
       isOpeningBalance: true,
       city: { select: { code: true } },
       customer: { select: { name: true } },
@@ -44,13 +49,14 @@ export async function listCvs(
           number: true,
           title: true,
           status: true,
+          totalCostUsd: true,
           totalSaleUsd: true,
           updatedAt: true,
           // REGLA: las áreas del CV son la unión de las áreas de sus líneas (§2.1).
           lines: {
             where: { kind: "ITEM", areaId: { not: null } },
             distinct: ["areaId"],
-            select: { area: { select: { code: true } } },
+            select: { areaId: true, area: { select: { code: true } } },
           },
           sellers: {
             select: {
@@ -70,6 +76,14 @@ export async function listCvs(
   return cvs.flatMap((cv) => {
     const latest = cv.versions[0];
     if (!latest) return [];
+    const access: CvAccessFacts = {
+      createdById: cv.createdById,
+      sellerIds: latest.sellers.map(({ user }) => user.userId),
+      lineAreaIds: latest.lines.flatMap((l) => (l.areaId ? [l.areaId] : [])),
+      // REGLA: Administración ve costos solo de lo aprobado, versión por versión (§2.9).
+      isApprovedVersion:
+        latest.status === "APROBADA" || latest.status === "REEMPLAZADA",
+    };
     return [
       {
         id: cv.id,
@@ -80,6 +94,10 @@ export async function listCvs(
         customerName: cv.customer.name,
         cityCode: cv.city.code,
         status: latest.status,
+        // REGLA: sin permiso de costos el monto no sale del servidor (regla 12).
+        totalCostUsd: canSeeCvCosts(user, access)
+          ? latest.totalCostUsd.toFixed(2)
+          : null,
         totalSaleUsd: latest.totalSaleUsd.toFixed(2),
         updatedAt: latest.updatedAt.toISOString(),
         areas: latest.lines

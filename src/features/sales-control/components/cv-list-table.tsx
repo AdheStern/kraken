@@ -1,5 +1,5 @@
 // src/features/sales-control/components/cv-list-table.tsx
-// Tabla del listado de CV con área y foto de los vendedores, y estado vacío accionable (AGENTS.md §5: los
+// Tabla del listado de CV con área, foto de los vendedores y costo total (solo si se ven costos), y estado vacío accionable (AGENTS.md §5: los
 // vacíos dicen qué hacer).
 
 import Link from "next/link";
@@ -31,6 +31,8 @@ export function CvListTable({
   isFiltered: boolean;
 }) {
   if (rows.length === 0) return <EmptyState isFiltered={isFiltered} />;
+  // POR QUÉ: quien no ve costos de ningún CV del listado no recibe una columna vacía.
+  const showsCost = rows.some((row) => row.totalCostUsd !== null);
 
   return (
     <div data-tour="cv-lista" className="kr-surface overflow-x-auto rounded-xl">
@@ -43,6 +45,9 @@ export function CvListTable({
             <TableHead className="w-24">Área</TableHead>
             <TableHead className="w-24">Vendedor</TableHead>
             <TableHead className="w-32">Estado</TableHead>
+            {showsCost && (
+              <TableHead className="w-36 text-right">Costo USD</TableHead>
+            )}
             <TableHead className="w-36 text-right">Venta USD</TableHead>
             <TableHead className="w-32">Actualizado</TableHead>
           </TableRow>
@@ -77,6 +82,13 @@ export function CvListTable({
               <TableCell>
                 <CvStatusBadge status={row.status} />
               </TableCell>
+              {showsCost && (
+                <TableCell className="text-right tabular-nums text-muted-foreground">
+                  {row.totalCostUsd === null
+                    ? "—"
+                    : formatAmount(row.totalCostUsd)}
+                </TableCell>
+              )}
               <TableCell className="text-right tabular-nums">
                 {formatAmount(row.totalSaleUsd)}
               </TableCell>

@@ -42,7 +42,8 @@ const OPTIONS: CvGridOptions = {
     },
   ],
 };
-const COLUMNS = visibleColumns(true);
+// POR QUÉ: la vista por defecto, con las columnas opcionales (BC, PO#) ocultas; pegar reparte solo en las visibles.
+const COLUMNS = visibleColumns(true, new Set());
 const line = (overrides: Partial<CvLineDraft> = {}) => ({
   ...blankLine("ITEM", null),
   ...overrides,

@@ -1,5 +1,5 @@
 // src/features/sales-control/components/lines/optional-columns-menu.tsx
-// Botón «Columnas opcionales» de la grilla del CV: marca qué columnas opcionales se ven (PO#).
+// Botón «Columnas opcionales» de la grilla del CV: marca qué columnas opcionales se ven (BC y PO#).
 "use client";
 
 import { Columns3 } from "lucide-react";

@@ -24,7 +24,7 @@ export function PostSaleToolbar({
     <div className="flex flex-wrap items-center gap-2">
       <h2 className="text-base font-semibold">Líneas</h2>
       <p className="mr-auto text-sm text-muted-foreground">
-        Versión aprobada: puedes completar observaciones, PO#, rango de
+        Versión aprobada: puedes completar observaciones, PO#, BC, rango de
         activación y seriales. Los montos no cambian.
       </p>
       {columnsMenu}

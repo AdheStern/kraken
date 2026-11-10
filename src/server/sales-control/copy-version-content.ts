@@ -80,7 +80,7 @@ export async function copyVersionContent(
   });
 }
 
-// REGLA: la renovación es otro periodo: vigencia siguiente, sin activación ni PO del periodo anterior y sin
+// REGLA: la renovación es otro periodo: vigencia siguiente, sin activación, PO ni BC del periodo anterior y sin
 // colgar de una línea que quizá no se renueva.
 function toRenewal<T extends CvLine>(line: T, index: number): T {
   const coverage =
@@ -95,6 +95,7 @@ function toRenewal<T extends CvLine>(line: T, index: number): T {
     position: index + 1,
     isSubItem: false,
     poNumber: null,
+    bc: null,
     activationStart: null,
     activationEnd: null,
     coverageStart: coverage ? new Date(coverage.start) : line.coverageStart,

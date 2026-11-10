@@ -2,8 +2,9 @@
 // Columnas de la grilla de líneas, en el orden en que se ven y en que se reparte un bloque pegado desde Excel.
 // POR QUÉ: proveedor, tecnología, código y descripción abren la fila como en la plantilla PA-PR-03-RE-01; el área
 // va después de la descripción y los precios a continuación, para verse sin desplazar. Modalidad y tipo quedan
-// a la derecha, y el rango de activación (solo licencias) justo antes de las observaciones. El PO# va al final y es
-// opcional: se oculta para no cargar la grilla y aparece al marcarlo o cuando alguna línea ya lo tiene.
+// a la derecha, y el rango de activación (solo licencias) justo antes de las observaciones. BC (junto a la
+// tecnología, como en el Excel) y el PO# (al final) son opcionales: se ocultan para no cargar la grilla y aparecen
+// al marcarlos o cuando alguna línea ya los tiene.
 import type { ItemType, SupplyMode } from "@/generated/prisma/enums";
 
 export type GridColumn = {
@@ -18,6 +19,7 @@ export const COLUMNS = {
   index: { label: "#", width: 60 },
   supplier: { label: "Proveedor", width: 150 },
   technology: { label: "Tecnología", width: 120 },
+  bc: { label: "BC", width: 112, optional: true },
   code: { label: "Código", width: 124 },
   description: { label: "Descripción", width: 248 },
   area: { label: "Área", width: 104 },

@@ -1,6 +1,6 @@
 // src/features/sales-control/components/lines/use-lines-save.ts
 // Guardado del editor de líneas: el borrador completo, o solo los datos posventa de la versión aprobada
-// (observaciones, PO#, activación y seriales; AGENTS.md §2.3).
+// (observaciones, PO#, BC, activación y seriales; AGENTS.md §2.3).
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -54,6 +54,7 @@ function postSaleLines(state: LinesState) {
             id: line.id,
             notes: line.notes,
             poNumber: line.poNumber,
+            bc: line.bc,
             serials: line.serials,
             activationStart: line.activationStart,
             activationEnd: line.activationEnd,

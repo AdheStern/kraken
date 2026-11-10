@@ -1,6 +1,6 @@
 // src/features/sales-control/components/lines/item-catalog-cells.tsx
-// Celdas descriptivas de una fila de ítem: área, producto, descripción, unidad, cantidad, clasificación, rango de
-// activación (licencias) y observaciones.
+// Celdas descriptivas de una fila de ítem: área, producto, descripción, unidad, cantidad, clasificación, BC, PO#,
+// rango de activación (licencias) y observaciones.
 "use client";
 
 import type { ReactNode } from "react";
@@ -150,6 +150,16 @@ export function catalogCells(
           activationEnd: "",
         }),
       }),
+    ),
+    bc: (
+      <TextCell
+        row={row}
+        col={col("bc")}
+        label="BC"
+        value={line.bc}
+        disabled={postSaleDisabled}
+        onChange={(event) => onChange({ bc: event.target.value })}
+      />
     ),
     poNumber: (
       <TextCell

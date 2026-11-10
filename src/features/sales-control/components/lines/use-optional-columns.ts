@@ -1,5 +1,5 @@
 // src/features/sales-control/components/lines/use-optional-columns.ts
-// Columnas opcionales de la grilla del CV (PO#): las marcadas se recuerdan en el navegador y una columna con datos
+// Columnas opcionales de la grilla del CV (BC y PO#): las marcadas se recuerdan en el navegador y una columna con datos
 // en alguna línea se muestra aunque no esté marcada, para no esconder lo cargado.
 "use client";
 

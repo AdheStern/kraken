@@ -1,5 +1,5 @@
 // src/server/sales-control/apply-post-sale-lines.ts
-// Aplica los datos posventa (observaciones, PO#, rango de activación, seriales) a las líneas de una versión
+// Aplica los datos posventa (observaciones, PO#, BC, rango de activación, seriales) a las líneas de una versión
 // APROBADA y los copia a la línea del mismo linaje de la versión siguiente aún sin aprobar (AGENTS.md §2.3,
 // decisión 2026-11-03).
 import type { Tx } from "@/server/db";
@@ -9,6 +9,7 @@ export type PostSaleLineRecord = {
   id: string;
   notes: string | null;
   poNumber: string | null;
+  bc: string | null;
   activationStart: Date | null;
   activationEnd: Date | null;
   serials: string[];
@@ -95,6 +96,7 @@ function diff(before: PostSaleLineRecord, after: PostSaleLineRecord) {
   const patch: LinePatch = {};
   if (before.notes !== after.notes) patch.notes = after.notes;
   if (before.poNumber !== after.poNumber) patch.poNumber = after.poNumber;
+  if (before.bc !== after.bc) patch.bc = after.bc;
   if (
     !sameDate(before.activationStart, after.activationStart) ||
     !sameDate(before.activationEnd, after.activationEnd)
@@ -112,6 +114,7 @@ function sameDate(a: Date | null, b: Date | null): boolean {
 }
 
 function pick(line: PostSaleLineRecord): PostSaleLineRecord {
-  const { id, notes, poNumber, activationStart, activationEnd, serials } = line;
-  return { id, notes, poNumber, activationStart, activationEnd, serials };
+  const { id, notes, poNumber, bc, activationStart, activationEnd, serials } =
+    line;
+  return { id, notes, poNumber, bc, activationStart, activationEnd, serials };
 }

@@ -47,6 +47,7 @@ export function blankLine(
     factor: "",
     unitSaleUsd: "",
     poNumber: "",
+    bc: "",
     notes: "",
     color: null,
     serials: [],

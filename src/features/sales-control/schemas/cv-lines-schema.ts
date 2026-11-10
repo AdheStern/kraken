@@ -53,6 +53,7 @@ export const cvLineDraftSchema = z.object({
   factor: z.string(),
   unitSaleUsd: z.string(),
   poNumber: z.string().trim().max(60),
+  bc: z.string().trim().max(120),
   notes: z.string().trim().max(1000),
   color: z
     .string()

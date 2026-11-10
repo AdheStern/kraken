@@ -1,5 +1,5 @@
 // src/features/sales-control/schemas/post-sale-schemas.ts
-// Datos posventa de una versión APROBADA (AGENTS.md §2.3, decisión 2026-11-03): observaciones, PO#, rango de
+// Datos posventa de una versión APROBADA (AGENTS.md §2.3, decisión 2026-11-03): observaciones, PO#, BC, rango de
 // activación y seriales de las líneas; notas y PO# del leasing. Mismos límites que el borrador.
 import { z } from "zod";
 import { cvLeasingLineDraftSchema } from "./cv-leasing-schema";
@@ -10,6 +10,7 @@ const toDate = (text: string) => (text ? new Date(text) : null);
 const postSaleLineSchema = cvLineDraftSchema
   .pick({
     poNumber: true,
+    bc: true,
     notes: true,
     serials: true,
     activationStart: true,
@@ -33,6 +34,7 @@ const postSaleLineSchema = cvLineDraftSchema
     id: line.id,
     notes: line.notes || null,
     poNumber: line.poNumber || null,
+    bc: line.bc || null,
     activationStart: toDate(line.activationStart),
     activationEnd: toDate(line.activationEnd),
     serials: line.serials,

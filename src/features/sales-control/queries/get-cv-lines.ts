@@ -45,6 +45,7 @@ export async function getCvLines(
       factor: canSeeCosts ? (l.factor?.toFixed(2) ?? "") : "",
       unitSaleUsd: l.unitSaleUsd?.toFixed(2) ?? "",
       poNumber: l.poNumber ?? "",
+      bc: l.bc ?? "",
       notes: l.notes ?? "",
       color: l.color,
       isSubItem: l.isSubItem,

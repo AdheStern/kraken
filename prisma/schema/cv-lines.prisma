@@ -55,6 +55,8 @@ model CvLine {
   activationStart DateTime?      @map("activacion_inicio") @db.Date
   activationEnd   DateTime?      @map("activacion_fin") @db.Date
   poNumber        String?        @map("po_numero")
+  // BC: comentario que completa Administración; dato posventa como el PO# (§2.3).
+  bc              String?
   notes           String?        @map("observaciones")
   // Relleno de la fila en la grilla y en el Excel exportado, como RRGGBB en mayúsculas; null = sin color.
   color           String?        @db.VarChar(6)

@@ -40,6 +40,7 @@ export type VersionLineRecord = {
     unitSaleUsd: string | null;
     pricingSource: PricingSource | null;
     poNumber: string | null;
+    bc: string | null;
     notes: string | null;
     color: string | null;
     coverageStart: Date | null;

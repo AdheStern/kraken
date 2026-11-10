@@ -85,6 +85,8 @@ function applyCell(
       return { ...line, description: value };
     case "poNumber":
       return { ...line, poNumber: value };
+    case "bc":
+      return { ...line, bc: value };
     case "notes":
       return { ...line, notes: value };
     case "quantity":

@@ -40,6 +40,7 @@ function item(
       unitSaleUsd: "200.00",
       pricingSource: "FACTOR",
       poNumber: null,
+      bc: null,
       notes: null,
       color: null,
       coverageStart: null,

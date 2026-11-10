@@ -25,6 +25,7 @@ describe("createCvCopy RENOVAR", () => {
       coverageStart: new Date("2025-12-01"),
       coverageEnd: new Date("2026-11-30"),
       poNumber: "PO-1",
+      bc: "BC-1",
       activationStart: new Date("2025-12-01"),
     });
     const kept = await db.cvLine.create({
@@ -83,6 +84,7 @@ describe("createCvCopy RENOVAR", () => {
       description: "Soporte FortiGate",
       position: 1,
       poNumber: null,
+      bc: null,
       activationStart: null,
       originLineId: null,
       coverageStart: new Date("2026-12-01"),

@@ -82,6 +82,7 @@ function toComparable(line: LineRow, withCosts: boolean): ComparableLine {
     Cantidad: line.quantity?.toFixed(2) ?? "",
     "Venta unit. USD": line.unitSaleUsd?.toFixed(2) ?? "",
     "PO#": line.poNumber ?? "",
+    BC: line.bc ?? "",
   };
   if (withCosts) {
     fields["Costo unit. USD"] = line.unitCostUsd?.toFixed(2) ?? "";

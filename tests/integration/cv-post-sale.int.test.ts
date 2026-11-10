@@ -59,6 +59,7 @@ const details = (id: string) => ({
   id,
   notes: "Entregado al cliente",
   poNumber: "PO-77",
+  bc: "BC-9",
   activationStart: new Date("2026-11-10"),
   activationEnd: new Date("2026-11-20"),
   serials: ["FOC1", "FOC2"],
@@ -174,6 +175,7 @@ describe("versión siguiente en aprobación", () => {
       include: { serials: true },
     });
     expect(copied.poNumber).toBe("PO-77");
+    expect(copied.bc).toBe("BC-9");
     expect(copied.serials).toHaveLength(2);
     await expect(
       db.cvLine.update({

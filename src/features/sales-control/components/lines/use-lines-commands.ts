@@ -1,15 +1,18 @@
 // src/features/sales-control/components/lines/use-lines-commands.ts
-// Comandos masivos del editor de líneas: pegar un bloque desde Excel y aplicar un factor a un lote
-// o a una tecnología. Actualizan el estado y dejan un aviso con el resultado.
+// Comandos masivos del editor de líneas: pegar un bloque desde Excel, aplicar un factor a un lote o a una
+// tecnología y poner el mismo valor de una columna desplegable en todas las líneas o en las de un lote. Actualizan el estado y dejan un aviso con el resultado.
 "use client";
 
 import type { Dispatch } from "react";
 import { applyFactorToDrafts } from "../../apply-factor-to-drafts";
+import { type FillScope, fillColumn } from "../../fill-column";
 import { pasteIntoLines } from "../../paste-into-lines";
 import type { CvLineDraft } from "../../schemas/cv-lines-schema";
 import type { CvGridOptions } from "../../types";
-import type { ColumnKey } from "./grid-columns";
+import { COLUMNS, type ColumnKey } from "./grid-columns";
+import type { GridFill } from "./grid-header";
 import type { LinesNoticeValue } from "./lines-notice";
+import type { SelectColumnKey } from "./select-columns";
 import {
   blankLine,
   type LinesAction,
@@ -85,5 +88,30 @@ export function useLinesCommands({
     applyFactor(factor, (line) => line.groupKey === groupKey, name);
   }
 
-  return { pasteBlock, applyTechnologyFactor, applyGroupFactor };
+  function fillSelectColumn(
+    column: SelectColumnKey,
+    value: string,
+    scope: FillScope,
+  ) {
+    const result = fillColumn(state.lines, column, value, scope);
+    dispatch({ type: "setLines", lines: result.lines });
+    const group = state.groups.find((g) => g.key === scope.groupKey);
+    const where = group ? ` de ${group.name}` : "";
+    const count = `${result.touched} ${result.touched === 1 ? "línea" : "líneas"}`;
+    setNotice({
+      tone: "info",
+      text:
+        result.touched > 0
+          ? `${COLUMNS[column].label}: se aplicó a ${count}${where}.`
+          : `Ninguna línea${where} cambió: ya tenían ese valor o no estaban vacías.`,
+    });
+  }
+
+  const fillFor = (groupKey?: string): GridFill => ({
+    options,
+    onFill: (column, value, onlyEmpty) =>
+      fillSelectColumn(column, value, { groupKey, onlyEmpty }),
+  });
+
+  return { pasteBlock, applyTechnologyFactor, applyGroupFactor, fillFor };
 }

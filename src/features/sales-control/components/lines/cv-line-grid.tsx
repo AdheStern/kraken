@@ -5,7 +5,6 @@
 
 import type { ClipboardEvent, Dispatch } from "react";
 import { numberItems } from "@/domain/sales-control/number-items";
-import { parseTsv } from "@/domain/sales-control/parse-tsv";
 import type { PriceLineResult } from "../../line-pricing";
 import type { CvLineDraft } from "../../schemas/cv-lines-schema";
 import type { CvGridOptions } from "../../types";
@@ -13,9 +12,11 @@ import { CvGroupRow } from "./cv-group-row";
 import { CvItemRow } from "./cv-item-row";
 import { CvNoteRow } from "./cv-note-row";
 import type { ColumnKey } from "./grid-columns";
-import { GridHeader } from "./grid-header";
+import { blockPaste, typeProductCode } from "./grid-events";
+import { type GridFill, GridHeader } from "./grid-header";
 import { handleGridKeyDown } from "./grid-keyboard";
 import { groupSubtotal } from "./group-subtotal";
+import { isSelectColumn } from "./select-columns";
 import type { LinesAction, LinesState } from "./use-cv-lines-state";
 import type { LineDetailInfo } from "./use-lines-pricing";
 
@@ -34,6 +35,8 @@ type Props = {
     matrix: string[][],
   ) => void;
   onApplyGroupFactor: (groupKey: string, factor: string) => void;
+  // Sin él (no se puede editar), los encabezados y los lotes no ofrecen «Aplicar a todas».
+  fillFor?: (groupKey?: string) => GridFill;
 };
 
 export function CvLineGrid({
@@ -48,6 +51,7 @@ export function CvLineGrid({
   onOpenDetail,
   onPasteBlock,
   onApplyGroupFactor,
+  fillFor,
 }: Props) {
   const rowOf = new Map(state.lines.map((line, index) => [line.key, index]));
   const sections = [null, ...state.groups.map((group) => group.key)];
@@ -55,24 +59,16 @@ export function CvLineGrid({
   const numbering = numberItems(
     state.lines.map((line) => ({ ...line, sectionKey: line.groupKey })),
   );
+  const fillColumns = columns.filter(isSelectColumn);
   const productsByCode = new Map(
     options.products.map((product) => [product.code.toUpperCase(), product]),
   );
 
-  // POR QUÉ: un bloque con tabuladores o saltos se reparte en celdas como en Excel; un valor suelto se pega normal.
-  // En un texto largo los saltos son parte del texto: solo un bloque con tabuladores se reparte.
   function handlePaste(event: ClipboardEvent<HTMLDivElement>) {
-    const target = event.target as HTMLElement;
-    const cell = target.dataset.cell;
-    const text = event.clipboardData.getData("text/plain");
-    const block = target instanceof HTMLTextAreaElement ? /\t/ : /[\t\n]/;
-    if (!canEdit || !cell || !block.test(text.trimEnd())) return;
-    const [row, col] = cell.split(":").map(Number);
-    const line = state.lines[row];
-    const column = columns[col];
-    if (!line || !column) return;
+    const paste = canEdit ? blockPaste(event, state.lines, columns) : null;
+    if (!paste) return;
     event.preventDefault();
-    onPasteBlock({ lineKey: line.key, column }, parseTsv(text));
+    onPasteBlock(paste.target, paste.matrix);
   }
 
   function renderLine(line: CvLineDraft) {
@@ -119,16 +115,9 @@ export function CvLineGrid({
         onChange={(patch) =>
           dispatch({ type: "updateLine", key: line.key, patch })
         }
-        onProductCode={(code) => {
-          dispatch({
-            type: "updateLine",
-            key: line.key,
-            patch: { code, productId: null },
-          });
-          const product = productsByCode.get(code.trim().toUpperCase());
-          if (product)
-            dispatch({ type: "applyProduct", key: line.key, product });
-        }}
+        onProductCode={(code) =>
+          typeProductCode(dispatch, productsByCode, line.key, code)
+        }
       />
     );
   }
@@ -141,7 +130,7 @@ export function CvLineGrid({
       onPaste={handlePaste}
     >
       <table className="w-max min-w-full border-collapse text-left">
-        <GridHeader columns={columns} />
+        <GridHeader columns={columns} fill={fillFor?.()} />
         <tbody>
           {sections.map((groupKey) => {
             const group = state.groups.find((g) => g.key === groupKey);
@@ -180,6 +169,8 @@ export function CvLineGrid({
                   onApplyFactor={(factor) =>
                     onApplyGroupFactor(group.key, factor)
                   }
+                  fillColumns={fillColumns}
+                  fill={fillFor?.(group.key)}
                 />
               ),
               ...lines.map(renderLine),

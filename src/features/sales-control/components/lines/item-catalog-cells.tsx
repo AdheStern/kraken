@@ -14,12 +14,9 @@ import {
   TextAreaCell,
   TextCell,
 } from "./grid-cells";
-import {
-  type ColumnKey,
-  ITEM_TYPE_OPTIONS,
-  SUPPLY_MODE_OPTIONS,
-} from "./grid-columns";
+import type { ColumnKey } from "./grid-columns";
 import type { ItemCellContext } from "./item-cell-context";
+import { SELECT_COLUMNS, type SelectColumnKey } from "./select-columns";
 
 export function catalogCells(
   {
@@ -34,25 +31,21 @@ export function catalogCells(
   options: CvGridOptions,
   onProductCode: (code: string) => void,
 ): Partial<Record<ColumnKey, ReactNode>> {
-  const select = (
-    key: ColumnKey,
-    label: string,
-    value: string | null,
-    items: { id: string; label: string }[],
-    patch: (value: string | null) => Partial<CvLineDraft>,
-    error?: string,
-  ) => (
-    <SelectCell
-      row={row}
-      col={col(key)}
-      label={label}
-      value={value}
-      options={items}
-      error={error}
-      disabled={disabled}
-      onValueChange={(next) => onChange(patch(next))}
-    />
-  );
+  const select = (key: SelectColumnKey, label: string, error?: string) => {
+    const { field, items, patch } = SELECT_COLUMNS[key];
+    return (
+      <SelectCell
+        row={row}
+        col={col(key)}
+        label={label}
+        value={line[field] as string | null}
+        options={items(options)}
+        error={error}
+        disabled={disabled}
+        onValueChange={(next) => onChange(patch(next))}
+      />
+    );
+  };
   const text = (
     key: ColumnKey,
     label: string,
@@ -72,14 +65,7 @@ export function catalogCells(
   );
 
   return {
-    area: select(
-      "area",
-      "Área",
-      line.areaId,
-      options.areas,
-      (areaId) => ({ areaId }),
-      issue("areaId"),
-    ),
+    area: select("area", "Área", issue("areaId")),
     code: (
       <TextCell
         row={row}
@@ -102,9 +88,7 @@ export function catalogCells(
       (description) => ({ description }),
       issue("description"),
     ),
-    unit: select("unit", "Unidad", line.unitId, options.units, (unitId) => ({
-      unitId,
-    })),
+    unit: select("unit", "Unidad"),
     quantity: (
       <NumberCell
         row={row}
@@ -116,41 +100,10 @@ export function catalogCells(
         onValueChange={(quantity) => onChange({ quantity })}
       />
     ),
-    supplier: select(
-      "supplier",
-      "Proveedor",
-      line.supplierId,
-      options.suppliers,
-      (supplierId) => ({ supplierId }),
-    ),
-    supplyMode: select(
-      "supplyMode",
-      "Modalidad",
-      line.supplyMode,
-      SUPPLY_MODE_OPTIONS,
-      (value) => ({ supplyMode: value as CvLineDraft["supplyMode"] }),
-    ),
-    technology: select(
-      "technology",
-      "Tecnología",
-      line.technologyId,
-      options.technologies,
-      (technologyId) => ({ technologyId }),
-    ),
-    itemType: select(
-      "itemType",
-      "Tipo",
-      line.itemType,
-      ITEM_TYPE_OPTIONS,
-      // REGLA: el rango de activación es solo de licencias; deja de valer si la línea cambia de tipo (§2.1).
-      (value) => ({
-        itemType: value as CvLineDraft["itemType"],
-        ...(value !== "INTANGIBLE" && {
-          activationStart: "",
-          activationEnd: "",
-        }),
-      }),
-    ),
+    supplier: select("supplier", "Proveedor"),
+    supplyMode: select("supplyMode", "Modalidad"),
+    technology: select("technology", "Tecnología"),
+    itemType: select("itemType", "Tipo"),
     bc: (
       <TextCell
         row={row}

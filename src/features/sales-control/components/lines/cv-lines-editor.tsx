@@ -162,6 +162,7 @@ export function CvLinesEditor({
             onOpenDetail={setDetailKey}
             onPasteBlock={commands.pasteBlock}
             onApplyGroupFactor={commands.applyGroupFactor}
+            fillFor={canEdit ? commands.fillFor : undefined}
           />
         )}
       </div>

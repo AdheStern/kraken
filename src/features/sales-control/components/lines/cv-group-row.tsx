@@ -1,10 +1,14 @@
 // src/features/sales-control/components/lines/cv-group-row.tsx
-// Encabezado de un lote ("LOTE 1"): nombre editable, subtotal propio y acciones del lote (AGENTS.md §2.1).
+// Encabezado de un lote ("LOTE 1"): nombre editable, subtotal propio y acciones del lote, entre ellas aplicar un
+// valor de una columna desplegable a sus ítems (AGENTS.md §2.1).
 "use client";
 
-import { Layers, Plus, StickyNote, Trash2 } from "lucide-react";
+import { Layers, ListChecks, Plus, StickyNote, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatAmount } from "@/lib/format-amount";
+import { ColumnFillPopover } from "./column-fill-popover";
+import type { GridFill } from "./grid-header";
+import type { SelectColumnKey } from "./select-columns";
 
 type Props = {
   name: string;
@@ -17,6 +21,8 @@ type Props = {
   onAddNote: () => void;
   onRemove: () => void;
   onApplyFactor: (factor: string) => void;
+  fillColumns: SelectColumnKey[];
+  fill?: GridFill;
 };
 
 const ACTION =
@@ -33,6 +39,8 @@ export function CvGroupRow({
   onAddNote,
   onRemove,
   onApplyFactor,
+  fillColumns,
+  fill,
 }: Props) {
   return (
     <tr className="border-y bg-secondary/70">
@@ -75,6 +83,19 @@ export function CvGroupRow({
                   Aplicar
                 </button>
               </form>
+              {fill && fillColumns.length > 0 && (
+                <ColumnFillPopover
+                  columns={fillColumns}
+                  options={fill.options}
+                  scopeLabel={`las líneas de ${name}`}
+                  ariaLabel={`Aplicar un valor a las líneas de ${name}`}
+                  triggerClassName={ACTION}
+                  onApply={fill.onFill}
+                >
+                  <ListChecks className="size-3.5" aria-hidden="true" /> Aplicar
+                  al lote
+                </ColumnFillPopover>
+              )}
               <button type="button" className={ACTION} onClick={onAddLine}>
                 <Plus className="size-3.5" aria-hidden="true" /> Línea
               </button>

@@ -2,7 +2,8 @@
 // Columnas de la grilla de líneas, en el orden en que se ven y en que se reparte un bloque pegado desde Excel.
 // POR QUÉ: proveedor, tecnología, código y descripción abren la fila como en la plantilla PA-PR-03-RE-01; el área
 // va después de la descripción y los precios a continuación, para verse sin desplazar. Modalidad y tipo quedan
-// a la derecha, y el rango de activación (solo licencias) justo antes de las observaciones.
+// a la derecha, y el rango de activación (solo licencias) justo antes de las observaciones. El PO# va al final y es
+// opcional: se oculta para no cargar la grilla y aparece al marcarlo o cuando alguna línea ya lo tiene.
 import type { ItemType, SupplyMode } from "@/generated/prisma/enums";
 
 export type GridColumn = {
@@ -10,6 +11,7 @@ export type GridColumn = {
   width: number;
   align?: "right";
   costOnly?: boolean;
+  optional?: boolean;
 };
 
 export const COLUMNS = {
@@ -38,9 +40,9 @@ export const COLUMNS = {
   totalSale: { label: "Venta total", width: 116, align: "right" },
   supplyMode: { label: "Modalidad", width: 128 },
   itemType: { label: "Tipo", width: 128 },
-  poNumber: { label: "PO#", width: 100 },
   activation: { label: "Rango de activación", width: 236 },
   notes: { label: "Observaciones", width: 200 },
+  poNumber: { label: "PO#", width: 100, optional: true },
   actions: { label: "", width: 180 },
 } as const satisfies Record<string, GridColumn>;
 
@@ -48,9 +50,18 @@ export type ColumnKey = keyof typeof COLUMNS;
 
 export const COLUMN_KEYS = Object.keys(COLUMNS) as ColumnKey[];
 
-export function visibleColumns(canSeeCosts: boolean): ColumnKey[] {
+export const OPTIONAL_COLUMN_KEYS = COLUMN_KEYS.filter(
+  (key) => "optional" in COLUMNS[key],
+);
+
+export function visibleColumns(
+  canSeeCosts: boolean,
+  shownOptional: ReadonlySet<ColumnKey> = new Set(OPTIONAL_COLUMN_KEYS),
+): ColumnKey[] {
   return COLUMN_KEYS.filter(
-    (key) => canSeeCosts || !("costOnly" in COLUMNS[key]),
+    (key) =>
+      (canSeeCosts || !("costOnly" in COLUMNS[key])) &&
+      (!("optional" in COLUMNS[key]) || shownOptional.has(key)),
   );
 }
 

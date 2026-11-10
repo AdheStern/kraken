@@ -1,5 +1,5 @@
 // src/features/sales-control/components/lines/cv-lines-toolbar.tsx
-// Barra del editor de líneas: agregar línea, nota o lote, factor por tecnología y guardar.
+// Barra del editor de líneas: agregar línea, nota o lote, factor por tecnología, columnas opcionales y guardar.
 "use client";
 
 import {
@@ -10,7 +10,7 @@ import {
   Send,
   StickyNote,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { type ReactNode, useRef, useState } from "react";
 import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ import { ReasonDialog } from "../versions/reason-dialog";
 
 type Props = {
   technologies: Option[];
+  columnsMenu: ReactNode;
   isDirty: boolean;
   isSaving: boolean;
   onAddLine: () => void;
@@ -74,6 +75,7 @@ export function CvLinesToolbar(props: Props) {
           Aplicar
         </Button>
       </form>
+      {props.columnsMenu}
       <Button variant="outline" size="sm" onClick={props.onAddLine}>
         <Plus aria-hidden="true" />
         Línea

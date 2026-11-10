@@ -4,15 +4,22 @@
 "use client";
 
 import { LoaderCircle, Save } from "lucide-react";
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
 type Props = {
   isDirty: boolean;
   isSaving: boolean;
   onSave: () => void;
+  columnsMenu: ReactNode;
 };
 
-export function PostSaleToolbar({ isDirty, isSaving, onSave }: Props) {
+export function PostSaleToolbar({
+  isDirty,
+  isSaving,
+  onSave,
+  columnsMenu,
+}: Props) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <h2 className="text-base font-semibold">Líneas</h2>
@@ -20,6 +27,7 @@ export function PostSaleToolbar({ isDirty, isSaving, onSave }: Props) {
         Versión aprobada: puedes completar observaciones, PO#, rango de
         activación y seriales. Los montos no cambian.
       </p>
+      {columnsMenu}
       <Button size="sm" onClick={onSave} disabled={!isDirty || isSaving}>
         {isSaving ? (
           <LoaderCircle className="animate-spin" aria-hidden="true" />

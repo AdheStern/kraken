@@ -14,12 +14,14 @@ import { CvTotalsPanel } from "./cv-totals-panel";
 import { visibleColumns } from "./grid-columns";
 import { LineDetailSheet } from "./line-detail-sheet";
 import { LinesNotice } from "./lines-notice";
+import { OptionalColumnsMenu } from "./optional-columns-menu";
 import { PostSaleToolbar } from "./post-sale-toolbar";
 import { type LinesState, useCvLinesState } from "./use-cv-lines-state";
 import { useLineShortcuts } from "./use-line-shortcuts";
 import { useLinesCommands } from "./use-lines-commands";
 import { useLinesPricing } from "./use-lines-pricing";
 import { useLinesSave } from "./use-lines-save";
+import { useOptionalColumns } from "./use-optional-columns";
 import { useSaveShortcuts } from "./use-save-shortcuts";
 
 type Props = {
@@ -61,7 +63,14 @@ export function CvLinesEditor({
     }),
     [options.units, isOpeningBalance],
   );
-  const columns = visibleColumns(canSeeCosts);
+  const optional = useOptionalColumns(state.lines);
+  const columns = visibleColumns(canSeeCosts, optional.shown);
+  const columnsMenu = (
+    <OptionalColumnsMenu
+      columns={optional.columns}
+      onToggle={optional.toggle}
+    />
+  );
   const { results, summary, details } = useLinesPricing(
     state.lines,
     fxRates,
@@ -97,6 +106,7 @@ export function CvLinesEditor({
         {canEdit ? (
           <CvLinesToolbar
             technologies={options.technologies}
+            columnsMenu={columnsMenu}
             isDirty={isDirty}
             isSaving={isSaving}
             onAddLine={() =>
@@ -117,9 +127,13 @@ export function CvLinesEditor({
             isDirty={isDirty}
             isSaving={isSaving}
             onSave={() => void save()}
+            columnsMenu={columnsMenu}
           />
         ) : (
-          <h2 className="text-base font-semibold">Líneas</h2>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-base font-semibold">Líneas</h2>
+            {columnsMenu}
+          </div>
         )}
         {isOpeningBalance && (
           <p className="rounded-lg bg-primary/10 px-3 py-2 text-sm text-primary">

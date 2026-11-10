@@ -33,6 +33,8 @@ export type CvListRow = {
   status: CvVersionStatus;
   totalSaleUsd: string;
   updatedAt: string;
+  areas: string[];
+  sellers: { id: string; name: string; image: string | null }[];
 };
 
 export type CvEditorHeader = {

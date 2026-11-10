@@ -1,5 +1,6 @@
 // src/features/sales-control/queries/list-cvs.ts
-// Listado de CV visibles para el usuario, con su versión más reciente (AGENTS.md §2.9, regla 7).
+// Listado de CV visibles para el usuario, con su versión más reciente, sus áreas y sus vendedores
+// (AGENTS.md §2.9, regla 7).
 import { toCvVersionLabel } from "@/domain/sales-control/cv-code";
 import type { Prisma } from "@/generated/prisma/client";
 import type { CvVersionStatus } from "@/generated/prisma/enums";
@@ -45,6 +46,22 @@ export async function listCvs(
           status: true,
           totalSaleUsd: true,
           updatedAt: true,
+          // REGLA: las áreas del CV son la unión de las áreas de sus líneas (§2.1).
+          lines: {
+            where: { kind: "ITEM", areaId: { not: null } },
+            distinct: ["areaId"],
+            select: { area: { select: { code: true } } },
+          },
+          sellers: {
+            select: {
+              user: {
+                select: {
+                  userId: true,
+                  user: { select: { name: true, image: true } },
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -65,6 +82,16 @@ export async function listCvs(
         status: latest.status,
         totalSaleUsd: latest.totalSaleUsd.toFixed(2),
         updatedAt: latest.updatedAt.toISOString(),
+        areas: latest.lines
+          .flatMap((line) => (line.area ? [line.area.code] : []))
+          .sort(),
+        sellers: latest.sellers
+          .map(({ user }) => ({
+            id: user.userId,
+            name: user.user.name,
+            image: user.user.image,
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name, "es")),
       },
     ];
   });

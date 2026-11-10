@@ -1,5 +1,6 @@
 // src/features/sales-control/components/cv-list-table.tsx
-// Tabla del listado de CV con estado vacío accionable (AGENTS.md §5: los vacíos dicen qué hacer).
+// Tabla del listado de CV con área y foto de los vendedores, y estado vacío accionable (AGENTS.md §5: los
+// vacíos dicen qué hacer).
 
 import Link from "next/link";
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { formatAmount } from "@/lib/format-amount";
 import type { CvListRow } from "../types";
+import { CvSellersAvatars } from "./cv-sellers-avatars";
 import { CvStatusBadge } from "./cv-status-badge";
 import { OpeningBalanceBadge } from "./opening-balance-badge";
 
@@ -35,9 +37,11 @@ export function CvListTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-36">Código</TableHead>
+            <TableHead className="w-28">Código</TableHead>
             <TableHead>Título</TableHead>
             <TableHead>Cliente</TableHead>
+            <TableHead className="w-24">Área</TableHead>
+            <TableHead className="w-24">Vendedor</TableHead>
             <TableHead className="w-32">Estado</TableHead>
             <TableHead className="w-36 text-right">Venta USD</TableHead>
             <TableHead className="w-32">Actualizado</TableHead>
@@ -59,9 +63,16 @@ export function CvListTable({
                   </span>
                 )}
               </TableCell>
-              <TableCell className="max-w-72 truncate">{row.title}</TableCell>
-              <TableCell className="max-w-56 truncate text-muted-foreground">
+              <TableCell className="max-w-64 truncate">{row.title}</TableCell>
+              <TableCell className="max-w-48 truncate text-muted-foreground">
                 {row.customerName}
+              </TableCell>
+              <TableCell className="max-w-32 truncate text-muted-foreground">
+                {row.areas.join(" / ") || "—"}
+              </TableCell>
+              {/* POR QUÉ: por encima del enlace que cubre la fila, para que el tooltip del nombre se vea. */}
+              <TableCell className="relative z-10 w-fit">
+                <CvSellersAvatars sellers={row.sellers} />
               </TableCell>
               <TableCell>
                 <CvStatusBadge status={row.status} />
@@ -69,7 +80,7 @@ export function CvListTable({
               <TableCell className="text-right tabular-nums">
                 {formatAmount(row.totalSaleUsd)}
               </TableCell>
-              <TableCell className="text-muted-foreground">
+              <TableCell className="whitespace-nowrap text-muted-foreground">
                 {dateFormat.format(new Date(row.updatedAt))}
               </TableCell>
             </TableRow>

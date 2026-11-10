@@ -39,6 +39,24 @@ export type CvListRow = {
   sellers: { id: string; name: string; image: string | null }[];
 };
 
+export type CvAttachmentView = {
+  id: string;
+  kind: "OC_CLIENTE" | "OTRO";
+  fileName: string;
+  sizeBytes: number;
+  versionLabel: string | null;
+  uploadedBy: string;
+  createdAt: string;
+  canDelete: boolean;
+};
+
+export type CvAttachments = {
+  canUpload: boolean;
+  // POR QUÉ: sin almacén configurado la sección lo dice en lugar de fallar al subir (ADR-16).
+  filesEnabled: boolean;
+  items: CvAttachmentView[];
+};
+
 export type CvEditorHeader = {
   cvId: string;
   versionId: string;

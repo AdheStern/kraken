@@ -24,6 +24,7 @@ const item = (overrides: Partial<CvExportItem>): CvExportItem => ({
   isSubItem: false,
   supplier: "INGRAM",
   technology: "Cisco",
+  bc: "",
   code: "",
   description: "",
   quantity: "1",
@@ -65,6 +66,7 @@ const DATA: CvExportData = {
           unitSaleUsd: "985.76",
           observations: "S/N: FOC1, FOC2",
           poNumber: "PO-1",
+          bc: "BC-ADM",
           color: "FFC000",
         }),
         item({
@@ -157,55 +159,62 @@ describe("exportación del CV a PA-PR-03-RE-01", async () => {
     expect(cells.C5).toBe("210LP-26 v2");
     expect(cells.C7).toBe("Ana Comercial / Bruno Comercial");
     expect(cells.C9).toBe("DIMANET / DIMATEL");
-    expect(cells.I11).toBe("Cliente Final S.R.L.");
+    expect(cells.E5).toBe("Renovación de red");
+    expect(cells.J11).toBe("Cliente Final S.R.L.");
     expect(cells.C18).toBe("2026-10-10");
   });
 
   it("líneas con fórmulas redondeadas; subítem 1.1; lote con subtotal; nota sin importe", () => {
-    expect(cells.H24).toBe("=ROUND(G24*F24,2)");
-    expect(cells.M24).toBe("=ROUND(J24*K24,2)");
-    expect(cells.E27).toBe("Initial Term - 36 Months");
+    expect(cells.D23).toBe("BC");
+    expect(cells.D24).toBe("BC-ADM");
+    expect(cells.P24).toBe("PO-1");
+    expect(cells.I24).toBe("=ROUND(H24*G24,2)");
+    expect(cells.N24).toBe("=ROUND(K24*L24,2)");
+    expect(cells.F27).toBe("Initial Term - 36 Months");
     expect(cells.A27).toBeUndefined();
-    expect(cells.E28).toBe("LOTE 1");
-    expect(cells.H28).toBe("=SUM(H29:H30)");
+    expect(cells.F28).toBe("LOTE 1");
+    expect(cells.I28).toBe("=SUM(I29:I30)");
     expect(cells.A25).toBe("1.1");
     expect(cells.A26).toBe("2");
     expect(cells.A30).toBe("4");
   });
 
   it("totales solo de ítems, factor global sobre líneas con costo y Bs por línea", () => {
-    expect(cells.H31).toBe('=SUMIF(A24:A30,"<>",H24:H30)');
-    expect(cells.O31).toContain('SUMIFS(J24:J30,A24:A30,"<>",H24:H30,">0")');
-    expect(cells.H32).toBe('=SUMPRODUCT((A24:A30<>"")*ROUND(H24:H30*6.97,2))');
-    expect(cells.H22).toBe("=H31");
+    expect(cells.I31).toBe('=SUMIF(A24:A30,"<>",I24:I30)');
+    expect(cells.P31).toContain('SUMIFS(K24:K30,A24:A30,"<>",I24:I30,">0")');
+    expect(cells.I32).toBe('=SUMPRODUCT((A24:A30<>"")*ROUND(I24:I30*6.97,2))');
+    expect(cells.I22).toBe("=I31");
+    expect(cells.K22).toBe("=K31");
   });
 
   it("bloque de leasing desplazado con una fila extra y su total", () => {
     expect(cells.C33).toBe(
       "SOLO PARA CASOS DE SERVICIOS DE LEASING O ARRENDAMIENTO:",
     );
-    expect(cells.E37).toBe("UPS 3 kVA");
-    expect(cells.E40).toBe("Switch de acceso");
-    expect(cells.H41).toBe("=SUM(H37:H40)");
+    expect(cells.F37).toBe("UPS 3 kVA");
+    expect(cells.F40).toBe("Switch de acceso");
+    expect(cells.D37).toBeUndefined();
+    expect(cells.I41).toBe("=SUM(I37:I40)");
   });
 
-  it("las filas con color llevan su relleno de A a O; las demás conservan el de la plantilla", () => {
+  it("las filas con color llevan su relleno de A a P; las demás conservan el de la plantilla", () => {
     const fill = (address: string) => {
       const value = sheet.getCell(address).fill;
       return value?.type === "pattern" ? value.fgColor?.argb : undefined;
     };
     expect(fill("A24")).toBe("FFFFC000");
-    expect(fill("O24")).toBe("FFFFC000");
-    expect(fill("P24")).toBeUndefined();
+    expect(fill("P24")).toBe("FFFFC000");
+    expect(fill("Q24")).toBeUndefined();
     // TRAMPA: las filas copiadas de la 24 no deben heredar el color (estilo compartido de duplicateRow).
     expect(fill("A25")).not.toBe("FFFFC000");
-    expect(fill("E27")).toBe("FFDDEBF7");
+    expect(fill("F27")).toBe("FFDDEBF7");
   });
 
   it("conserva el logo y las notas de ayuda, que se desplazan con su encabezado", () => {
     expect(sheet.getImages()).toHaveLength(1);
-    expect(sheet.getCell("D23").note).toBeDefined();
-    expect(sheet.getCell("D36").note).toBeDefined();
-    expect(sheet.getCell("D30").note).toBeUndefined();
+    expect(sheet.getCell("E23").note).toBeDefined();
+    expect(sheet.getCell("E36").note).toBeDefined();
+    expect(sheet.getCell("E30").note).toBeUndefined();
+    expect(sheet.getCell("D23").note).toBeUndefined();
   });
 });

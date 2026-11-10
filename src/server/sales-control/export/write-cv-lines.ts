@@ -16,8 +16,8 @@ import {
   writeCells,
 } from "./excel-cells";
 
-/** Columnas de la tabla de líneas, de Ítem (A) a PO# (O). */
-const LAST_LINE_COLUMN = 15;
+/** Columnas de la tabla de líneas, de Ítem (A) a PO# (P); BC va en D, junto a la línea del producto. */
+const LAST_LINE_COLUMN = 16;
 
 /** Escribe líneas y totales; devuelve cuántas filas se insertaron respecto de la plantilla. */
 export function writeCvLines(ws: Worksheet, data: CvExportData): number {
@@ -75,19 +75,20 @@ function writeItemRow(
     A: label.includes(".") ? label : Number(label),
     B: line.supplier,
     C: line.technology,
-    D: line.code,
-    E: line.description,
-    F: toExcelNumber(line.quantity),
-    G: toExcelNumber(line.unitCostUsd),
+    D: line.bc,
+    E: line.code,
+    F: line.description,
+    G: toExcelNumber(line.quantity),
+    H: toExcelNumber(line.unitCostUsd),
     // REGLA: montos half-up a 2 decimales por línea (AGENTS.md §15.4); ROUND de Excel redondea igual.
-    H: formula(`ROUND(G${r}*F${r},2)`),
-    I: toExcelNumber(line.unitSaleUsd),
-    J: formula(`ROUND(I${r}*F${r},2)`),
-    K: toExcelNumber(saleFxRate),
-    L: formula(`ROUND(I${r}*K${r},2)`),
-    M: formula(`ROUND(J${r}*K${r},2)`),
-    N: line.observations,
-    O: line.poNumber,
+    I: formula(`ROUND(H${r}*G${r},2)`),
+    J: toExcelNumber(line.unitSaleUsd),
+    K: formula(`ROUND(J${r}*G${r},2)`),
+    L: toExcelNumber(saleFxRate),
+    M: formula(`ROUND(J${r}*L${r},2)`),
+    N: formula(`ROUND(K${r}*L${r},2)`),
+    O: line.observations,
+    P: line.poNumber,
   });
 }
 
@@ -95,14 +96,14 @@ function writeGroupRow(ws: Worksheet, r: number, name: string, size: number) {
   const row = ws.getRow(r);
   const range = (column: string) =>
     size > 0 ? formula(`SUM(${column}${r + 1}:${column}${r + size})`) : null;
-  writeCells(row, { E: name, H: range("H"), J: range("J"), M: range("M") });
+  writeCells(row, { F: name, I: range("I"), K: range("K"), N: range("N") });
   row.eachCell({ includeEmpty: true }, (cell) => {
     cell.font = { ...cell.font, bold: true };
   });
 }
 
 function writeNoteRow(ws: Worksheet, r: number, text: string) {
-  const cell = ws.getRow(r).getCell("E");
+  const cell = ws.getRow(r).getCell("F");
   cell.value = text;
   cell.font = { ...cell.font, italic: true };
 }
@@ -133,23 +134,23 @@ function writeTotals(ws: Worksheet, last: number, costFxRate: string) {
   const sumItems = (column: string) =>
     formula(`SUMIF(${items("A")},"<>",${items(column)})`);
   const withCost = (column: string) =>
-    `SUMIFS(${items(column)},${items("A")},"<>",${items("H")},">0")`;
+    `SUMIFS(${items(column)},${items("A")},"<>",${items("I")},">0")`;
   writeCells(ws.getRow(total), {
-    H: sumItems("H"),
-    J: sumItems("J"),
-    M: sumItems("M"),
+    I: sumItems("I"),
+    K: sumItems("K"),
+    N: sumItems("N"),
     // REGLA: factor global sobre las líneas con costo > 0 (AGENTS.md §2.2).
-    O: formula(`IFERROR(ROUND(${withCost("J")}/${withCost("H")},2),"")`),
+    P: formula(`IFERROR(ROUND(${withCost("K")}/${withCost("I")},2),"")`),
   });
   writeCells(ws.getRow(total + 1), {
     // REGLA: Bs por línea redondeado y luego sumado (AGENTS.md §2.2).
-    H: formula(
-      `SUMPRODUCT((${items("A")}<>"")*ROUND(${items("H")}*${costFxRate},2))`,
+    I: formula(
+      `SUMPRODUCT((${items("A")}<>"")*ROUND(${items("I")}*${costFxRate},2))`,
     ),
-    J: formula(`M${total}`),
+    K: formula(`N${total}`),
   });
   writeCells(ws.getRow(22), {
-    H: formula(`H${total}`),
-    J: formula(`J${total}`),
+    I: formula(`I${total}`),
+    K: formula(`K${total}`),
   });
 }

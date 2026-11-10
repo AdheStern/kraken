@@ -22,17 +22,17 @@ export function writeCvHeader(ws: Worksheet, data: CvExportData): void {
     if (value instanceof Date) cell.numFmt = DATE_FORMAT;
   };
   put("C5", data.versionLabel);
-  put("D5", data.title);
-  put("J5", data.serviceType);
-  put("J6", data.mainTechnology);
-  put("J7", data.isNewTechnology ? "SI" : "NO");
+  put("E5", data.title);
+  put("K5", data.serviceType);
+  put("K6", data.mainTechnology);
+  put("K7", data.isNewTechnology ? "SI" : "NO");
   put("C6", data.issuedOn);
   put("C7", data.sellers.join(" / "));
   put("C8", data.presales);
   put("C9", data.areas.join(" / "));
   PARTY_FIELDS.forEach((field, index) => {
     put(`C${10 + index}`, data.customer[field]);
-    put(`I${11 + index}`, data.endCustomer[field]);
+    put(`J${11 + index}`, data.endCustomer[field]);
   });
   put("C17", data.customerPoNumber);
   put("C18", data.customerPoDate);

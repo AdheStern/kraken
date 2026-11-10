@@ -114,6 +114,7 @@ function toSections(version: VersionRow): CvExportSection[] {
                 isSubItem: line.isSubItem,
                 supplier: line.supplier?.name ?? "",
                 technology: line.technology?.name ?? "",
+                bc: line.bc ?? "",
                 code: line.code ?? "",
                 description: line.description,
                 quantity: line.quantity?.toString() ?? "",

@@ -574,19 +574,19 @@ Inicio de sesión (Entra ID) → inicio según rol: GG → tablero ejecutivo; ge
 ### Exportación a Excel (plantilla `PA-PR-03-RE-01`, hoja "CONTROL DE VENTAS V2")
 | Celda(s) | Contenido |
 |---|---|
-| `J1`, `J2`, `J3` | Código `PA-PR-03-RE-01`, fecha y revisión **del formulario** (vienen de la plantilla, no se escriben) |
-| `C5` · `D5` | Número (con versión si es mayor a 1) · título |
+| `K1`, `K2`, `K3` | Código `PA-PR-03-RE-01`, fecha y revisión **del formulario** (vienen de la plantilla, no se escriben) |
+| `C5` · `E5` | Número (con versión si es mayor a 1) · título |
 | `C6`–`C9` | Fecha, vendedor(es), preventa, área(s) separadas por " / " |
-| `J5`–`J7` | Para servicios, línea principal, nueva tecnología (`SI`/`NO`); las etiquetas están en `H5`–`H7` |
+| `K5`–`K7` | Para servicios, línea principal, nueva tecnología (`SI`/`NO`); las etiquetas están en `I5`–`I7` |
 | `C10`–`C16` | Cliente, NIT, contacto, correo, teléfono, dirección, ciudad/país |
-| `I11`–`I17` | Cliente final |
+| `J11`–`J17` | Cliente final |
 | `C17`–`C21` | OC, fecha OC, términos de pago, fecha de entrega, notas |
-| Fila 23 | Encabezados de la plantilla |
-| Fila 24 en adelante | Ítem, proveedor, línea, código, descripción, cantidad, costo unitario y total, venta unitaria y total, TC de venta, venta unitaria y total en Bs, observaciones/rango de activación/seriales, PO#. Primero las líneas sin lote; cada lote con una fila de nombre y subtotal (`SUM`); las notas en `E` sin número de ítem; un subítem lleva `1.1` como texto en `A`. Una fila con color lleva su relleno de `A` a `O`. |
-| Totales | `TOTAL $us` costo, venta y Bs con `SUMIF` sobre las filas con número de ítem (criterio `"<>"`, que incluye los subítems) (los subtotales no suman dos veces); factor global sobre las líneas con costo > 0; costo Bs = suma de `ROUND(costo_total × TC costo, 2)` por línea; `H22`/`J22` apuntan a los totales |
-| Leasing | Bloque desplazado según las filas insertadas; 3 filas mínimas, su propio total de costo |
+| Fila 23 | Encabezados de la plantilla; la columna `D` (BC) se insertó junto a la línea del producto (decisión 2026-11-10) |
+| Fila 24 en adelante | Ítem, proveedor, línea, BC, código, descripción, cantidad, costo unitario y total, venta unitaria y total, TC de venta, venta unitaria y total en Bs, observaciones/rango de activación/seriales, PO#. Primero las líneas sin lote; cada lote con una fila de nombre y subtotal (`SUM`); las notas en `F` sin número de ítem; un subítem lleva `1.1` como texto en `A`. Una fila con color lleva su relleno de `A` a `P`. |
+| Totales | `TOTAL $us` costo, venta y Bs con `SUMIF` sobre las filas con número de ítem (criterio `"<>"`, que incluye los subítems) (los subtotales no suman dos veces); factor global sobre las líneas con costo > 0; costo Bs = suma de `ROUND(costo_total × TC costo, 2)` por línea; `I22`/`K22` apuntan a los totales |
+| Leasing | Bloque desplazado según las filas insertadas; 3 filas mínimas, su propio total de costo; sin BC (`D` vacía) |
 
-Se escriben **fórmulas** redondeadas como el dominio (`=ROUND(G24*F24,2)`, `=ROUND(J24*K24,2)`…), no solo valores, con `fullCalcOnLoad`. La plantilla en blanco `templates/PA-PR-03-RE-01.xlsx` solo tiene la hoja V2, sin datos ni validaciones; las notas de ayuda del formulario se conservan. Hay un test golden (`tests/golden/`) que compara celda por celda.
+Se escriben **fórmulas** redondeadas como el dominio (`=ROUND(H24*G24,2)`, `=ROUND(K24*L24,2)`…), no solo valores, con `fullCalcOnLoad`. La plantilla en blanco `templates/PA-PR-03-RE-01.xlsx` solo tiene la hoja V2, sin datos ni validaciones; las notas de ayuda del formulario se conservan. Hay un test golden (`tests/golden/`) que compara celda por celda.
 
 ---
 

@@ -18,6 +18,7 @@ export type CvExportItem = {
   isSubItem: boolean;
   supplier: string;
   technology: string;
+  bc: string;
   code: string;
   description: string;
   quantity: string;

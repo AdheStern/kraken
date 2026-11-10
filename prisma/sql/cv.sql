@@ -37,8 +37,8 @@ BEGIN
 END $$;
 
 -- REGLA: en la versión APROBADA siguen editables los datos que se completan después de la venta y no tocan montos
--- (AGENTS.md §2.3, decisión 2026-11-03): observaciones, PO#, BC y rango de activación de la línea, notas y PO# del
--- leasing, y los seriales de la línea. Lo demás sigue inmutable. Una versión posterior EN_APROBACION u OBSERVADA
+-- (AGENTS.md §2.3, decisión 2026-11-03): observaciones, PO#, BC y rango de activación de la línea, notas, seriales
+-- y PO# del leasing, y los seriales de la línea. Lo demás sigue inmutable. Una versión posterior EN_APROBACION u OBSERVADA
 -- de un CV aprobado los recibe copiados, para que no se pierdan al aprobarla.
 CREATE OR REPLACE FUNCTION cv.admite_datos_posventa(p_version_id uuid) RETURNS boolean LANGUAGE sql STABLE AS $$
   SELECT EXISTS (
@@ -55,7 +55,7 @@ CREATE OR REPLACE FUNCTION cv.bloquear_version_cerrada() RETURNS trigger LANGUAG
 DECLARE
   v_posventa text[] := CASE TG_TABLE_NAME
     WHEN 'linea' THEN ARRAY['observaciones', 'po_numero', 'bc', 'activacion_inicio', 'activacion_fin']
-    WHEN 'leasing_linea' THEN ARRAY['notas', 'po_numero']
+    WHEN 'leasing_linea' THEN ARRAY['notas', 'seriales', 'po_numero']
     ELSE ARRAY[]::text[]
   END;
 BEGIN

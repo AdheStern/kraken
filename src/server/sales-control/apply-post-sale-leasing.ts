@@ -1,6 +1,6 @@
 // src/server/sales-control/apply-post-sale-leasing.ts
-// Aplica notas y PO# al leasing de una versión APROBADA y los copia al leasing equivalente de la versión siguiente
-// aún sin aprobar (AGENTS.md §2.3, decisión 2026-11-03).
+// Aplica notas, seriales y PO# al leasing de una versión APROBADA y los copia al leasing equivalente de la versión
+// siguiente aún sin aprobar (AGENTS.md §2.3, decisión 2026-11-03).
 import type { Tx } from "@/server/db";
 import { findFollowingVersion } from "./find-following-version";
 
@@ -8,6 +8,7 @@ export type PostSaleLeasingRecord = {
   id: string;
   notes: string | null;
   poNumber: string | null;
+  serials: string[];
 };
 
 type LeasingChange = {
@@ -37,19 +38,29 @@ export async function applyPostSaleLeasing(
         ok: false,
         message: "Una línea de leasing ya no está en el CV.",
       };
-    const data = { notes: record.notes, poNumber: record.poNumber };
-    // POR QUÉ: a la versión siguiente solo viaja lo que cambió, para no pisar lo que su autor editó en el otro campo.
+    if (line.quantity.lessThan(record.serials.length))
+      return {
+        ok: false,
+        message: `Leasing, línea ${line.position}: hay más seriales que la cantidad.`,
+      };
+    const before = {
+      id: line.id,
+      notes: line.notes,
+      poNumber: line.poNumber,
+      serials: line.serials,
+    };
+    // POR QUÉ: a la versión siguiente solo viaja lo que cambió, para no pisar lo que su autor editó en otro campo.
     const patch = {
-      ...(line.notes !== data.notes && { notes: data.notes }),
-      ...(line.poNumber !== data.poNumber && { poNumber: data.poNumber }),
+      ...(line.notes !== record.notes && { notes: record.notes }),
+      ...(line.poNumber !== record.poNumber && { poNumber: record.poNumber }),
+      ...(line.serials.join("\n") !== record.serials.join("\n") && {
+        serials: record.serials,
+      }),
     };
     if (Object.keys(patch).length === 0) continue;
-    changes.push({
-      before: { id: line.id, notes: line.notes, poNumber: line.poNumber },
-      after: record,
-    });
+    changes.push({ before, after: record });
     // TRAMPA: en serie; dentro de una transacción el cliente usa una sola conexión y pg@9 rechaza consultas en paralelo.
-    await tx.cvLeasingLine.update({ where: { id: line.id }, data });
+    await tx.cvLeasingLine.update({ where: { id: line.id }, data: patch });
     // LIMITACIÓN: el leasing no guarda linaje; en la versión siguiente se reconoce por posición y descripción, y si el
     // autor lo movió o lo reescribió, el cambio no viaja.
     if (following)

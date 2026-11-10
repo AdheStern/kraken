@@ -1,5 +1,5 @@
 // src/features/sales-control/components/leasing/cv-leasing-row.tsx
-// Fila editable de la sección de leasing: proveedor, línea, código, descripción, cantidad y costo.
+// Fila editable de la sección de leasing: proveedor, línea, código, descripción, cantidad, costo y seriales.
 "use client";
 
 import Decimal from "decimal.js";
@@ -28,7 +28,7 @@ type Props = {
   row: number;
   options: CvGridOptions;
   canEdit: boolean;
-  // Notas y PO# siguen editables en la versión aprobada (AGENTS.md §2.3).
+  // Notas, seriales y PO# siguen editables en la versión aprobada (AGENTS.md §2.3).
   canEditPostSale: boolean;
   onChange: (patch: Partial<CvLeasingLineDraft>) => void;
   onRemove: () => void;
@@ -121,10 +121,21 @@ export function CvLeasingRow({
           onChange={(e) => onChange({ notes: e.target.value })}
         />
       </td>
-      <td className="w-28 p-0.5">
+      <td className="w-56 p-0.5">
         <TextCell
           row={row}
           col={8}
+          label="Seriales"
+          placeholder="S/N separados por coma"
+          value={line.serials}
+          disabled={disabled && !canEditPostSale}
+          onChange={(e) => onChange({ serials: e.target.value })}
+        />
+      </td>
+      <td className="w-28 p-0.5">
+        <TextCell
+          row={row}
+          col={9}
           label="PO#"
           value={line.poNumber}
           disabled={disabled && !canEditPostSale}

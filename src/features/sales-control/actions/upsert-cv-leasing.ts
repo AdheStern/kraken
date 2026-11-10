@@ -9,6 +9,7 @@ import { prisma, runInTransaction } from "@/server/db";
 import { loadCvAccess } from "@/server/sales-control/cv-access";
 import { getSessionUser } from "@/server/session";
 import {
+  parseLeasingSerials,
   type UpsertCvLeasingInput,
   upsertCvLeasingSchema,
 } from "../schemas/cv-leasing-schema";
@@ -63,6 +64,7 @@ export async function upsertCvLeasing(
           quantity: line.quantity.trim(),
           unitCostUsd: line.unitCostUsd.trim(),
           notes: line.notes || null,
+          serials: parseLeasingSerials(line.serials),
           poNumber: line.poNumber || null,
         };
         if (line.id)

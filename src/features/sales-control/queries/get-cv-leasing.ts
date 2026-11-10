@@ -22,6 +22,7 @@ export async function getCvLeasing(
     quantity: line.quantity.toString(),
     unitCostUsd: line.unitCostUsd.toFixed(2),
     notes: line.notes ?? "",
+    serials: line.serials.join(", "),
     poNumber: line.poNumber ?? "",
   }));
 }

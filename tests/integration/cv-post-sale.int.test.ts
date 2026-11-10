@@ -1,6 +1,6 @@
 // tests/integration/cv-post-sale.int.test.ts
 // Datos posventa de la versión APROBADA (AGENTS.md §2.3, decisión 2026-11-03): el trigger deja cambiar solo
-// observaciones, PO#, activación, seriales y notas/PO# del leasing, y el cambio viaja al borrador abierto.
+// observaciones, PO#, activación, seriales y notas/seriales/PO# del leasing, y el cambio viaja al borrador abierto.
 import { afterAll, describe, expect, it } from "vitest";
 import { applyPostSaleLeasing } from "@/server/sales-control/apply-post-sale-leasing";
 import { applyPostSaleLines } from "@/server/sales-control/apply-post-sale-lines";
@@ -76,7 +76,7 @@ describe("trigger: versión APROBADA", () => {
     await db.cvLineSerial.delete({ where: { id: serial.id } });
     await db.cvLeasingLine.update({
       where: { id: f.leasing.id },
-      data: { notes: "Contrato firmado", poNumber: "PO-1" },
+      data: { notes: "Contrato firmado", poNumber: "PO-1", serials: ["UPS1"] },
     });
 
     await expect(
@@ -201,12 +201,28 @@ describe("applyPostSaleLeasing", () => {
 
     await db.$transaction((tx) =>
       applyPostSaleLeasing(tx, f.cv.id, f.version.id, [
-        { id: f.leasing.id, notes: null, poNumber: "PO-L1" },
+        { id: f.leasing.id, notes: null, poNumber: "PO-L1", serials: ["U1"] },
       ]),
     );
     const copied = await db.cvLeasingLine.findFirstOrThrow({
       where: { versionId: draft.id },
     });
     expect(copied.poNumber).toBe("PO-L1");
+    expect(copied.serials).toEqual(["U1"]);
+  });
+
+  it("rechaza más seriales que la cantidad de la línea", async () => {
+    const f = await approvedCv();
+    const result = await db.$transaction((tx) =>
+      applyPostSaleLeasing(tx, f.cv.id, f.version.id, [
+        {
+          id: f.leasing.id,
+          notes: null,
+          poNumber: null,
+          serials: ["U1", "U2"],
+        },
+      ]),
+    );
+    expect(result.ok).toBe(false);
   });
 });

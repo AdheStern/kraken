@@ -1,6 +1,7 @@
 // src/features/sales-control/actions/update-post-sale-details.ts
 // Guarda los datos posventa de la versión APROBADA vigente (observaciones, PO#, activación y seriales de las
-// líneas; notas y PO# del leasing) y los copia a la versión siguiente sin aprobar (AGENTS.md §2.3, decisión 2026-11-03).
+// líneas; notas, seriales y PO# del leasing) y los copia a la versión siguiente sin aprobar (AGENTS.md §2.3,
+// decisión 2026-11-03).
 "use server";
 
 import { type ActionResult, actionError, actionOk } from "@/lib/action-result";

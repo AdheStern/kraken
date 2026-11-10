@@ -105,6 +105,8 @@ model CvLeasingLine {
   quantity     Decimal @map("cantidad") @db.Decimal(14, 2)
   unitCostUsd  Decimal @map("costo_unit_usd") @db.Decimal(18, 2)
   notes        String? @map("notas")
+  // POR QUÉ: los seriales van en la misma fila (sin tabla aparte): el leasing no tiene linaje ni detalle (§2.1).
+  serials      String[] @default([]) @map("seriales")
   poNumber     String? @map("po_numero")
 
   version    CvVersion   @relation(fields: [versionId], references: [id], onDelete: Cascade)

@@ -1,8 +1,8 @@
 // src/server/sales-control/copy-version-content.ts
 // Copia lotes, líneas y leasing de una versión a otra en BORRADOR (duplicar CV, nueva versión); al renovar, solo
 // las líneas elegidas con su vigencia siguiente y sin leasing (§2.1 "Vigencia").
-// POR QUÉ: una versión nueva del mismo CV (sameSale) conserva los seriales y el linaje de cada línea, que
-// enlaza su bolsa de horas (§2.4); un CV duplicado no, porque es otra venta con otras entregas y bolsas.
+// POR QUÉ: una versión nueva del mismo CV (sameSale) conserva los seriales (de las líneas y del leasing) y el linaje
+// de cada línea, que enlaza su bolsa de horas (§2.4); un CV duplicado no, porque es otra venta con otras entregas.
 import { shiftCoverage } from "@/domain/sales-control/shift-coverage";
 import type { CvLine } from "@/generated/prisma/client";
 import type { Tx } from "@/server/db";
@@ -76,6 +76,7 @@ export async function copyVersionContent(
     data: leasingLines.map(({ id: _id, versionId: _from, ...line }) => ({
       ...line,
       versionId: targetVersionId,
+      serials: sameSale ? line.serials : [],
     })),
   });
 }

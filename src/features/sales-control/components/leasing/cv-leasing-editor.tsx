@@ -37,6 +37,7 @@ const HEADERS = [
   "Costo unit.",
   "Costo total",
   "Notas",
+  "Seriales",
   "PO#",
   "",
 ];
@@ -50,6 +51,7 @@ const blank = (): CvLeasingLineDraft => ({
   quantity: "1",
   unitCostUsd: "",
   notes: "",
+  serials: "",
   poNumber: "",
 });
 
@@ -82,8 +84,8 @@ export function CvLeasingEditor({
       ? await upsertCvLeasing({ versionId, lines })
       : await updatePostSaleDetails({
           versionId,
-          leasing: lines.flatMap(({ id, notes, poNumber }) =>
-            id ? [{ id, notes, poNumber }] : [],
+          leasing: lines.flatMap(({ id, notes, serials, poNumber }) =>
+            id ? [{ id, notes, serials, poNumber }] : [],
           ),
         });
     setIsSaving(false);

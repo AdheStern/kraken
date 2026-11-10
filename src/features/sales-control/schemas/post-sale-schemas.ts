@@ -1,8 +1,12 @@
 // src/features/sales-control/schemas/post-sale-schemas.ts
 // Datos posventa de una versión APROBADA (AGENTS.md §2.3, decisión 2026-11-03): observaciones, PO#, BC, rango de
-// activación y seriales de las líneas; notas y PO# del leasing. Mismos límites que el borrador.
+// activación y seriales de las líneas; notas, seriales y PO# del leasing. Mismos límites que el borrador.
 import { z } from "zod";
-import { cvLeasingLineDraftSchema } from "./cv-leasing-schema";
+import {
+  cvLeasingLineDraftSchema,
+  parseLeasingSerials,
+  serialsIssue,
+} from "./cv-leasing-schema";
 import { cvLineDraftSchema } from "./cv-lines-schema";
 
 const toDate = (text: string) => (text ? new Date(text) : null);
@@ -40,14 +44,20 @@ const postSaleLineSchema = cvLineDraftSchema
     serials: line.serials,
   }));
 
+// POR QUÉ: la cantidad no viaja; el tope de seriales por cantidad se revisa en el servidor contra la línea guardada.
 const postSaleLeasingSchema = cvLeasingLineDraftSchema
-  .pick({ notes: true, poNumber: true })
+  .pick({ notes: true, poNumber: true, serials: true })
   .extend({ id: z.uuid() })
   .transform((line) => ({
     id: line.id,
     notes: line.notes || null,
     poNumber: line.poNumber || null,
-  }));
+    serials: parseLeasingSerials(line.serials),
+  }))
+  .superRefine((line, ctx) => {
+    const issue = serialsIssue(line.serials, null);
+    if (issue) ctx.addIssue({ code: "custom", message: `Leasing: ${issue}` });
+  });
 
 export const updatePostSaleDetailsSchema = z.object({
   versionId: z.uuid(),

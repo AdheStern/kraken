@@ -89,7 +89,12 @@ export async function getCvExportData(
       description: line.description,
       quantity: line.quantity.toString(),
       unitCostUsd: line.unitCostUsd.toFixed(2),
-      notes: line.notes ?? "",
+      notes: exportObservations({
+        notes: line.notes,
+        activationStart: null,
+        activationEnd: null,
+        serials: line.serials,
+      }),
       poNumber: line.poNumber ?? "",
     })),
   };

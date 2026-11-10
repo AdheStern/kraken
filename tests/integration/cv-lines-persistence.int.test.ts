@@ -214,6 +214,7 @@ describe("copyVersionContent", () => {
         description: "UPS",
         quantity: "1",
         unitCostUsd: "250",
+        serials: ["UPS-001"],
       },
     });
     const target = await createVersion(db, f.cv.id, f.userId, 2);
@@ -228,8 +229,9 @@ describe("copyVersionContent", () => {
     expect(line.description).toBe("A");
     expect(line.color).toBe("DDEBF7");
     expect(line.group?.versionId).toBe(target.id);
-    expect(
-      await db.cvLeasingLine.count({ where: { versionId: target.id } }),
-    ).toBe(1);
+    const [leasing] = await db.cvLeasingLine.findMany({
+      where: { versionId: target.id },
+    });
+    expect(leasing.serials).toEqual(["UPS-001"]);
   });
 });

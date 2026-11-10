@@ -13,6 +13,7 @@ import { PageTour } from "@/features/help/components/page-tour";
 import { getVersionBagEffects } from "@/features/hours/queries/get-version-bag-effects";
 import { StockEffectsNote } from "@/features/inventory/components/stock-effects-note";
 import { getVersionStockEffects } from "@/features/inventory/queries/get-version-stock-effects";
+import { CvAttachmentsPanel } from "@/features/sales-control/components/attachments/cv-attachments-panel";
 import { CvHoursView } from "@/features/sales-control/components/cv-hours-view";
 import { CvStatusBadge } from "@/features/sales-control/components/cv-status-badge";
 import { CvHeaderForm } from "@/features/sales-control/components/header/cv-header-form";
@@ -24,6 +25,7 @@ import { BagEffectsNote } from "@/features/sales-control/components/versions/bag
 import { CvVersionBar } from "@/features/sales-control/components/versions/cv-version-bar";
 import type { RenewableLine } from "@/features/sales-control/components/versions/renew-cv-dialog";
 import { VersionHistory } from "@/features/sales-control/components/versions/version-history";
+import { getCvAttachments } from "@/features/sales-control/queries/get-cv-attachments";
 import { getCvContactOptions } from "@/features/sales-control/queries/get-cv-contact-options";
 import { getCvEditor } from "@/features/sales-control/queries/get-cv-editor";
 import { getCvFormOptions } from "@/features/sales-control/queries/get-cv-form-options";
@@ -103,6 +105,7 @@ async function CvEditor({
     thresholdUsd,
     bagEffects,
     stockEffects,
+    attachments,
   ] = await Promise.all([
     getCvFormOptions(),
     editor.canEditHeader ? getCvContactOptions(header.customerId) : [],
@@ -118,6 +121,7 @@ async function CvEditor({
     header.status === "BORRADOR" && editor.canEdit
       ? getVersionStockEffects(header.versionId)
       : null,
+    getCvAttachments(user, header.cvId),
   ]);
 
   return (
@@ -188,6 +192,9 @@ async function CvEditor({
           canEdit={editor.canEdit}
           canEditPostSale={editor.canEditPostSale}
         />
+      )}
+      {attachments && (
+        <CvAttachmentsPanel cvId={header.cvId} attachments={attachments} />
       )}
       <VersionHistory
         cvId={header.cvId}

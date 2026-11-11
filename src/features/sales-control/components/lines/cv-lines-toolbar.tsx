@@ -72,7 +72,7 @@ export function CvLinesToolbar(props: Props) {
       {props.columnsMenu}
       <AddLinesButton
         variant="outline"
-        scopeLabel="las líneas sin lote"
+        title="Agregar varias líneas"
         onAdd={props.onAddLine}
       />
       <Button variant="outline" size="sm" onClick={props.onAddNote}>

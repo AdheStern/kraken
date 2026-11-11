@@ -88,7 +88,9 @@ test("en el CV, Alt+N abre el alta y en el editor agrega una línea", async ({
   await page.waitForLoadState("networkidle");
 
   // POR QUÉ: tras crear, el editor llega por streaming; los atajos valen cuando la barra ya está.
-  await expect(page.getByRole("button", { name: "Lote" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Lote", exact: true }),
+  ).toBeVisible();
   const rows = page.locator("tr[data-line-key]");
   await expect(rows).toHaveCount(0);
   await page.keyboard.press("Alt+n");

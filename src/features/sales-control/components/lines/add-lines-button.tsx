@@ -21,10 +21,11 @@ type Props = {
   onAdd: (count: number) => void;
   // En la barra del editor el botón va delineado; en la fila de un lote, discreto.
   variant: "outline" | "ghost";
-  scopeLabel: string;
+  // TRAMPA: va en la etiqueta accesible; en la barra no debe decir «lote», o choca con el botón «Lote».
+  title: string;
 };
 
-export function AddLinesButton({ onAdd, variant, scopeLabel }: Props) {
+export function AddLinesButton({ onAdd, variant, title }: Props) {
   const [open, setOpen] = useState(false);
   const [count, setCount] = useState("10");
   const size = variant === "outline" ? "sm" : "xs";
@@ -53,17 +54,15 @@ export function AddLinesButton({ onAdd, variant, scopeLabel }: Props) {
               variant={variant}
               size={size}
               className="rounded-l-none border-l-0 px-1.5"
-              aria-label={`Agregar varias líneas a ${scopeLabel}`}
-              title="Agregar varias líneas"
+              aria-label={title}
+              title={title}
             />
           }
         >
           <ChevronDown aria-hidden="true" />
         </PopoverTrigger>
         <PopoverContent align="end" className="w-60">
-          <p className="text-xs font-medium text-muted-foreground">
-            Agregar varias líneas a {scopeLabel}
-          </p>
+          <p className="text-xs font-medium text-muted-foreground">{title}</p>
           <div className="flex gap-1.5">
             {PRESETS.map((preset) => (
               <Button

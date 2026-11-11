@@ -47,7 +47,9 @@ export function pricingCells({
       />
     ),
     factor: (
-      <div className="flex items-center gap-1">
+      // TRAMPA: la celda mide su texto con «min-w-full» (grid-cells.tsx); junto al indicador ese 100 % la sacaba
+      // de la columna y tapaba la venta. Aquí ocupa lo que queda y la columna crece si el factor no cabe.
+      <div className="flex items-center gap-1 [&>input]:min-w-0 [&>input]:flex-1">
         <PricingBadge
           source={line.pricingSource}
           pricing={priced?.pricing ?? null}

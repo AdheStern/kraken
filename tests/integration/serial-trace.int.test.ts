@@ -16,6 +16,11 @@ vi.mock("@/server/db", async () => {
 const db = createTestPrisma();
 afterAll(() => db.$disconnect());
 
+// TRAMPA: el costo se busca como texto en la respuesta. Con decimales no choca con un uuid ni con el código de un CV
+// de ciudad aleatoria (con «900» el test fallaba al azar).
+const COST_USD = 7531.79;
+const COST_TEXT = "7531.79";
+
 describe("getSerialTrace", () => {
   it("cada rol ve el recorrido que le corresponde", async () => {
     const f = await createInventoryFixture(db);
@@ -35,7 +40,7 @@ describe("getSerialTrace", () => {
             productId: f.serialized.id,
             direction: "IN",
             quantity: d(1),
-            valueUsd: d(900),
+            valueUsd: d(COST_USD),
             serialUnitId: ids.get(serial),
           },
         ],
@@ -72,6 +77,8 @@ describe("getSerialTrace", () => {
     const forSeller = await getSerialTrace(seller, serial);
     expect(forSeller.units[0].events).toHaveLength(0);
     expect(forSeller.sales).toMatchObject([{ description: "FortiGate" }]);
-    expect(JSON.stringify(forSeller)).not.toContain("900");
+    const json = JSON.stringify(forSeller);
+    expect(json).not.toContain(COST_TEXT);
+    expect(json).not.toMatch(/"(valueUsd|unitCostUsd|costUsd|averageCostUsd)"/);
   });
 });

@@ -1,6 +1,6 @@
 // src/features/sales-control/components/lines/use-lines-save.ts
-// Guardado del editor de líneas: el borrador completo, o solo los datos posventa de la versión aprobada
-// (observaciones, PO#, BC, activación y seriales; AGENTS.md §2.3).
+// Guardado del editor de líneas: el borrador completo (sin las líneas nuevas que quedaron vacías), o solo los datos
+// posventa de la versión aprobada (observaciones, PO#, BC, activación y seriales; AGENTS.md §2.3).
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -8,7 +8,11 @@ import { useState } from "react";
 import { updatePostSaleDetails } from "../../actions/update-post-sale-details";
 import { upsertCvLines } from "../../actions/upsert-cv-lines";
 import type { LinesNoticeValue } from "./lines-notice";
-import { type LinesState, orderBySection } from "./use-cv-lines-state";
+import {
+  isBlankLine,
+  type LinesState,
+  orderBySection,
+} from "./use-cv-lines-state";
 
 type Mode = "draft" | "postSale" | "readOnly";
 
@@ -31,7 +35,7 @@ export function useLinesSave(
         ? await upsertCvLines({
             versionId,
             groups: state.groups,
-            lines: orderBySection(state),
+            lines: orderBySection(state).filter((line) => !isBlankLine(line)),
           })
         : await updatePostSaleDetails({
             versionId,

@@ -149,11 +149,12 @@ export function CvLineGrid({
                   onRename={(name) =>
                     dispatch({ type: "renameGroup", key: group.key, name })
                   }
-                  onAddLine={() =>
+                  onAddLine={(count) =>
                     dispatch({
                       type: "addLine",
                       groupKey: group.key,
                       kind: "ITEM",
+                      count,
                     })
                   }
                   onAddNote={() =>

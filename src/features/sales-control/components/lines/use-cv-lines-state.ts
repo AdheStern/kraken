@@ -11,7 +11,12 @@ import type { ProductOption } from "../../types";
 export type LinesState = { groups: CvGroupDraft[]; lines: CvLineDraft[] };
 
 export type LinesAction =
-  | { type: "addLine"; groupKey: string | null; kind: CvLineDraft["kind"] }
+  | {
+      type: "addLine";
+      groupKey: string | null;
+      kind: CvLineDraft["kind"];
+      count?: number;
+    }
   | { type: "updateLine"; key: string; patch: Partial<CvLineDraft> }
   | { type: "removeLine"; key: string }
   | { type: "moveLine"; key: string; offset: -1 | 1 }
@@ -68,12 +73,31 @@ export function orderBySection(state: LinesState): CvLineDraft[] {
   );
 }
 
-function reduce(state: LinesState, action: LinesAction): LinesState {
+// REGLA: una línea nueva que sigue tal como se agregó no se guarda: quien agrega varias de golpe no tiene que
+// quitar a mano las que no usó (decisión 2026-11-11). Las ya guardadas (con id) se validan siempre.
+export function isBlankLine(line: CvLineDraft): boolean {
+  if (line.id !== null) return false;
+  const { key: _k, groupKey: _g, isSubItem: _s, ...content } = line;
+  const {
+    key: _bk,
+    groupKey: _bg,
+    isSubItem: _bs,
+    ...blank
+  } = blankLine(line.kind, line.groupKey);
+  return JSON.stringify(content) === JSON.stringify(blank);
+}
+
+export function reduceLines(
+  state: LinesState,
+  action: LinesAction,
+): LinesState {
   switch (action.type) {
     case "addLine":
       return withLines(state, [
         ...state.lines,
-        blankLine(action.kind, action.groupKey),
+        ...Array.from({ length: action.count ?? 1 }, () =>
+          blankLine(action.kind, action.groupKey),
+        ),
       ]);
     case "updateLine":
       return withLines(
@@ -154,7 +178,7 @@ function move(
 }
 
 export function useCvLinesState(initial: LinesState) {
-  return useReducer(reduce, initial, (state) => ({
+  return useReducer(reduceLines, initial, (state) => ({
     ...state,
     lines: orderBySection(state),
   }));

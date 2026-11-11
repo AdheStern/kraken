@@ -109,8 +109,8 @@ export function CvLinesEditor({
             columnsMenu={columnsMenu}
             isDirty={isDirty}
             isSaving={isSaving}
-            onAddLine={() =>
-              dispatch({ type: "addLine", groupKey: null, kind: "ITEM" })
+            onAddLine={(count) =>
+              dispatch({ type: "addLine", groupKey: null, kind: "ITEM", count })
             }
             onAddNote={() =>
               dispatch({ type: "addLine", groupKey: null, kind: "NOTA" })

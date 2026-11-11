@@ -158,7 +158,7 @@ Los datos de cliente y cliente final se copian en cada versión (snapshot).
 
 **Sección de leasing o arrendamiento:** se mantiene aunque se use poco. Es una lista separada (proveedor, línea, código, descripción, cantidad, costo, notas, seriales, PO#) con su propio total de costo. No afecta la venta. Los seriales se escriben en la misma fila, separados por coma (hasta la cantidad, sin repetir), y en el Excel van tras las notas como «S/N: …» (decisión 2026-11-10). Se exporta en su bloque.
 
-**Productividad:** *Duplicar CV* (número nuevo; para los CV mensuales de licencias y Azure) · *Renovar* (decisión 2026-11-05): desde la versión aprobada, un CV nuevo solo con las líneas con vigencia elegidas, sus precios, sin PO, activación, seriales ni leasing, y la vigencia del periodo siguiente (`shiftCoverage`: por meses si el periodo son meses completos, si no por días) · *Pegar desde Excel* en la grilla.
+**Productividad:** *Duplicar CV* (número nuevo; para los CV mensuales de licencias y Azure) · *Renovar* (decisión 2026-11-05): desde la versión aprobada, un CV nuevo solo con las líneas con vigencia elegidas, sus precios, sin PO, activación, seriales ni leasing, y la vigencia del periodo siguiente (`shiftCoverage`: por meses si el periodo son meses completos, si no por días) · *Pegar desde Excel* en la grilla · *Agregar varias líneas* (decisión 2026-11-11): «Línea», en la barra y en cada lote, agrega una o, desde su flecha, varias de golpe (5, 10, 30 o hasta 100); las nuevas que queden vacías se descartan al guardar.
 
 ### 2.2 Factor, precio y tipo de cambio
 

@@ -2,14 +2,7 @@
 // Barra del editor de líneas: agregar línea, nota o lote, factor por tecnología, columnas opcionales y guardar.
 "use client";
 
-import {
-  Layers,
-  LoaderCircle,
-  Plus,
-  Save,
-  Send,
-  StickyNote,
-} from "lucide-react";
+import { Layers, LoaderCircle, Save, Send, StickyNote } from "lucide-react";
 import { type ReactNode, useRef, useState } from "react";
 import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
 import { Button } from "@/components/ui/button";
@@ -18,13 +11,14 @@ import { OptionSelect } from "@/components/ui/option-select";
 import type { ActionResult } from "@/lib/action-result";
 import type { Option } from "../../types";
 import { ReasonDialog } from "../versions/reason-dialog";
+import { AddLinesButton } from "./add-lines-button";
 
 type Props = {
   technologies: Option[];
   columnsMenu: ReactNode;
   isDirty: boolean;
   isSaving: boolean;
-  onAddLine: () => void;
+  onAddLine: (count: number) => void;
   onAddNote: () => void;
   onAddGroup: () => void;
   onApplyTechnologyFactor: (technologyId: string, factor: string) => void;
@@ -76,10 +70,11 @@ export function CvLinesToolbar(props: Props) {
         </Button>
       </form>
       {props.columnsMenu}
-      <Button variant="outline" size="sm" onClick={props.onAddLine}>
-        <Plus aria-hidden="true" />
-        Línea
-      </Button>
+      <AddLinesButton
+        variant="outline"
+        scopeLabel="las líneas sin lote"
+        onAdd={props.onAddLine}
+      />
       <Button variant="outline" size="sm" onClick={props.onAddNote}>
         <StickyNote aria-hidden="true" />
         Nota

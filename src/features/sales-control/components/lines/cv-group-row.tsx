@@ -3,9 +3,10 @@
 // valor de una columna desplegable a sus ítems (AGENTS.md §2.1).
 "use client";
 
-import { Layers, ListChecks, Plus, StickyNote, Trash2 } from "lucide-react";
+import { Layers, ListChecks, StickyNote, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatAmount } from "@/lib/format-amount";
+import { AddLinesButton } from "./add-lines-button";
 import { ColumnFillPopover } from "./column-fill-popover";
 import type { GridFill } from "./grid-header";
 import type { SelectColumnKey } from "./select-columns";
@@ -17,7 +18,7 @@ type Props = {
   span: number;
   canEdit: boolean;
   onRename: (name: string) => void;
-  onAddLine: () => void;
+  onAddLine: (count: number) => void;
   onAddNote: () => void;
   onRemove: () => void;
   onApplyFactor: (factor: string) => void;
@@ -96,9 +97,11 @@ export function CvGroupRow({
                   al lote
                 </ColumnFillPopover>
               )}
-              <button type="button" className={ACTION} onClick={onAddLine}>
-                <Plus className="size-3.5" aria-hidden="true" /> Línea
-              </button>
+              <AddLinesButton
+                variant="ghost"
+                scopeLabel={name}
+                onAdd={onAddLine}
+              />
               <button type="button" className={ACTION} onClick={onAddNote}>
                 <StickyNote className="size-3.5" aria-hidden="true" /> Nota
               </button>

@@ -1,6 +1,7 @@
 // src/features/sales-control/components/header/header-customer.tsx
-// Sección Cliente de la cabecera del CV: el contacto se elige entre los registrados del cliente y prellena
-// nombre, correo y teléfono, que quedan editables; y el cliente final (AGENTS.md §2.1).
+// Sección Cliente de la cabecera del CV: cliente con su NIT; el contacto se elige entre los registrados del cliente y
+// prellena nombre, correo, teléfono y dirección (la de su sucursal o la general), que quedan editables; y el cliente
+// final (AGENTS.md §2.1, decisión 2026-11-11).
 "use client";
 
 import { Controller, type UseFormReturn, useWatch } from "react-hook-form";
@@ -11,12 +12,19 @@ import type { CvHeaderInput } from "../../schemas/cv-header-schema";
 import type { CvContactOption, Option } from "../../types";
 import { HeaderSection } from "./header-section";
 
+export type HeaderCustomerInfo = {
+  name: string;
+  taxId: string;
+  // Dirección general del catálogo: la del CV cuando el contacto no tiene sucursal.
+  address: string;
+};
+
 type Props = {
   form: UseFormReturn<CvHeaderInput>;
   customers: Option[];
   contacts: CvContactOption[];
   disabled: boolean;
-  customerName: string;
+  customer: HeaderCustomerInfo;
 };
 
 export function HeaderCustomer({
@@ -24,7 +32,7 @@ export function HeaderCustomer({
   customers,
   contacts,
   disabled,
-  customerName,
+  customer,
 }: Props) {
   const { errors } = form.formState;
   const { control, register, setValue } = form;
@@ -38,6 +46,7 @@ export function HeaderCustomer({
     setValue("contactName", contact?.name ?? "", dirty);
     setValue("contactEmail", contact?.email ?? "", dirty);
     setValue("contactPhone", contact?.phone ?? "", dirty);
+    setValue("contactAddress", contact?.address || customer.address, dirty);
   }
 
   return (
@@ -47,9 +56,17 @@ export function HeaderCustomer({
         htmlFor="cv-customer"
         hint="Se fija al crear el CV."
         // POR QUÉ: la razón social suele ser larga; en una columna se cortaba.
-        className="sm:col-span-2 lg:col-span-4"
+        className="sm:col-span-2 lg:col-span-3"
       >
-        <Input id="cv-customer" value={customerName} readOnly disabled />
+        <Input id="cv-customer" value={customer.name} readOnly disabled />
+      </FormField>
+      <FormField label="NIT" htmlFor="cv-customer-tax-id">
+        <Input
+          id="cv-customer-tax-id"
+          value={customer.taxId || "Sin NIT"}
+          readOnly
+          disabled
+        />
       </FormField>
       <FormField
         label="Contacto registrado"
@@ -57,7 +74,7 @@ export function HeaderCustomer({
         hint={
           contacts.length === 0
             ? "El cliente no tiene contactos: agrégalos en Administración → Clientes o escríbelo al lado."
-            : "Elegirlo llena nombre, correo y teléfono; puedes corregirlos."
+            : "Elegirlo llena nombre, correo, teléfono y dirección; puedes corregirlos."
         }
       >
         <CatalogCombobox
@@ -102,6 +119,19 @@ export function HeaderCustomer({
           type="tel"
           disabled={disabled}
           {...register("contactPhone")}
+        />
+      </FormField>
+      <FormField
+        label="Dirección"
+        htmlFor="cv-contact-address"
+        hint="La de la sucursal del contacto o, si no tiene, la dirección general del cliente; puedes corregirla."
+        error={errors.contactAddress?.message}
+        className="sm:col-span-2 lg:col-span-4"
+      >
+        <Input
+          id="cv-contact-address"
+          disabled={disabled}
+          {...register("contactAddress")}
         />
       </FormField>
       <FormField

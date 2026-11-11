@@ -34,7 +34,7 @@ export async function getCvEditor(
       isOpeningBalance: true,
       city: { select: { name: true } },
       customerId: true,
-      customer: { select: { name: true } },
+      customer: { select: { name: true, taxId: true, address: true } },
       versions: {
         orderBy: { number: "desc" },
         include: {

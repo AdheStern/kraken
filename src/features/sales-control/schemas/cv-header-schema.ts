@@ -21,6 +21,7 @@ export const cvHeaderSchema = z.object({
   contactName: optionalText(120),
   contactEmail: z.union([z.email("Escribe un correo válido."), z.literal("")]),
   contactPhone: optionalText(40),
+  contactAddress: optionalText(300),
   endCustomerId: optionalId,
   customerPoNumber: optionalText(60),
   customerPoDate: optionalDate,

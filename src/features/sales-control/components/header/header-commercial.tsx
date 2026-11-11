@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { isFxRateDeviating } from "@/domain/pricing/fx-deviation";
 import type { CvHeaderInput } from "../../schemas/cv-header-schema";
 import type { CvContactOption, CvFormOptions } from "../../types";
-import { HeaderCustomer } from "./header-customer";
+import { HeaderCustomer, type HeaderCustomerInfo } from "./header-customer";
 import { HeaderSection } from "./header-section";
 
 type Props = {
@@ -22,7 +22,7 @@ type Props = {
   disabled: boolean;
   // REGLA: fuera del borrador del comercial los TC se ven pero no cambian (§2.3).
   fxLocked: boolean;
-  customerName: string;
+  customer: HeaderCustomerInfo;
   officialFxRate: string | null;
   maxFxDeviationPct: string;
 };
@@ -33,7 +33,7 @@ export function HeaderCommercial({
   contacts,
   disabled,
   fxLocked,
-  customerName,
+  customer,
   officialFxRate,
   maxFxDeviationPct,
 }: Props) {
@@ -57,7 +57,7 @@ export function HeaderCommercial({
         customers={options.customers}
         contacts={contacts}
         disabled={disabled}
-        customerName={customerName}
+        customer={customer}
       />
 
       <HeaderSection title="Orden del cliente">

@@ -31,7 +31,12 @@ type CatalogCustomer = {
   country: string | null;
 };
 
-type Contact = { name?: string; email?: string; phone?: string };
+type Contact = {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+};
 
 export function toCustomerParty(
   customer: CatalogCustomer,
@@ -43,7 +48,7 @@ export function toCustomerParty(
     contactName: contact.name || null,
     email: contact.email || customer.email,
     phone: contact.phone || customer.phone,
-    address: customer.address,
+    address: contact.address || customer.address,
     city: customer.city,
     country: customer.country,
   };

@@ -11,7 +11,7 @@ type CvBase = {
   isOpeningBalance: boolean;
   city: { name: string };
   customerId: string;
-  customer: { name: string };
+  customer: { name: string; taxId: string | null; address: string | null };
 };
 type VersionRow = Prisma.CvVersionGetPayload<{
   include: { sellers: { select: { userId: true } } };
@@ -40,6 +40,8 @@ export function toEditorHeader(
     cityName: cv.city.name,
     customerId: cv.customerId,
     customerName: cv.customer.name,
+    customerTaxId: cv.customer.taxId ?? "",
+    customerAddress: cv.customer.address ?? "",
     title: version.title,
     issuedOn: toDateInput(version.issuedOn),
     sellerIds: version.sellers.map((s) => s.userId),

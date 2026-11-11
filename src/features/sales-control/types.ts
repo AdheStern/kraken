@@ -12,6 +12,8 @@ export type CvContactOption = Option & {
   name: string;
   email: string;
   phone: string;
+  // Dirección de su sucursal; vacía si no tiene (el CV usa entonces la dirección general del cliente).
+  address: string;
 };
 
 export type CvFormOptions = {
@@ -67,6 +69,8 @@ export type CvEditorHeader = {
   cityName: string;
   customerId: string;
   customerName: string;
+  customerTaxId: string;
+  customerAddress: string;
   title: string;
   issuedOn: string;
   sellerIds: string[];

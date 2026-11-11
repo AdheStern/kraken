@@ -124,7 +124,7 @@ Integración con ERP, contabilidad o facturación · migración de los CV de eje
 | Identificación | Número, versión, título, fecha, ciudad |
 | Personas | Vendedor(es) (puede haber más de uno), preventa, postventa — referencias a usuarios |
 | Clasificación | Línea principal (tecnología), tipo de servicio, indicador de nueva tecnología |
-| Cliente | NIT, contacto, correo, teléfono, dirección, ciudad/país (del catálogo). El contacto se elige entre los registrados del cliente y prellena nombre, correo y teléfono, que quedan editables (decisión 2026-10-30) |
+| Cliente | NIT, contacto, correo, teléfono, dirección, ciudad/país (del catálogo). El contacto se elige entre los registrados del cliente y prellena nombre, correo y teléfono, que quedan editables (decisión 2026-10-30), y la dirección: la de su sucursal activa o, si no tiene, la general del cliente, también editable; el NIT se muestra junto al cliente (decisión 2026-11-11) |
 | Cliente final | Mismos datos; por defecto igual al cliente; distinto cuando DIMA vende a través de un tercero |
 | Orden del cliente | N° OC, fecha OC, términos de pago, fecha de entrega, adjunto de la OC |
 | Notas | Notas aclaratorias |

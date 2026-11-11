@@ -100,7 +100,11 @@ export function CvHeaderForm({
             contacts={contacts}
             disabled={!canEdit}
             fxLocked={fxLocked}
-            customerName={header.customerName}
+            customer={{
+              name: header.customerName,
+              taxId: header.customerTaxId,
+              address: header.customerAddress,
+            }}
             officialFxRate={header.officialFxRate}
             maxFxDeviationPct={maxFxDeviationPct}
           />
@@ -148,6 +152,7 @@ function toFormValues(header: CvEditorHeader): CvHeaderInput {
     contactName: contact?.contactName ?? "",
     contactEmail: contact?.email ?? "",
     contactPhone: contact?.phone ?? "",
+    contactAddress: contact?.address ?? header.customerAddress,
     endCustomerId: header.endCustomerId,
     customerPoNumber: header.customerPoNumber,
     customerPoDate: header.customerPoDate,

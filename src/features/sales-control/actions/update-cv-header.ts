@@ -77,6 +77,7 @@ export async function updateCvHeader(
         name: data.contactName,
         email: data.contactEmail,
         phone: data.contactPhone,
+        address: data.contactAddress,
       };
       await saveCvHeader(tx, {
         versionId: data.versionId,

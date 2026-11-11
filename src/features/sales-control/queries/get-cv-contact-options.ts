@@ -1,5 +1,6 @@
 // src/features/sales-control/queries/get-cv-contact-options.ts
-// Contactos activos del cliente de un CV, para elegir el contacto de la cabecera (AGENTS.md §2.1).
+// Contactos activos del cliente de un CV, para elegir el contacto de la cabecera, con la dirección de su sucursal
+// (AGENTS.md §2.1).
 // LIMITACIÓN: sin alcance propio; el editor ya pasó la authz del CV y solo se piden los de su cliente.
 import { prisma } from "@/server/db";
 import type { CvContactOption } from "../types";
@@ -10,6 +11,7 @@ export async function getCvContactOptions(
   const contacts = await prisma.customerContact.findMany({
     where: { customerId, isActive: true },
     orderBy: { name: "asc" },
+    include: { branch: { select: { address: true, isActive: true } } },
   });
   return contacts.map((c) => ({
     id: c.id,
@@ -18,5 +20,7 @@ export async function getCvContactOptions(
     name: c.name,
     email: c.email ?? "",
     phone: c.phone ?? "",
+    // REGLA: con sucursal activa y con dirección, la del CV es la de la sucursal; si no, la general (decisión 2026-11-11).
+    address: c.branch?.isActive ? (c.branch.address ?? "") : "",
   }));
 }

@@ -80,7 +80,15 @@ jobs:
       - run: pnpm db:seed:dev
       - run: pnpm db:seed:admin
       - run: pnpm build
-      - run: pnpm exec playwright install --with-deps chromium
+      # TRAMPA: --with-deps usa apt, y los espejos de Ubuntu del runner a veces no resuelven (falla de DNS de la
+      # infraestructura, 2026-11-11). La imagen ya trae las librerías de Chromium; lo que falta son fuentes opcionales
+      # (CJK, cirílico) que las pruebas no usan. Si apt falla o tarda más de 5 min, se instala solo el navegador.
+      - name: Navegador de Playwright
+        run: |
+          if ! timeout 300 pnpm exec playwright install --with-deps chromium; then
+            echo "::warning::No se pudieron instalar las dependencias de sistema de Playwright; se instala solo Chromium."
+            pnpm exec playwright install chromium
+          fi
       - run: pnpm test:e2e
       - if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

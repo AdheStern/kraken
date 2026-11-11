@@ -17,6 +17,7 @@ import {
   RowNumber,
   SubItemButton,
 } from "./row-parts";
+import { isBlankLine } from "./use-cv-lines-state";
 
 type Props = {
   line: CvLineDraft;
@@ -57,12 +58,15 @@ export function CvItemRow({
   detailState,
   onDetail,
 }: Props) {
+  // POR QUÉ: una línea nueva sin tocar no se guarda (isBlankLine); marcarla en rojo solo confunde a quien agregó
+  // varias de golpe y las va llenando.
+  const isPending = isBlankLine(line);
   const context: ItemCellContext = {
     line,
     row,
     col: (key) => columns.indexOf(key),
     issue: (field) =>
-      result.ok
+      result.ok || isPending
         ? undefined
         : result.issues.find((i) => i.field === field)?.message,
     priced: result.ok ? result.value : null,
@@ -74,7 +78,9 @@ export function CvItemRow({
     index: (
       <RowNumber
         label={label}
-        hasIssues={isOrphan || !result.ok || detailState === "issues"}
+        hasIssues={
+          isOrphan || (!result.ok && !isPending) || detailState === "issues"
+        }
         issueText={
           isOrphan
             ? "Un subítem necesita una línea principal antes, en el mismo lote"

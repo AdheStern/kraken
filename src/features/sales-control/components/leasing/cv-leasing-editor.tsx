@@ -1,5 +1,6 @@
 // src/features/sales-control/components/leasing/cv-leasing-editor.tsx
-// Sección de leasing o arrendamiento del CV: lista aparte con su total de costo; no afecta la venta (§2.1).
+// Sección de leasing o arrendamiento del CV: lista aparte, numerada, con su total de costo; no afecta la venta y
+// admite pegar desde Excel (§2.1).
 "use client";
 
 import Decimal from "decimal.js";
@@ -15,10 +16,12 @@ import {
 import { formatAmount } from "@/lib/format-amount";
 import { updatePostSaleDetails } from "../../actions/update-post-sale-details";
 import { upsertCvLeasing } from "../../actions/upsert-cv-leasing";
+import { blankLeasingLine } from "../../paste-into-leasing";
 import type { CvLeasingLineDraft } from "../../schemas/cv-leasing-schema";
 import type { CvGridOptions } from "../../types";
 import { handleGridKeyDown } from "../lines/grid-keyboard";
 import { CvLeasingRow, leasingLineTotal } from "./cv-leasing-row";
+import { useLeasingPaste } from "./use-leasing-paste";
 
 type Props = {
   versionId: string;
@@ -29,6 +32,7 @@ type Props = {
 };
 
 const HEADERS = [
+  "#",
   "Proveedor",
   "Línea",
   "Código",
@@ -41,19 +45,6 @@ const HEADERS = [
   "PO#",
   "",
 ];
-const blank = (): CvLeasingLineDraft => ({
-  key: crypto.randomUUID(),
-  id: null,
-  supplierId: null,
-  technologyId: null,
-  code: "",
-  description: "",
-  quantity: "1",
-  unitCostUsd: "",
-  notes: "",
-  serials: "",
-  poNumber: "",
-});
 
 export function CvLeasingEditor({
   versionId,
@@ -68,6 +59,13 @@ export function CvLeasingEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isDirty = JSON.stringify(lines) !== JSON.stringify(initial);
+  const { onPaste, pasteNotice } = useLeasingPaste({
+    lines,
+    setLines,
+    options,
+    canEdit,
+    canEditPostSale,
+  });
   const total = lines.reduce(
     (sum, line) => sum.plus(leasingLineTotal(line) ?? 0),
     new Decimal(0),
@@ -114,7 +112,11 @@ export function CvLeasingEditor({
       <CollapsibleContent>
         <div className="grid gap-3 border-t px-5 py-4">
           {/* biome-ignore lint/a11y/noStaticElementInteractions: delegación del teclado de las celdas hijas. */}
-          <div className="overflow-x-auto" onKeyDown={handleGridKeyDown}>
+          <div
+            className="overflow-x-auto"
+            onKeyDown={handleGridKeyDown}
+            onPaste={onPaste}
+          >
             <table className="w-max min-w-full border-collapse text-left">
               <thead>
                 <tr className="border-b">
@@ -153,7 +155,7 @@ export function CvLeasingEditor({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setLines((c) => [...c, blank()])}
+                  onClick={() => setLines((c) => [...c, blankLeasingLine()])}
                 >
                   <Plus aria-hidden="true" />
                   Línea de leasing
@@ -164,7 +166,7 @@ export function CvLeasingEditor({
                   <span className="text-destructive">{error}</span>
                 ) : isDirty ? (
                   <span className="text-muted-foreground">
-                    Cambios sin guardar.
+                    {pasteNotice} Cambios sin guardar.
                   </span>
                 ) : null}
               </p>

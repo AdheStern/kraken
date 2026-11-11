@@ -7,12 +7,12 @@ import {
   ITEM_TYPE_OPTIONS,
   SUPPLY_MODE_OPTIONS,
 } from "./components/lines/grid-columns";
+import { type Catalog, matchCatalog } from "./match-catalog";
 import { fillFromProduct } from "./product-fill";
 import type { CvGroupDraft, CvLineDraft } from "./schemas/cv-lines-schema";
 import type { CvGridOptions } from "./types";
 
 type State = { groups: CvGroupDraft[]; lines: CvLineDraft[] };
-type Catalog = { id: string; label: string; hint?: string }[];
 
 export type PasteResult = {
   lines: CvLineDraft[];
@@ -134,19 +134,4 @@ function applyCell(
     default:
       return line;
   }
-}
-
-// POR QUÉ: en las planillas el mismo valor llega como código, nombre o con otra capitalización.
-function matchCatalog(catalog: Catalog, value: string): string | null {
-  const wanted = normalize(value);
-  const found = catalog.find((option) =>
-    [option.id, option.label, option.hint].some(
-      (candidate) => candidate && normalize(candidate) === wanted,
-    ),
-  );
-  return found?.id ?? null;
-}
-
-function normalize(text: string): string {
-  return text.normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toUpperCase();
 }

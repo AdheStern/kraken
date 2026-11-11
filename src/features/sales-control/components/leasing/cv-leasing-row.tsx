@@ -1,5 +1,5 @@
 // src/features/sales-control/components/leasing/cv-leasing-row.tsx
-// Fila editable de la sección de leasing: proveedor, línea, código, descripción, cantidad, costo y seriales.
+// Fila editable y numerada de la sección de leasing: proveedor, línea, código, descripción, cantidad, costo y seriales.
 "use client";
 
 import Decimal from "decimal.js";
@@ -46,6 +46,9 @@ export function CvLeasingRow({
   const disabled = !canEdit;
   return (
     <tr className="border-b border-border/60">
+      <td className="w-10 px-2 text-right text-[13px] text-muted-foreground tabular-nums">
+        {row + 1}
+      </td>
       <td className="w-40 p-0.5">
         <SelectCell
           row={row}

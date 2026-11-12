@@ -4,6 +4,7 @@
 import path from "node:path";
 import ExcelJS from "exceljs";
 import type { CvExportData } from "./cv-export-data";
+import { dropEmptyNoteRuns } from "./excel-cells";
 import { writeCvHeader } from "./write-cv-header";
 import { writeCvLeasing } from "./write-cv-leasing";
 import { writeCvLines } from "./write-cv-lines";
@@ -27,6 +28,7 @@ export async function exportCvToXlsx(
   writeCvHeader(sheet, data);
   const shift = writeCvLines(sheet, data);
   writeCvLeasing(sheet, data.leasing, shift);
+  dropEmptyNoteRuns(sheet);
   // LIMITACIÓN: las fórmulas se guardan sin resultado; Excel las calcula al abrir. Un visor que no
   // calcula (vista previa de algunos clientes de correo) muestra esas celdas vacías.
   workbook.calcProperties.fullCalcOnLoad = true;

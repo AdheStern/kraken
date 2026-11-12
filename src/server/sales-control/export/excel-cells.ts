@@ -23,6 +23,19 @@ export function writeCells(row: Row, values: Record<string, CellValue>): void {
   }
 }
 
+// TRAMPA: varias notas de ayuda de la plantilla traen un fragmento de texto vacío; ExcelJS lo escribe como
+// <t></t> y Excel declara dañado comments.xml y pide reparar el archivo. Se quitan antes de guardar.
+export function dropEmptyNoteRuns(ws: Worksheet): void {
+  ws.eachRow({ includeEmpty: true }, (row) => {
+    row.eachCell({ includeEmpty: true }, (cell) => {
+      const note = cell.note;
+      if (typeof note !== "object" || !note.texts) return;
+      const texts = note.texts.filter((run) => run.text !== "");
+      if (texts.length !== note.texts.length) cell.note = { ...note, texts };
+    });
+  });
+}
+
 // TRAMPA: duplicateRow de ExcelJS desplaza valores y estilos pero pierde las notas de las filas movidas;
 // las notas de ayuda de la plantilla (encabezado de leasing) se guardan y se reponen desplazadas.
 export function insertRowCopies(

@@ -217,4 +217,17 @@ describe("exportación del CV a PA-PR-03-RE-01", async () => {
     expect(sheet.getCell("E30").note).toBeUndefined();
     expect(sheet.getCell("D23").note).toBeUndefined();
   });
+
+  it("ninguna nota lleva un fragmento de texto vacío (Excel pide reparar el archivo)", () => {
+    const emptyRuns: string[] = [];
+    sheet.eachRow({ includeEmpty: true }, (row) => {
+      row.eachCell({ includeEmpty: true }, (cell) => {
+        const note = cell.note;
+        if (typeof note !== "object") return;
+        if (note.texts?.some((run) => run.text === ""))
+          emptyRuns.push(cell.address);
+      });
+    });
+    expect(emptyRuns).toEqual([]);
+  });
 });

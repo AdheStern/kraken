@@ -14,17 +14,13 @@ import {
   listActiveCustomerChoices,
 } from "@/features/admin/queries/find-cvs-for-customer-change";
 import { canChangeCvCustomer } from "@/server/authz/admin-permissions";
-import type { SessionUser } from "@/server/authz/roles";
 import { requireUser } from "@/server/session";
 
 export const metadata: Metadata = { title: "Cliente de un CV" };
 
-type Props = { searchParams: Promise<{ q?: string }> };
-
-export default async function CvCustomerPage({ searchParams }: Props) {
-  const user = await requireUser();
-  if (!canChangeCvCustomer(user)) notFound();
-  const { q = "" } = await searchParams;
+export default function CvCustomerPage({
+  searchParams,
+}: PageProps<"/admin/cv-cliente">) {
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6">
       <AdminBackLink />
@@ -32,31 +28,33 @@ export default async function CvCustomerPage({ searchParams }: Props) {
         title="Cliente de un CV"
         description="Corrige el cliente de un CV ya creado, en cualquier estado. Si sus bolsas de horas ya se usan en tickets, no se puede cambiar."
       />
-      <AdminSearch
-        action="/admin/cv-cliente"
-        defaultValue={q}
-        placeholder="Número del CV o cliente actual"
-      />
-      <Suspense
-        key={q}
-        fallback={<Skeleton className="h-48 w-full rounded-xl" />}
-      >
-        <Results user={user} search={q.trim()} />
+      <Suspense fallback={<Skeleton className="h-48 w-full rounded-xl" />}>
+        <Results searchParams={searchParams} />
       </Suspense>
     </main>
   );
 }
 
+// TRAMPA: con Cache Components la sesión y searchParams se leen dentro de Suspense; fuera rompen el prerender.
 async function Results({
-  user,
-  search,
-}: {
-  user: SessionUser;
-  search: string;
-}) {
+  searchParams,
+}: Pick<PageProps<"/admin/cv-cliente">, "searchParams">) {
+  const user = await requireUser();
+  if (!canChangeCvCustomer(user)) notFound();
+  const params = await searchParams;
+  const search = typeof params.q === "string" ? params.q.trim() : "";
   const [rows, customers] = await Promise.all([
     findCvsForCustomerChange(user, search),
     search === "" ? Promise.resolve([]) : listActiveCustomerChoices(),
   ]);
-  return <CvCustomerList rows={rows} search={search} customers={customers} />;
+  return (
+    <>
+      <AdminSearch
+        action="/admin/cv-cliente"
+        defaultValue={search}
+        placeholder="Número del CV o cliente actual"
+      />
+      <CvCustomerList rows={rows} search={search} customers={customers} />
+    </>
+  );
 }

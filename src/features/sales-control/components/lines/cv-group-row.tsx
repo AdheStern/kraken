@@ -99,7 +99,7 @@ export function CvGroupRow({
               )}
               <AddLinesButton
                 variant="ghost"
-                title={`Agregar varias líneas a ${name}`}
+                groupName={name}
                 onAdd={onAddLine}
               />
               <button type="button" className={ACTION} onClick={onAddNote}>

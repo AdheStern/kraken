@@ -70,11 +70,7 @@ export function CvLinesToolbar(props: Props) {
         </Button>
       </form>
       {props.columnsMenu}
-      <AddLinesButton
-        variant="outline"
-        title="Agregar varias líneas"
-        onAdd={props.onAddLine}
-      />
+      <AddLinesButton variant="outline" onAdd={props.onAddLine} />
       <Button variant="outline" size="sm" onClick={props.onAddNote}>
         <StickyNote aria-hidden="true" />
         Nota

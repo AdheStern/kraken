@@ -1,6 +1,6 @@
 // src/features/sales-control/components/lines/item-catalog-cells.tsx
 // Celdas descriptivas de una fila de ítem: área, producto, descripción, unidad, cantidad, clasificación, BC, PO#,
-// rango de activación (licencias) y observaciones.
+// rango de activación (licencias), observaciones y seriales.
 "use client";
 
 import type { ReactNode } from "react";
@@ -16,6 +16,7 @@ import {
 import type { ColumnKey } from "./grid-columns";
 import type { ItemCellContext } from "./item-cell-context";
 import { SELECT_COLUMNS, type SelectColumnKey } from "./select-columns";
+import { SerialsCell } from "./serials-cell";
 
 export function catalogCells(
   {
@@ -131,6 +132,16 @@ export function catalogCells(
         value={line.notes}
         disabled={postSaleDisabled}
         onValueChange={(notes) => onChange({ notes })}
+      />
+    ),
+    serials: (
+      <SerialsCell
+        row={row}
+        col={col("serials")}
+        serials={line.serials}
+        quantity={line.quantity}
+        disabled={postSaleDisabled}
+        onChange={(serials) => onChange({ serials })}
       />
     ),
   };

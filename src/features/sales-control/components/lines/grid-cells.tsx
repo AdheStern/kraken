@@ -57,6 +57,9 @@ export function TextCell({
 type TextAreaCellProps = CellBase & {
   value: string;
   onValueChange: (value: string) => void;
+  placeholder?: string;
+  // Se puede agrandar a mano además de crecer con el texto (seriales).
+  isResizable?: boolean;
 };
 
 // REGLA de la planilla: Enter baja de fila como en las demás celdas; Alt+Enter agrega una línea, como en Excel.
@@ -69,6 +72,8 @@ export function TextAreaCell({
   disabled,
   value,
   onValueChange,
+  placeholder,
+  isResizable = false,
 }: TextAreaCellProps) {
   return (
     <Textarea
@@ -78,6 +83,7 @@ export function TextAreaCell({
       title={error ?? "Alt+Enter: nueva línea"}
       disabled={disabled}
       rows={1}
+      placeholder={placeholder}
       value={value}
       onChange={(event) => onValueChange(event.target.value)}
       onKeyDown={(event) => {
@@ -97,6 +103,8 @@ export function TextAreaCell({
       className={cn(
         CELL,
         "field-sizing-content h-auto w-full min-w-0 max-h-32 min-h-8 resize-none py-1.5 leading-5 shadow-none focus-visible:ring-2 focus-visible:ring-ring/30 md:text-[13px] dark:bg-transparent",
+        // POR QUÉ: una lista de seriales puede ser larga; crece hasta ~13 líneas y se puede ajustar a mano.
+        isResizable && "max-h-80 resize-y",
       )}
     />
   );

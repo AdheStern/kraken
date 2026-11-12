@@ -8,6 +8,7 @@ import {
   SUPPLY_MODE_OPTIONS,
 } from "./components/lines/grid-columns";
 import { type Catalog, matchCatalog } from "./match-catalog";
+import { parseSerials } from "./parse-serials";
 import { fillFromProduct } from "./product-fill";
 import type { CvGroupDraft, CvLineDraft } from "./schemas/cv-lines-schema";
 import type { CvGridOptions } from "./types";
@@ -89,6 +90,8 @@ function applyCell(
       return { ...line, bc: value };
     case "notes":
       return { ...line, notes: value };
+    case "serials":
+      return { ...line, serials: parseSerials(value) };
     case "quantity":
       return { ...line, quantity: number() };
     case "unitCost":

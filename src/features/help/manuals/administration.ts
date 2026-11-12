@@ -12,7 +12,7 @@ export const ADMINISTRATION_MANUAL: Manual = {
       steps: [
         "Control de Venta lista los CV con una versión aprobada; ves sus costos y su margen.",
         "Solo ves las versiones aprobadas o reemplazadas, no los borradores que vengan después.",
-        "En la versión aprobada vigente completas observaciones, PO#, rango de activación y seriales de las líneas, y notas, seriales y PO# del leasing; guarda con el botón de la grilla o Ctrl+S.",
+        "En la versión aprobada vigente completas observaciones, PO#, rango de activación y seriales de las líneas, y notas, seriales y PO# del leasing; guarda con el botón de la grilla o Ctrl+S. Para cargar muchos seriales, marca la columna «Seriales» en «Columnas opcionales»: uno por renglón (Alt+Enter), o pega la columna desde Excel.",
         "Exporta cada versión al Excel de la plantilla oficial PA-PR-03-RE-01.",
       ],
       link: { href: "/cv", label: "Ir a Control de Venta" },

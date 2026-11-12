@@ -1,5 +1,5 @@
 // src/features/sales-control/components/lines/use-optional-columns.ts
-// Columnas opcionales de la grilla del CV (BC y PO#): las marcadas se recuerdan en el navegador y una columna con datos
+// Columnas opcionales de la grilla del CV (BC, seriales y PO#): las marcadas se recuerdan en el navegador y una columna con datos
 // en alguna línea se muestra aunque no esté marcada, para no esconder lo cargado.
 "use client";
 
@@ -51,5 +51,6 @@ export function useOptionalColumns(lines: CvLineDraft[]) {
 
 function hasValue(line: CvLineDraft, key: ColumnKey): boolean {
   const value = (line as Partial<Record<ColumnKey, unknown>>)[key];
+  if (Array.isArray(value)) return value.length > 0;
   return typeof value === "string" && value.trim() !== "";
 }

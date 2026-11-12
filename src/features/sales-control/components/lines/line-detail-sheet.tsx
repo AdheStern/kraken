@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import type { LineIssue } from "../../line-pricing";
+import { parseSerials } from "../../parse-serials";
 import type { CvLineDraft } from "../../schemas/cv-lines-schema";
 import type { Option } from "../../types";
 import { LineBagSection } from "./line-bag-section";
@@ -115,12 +116,7 @@ export function LineDetailSheet({
                   key={line.key}
                   defaultValue={line.serials.join("\n")}
                   onChange={(e) =>
-                    onChange({
-                      serials: e.target.value
-                        .split(/[\r\n\t,;]+/)
-                        .map((s) => s.trim())
-                        .filter(Boolean),
-                    })
+                    onChange({ serials: parseSerials(e.target.value) })
                   }
                   className="font-mono text-xs"
                 />

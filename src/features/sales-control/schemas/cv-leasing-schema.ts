@@ -2,16 +2,10 @@
 // Líneas de leasing o arrendamiento de una versión (AGENTS.md §2.1): solo costo, no afectan la venta. Los seriales
 // se escriben en la misma fila, separados por coma, y se guardan como lista.
 import { z } from "zod";
+import { parseSerials } from "../parse-serials";
 
 const AMOUNT = /^\d+(\.\d{1,2})?$/;
-const SERIAL_SEPARATOR = /[,;\n]/;
-
-export function parseLeasingSerials(text: string): string[] {
-  return text
-    .split(SERIAL_SEPARATOR)
-    .map((serial) => serial.trim())
-    .filter(Boolean);
-}
+export const parseLeasingSerials = parseSerials;
 
 export function serialsIssue(
   serials: string[],

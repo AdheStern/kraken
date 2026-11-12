@@ -5,6 +5,7 @@ export type AdminAccess = "system" | "commercial";
 
 export type AdminSectionKey =
   | "clientes"
+  | "cv-cliente"
   | "proveedores"
   | "rubros"
   | "productos"
@@ -172,6 +173,13 @@ export const ADMIN_GROUPS: readonly AdminGroup[] = [
         "Correo",
         "La cola de avisos por correo, los que fallaron y el correo de prueba.",
         "/admin/correo",
+        "system",
+      ),
+      section(
+        "cv-cliente",
+        "Cliente de un CV",
+        "Corrige el cliente de un CV ya creado, en cualquier estado.",
+        "/admin/cv-cliente",
         "system",
       ),
       section(

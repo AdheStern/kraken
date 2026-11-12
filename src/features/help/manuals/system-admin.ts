@@ -35,6 +35,15 @@ export const SYSTEM_ADMIN_MANUAL: Manual = {
       link: { href: "/admin/parametros", label: "Ir a Parámetros" },
     },
     {
+      heading: "Cliente de un CV",
+      steps: [
+        "Solo tú corriges el cliente de un CV: busca el CV por número o cliente, elige el cliente nuevo y escribe el motivo.",
+        "Cambia en todas sus versiones, con el NIT y la dirección del cliente nuevo; el contacto queda por elegir en la cabecera.",
+        "Si sus bolsas de horas ya se usan en tickets, no se puede cambiar: primero hay que quitarlas de esos tickets.",
+      ],
+      link: { href: "/admin/cv-cliente", label: "Ir a Cliente de un CV" },
+    },
+    {
       heading: "Correo y auditoría",
       steps: [
         "Correo: la cola de avisos, los que fallaron (Reintentar) y Enviarme un correo de prueba.",

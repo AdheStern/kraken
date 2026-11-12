@@ -6,7 +6,7 @@ import { rowColorStyle } from "./excel-palette";
 import { TextCell } from "./grid-cells";
 import { COLUMNS, type ColumnKey } from "./grid-columns";
 import { RowColorPicker } from "./row-color-picker";
-import { RowActions, RowNumber } from "./row-parts";
+import { RowActions, RowNumber, STICKY_INDEX } from "./row-parts";
 
 type Props = {
   description: string;
@@ -41,7 +41,10 @@ export function CvNoteRow({
       className="group/row border-b border-border/60 bg-muted/30 hover:bg-muted/50"
       style={rowColorStyle(color)}
     >
-      <td className="px-0.5 py-0.5" style={{ width: COLUMNS.index.width }}>
+      <td
+        className={`px-0.5 py-0.5 ${STICKY_INDEX}`}
+        style={{ width: COLUMNS.index.width, ...rowColorStyle(color) }}
+      >
         <RowNumber label={null} hasIssues={description.trim() === ""} />
       </td>
       <td colSpan={span} className="px-0.5 py-0.5">

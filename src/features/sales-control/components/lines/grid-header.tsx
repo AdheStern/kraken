@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react";
 import type { CvGridOptions } from "../../types";
 import { ColumnFillPopover } from "./column-fill-popover";
 import { COLUMNS, type ColumnKey } from "./grid-columns";
+import { STICKY_INDEX } from "./row-parts";
 import { isSelectColumn, type SelectColumnKey } from "./select-columns";
 
 export type GridFill = {
@@ -35,7 +36,7 @@ export function GridHeader({
             <th
               key={key}
               scope="col"
-              className={`px-2.5 py-2 text-xs font-medium whitespace-nowrap text-muted-foreground ${"align" in COLUMNS[key] ? "text-right" : ""}`}
+              className={`px-2.5 py-2 text-xs font-medium whitespace-nowrap text-muted-foreground ${"align" in COLUMNS[key] ? "text-right" : ""} ${key === "index" ? STICKY_INDEX : ""}`}
             >
               {fill && isSelectColumn(key) ? (
                 <ColumnFillPopover

@@ -10,6 +10,11 @@ import {
 } from "lucide-react";
 
 // POR QUÉ: la columna # muestra el número de ítem (el del Excel), no la posición: las notas no llevan número.
+// REGLA de la planilla: la columna # queda fija a la izquierda al desplazarse en horizontal. Lleva fondo opaco
+// (las celdas pasan por debajo) y un filo a la derecha; una fila con color se lo repite (rowColorStyle).
+export const STICKY_INDEX =
+  "sticky left-0 z-[1] bg-card bg-clip-padding shadow-[1px_0_0_var(--border)]";
+
 export function RowNumber({
   label,
   hasIssues,

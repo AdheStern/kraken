@@ -20,6 +20,14 @@ import { isSelectColumn } from "./select-columns";
 import type { LinesAction, LinesState } from "./use-cv-lines-state";
 import type { LineDetailInfo } from "./use-lines-pricing";
 
+// REGLA de la planilla: como «inmovilizar paneles» de Excel, la grilla tiene su propio scroll y mide como mucho la
+// ventana menos la cabecera de la app (3 rem) y la barra fija de líneas (~6 rem); así sus encabezados quedan
+// visibles y la barra de scroll horizontal siempre está a la vista (decisión 2026-11-12).
+// TRAMPA: al moverse con el teclado el navegador desplaza hasta la celda enfocada; sin estos márgenes la deja
+// debajo del encabezado fijo (2.5 rem) o de la columna # fija (60 px).
+const GRID_VIEWPORT =
+  "max-h-[calc(100svh-9rem)] [&_[data-cell]]:scroll-mt-10 [&_[data-cell]]:scroll-ml-16";
+
 type Props = {
   state: LinesState;
   results: Map<string, PriceLineResult>;
@@ -125,7 +133,7 @@ export function CvLineGrid({
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: delegación del teclado de las celdas (inputs y selects) hijas.
     <div
-      className="kr-solid overflow-x-auto rounded-xl"
+      className={`kr-solid overflow-auto overscroll-contain rounded-xl ${GRID_VIEWPORT}`}
       onKeyDown={handleGridKeyDown}
       onPaste={handlePaste}
     >

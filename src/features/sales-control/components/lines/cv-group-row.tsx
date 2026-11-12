@@ -46,7 +46,8 @@ export function CvGroupRow({
   return (
     <tr className="border-y bg-secondary/70">
       <td colSpan={span} className="px-2 py-1.5">
-        <div className="flex flex-wrap items-center gap-2">
+        {/* REGLA de la planilla: el nombre y las acciones del lote no se van con el scroll horizontal. */}
+        <div className="sticky left-2 flex w-fit flex-wrap items-center gap-2">
           <Layers className="size-4 text-primary" aria-hidden="true" />
           <Input
             aria-label="Nombre del lote"

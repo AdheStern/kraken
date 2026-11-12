@@ -15,6 +15,7 @@ import {
   DetailButton,
   RowActions,
   RowNumber,
+  STICKY_INDEX,
   SubItemButton,
 } from "./row-parts";
 import { isBlankLine } from "./use-cv-lines-state";
@@ -111,11 +112,21 @@ export function CvItemRow({
       className="group/row border-b border-border/60 hover:bg-muted/40"
       style={rowColorStyle(color)}
     >
-      {columns.map((key) => (
-        <td key={key} className="px-0.5 py-0.5 align-middle">
-          {cells[key]}
-        </td>
-      ))}
+      {columns.map((key) =>
+        key === "index" ? (
+          <td
+            key={key}
+            className={`px-0.5 py-0.5 align-middle ${STICKY_INDEX}`}
+            style={rowColorStyle(color)}
+          >
+            {cells[key]}
+          </td>
+        ) : (
+          <td key={key} className="px-0.5 py-0.5 align-middle">
+            {cells[key]}
+          </td>
+        ),
+      )}
     </tr>
   );
 }

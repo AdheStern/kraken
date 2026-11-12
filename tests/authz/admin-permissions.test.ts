@@ -4,8 +4,12 @@
 import { describe, expect, it } from "vitest";
 import { canManageAdminAccess } from "@/features/admin/admin-access";
 import type { RoleCode } from "@/generated/prisma/enums";
-import { canOpenAdmin } from "@/server/authz/admin-permissions";
+import {
+  canChangeCvCustomer,
+  canOpenAdmin,
+} from "@/server/authz/admin-permissions";
 import type { SessionUser } from "@/server/authz/roles";
+import { scopeCvCustomerChangeQuery } from "@/server/authz/scope-cv-customer-change-query";
 
 function user(...roles: RoleCode[]): SessionUser {
   return {
@@ -41,5 +45,23 @@ describe("§2.9 Administración", () => {
     "ALMACEN",
   ])("%s no entra a la administración", (role) => {
     expect(canOpenAdmin(user(role))).toBe(false);
+  });
+
+  it("solo el administrador del sistema cambia el cliente de un CV (decisión 2026-11-12)", () => {
+    const admin = user("ADMIN_SISTEMA");
+    expect(canChangeCvCustomer(admin)).toBe(true);
+    expect(scopeCvCustomerChangeQuery(admin)).toEqual({});
+  });
+
+  it.each<RoleCode>([
+    "GERENTE_GENERAL",
+    "GERENTE_AREA",
+    "COMERCIAL",
+    "ADMINISTRACION",
+    "DESARROLLO_NEGOCIOS",
+    "COORDINADOR_SOPORTE",
+  ])("%s no cambia el cliente de un CV ni ve la lista", (role) => {
+    expect(canChangeCvCustomer(user(role))).toBe(false);
+    expect(scopeCvCustomerChangeQuery(user(role))).toEqual({ id: { in: [] } });
   });
 });

@@ -13,6 +13,11 @@ export function canManageCommercialCatalogs(user: SessionUser): boolean {
   return hasRole(user, "ADMINISTRACION") || hasRole(user, "ADMIN_SISTEMA");
 }
 
+// REGLA: corregir el cliente de un CV es solo del administrador del sistema, nadie más (§2.3, decisión 2026-11-12).
+export function canChangeCvCustomer(user: SessionUser): boolean {
+  return hasRole(user, "ADMIN_SISTEMA");
+}
+
 export function canOpenAdmin(user: SessionUser): boolean {
   return canManageSystem(user) || canManageCommercialCatalogs(user);
 }

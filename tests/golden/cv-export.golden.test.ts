@@ -164,6 +164,12 @@ describe("exportación del CV a PA-PR-03-RE-01", async () => {
     expect(cells.C18).toBe("2026-10-10");
   });
 
+  it("K1 a K3 son el código, la fecha y la revisión del formulario, no del CV", () => {
+    expect(cells.K1?.trim()).toBe("Código: PA-PR-03-RE-01");
+    expect(cells.K2).toBe("Fecha: 04/04/2021");
+    expect(cells.K3).toBe("Revisión: 0");
+  });
+
   it("líneas con fórmulas redondeadas; subítem 1.1; lote con subtotal; nota sin importe", () => {
     expect(cells.D23).toBe("BC");
     expect(cells.D24).toBe("BC-ADM");

@@ -35,6 +35,8 @@ export type LinesSummary = {
 };
 
 const NUMBER = /^-?\d+(\.\d+)?$/;
+const OPTIONAL_AMOUNT = /^(\d+(\.\d{1,2})?)?$/;
+const OPTIONAL_AMOUNT_FIELDS = ["grossUpUsd", "retDimaUsd"] as const;
 const ISSUES = {
   COSTO_INVALIDO: {
     field: "unitCostUsd",
@@ -69,6 +71,12 @@ export function priceLine(line: CvLineDraft, fx: FxRates): PriceLineResult {
   }
   const unit = priceUnit(line);
   if (!unit.ok) issues.push(unit.issue);
+  for (const field of OPTIONAL_AMOUNT_FIELDS)
+    if (!OPTIONAL_AMOUNT.test(line[field].trim()))
+      issues.push({
+        field,
+        message: "Monto de 0 o más, con hasta 2 decimales.",
+      });
   if (issues.length > 0 || !quantity || !unit.ok) return { ok: false, issues };
 
   const totals = computeLineTotals(

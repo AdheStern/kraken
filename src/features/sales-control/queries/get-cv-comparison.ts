@@ -87,6 +87,8 @@ function toComparable(line: LineRow, withCosts: boolean): ComparableLine {
   if (withCosts) {
     fields["Costo unit. USD"] = line.unitCostUsd?.toFixed(2) ?? "";
     fields.Factor = line.factor?.toFixed(2) ?? "";
+    fields["GROSS UP"] = line.grossUpUsd?.toFixed(2) ?? "";
+    fields["RET DIMA"] = line.retDimaUsd?.toFixed(2) ?? "";
   }
   return { code: line.code, description: line.description, fields };
 }

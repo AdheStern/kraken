@@ -1,9 +1,10 @@
 // src/features/sales-control/components/lines/cv-totals-panel.tsx
-// Panel lateral fijo del editor: totales USD y Bs, factor global, margen, servicios propios, áreas y
-// aprobadores que se generarán al enviar (AGENTS.md §2.2, §2.3 y §5).
+// Panel lateral fijo del editor: totales USD y Bs, factor global, margen, servicios propios, GROSS UP y RET DIMA
+// (si sus columnas se ven), áreas y aprobadores que se generarán al enviar (AGENTS.md §2.1, §2.2, §2.3 y §5).
 import { TriangleAlert } from "lucide-react";
 import { formatAmount } from "@/lib/format-amount";
 import type { LinesSummary } from "../../line-pricing";
+import type { OptionalTotal } from "./optional-totals";
 
 type Props = {
   summary: LinesSummary;
@@ -11,6 +12,7 @@ type Props = {
   approvers: string[] | null;
   thresholdUsd: string;
   canSeeCosts: boolean;
+  optionalTotals: OptionalTotal[];
 };
 
 export function CvTotalsPanel({
@@ -18,6 +20,7 @@ export function CvTotalsPanel({
   approvers,
   thresholdUsd,
   canSeeCosts,
+  optionalTotals,
 }: Props) {
   const { totals } = summary;
 
@@ -62,6 +65,13 @@ export function CvTotalsPanel({
             label="Servicios propios"
             value={formatAmount(totals.ownServicesSaleUsd.toFixed(2))}
           />
+          {optionalTotals.map(({ label, valueUsd }) => (
+            <Metric
+              key={label}
+              label={`${label} USD`}
+              value={formatAmount(valueUsd)}
+            />
+          ))}
         </dl>
       )}
       {summary.invalidCount > 0 && (

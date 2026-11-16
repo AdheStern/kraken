@@ -46,6 +46,9 @@ export async function getCvLines(
       unitSaleUsd: l.unitSaleUsd?.toFixed(2) ?? "",
       poNumber: l.poNumber ?? "",
       bc: l.bc ?? "",
+      // REGLA: GROSS UP y RET DIMA son datos de costo; no llegan a quien no ve costos (regla 12).
+      grossUpUsd: canSeeCosts ? (l.grossUpUsd?.toFixed(2) ?? "") : "",
+      retDimaUsd: canSeeCosts ? (l.retDimaUsd?.toFixed(2) ?? "") : "",
       notes: l.notes ?? "",
       color: l.color,
       isSubItem: l.isSubItem,

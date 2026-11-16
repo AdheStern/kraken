@@ -179,6 +179,7 @@ async function CvEditor({
         thresholdUsd={thresholdUsd}
         canEdit={editor.canEdit}
         canEditPostSale={editor.canEditPostSale}
+        canEditWithholdings={editor.canEditWithholdings}
         canSeeCosts={editor.canSeeCosts}
         isOpeningBalance={header.isOpeningBalance}
       />

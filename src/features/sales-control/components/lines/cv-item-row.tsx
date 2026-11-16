@@ -8,7 +8,7 @@ import type { CvGridOptions } from "../../types";
 import { rowColorStyle } from "./excel-palette";
 import type { ColumnKey } from "./grid-columns";
 import { catalogCells } from "./item-catalog-cells";
-import type { ItemCellContext } from "./item-cell-context";
+import type { ItemCellContext, LineEditRights } from "./item-cell-context";
 import { pricingCells } from "./item-pricing-cells";
 import { RowColorPicker } from "./row-color-picker";
 import {
@@ -29,7 +29,7 @@ type Props = {
   columns: ColumnKey[];
   options: CvGridOptions;
   canEdit: boolean;
-  canEditPostSale: boolean;
+  rights: LineEditRights;
   onChange: (patch: Partial<CvLineDraft>) => void;
   onProductCode: (code: string) => void;
   onMove: (offset: -1 | 1) => void;
@@ -49,7 +49,7 @@ export function CvItemRow({
   columns,
   options,
   canEdit,
-  canEditPostSale,
+  rights,
   onChange,
   onProductCode,
   onMove,
@@ -72,7 +72,8 @@ export function CvItemRow({
         : result.issues.find((i) => i.field === field)?.message,
     priced: result.ok ? result.value : null,
     disabled: !canEdit,
-    postSaleDisabled: !canEdit && !canEditPostSale,
+    postSaleDisabled: !canEdit && !rights.canEditPostSale,
+    withholdingsDisabled: !canEdit && !rights.canEditWithholdings,
     onChange,
   };
   const cells = {

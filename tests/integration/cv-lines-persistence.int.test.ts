@@ -41,6 +41,8 @@ function item(
       pricingSource: "FACTOR",
       poNumber: null,
       bc: null,
+      grossUpUsd: null,
+      retDimaUsd: null,
       notes: null,
       color: null,
       coverageStart: null,

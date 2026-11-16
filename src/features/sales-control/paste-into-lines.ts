@@ -101,6 +101,10 @@ function applyCell(
         parseDecimalText(value, { allowThousands: false }) ?? value;
       return { ...line, pricingSource: "FACTOR", factor };
     }
+    case "grossUp":
+      return { ...line, grossUpUsd: number() };
+    case "retDima":
+      return { ...line, retDimaUsd: number() };
     case "unitSale":
       return { ...line, pricingSource: "PRECIO", unitSaleUsd: number() };
     case "area":

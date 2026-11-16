@@ -63,6 +63,15 @@ export function canEditCvHeaderAnyState(
   return cv.lineAreaIds.some((areaId) => managedAreaIds.includes(areaId));
 }
 
+// REGLA: GROSS UP y RET DIMA de las líneas los corrigen en cualquier estado Administración y las gerencias (GG y
+// gerente de un área con una línea en el CV), siempre que vean los costos de la versión (§2.3, decisión 2026-11-16).
+export function canEditCvWithholdings(
+  user: SessionUser,
+  cv: CvAccessFacts,
+): boolean {
+  return canEditCvHeaderAnyState(user, cv) && canSeeCvCosts(user, cv);
+}
+
 // REGLA: los datos posventa de la versión aprobada (observaciones, PO#, activación, seriales) los completan
 // quienes editan el borrador y Administración (§2.3, decisión 2026-11-03).
 export function canEditPostSaleDetails(

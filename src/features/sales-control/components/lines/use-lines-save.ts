@@ -1,12 +1,15 @@
 // src/features/sales-control/components/lines/use-lines-save.ts
-// Guardado del editor de líneas: el borrador completo (sin las líneas nuevas que quedaron vacías), o solo los datos
-// posventa de la versión aprobada (observaciones, PO#, BC, activación y seriales; AGENTS.md §2.3).
+// Guardado del editor de líneas: el borrador completo (sin las líneas nuevas que quedaron vacías) o, fuera del
+// borrador, los datos posventa de la versión aprobada y GROSS UP y RET DIMA (AGENTS.md §2.3).
 "use client";
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { type ActionResult, actionOk } from "@/lib/action-result";
+import { updateCvWithholdings } from "../../actions/update-cv-withholdings";
 import { updatePostSaleDetails } from "../../actions/update-post-sale-details";
 import { upsertCvLines } from "../../actions/upsert-cv-lines";
+import type { LineEditRights } from "./item-cell-context";
 import type { LinesNoticeValue } from "./lines-notice";
 import {
   isBlankLine,
@@ -14,33 +17,30 @@ import {
   orderBySection,
 } from "./use-cv-lines-state";
 
-type Mode = "draft" | "postSale" | "readOnly";
-
 export function useLinesSave(
   versionId: string,
   state: LinesState,
-  mode: Mode,
+  canEdit: boolean,
+  rights: LineEditRights,
   isDirty: boolean,
 ) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [notice, setNotice] = useState<LinesNoticeValue>(null);
+  const canSave =
+    canEdit || rights.canEditPostSale || rights.canEditWithholdings;
 
   async function save() {
-    if (mode === "readOnly" || isSaving || !isDirty) return;
+    if (!canSave || isSaving || !isDirty) return;
     setIsSaving(true);
     setNotice(null);
-    const result =
-      mode === "draft"
-        ? await upsertCvLines({
-            versionId,
-            groups: state.groups,
-            lines: orderBySection(state).filter((line) => !isBlankLine(line)),
-          })
-        : await updatePostSaleDetails({
-            versionId,
-            lines: postSaleLines(state),
-          });
+    const result = canEdit
+      ? await upsertCvLines({
+          versionId,
+          groups: state.groups,
+          lines: orderBySection(state).filter((line) => !isBlankLine(line)),
+        })
+      : await saveAfterDraft(versionId, state, rights);
     setIsSaving(false);
     if (!result.ok)
       return setNotice({ tone: "error", text: result.error.message });
@@ -50,20 +50,36 @@ export function useLinesSave(
   return { save, isSaving, notice, setNotice };
 }
 
-function postSaleLines(state: LinesState) {
-  return state.lines.flatMap((line) =>
-    line.kind === "ITEM" && line.id
-      ? [
-          {
-            id: line.id,
-            notes: line.notes,
-            poNumber: line.poNumber,
-            bc: line.bc,
-            serials: line.serials,
-            activationStart: line.activationStart,
-            activationEnd: line.activationEnd,
-          },
-        ]
-      : [],
+async function saveAfterDraft(
+  versionId: string,
+  state: LinesState,
+  rights: LineEditRights,
+): Promise<ActionResult<unknown>> {
+  const items = state.lines.flatMap((line) =>
+    line.kind === "ITEM" && line.id ? [{ ...line, id: line.id }] : [],
   );
+  if (rights.canEditPostSale) {
+    const result = await updatePostSaleDetails({
+      versionId,
+      lines: items.map((line) => ({
+        id: line.id,
+        notes: line.notes,
+        poNumber: line.poNumber,
+        bc: line.bc,
+        serials: line.serials,
+        activationStart: line.activationStart,
+        activationEnd: line.activationEnd,
+      })),
+    });
+    if (!result.ok) return result;
+  }
+  if (!rights.canEditWithholdings) return actionOk(null);
+  return updateCvWithholdings({
+    versionId,
+    lines: items.map(({ id, grossUpUsd, retDimaUsd }) => ({
+      id,
+      grossUpUsd,
+      retDimaUsd,
+    })),
+  });
 }

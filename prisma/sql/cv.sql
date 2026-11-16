@@ -20,6 +20,12 @@ ALTER TABLE cv.linea
     OR (tipo_item = 'INTANGIBLE' AND activacion_inicio IS NOT NULL AND activacion_fin >= activacion_inicio)
   );
 
+-- POR QUÉ: GROSS UP y RET DIMA son montos de la línea, nunca negativos.
+ALTER TABLE cv.linea
+  ADD CONSTRAINT linea_gross_up_ret_dima_ck CHECK (
+    (gross_up IS NULL OR gross_up >= 0) AND (ret_dima IS NULL OR ret_dima >= 0)
+  );
+
 -- POR QUÉ: la solicitud del GG tiene area_id nulo; NULLS NOT DISTINCT impide dos solicitudes del GG por versión.
 DROP INDEX cv.solicitud_aprobacion_unica;
 CREATE UNIQUE INDEX solicitud_aprobacion_unica ON cv.solicitud_aprobacion (version_id, tipo, area_id) NULLS NOT DISTINCT;
@@ -59,6 +65,11 @@ DECLARE
     ELSE ARRAY[]::text[]
   END;
 BEGIN
+  -- REGLA: GROSS UP y RET DIMA se corrigen en cualquier estado de la versión (§2.3, decisión 2026-11-16).
+  IF TG_OP = 'UPDATE' AND TG_TABLE_NAME = 'linea'
+    AND (to_jsonb(NEW) - ARRAY['gross_up', 'ret_dima']) = (to_jsonb(OLD) - ARRAY['gross_up', 'ret_dima']) THEN
+    RETURN NEW;
+  END IF;
   -- REGLA: los vendedores son parte de la cabecera y se corrigen en cualquier estado (§2.3, decisión 2026-11-03).
   IF TG_TABLE_NAME = 'version_vendedor' THEN
     RETURN COALESCE(NEW, OLD);

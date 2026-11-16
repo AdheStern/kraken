@@ -6,6 +6,7 @@ import {
   canDecideApproval,
   canEditCvDraft,
   canEditCvHeaderAnyState,
+  canEditCvWithholdings,
   canEditPostSaleDetails,
   canExportCvVersion,
   canSeeCvCosts,
@@ -105,6 +106,7 @@ export async function getCvEditor(
     canEditPostSale:
       version.status === "APROBADA" &&
       canEditPostSaleDetails(user, latestAccess),
+    canEditWithholdings: canEditCvWithholdings(user, shownAccess),
     canSeeCosts: canSeeCvCosts(user, shownAccess),
     canExport: canExportCvVersion(user, shownAccess),
     versionNumber: version.number,

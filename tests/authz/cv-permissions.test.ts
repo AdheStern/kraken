@@ -9,6 +9,7 @@ import {
   canDecideApproval,
   canEditCvDraft,
   canEditCvHeaderAnyState,
+  canEditCvWithholdings,
   canEditPostSaleDetails,
   canExportCvVersion,
   canListCvs,
@@ -170,6 +171,46 @@ describe("§2.3 CV: cabecera en cualquier estado (salvo los TC)", () => {
     ["administrador del sistema", user(["ADMIN_SISTEMA"]), ownCv, false],
   ])("%s → %s", (_, u, cv, expected) => {
     expect(canEditCvHeaderAnyState(u, cv)).toBe(expected);
+  });
+});
+
+describe("§2.3 CV: GROSS UP y RET DIMA en cualquier estado", () => {
+  it.each<[string, SessionUser, CvAccessFacts, boolean]>([
+    ["gerente general", user(["GERENTE_GENERAL"]), foreignNetCv, true],
+    [
+      "gerente de área, CV con línea de su área",
+      user(["GERENTE_AREA", AREA_NET]),
+      foreignNetCv,
+      true,
+    ],
+    [
+      "gerente de área, CV de otra área",
+      user(["GERENTE_AREA", AREA_NET]),
+      sellerCv,
+      false,
+    ],
+    [
+      "administración, aprobado",
+      user(["ADMINISTRACION"]),
+      foreignApprovedCv,
+      true,
+    ],
+    [
+      "administración, sin aprobar (no ve costos)",
+      user(["ADMINISTRACION"]),
+      foreignNetCv,
+      false,
+    ],
+    [
+      "comercial, propio (solo en su borrador)",
+      user(["COMERCIAL"]),
+      ownCv,
+      false,
+    ],
+    ["ingeniero", user(["INGENIERO"]), ownCv, false],
+    ["administrador del sistema", user(["ADMIN_SISTEMA"]), ownCv, false],
+  ])("%s → %s", (_, u, cv, expected) => {
+    expect(canEditCvWithholdings(u, cv)).toBe(expected);
   });
 });
 

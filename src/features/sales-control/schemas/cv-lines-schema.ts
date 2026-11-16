@@ -12,6 +12,14 @@ import {
 
 const optionalId = z.string().nullable();
 const dateText = z.union([z.iso.date(), z.literal("")]);
+// POR QUÉ: GROSS UP y RET DIMA son montos opcionales de la línea (§2.1); vacío = sin dato.
+const amountText = z
+  .string()
+  .trim()
+  .regex(
+    /^(\d{1,16}(\.\d{1,2})?)?$/,
+    "GROSS UP y RET DIMA: monto de 0 o más, con hasta 2 decimales.",
+  );
 
 // REGLA: una línea de HORAS + SERVICIO genera una bolsa al aprobarse; aquí se captura su especificación (§2.4).
 export const hourBagSpecSchema = z.object({
@@ -54,6 +62,8 @@ export const cvLineDraftSchema = z.object({
   unitSaleUsd: z.string(),
   poNumber: z.string().trim().max(60),
   bc: z.string().trim().max(120),
+  grossUpUsd: amountText,
+  retDimaUsd: amountText,
   notes: z.string().trim().max(1000),
   color: z
     .string()

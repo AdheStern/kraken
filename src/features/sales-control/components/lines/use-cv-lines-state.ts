@@ -53,6 +53,8 @@ export function blankLine(
     unitSaleUsd: "",
     poNumber: "",
     bc: "",
+    grossUpUsd: "",
+    retDimaUsd: "",
     notes: "",
     color: null,
     serials: [],

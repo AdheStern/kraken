@@ -3,8 +3,9 @@
 // POR QUÉ: proveedor, tecnología, código y descripción abren la fila como en la plantilla PA-PR-03-RE-01; el área
 // va después de la descripción y los precios a continuación, para verse sin desplazar. Modalidad y tipo quedan
 // a la derecha, y el rango de activación (solo licencias) justo antes de las observaciones. BC (junto a la
-// tecnología, como en el Excel), los seriales (tras las observaciones) y el PO# (al final) son opcionales: se ocultan
-// para no cargar la grilla y aparecen al marcarlos o cuando alguna línea ya los tiene.
+// tecnología, como en el Excel), GROSS UP y RET DIMA (tras el costo total, como en el Excel), los seriales (tras las
+// observaciones) y el PO# (al final) son opcionales: se ocultan para no cargar la grilla y aparecen al marcarlos o
+// cuando alguna línea ya los tiene.
 import type { ItemType, SupplyMode } from "@/generated/prisma/enums";
 
 export type GridColumn = {
@@ -38,6 +39,20 @@ export const COLUMNS = {
     width: 112,
     align: "right",
     costOnly: true,
+  },
+  grossUp: {
+    label: "GROSS UP",
+    width: 112,
+    align: "right",
+    costOnly: true,
+    optional: true,
+  },
+  retDima: {
+    label: "RET DIMA",
+    width: 112,
+    align: "right",
+    costOnly: true,
+    optional: true,
   },
   totalSale: { label: "Venta total", width: 116, align: "right" },
   supplyMode: { label: "Modalidad", width: 128 },

@@ -16,6 +16,7 @@ import { blockPaste, typeProductCode } from "./grid-events";
 import { type GridFill, GridHeader } from "./grid-header";
 import { handleGridKeyDown } from "./grid-keyboard";
 import { groupSubtotal } from "./group-subtotal";
+import type { LineEditRights } from "./item-cell-context";
 import { isSelectColumn } from "./select-columns";
 import type { LinesAction, LinesState } from "./use-cv-lines-state";
 import type { LineDetailInfo } from "./use-lines-pricing";
@@ -34,7 +35,7 @@ type Props = {
   columns: ColumnKey[];
   options: CvGridOptions;
   canEdit: boolean;
-  canEditPostSale: boolean;
+  rights: LineEditRights;
   dispatch: Dispatch<LinesAction>;
   details: Map<string, LineDetailInfo>;
   onOpenDetail: (lineKey: string) => void;
@@ -53,7 +54,7 @@ export function CvLineGrid({
   columns,
   options,
   canEdit,
-  canEditPostSale,
+  rights,
   dispatch,
   details,
   onOpenDetail,
@@ -116,7 +117,7 @@ export function CvLineGrid({
         {...common}
         line={line}
         options={options}
-        canEditPostSale={canEditPostSale}
+        rights={rights}
         result={results.get(line.key) ?? { ok: false, issues: [] }}
         detailState={details.get(line.key)?.state ?? "empty"}
         onDetail={() => onOpenDetail(line.key)}

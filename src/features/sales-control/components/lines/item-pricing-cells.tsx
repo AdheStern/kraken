@@ -1,5 +1,5 @@
 // src/features/sales-control/components/lines/item-pricing-cells.tsx
-// Celdas de precio de una fila de ítem: costo, factor ↔ venta y totales en vivo.
+// Celdas de precio de una fila de ítem: costo, factor ↔ venta, totales en vivo y los montos GROSS UP y RET DIMA.
 // Escribir el factor fija el modo FACTOR; escribir la venta fija el modo PRECIO (AGENTS.md §2.2).
 "use client";
 
@@ -19,6 +19,7 @@ export function pricingCells({
   issue,
   priced,
   disabled,
+  withholdingsDisabled,
   onChange,
 }: ItemCellContext): Partial<Record<ColumnKey, ReactNode>> {
   const cost = line.unitCostUsd.trim();
@@ -84,6 +85,28 @@ export function pricingCells({
       />
     ),
     totalCost: <Amount value={priced?.totals.totalCostUsd.toFixed(2)} />,
+    grossUp: (
+      <NumberCell
+        row={row}
+        col={col("grossUp")}
+        label="GROSS UP USD"
+        value={line.grossUpUsd}
+        error={issue("grossUpUsd")}
+        disabled={withholdingsDisabled}
+        onValueChange={(grossUpUsd) => onChange({ grossUpUsd })}
+      />
+    ),
+    retDima: (
+      <NumberCell
+        row={row}
+        col={col("retDima")}
+        label="RET DIMA USD"
+        value={line.retDimaUsd}
+        error={issue("retDimaUsd")}
+        disabled={withholdingsDisabled}
+        onValueChange={(retDimaUsd) => onChange({ retDimaUsd })}
+      />
+    ),
     totalSale: <Amount value={priced?.totals.totalSaleUsd.toFixed(2)} strong />,
   };
 }

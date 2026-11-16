@@ -4,6 +4,12 @@ import type { PricedLine } from "../../line-pricing";
 import type { CvLineDraft } from "../../schemas/cv-lines-schema";
 import type { ColumnKey } from "./grid-columns";
 
+/** Qué se edita fuera del borrador: datos posventa de la versión aprobada y GROSS UP / RET DIMA (§2.3). */
+export type LineEditRights = {
+  canEditPostSale: boolean;
+  canEditWithholdings: boolean;
+};
+
 export type ItemCellContext = {
   line: CvLineDraft;
   row: number;
@@ -13,5 +19,7 @@ export type ItemCellContext = {
   disabled: boolean;
   // Observaciones, PO#, BC y activación: siguen editables en la versión aprobada (AGENTS.md §2.3).
   postSaleDisabled: boolean;
+  // GROSS UP y RET DIMA: los corrigen Administración y las gerencias en cualquier estado (AGENTS.md §2.3).
+  withholdingsDisabled: boolean;
   onChange: (patch: Partial<CvLineDraft>) => void;
 };

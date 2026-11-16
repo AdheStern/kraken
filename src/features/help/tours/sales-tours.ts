@@ -10,13 +10,13 @@ export const SALES_TOURS = {
         element: at("cv-filtros"),
         title: "Encuentra tus CV",
         description:
-          "Busca por número, cliente o título y filtra por estado. «/» te lleva al buscador.",
+          "Busca por número, cliente o título y filtra por estado, ciudad o área. «/» te lleva al buscador.",
       },
       {
         element: at("cv-lista"),
         title: "Tus Controles de Venta",
         description:
-          "Cada fila abre el editor. Solo ves los CV de tu rol: los tuyos, los de tu área o los aprobados.",
+          "Cada fila abre el editor; los encabezados con flecha ordenan y abajo eliges la página. Solo ves los CV de tu rol: los tuyos, los de tu área o los aprobados.",
       },
       {
         element: '[data-tour="nuevo-cv"]',

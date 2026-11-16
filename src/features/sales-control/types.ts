@@ -41,6 +41,19 @@ export type CvListRow = {
   sellers: { id: string; name: string; image: string | null }[];
 };
 
+// Página del listado: firstIndex y lastIndex cuentan desde 1 («26–50 de 132»).
+export type CvListPage = {
+  rows: CvListRow[];
+  total: number;
+  page: number;
+  pageCount: number;
+  pageSize: number;
+  firstIndex: number;
+  lastIndex: number;
+};
+
+export type CvListFilterOptions = { cities: Option[]; areas: Option[] };
+
 export type CvAttachmentView = {
   id: string;
   kind: "OC_CLIENTE" | "OTRO";

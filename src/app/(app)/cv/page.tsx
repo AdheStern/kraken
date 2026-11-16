@@ -1,5 +1,5 @@
 // src/app/(app)/cv/page.tsx
-// Listado de Control de Venta visible para el usuario, con búsqueda, filtro por estado y alta de CV.
+// Listado de Control de Venta visible para el usuario, con búsqueda, filtros, orden, paginación y alta de CV.
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -9,9 +9,9 @@ import { CvListFilters } from "@/features/sales-control/components/cv-list-filte
 import { CvListTable } from "@/features/sales-control/components/cv-list-table";
 import { NewCvDialog } from "@/features/sales-control/components/new-cv-dialog";
 import { getCvFormOptions } from "@/features/sales-control/queries/get-cv-form-options";
-import { listCvs } from "@/features/sales-control/queries/list-cvs";
-import type { CvVersionStatus } from "@/generated/prisma/enums";
-import { CvVersionStatus as Statuses } from "@/generated/prisma/enums";
+import { getCvListFilterOptions } from "@/features/sales-control/queries/get-cv-list-filter-options";
+import { listCvPage } from "@/features/sales-control/queries/list-cv-page";
+import { parseCvListParams } from "@/features/sales-control/schemas/cv-list-params";
 import { canCreateCv, canListCvs } from "@/server/authz/cv-permissions";
 import { requireUser } from "@/server/session";
 
@@ -30,8 +30,8 @@ export default function CvListPage({ searchParams }: PageProps<"/cv">) {
           </Suspense>
         }
       />
-      <Suspense fallback={<Skeleton className="h-9 w-full sm:w-[33rem]" />}>
-        <CvListFilters />
+      <Suspense fallback={<Skeleton className="h-9 w-full" />}>
+        <CvListFilterBar />
       </Suspense>
       <Suspense fallback={<Skeleton className="h-64 w-full rounded-xl" />}>
         <CvListResults searchParams={searchParams} />
@@ -47,20 +47,34 @@ async function NewCvAction() {
   return <NewCvDialog options={{ cities, customers }} />;
 }
 
+async function CvListFilterBar() {
+  const user = await requireUser();
+  if (!canListCvs(user)) return null;
+  return <CvListFilters options={await getCvListFilterOptions()} />;
+}
+
 async function CvListResults({
   searchParams,
 }: Pick<PageProps<"/cv">, "searchParams">) {
   const user = await requireUser();
   if (!canListCvs(user)) notFound();
-  const params = await searchParams;
-  const search = typeof params.q === "string" ? params.q : undefined;
-  const status = toStatus(params.estado);
-  const rows = await listCvs(user, { search, status });
-  return <CvListTable rows={rows} isFiltered={Boolean(search || status)} />;
-}
-
-function toStatus(value: unknown): CvVersionStatus | undefined {
-  return typeof value === "string" && value in Statuses
-    ? (value as CvVersionStatus)
-    : undefined;
+  const raw = await searchParams;
+  const params = parseCvListParams(raw);
+  const page = await listCvPage(user, params);
+  const query = new URLSearchParams(
+    Object.entries(raw).flatMap(([k, v]) =>
+      typeof v === "string" ? [[k, v]] : [],
+    ),
+  ).toString();
+  const isFiltered = Boolean(
+    params.search || params.status || params.cityId || params.areaId,
+  );
+  return (
+    <CvListTable
+      page={page}
+      sort={params.sort}
+      query={query}
+      isFiltered={isFiltered}
+    />
+  );
 }

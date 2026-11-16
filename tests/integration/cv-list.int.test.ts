@@ -1,12 +1,16 @@
 // tests/integration/cv-list.int.test.ts
 // Listado de CV: muestra las áreas de las líneas de la versión más reciente, sin repetir, y la foto y el nombre
-// de sus vendedores, y el costo total solo a quien ve costos de ese CV (AGENTS.md §2.1, §2.9 y regla 12).
+// de sus vendedores, y el costo total solo a quien ve costos de ese CV (AGENTS.md §2.1, §2.9 y regla 12); la
+// página ordena todo el alcance antes de cortar y filtra por área sin salir del alcance (regla 7).
 import { afterAll, describe, expect, it, vi } from "vitest";
+import { listCvPage } from "@/features/sales-control/queries/list-cv-page";
 import { listCvs } from "@/features/sales-control/queries/list-cvs";
+import { parseCvListParams } from "@/features/sales-control/schemas/cv-list-params";
 import {
   createCvFixture,
   createTestPrisma,
   createUserWithRoles,
+  createVersion,
 } from "./test-db";
 
 vi.mock("@/server/db", async () => {
@@ -88,5 +92,87 @@ describe("listCvs", () => {
     expect(await costFor(general)).toBe("382.81");
     expect(await costFor(seller)).toBe("382.81");
     expect(await costFor(presales)).toBeNull();
+  });
+});
+
+describe("listCvPage", () => {
+  async function threeCvs() {
+    const f = await createCvFixture(db);
+    await db.cvVersion.update({
+      where: { id: f.version.id },
+      data: { totalSaleUsd: "985.76" },
+    });
+    const ids = [f.cv.id];
+    for (const [number, sale] of [
+      [2, "10000.00"],
+      [3, "130.80"],
+    ] as const) {
+      const cv = await db.cv.create({
+        data: {
+          number,
+          cityId: f.city.id,
+          year: 2026,
+          code: `00${number}${f.city.code}-26`,
+          customerId: f.customer.id,
+          createdById: f.userId,
+        },
+      });
+      const version = await createVersion(db, cv.id, f.userId, 1);
+      await db.cvVersion.update({
+        where: { id: version.id },
+        data: { totalSaleUsd: sale },
+      });
+      ids.push(cv.id);
+    }
+    return { f, ids };
+  }
+
+  it("ordena por venta todo el alcance y corta la página pedida", async () => {
+    const { f, ids } = await threeCvs();
+    const viewer = await createUserWithRoles(db, "Gerencia", [
+      { code: "GERENTE_GENERAL" },
+    ]);
+    const params = parseCvListParams({
+      q: f.customer.name,
+      orden: "venta",
+      dir: "desc",
+      filas: "10",
+    });
+
+    const first = await listCvPage(viewer, params);
+    expect(first.rows.map((r) => r.id)).toEqual([ids[1], ids[0], ids[2]]);
+    expect(first).toMatchObject({ total: 3, page: 1, pageCount: 1 });
+
+    const beyond = await listCvPage(viewer, {
+      ...params,
+      page: 9,
+      pageSize: 2,
+    } as const);
+    expect(beyond).toMatchObject({ page: 2, pageCount: 2, firstIndex: 3 });
+    expect(beyond.rows.map((r) => r.id)).toEqual([ids[2]]);
+  });
+
+  it("filtra por área y no muestra CV fuera del alcance", async () => {
+    const { f, ids } = await threeCvs();
+    await db.cvLine.create({
+      data: {
+        versionId: f.version.id,
+        position: 1,
+        kind: "ITEM",
+        areaId: f.area.id,
+        description: "Línea",
+      },
+    });
+    const general = await createUserWithRoles(db, "Gerencia", [
+      { code: "GERENTE_GENERAL" },
+    ]);
+    const outsider = await createUserWithRoles(db, "Comercial", [
+      { code: "COMERCIAL" },
+    ]);
+    const params = parseCvListParams({ q: f.customer.name, area: f.area.id });
+
+    const page = await listCvPage(general, params);
+    expect(page.rows.map((r) => r.id)).toEqual([ids[0]]);
+    expect((await listCvPage(outsider, params)).total).toBe(0);
   });
 });

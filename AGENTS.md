@@ -125,7 +125,7 @@ Integración con ERP, contabilidad o facturación · migración de los CV de eje
 | Personas | Vendedor(es) (puede haber más de uno), preventa, postventa — referencias a usuarios |
 | Clasificación | Línea principal (tecnología), tipo de servicio, indicador de nueva tecnología |
 | Cliente | NIT, contacto, correo, teléfono, dirección, ciudad/país (del catálogo). El contacto se elige entre los registrados del cliente y prellena nombre, correo y teléfono, que quedan editables (decisión 2026-10-30), y la dirección: la de su sucursal activa o, si no tiene, la general del cliente, también editable; el NIT se muestra junto al cliente (decisión 2026-11-11) |
-| Cliente final | Mismos datos; por defecto igual al cliente; distinto cuando DIMA vende a través de un tercero |
+| Cliente final | Mismos datos; por defecto igual al cliente; distinto cuando DIMA vende a través de un tercero. Su contacto es el que **administra el soporte y las licencias**: por defecto enlazado (botón de cadena) al contacto del cliente; al romper la cadena se elige otro de los registrados del cliente final (o del cliente) o se escribe, y elegir otro cliente final la rompe sola (decisión 2026-11-16) |
 | Orden del cliente | N° OC, fecha OC, términos de pago, fecha de entrega, adjunto de la OC |
 | Notas | Notas aclaratorias |
 | Cambio | TC de costo, TC de venta, TC oficial de referencia |
@@ -583,7 +583,7 @@ Inicio de sesión (Entra ID) → inicio según rol: GG → tablero ejecutivo; ge
 | `C6`–`C9` | Fecha, vendedor(es), preventa, área(s) separadas por " / " |
 | `K5`–`K7` | Para servicios, línea principal, nueva tecnología (`SI`/`NO`); las etiquetas están en `I5`–`I7` |
 | `C10`–`C16` | Cliente, NIT, contacto, correo, teléfono, dirección, ciudad/país |
-| `J11`–`J17` | Cliente final |
+| `J11`–`J17` | Cliente final con el contacto de soporte y licencias (el del cliente si está enlazado) |
 | `C17`–`C21` | OC, fecha OC, términos de pago, fecha de entrega, notas |
 | Fila 23 | Encabezados de la plantilla; la columna `D` (BC) se insertó junto a la línea del producto (decisión 2026-11-10) |
 | Fila 24 en adelante | Ítem, proveedor, línea, BC, código, descripción, cantidad, costo unitario y total, venta unitaria y total, TC de venta, venta unitaria y total en Bs, observaciones/rango de activación/seriales, PO#. Primero las líneas sin lote; cada lote con una fila de nombre y subtotal (`SUM`); las notas en `F` sin número de ítem; un subítem lleva `1.1` como texto en `A`. Una fila con color lleva su relleno de `A` a `P`. |

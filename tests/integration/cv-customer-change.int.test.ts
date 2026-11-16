@@ -1,6 +1,7 @@
 // tests/integration/cv-customer-change.int.test.ts
 // Cambio del cliente de un CV (§2.3, decisión 2026-11-12): pasan el CV, el snapshot de todas sus versiones y sus
-// bolsas; el contacto se limpia; se audita con el motivo; se rechaza si una bolsa ya la usa un ticket.
+// bolsas; el contacto se limpia, también el de soporte y licencias si no había otro cliente final (decisión
+// 2026-11-16); se audita con el motivo; se rechaza si una bolsa ya la usa un ticket.
 import { afterAll, describe, expect, it } from "vitest";
 import { changeCvCustomerInTx } from "@/server/sales-control/change-cv-customer";
 import {
@@ -92,6 +93,34 @@ describe("changeCvCustomerInTx", () => {
       customerId: target.id,
       reason: "Se cargó en el cliente equivocado",
     });
+  });
+
+  it("sin otro cliente final, el contacto de soporte vuelve a quedar enlazado", async () => {
+    const f = await createHourBagFixture(db);
+    const support = { ...oldParty, contactName: "Alejandra Vargas" };
+    await db.cvVersion.update({
+      where: { id: f.version.id },
+      data: {
+        endCustomerId: null,
+        customerSnapshot: { customer: oldParty, endCustomer: support },
+      },
+    });
+    const target = await newCustomer();
+
+    await db.$transaction((tx) =>
+      changeCvCustomerInTx(tx, {
+        cvId: f.cv.id,
+        customerId: target.id,
+        reason: "Corrección",
+        actorId: f.userId,
+      }),
+    );
+
+    const version = await db.cvVersion.findUniqueOrThrow({
+      where: { id: f.version.id },
+    });
+    expect(version.endCustomerId).toBeNull();
+    expect(version.customerSnapshot).toMatchObject({ endCustomer: null });
   });
 
   it("conserva un cliente final distinto del cliente", async () => {

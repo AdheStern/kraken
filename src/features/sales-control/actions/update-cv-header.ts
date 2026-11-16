@@ -14,10 +14,11 @@ import { lockVersion } from "@/server/sales-control/approvers";
 import { loadCvAccess } from "@/server/sales-control/cv-access";
 import { saveCvHeader } from "@/server/sales-control/save-cv-header";
 import { getSessionUser } from "@/server/session";
-import { toCustomerParty } from "../customer-snapshot";
+import { toCustomerSnapshot } from "../customer-snapshot";
 import {
   type CvHeaderInput,
   cvHeaderSchema,
+  toHeaderContacts,
 } from "../schemas/cv-header-schema";
 
 const orNull = (value: string) => (value === "" ? null : value);
@@ -73,12 +74,6 @@ export async function updateCvHeader(
       const endCustomer = data.endCustomerId
         ? await tx.customer.findUnique({ where: { id: data.endCustomerId } })
         : null;
-      const contact = {
-        name: data.contactName,
-        email: data.contactEmail,
-        phone: data.contactPhone,
-        address: data.contactAddress,
-      };
       await saveCvHeader(tx, {
         versionId: data.versionId,
         cvId: version.cvId,
@@ -97,10 +92,11 @@ export async function updateCvHeader(
           serviceTypeId: data.serviceTypeId,
           isNewTechnology: data.isNewTechnology,
           endCustomerId: endCustomer?.id ?? null,
-          customerSnapshot: {
-            customer: toCustomerParty(version.cv.customer, contact),
-            endCustomer: endCustomer ? toCustomerParty(endCustomer) : null,
-          },
+          customerSnapshot: toCustomerSnapshot({
+            customer: version.cv.customer,
+            endCustomer,
+            ...toHeaderContacts(data),
+          }),
           customerPoNumber: orNull(data.customerPoNumber),
           customerPoDate: dateOrNull(data.customerPoDate),
           paymentTerms: orNull(data.paymentTerms),

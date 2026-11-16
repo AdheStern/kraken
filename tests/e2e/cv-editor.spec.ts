@@ -1,6 +1,6 @@
 // tests/e2e/cv-editor.spec.ts
 // Editor del CV (AGENTS.md §2.1): el contacto de la cabecera se elige entre los registrados del cliente y
-// prellena sus datos; las observaciones de una línea admiten varias líneas (Alt+Enter, como en Excel) y la
+// prellena sus datos y el de soporte y licencias va enlazado hasta romper la cadena (decisión 2026-11-16); las observaciones de una línea admiten varias líneas (Alt+Enter, como en Excel) y la
 // fila se colorea con la paleta de Excel; la descripción crece con el texto; una línea pasa a subítem de la anterior
 // y se numera 1.1.
 import { expect, type Page, test } from "@playwright/test";
@@ -43,6 +43,27 @@ test("el contacto se elige del cliente y las observaciones son texto largo", asy
   await page.reload();
   await expect(page.locator("#cv-contact")).toHaveValue(/Lucía Mamani/);
   await expect(page.locator("#cv-contact-phone")).toHaveValue("+591 2 2440011");
+
+  const chain = page.getByTestId("cv-end-contact-chain");
+  await expect(chain).toHaveAttribute("aria-pressed", "false");
+  await expect(
+    page.getByText("Mismo contacto del cliente: Lucía Mamani (demo)."),
+  ).toBeVisible();
+  await chain.click();
+  await pick(page, "cv-end-contact", "Jorge Quispe");
+  await expect(page.locator("#cv-endContactEmail")).toHaveValue(
+    "jorge.quispe@bancoandino.demo",
+  );
+  await page.getByRole("button", { name: "Guardar cabecera" }).click();
+  await expect(page.getByText("Cabecera guardada.")).toBeVisible();
+  await page.reload();
+  await expect(chain).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("#cv-endContactName")).toHaveValue(
+    "Jorge Quispe (demo)",
+  );
+  await expect(page.locator("#cv-contact-name")).toHaveValue(
+    "Lucía Mamani (demo)",
+  );
 
   await page.getByRole("button", { name: "Línea", exact: true }).click();
   const notes = page.getByRole("textbox", { name: "Observaciones" });

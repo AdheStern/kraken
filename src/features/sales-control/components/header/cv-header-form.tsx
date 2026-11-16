@@ -15,6 +15,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { updateCvHeader } from "../../actions/update-cv-header";
+import { isEndContactLinked } from "../../customer-snapshot";
 import {
   type CvHeaderInput,
   cvHeaderSchema,
@@ -25,6 +26,8 @@ import type {
   CvFormOptions,
 } from "../../types";
 import { HeaderCommercial } from "./header-commercial";
+import { HeaderCustomer } from "./header-customer";
+import { HeaderEndCustomer } from "./header-end-customer";
 import { HeaderGeneral } from "./header-general";
 
 type Props = {
@@ -94,17 +97,27 @@ export function CvHeaderForm({
           className="grid gap-6 border-t px-5 py-5"
         >
           <HeaderGeneral form={form} options={options} disabled={!canEdit} />
-          <HeaderCommercial
+          <HeaderCustomer
             form={form}
-            options={options}
             contacts={contacts}
             disabled={!canEdit}
-            fxLocked={fxLocked}
             customer={{
               name: header.customerName,
               taxId: header.customerTaxId,
               address: header.customerAddress,
             }}
+          />
+          <HeaderEndCustomer
+            form={form}
+            customers={options.customers}
+            contacts={contacts}
+            disabled={!canEdit}
+            customerId={header.customerId}
+          />
+          <HeaderCommercial
+            form={form}
+            disabled={!canEdit}
+            fxLocked={fxLocked}
             officialFxRate={header.officialFxRate}
             maxFxDeviationPct={maxFxDeviationPct}
           />
@@ -139,6 +152,8 @@ export function CvHeaderForm({
 
 function toFormValues(header: CvEditorHeader): CvHeaderInput {
   const contact = header.snapshot?.customer;
+  const isLinked = isEndContactLinked(header.snapshot);
+  const end = isLinked ? null : header.snapshot?.endCustomer;
   return {
     versionId: header.versionId,
     title: header.title,
@@ -154,6 +169,11 @@ function toFormValues(header: CvEditorHeader): CvHeaderInput {
     contactPhone: contact?.phone ?? "",
     contactAddress: contact?.address ?? header.customerAddress,
     endCustomerId: header.endCustomerId,
+    endContactLinked: isLinked,
+    endContactName: end?.contactName ?? "",
+    endContactEmail: end?.email ?? "",
+    endContactPhone: end?.phone ?? "",
+    endContactAddress: end?.address ?? "",
     customerPoNumber: header.customerPoNumber,
     customerPoDate: header.customerPoDate,
     paymentTerms: header.paymentTerms,

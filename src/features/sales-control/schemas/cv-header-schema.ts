@@ -1,6 +1,6 @@
 // src/features/sales-control/schemas/cv-header-schema.ts
 // Cabecera editable de una versión en BORRADOR (AGENTS.md §2.1): personas, clasificación, cliente
-// final, orden del cliente, notas y tipos de cambio.
+// final con su contacto de soporte y licencias, orden del cliente, notas y tipos de cambio.
 import { z } from "zod";
 import { fxRateField, optionalDate, optionalId, optionalText } from "./fields";
 
@@ -23,6 +23,15 @@ export const cvHeaderSchema = z.object({
   contactPhone: optionalText(40),
   contactAddress: optionalText(300),
   endCustomerId: optionalId,
+  // REGLA: enlazado, el contacto de soporte y licencias es el del cliente (decisión 2026-11-16).
+  endContactLinked: z.boolean(),
+  endContactName: optionalText(120),
+  endContactEmail: z.union([
+    z.email("Escribe un correo válido."),
+    z.literal(""),
+  ]),
+  endContactPhone: optionalText(40),
+  endContactAddress: optionalText(300),
   customerPoNumber: optionalText(60),
   customerPoDate: optionalDate,
   paymentTerms: optionalText(160),
@@ -33,3 +42,23 @@ export const cvHeaderSchema = z.object({
 });
 
 export type CvHeaderInput = z.infer<typeof cvHeaderSchema>;
+
+// Contacto del cliente y, si la cadena está rota, el de soporte y licencias (null = enlazado).
+export function toHeaderContacts(data: CvHeaderInput) {
+  return {
+    contact: {
+      name: data.contactName,
+      email: data.contactEmail,
+      phone: data.contactPhone,
+      address: data.contactAddress,
+    },
+    endContact: data.endContactLinked
+      ? null
+      : {
+          name: data.endContactName,
+          email: data.endContactEmail,
+          phone: data.endContactPhone,
+          address: data.endContactAddress,
+        },
+  };
+}

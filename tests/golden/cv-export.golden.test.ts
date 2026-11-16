@@ -47,7 +47,11 @@ const DATA: CvExportData = {
   mainTechnology: "Cisco",
   isNewTechnology: false,
   customer: party,
-  endCustomer: { ...party, name: "Cliente Final S.R.L." },
+  endCustomer: {
+    ...party,
+    name: "Cliente Final S.R.L.",
+    contact: "Alejandra Vargas",
+  },
   customerPoNumber: "OC-4521",
   customerPoDate: new Date("2026-10-10T00:00:00Z"),
   paymentTerms: "50% a la firma, 50% contra entrega",
@@ -161,6 +165,9 @@ describe("exportación del CV a PA-PR-03-RE-01", async () => {
     expect(cells.C9).toBe("DIMANET / DIMATEL");
     expect(cells.E5).toBe("Renovación de red");
     expect(cells.J11).toBe("Cliente Final S.R.L.");
+    // REGLA: el contacto de soporte y licencias puede ser otro que el del cliente (decisión 2026-11-16).
+    expect(cells.J13).toBe("Alejandra Vargas");
+    expect(cells.C12).not.toBe("Alejandra Vargas");
     expect(cells.C18).toBe("2026-10-10");
   });
 

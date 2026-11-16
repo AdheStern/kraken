@@ -1,15 +1,16 @@
 // src/features/sales-control/components/header/header-customer.tsx
 // Sección Cliente de la cabecera del CV: cliente con su NIT; el contacto se elige entre los registrados del cliente y
-// prellena nombre, correo, teléfono y dirección (la de su sucursal o la general), que quedan editables; y el cliente
-// final (AGENTS.md §2.1, decisión 2026-11-11).
+// prellena nombre, correo, teléfono y dirección (la de su sucursal o la general), que quedan editables (AGENTS.md
+// §2.1, decisión 2026-11-11). El cliente final va en «Soporte y licencias» (header-end-customer.tsx).
 "use client";
 
-import { Controller, type UseFormReturn, useWatch } from "react-hook-form";
+import { type UseFormReturn, useWatch } from "react-hook-form";
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { FormField } from "@/components/forms/form-field";
 import { Input } from "@/components/ui/input";
 import type { CvHeaderInput } from "../../schemas/cv-header-schema";
-import type { CvContactOption, Option } from "../../types";
+import type { CvContactOption } from "../../types";
+import { toContactValues } from "./contact-values";
 import { HeaderSection } from "./header-section";
 
 export type HeaderCustomerInfo = {
@@ -21,19 +22,12 @@ export type HeaderCustomerInfo = {
 
 type Props = {
   form: UseFormReturn<CvHeaderInput>;
-  customers: Option[];
   contacts: CvContactOption[];
   disabled: boolean;
   customer: HeaderCustomerInfo;
 };
 
-export function HeaderCustomer({
-  form,
-  customers,
-  contacts,
-  disabled,
-  customer,
-}: Props) {
+export function HeaderCustomer({ form, contacts, disabled, customer }: Props) {
   const { errors } = form.formState;
   const { control, register, setValue } = form;
   const contactName = useWatch({ control, name: "contactName" });
@@ -41,12 +35,15 @@ export function HeaderCustomer({
   const chosen = contacts.find((c) => c.name === contactName.trim()) ?? null;
 
   function pickContact(contactId: string | null) {
-    const contact = contacts.find((c) => c.id === contactId);
+    const values = toContactValues(
+      contacts.find((c) => c.id === contactId),
+      customer.address,
+    );
     const dirty = { shouldDirty: true };
-    setValue("contactName", contact?.name ?? "", dirty);
-    setValue("contactEmail", contact?.email ?? "", dirty);
-    setValue("contactPhone", contact?.phone ?? "", dirty);
-    setValue("contactAddress", contact?.address || customer.address, dirty);
+    setValue("contactName", values.name, dirty);
+    setValue("contactEmail", values.email, dirty);
+    setValue("contactPhone", values.phone, dirty);
+    setValue("contactAddress", values.address, dirty);
   }
 
   return (
@@ -132,27 +129,6 @@ export function HeaderCustomer({
           id="cv-contact-address"
           disabled={disabled}
           {...register("contactAddress")}
-        />
-      </FormField>
-      <FormField
-        label="Cliente final"
-        htmlFor="cv-end-customer"
-        hint="Solo si DIMA vende a través de un tercero."
-        className="sm:col-span-2 lg:col-span-3"
-      >
-        <Controller
-          control={control}
-          name="endCustomerId"
-          render={({ field }) => (
-            <CatalogCombobox
-              id="cv-end-customer"
-              options={customers}
-              value={field.value}
-              onChange={field.onChange}
-              disabled={disabled}
-              placeholder="Igual al cliente"
-            />
-          )}
         />
       </FormField>
     </HeaderSection>

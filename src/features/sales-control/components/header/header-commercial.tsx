@@ -1,5 +1,5 @@
 // src/features/sales-control/components/header/header-commercial.tsx
-// Secciones Cliente, Orden del cliente, Cambio y Notas de la cabecera del CV.
+// Secciones Orden del cliente, Cambio y Notas de la cabecera del CV.
 "use client";
 
 import Decimal from "decimal.js";
@@ -11,29 +11,21 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { isFxRateDeviating } from "@/domain/pricing/fx-deviation";
 import type { CvHeaderInput } from "../../schemas/cv-header-schema";
-import type { CvContactOption, CvFormOptions } from "../../types";
-import { HeaderCustomer, type HeaderCustomerInfo } from "./header-customer";
 import { HeaderSection } from "./header-section";
 
 type Props = {
   form: UseFormReturn<CvHeaderInput>;
-  options: CvFormOptions;
-  contacts: CvContactOption[];
   disabled: boolean;
   // REGLA: fuera del borrador del comercial los TC se ven pero no cambian (§2.3).
   fxLocked: boolean;
-  customer: HeaderCustomerInfo;
   officialFxRate: string | null;
   maxFxDeviationPct: string;
 };
 
 export function HeaderCommercial({
   form,
-  options,
-  contacts,
   disabled,
   fxLocked,
-  customer,
   officialFxRate,
   maxFxDeviationPct,
 }: Props) {
@@ -52,14 +44,6 @@ export function HeaderCommercial({
 
   return (
     <>
-      <HeaderCustomer
-        form={form}
-        customers={options.customers}
-        contacts={contacts}
-        disabled={disabled}
-        customer={customer}
-      />
-
       <HeaderSection title="Orden del cliente">
         <FormField
           label="N° de OC"

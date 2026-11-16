@@ -89,7 +89,8 @@ type CatalogCustomer = NonNullable<
 >;
 
 // POR QUÉ: el contacto y la dirección eran del cliente anterior; se vuelven a los del cliente nuevo y el contacto
-// queda por elegir. El cliente final cambia solo si era el mismo cliente.
+// queda por elegir. El cliente final cambia solo si era el mismo cliente; si no había otro cliente final, el contacto
+// de soporte y licencias era del cliente anterior y vuelve a quedar enlazado (decisión 2026-11-16).
 async function rewriteVersions(
   tx: Tx,
   cvId: string,
@@ -125,7 +126,11 @@ async function rewriteVersions(
         customerSnapshot: {
           ...snapshot,
           customer: party,
-          endCustomer: sameEnd ? party : (snapshot.endCustomer ?? null),
+          endCustomer: sameEnd
+            ? party
+            : version.endCustomerId
+              ? (snapshot.endCustomer ?? null)
+              : null,
         },
       },
     });

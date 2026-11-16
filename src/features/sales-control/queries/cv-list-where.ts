@@ -22,7 +22,8 @@ export function cvListWhere(
       filters.search ? matchesSearch(filters.search) : {},
       filters.status ? { versions: { some: { status: filters.status } } } : {},
       filters.cityId ? { cityId: filters.cityId } : {},
-      // LIMITACIÓN: como el estado, el área se busca en cualquier versión del CV, no solo en la última.
+      // POR QUÉ: Prisma no filtra por la última versión; estado y área acotan aquí por cualquier versión y
+      // quien llama se queda con los CV cuya última versión cumple (decisión 2026-11-16).
       filters.areaId
         ? {
             versions: {

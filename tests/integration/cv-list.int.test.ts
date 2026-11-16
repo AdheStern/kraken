@@ -175,4 +175,41 @@ describe("listCvPage", () => {
     expect(page.rows.map((r) => r.id)).toEqual([ids[0]]);
     expect((await listCvPage(outsider, params)).total).toBe(0);
   });
+
+  it("estado y área se filtran por la última versión", async () => {
+    const f = await createCvFixture(db);
+    await db.cvLine.create({
+      data: {
+        versionId: f.version.id,
+        position: 1,
+        kind: "ITEM",
+        areaId: f.area.id,
+        description: "Solo en la v1",
+      },
+    });
+    await db.cvVersion.update({
+      where: { id: f.version.id },
+      data: { status: "REEMPLAZADA" },
+    });
+    const v2 = await createVersion(db, f.cv.id, f.userId, 2);
+    await db.cvVersion.update({
+      where: { id: v2.id },
+      data: { status: "APROBADA" },
+    });
+    const general = await createUserWithRoles(db, "Gerencia", [
+      { code: "GERENTE_GENERAL" },
+    ]);
+    const ids = async (raw: Record<string, string>) =>
+      (
+        await listCvPage(general, parseCvListParams({ q: f.cv.code, ...raw }))
+      ).rows.map((r) => r.id);
+
+    expect(await ids({ estado: "APROBADA" })).toEqual([f.cv.id]);
+    expect(await ids({ estado: "REEMPLAZADA" })).toEqual([]);
+    expect(await ids({ area: f.area.id })).toEqual([]);
+    expect(
+      (await listCvs(general, { search: f.cv.code, status: "REEMPLAZADA" }))
+        .length,
+    ).toBe(0);
+  });
 });

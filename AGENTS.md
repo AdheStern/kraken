@@ -556,7 +556,7 @@ Código y carpetas en inglés; interfaz, catálogos y tablas en español.
 
 ### Navegación
 Inicio de sesión (Entra ID) → inicio según rol: GG → tablero ejecutivo; gerente de área → tablero de su área; comercial → sus CV y pipeline; ingeniero → sus tickets con el contador; almacén → POS.
-- **Control de Venta:** listado → editor → historial y comparador; bandeja de aprobaciones.
+- **Control de Venta:** listado → editor → historial y comparador; bandeja de aprobaciones. El listado es paginado (10, 25, 50 o 100 por página), se ordena por código, título, cliente, estado, venta o actualización (nunca por costo, regla 12) y filtra por estado, ciudad y área de la **última versión** de cada CV; todo vive en la URL (decisión 2026-11-16).
 - **Horas y tickets:** kanban → detalle del ticket → bolsas del cliente → libro de la bolsa; proyectos.
 - **Inventario:** stock por almacén → kardex; traspasos; POS interno.
 - **Documentación:** proyectos → cabecera y una carpeta por fase con sus documentos.

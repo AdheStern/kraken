@@ -1,6 +1,7 @@
 // src/features/sales-control/queries/list-cv-page.ts
 // Una página del listado de CV visibles para el usuario, ordenada por la columna elegida (AGENTS.md §2.9,
-// regla 7). Primero ordena las claves de todos los CV del alcance y después carga solo las filas de la página.
+// regla 7). Primero filtra y ordena las claves de todos los CV del alcance por su última versión y después
+// carga solo las filas de la página.
 import { sortCvList, toPageWindow } from "@/domain/sales-control/cv-list-order";
 import type { SessionUser } from "@/server/authz/roles";
 import { prisma } from "@/server/db";
@@ -32,12 +33,22 @@ export async function listCvPage(
           status: true,
           totalSaleUsd: true,
           updatedAt: true,
+          lines: params.areaId
+            ? {
+                where: { kind: "ITEM", areaId: params.areaId },
+                take: 1,
+                select: { id: true },
+              }
+            : false,
         },
       },
     },
   });
+  // REGLA: estado y área se filtran por la última versión del CV (decisión 2026-11-16, AGENTS.md §5).
   const facts = keys.flatMap(({ versions: [latest], ...cv }) =>
-    latest
+    latest &&
+    (!params.status || latest.status === params.status) &&
+    (!params.areaId || latest.lines.length > 0)
       ? [
           {
             id: cv.id,

@@ -10,13 +10,17 @@ export type { CvListFilters } from "./cv-list-where";
 
 const LIMIT = 100;
 
-export function listCvs(
+// LIMITACIÓN: no filtra por área (el Inicio no lo usa); el estado es el de la última versión.
+export async function listCvs(
   user: SessionUser,
-  filters: CvListFilters,
+  filters: Omit<CvListFilters, "areaId">,
 ): Promise<CvListRow[]> {
-  return loadCvListRows(user, {
+  const rows = await loadCvListRows(user, {
     where: cvListWhere(user, filters),
     orderBy: { createdAt: "desc" },
     take: LIMIT,
   });
+  return filters.status
+    ? rows.filter((row) => row.status === filters.status)
+    : rows;
 }

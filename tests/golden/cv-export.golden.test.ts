@@ -25,6 +25,8 @@ const item = (overrides: Partial<CvExportItem>): CvExportItem => ({
   supplier: "INGRAM",
   technology: "Cisco",
   bc: "",
+  grossUpUsd: "",
+  retDimaUsd: "",
   code: "",
   description: "",
   quantity: "1",
@@ -71,6 +73,8 @@ const DATA: CvExportData = {
           observations: "S/N: FOC1, FOC2",
           poNumber: "PO-1",
           bc: "BC-ADM",
+          grossUpUsd: "74.15",
+          retDimaUsd: "593.18",
           color: "FFC000",
         }),
         item({
@@ -164,25 +168,25 @@ describe("exportación del CV a PA-PR-03-RE-01", async () => {
     expect(cells.C7).toBe("Ana Comercial / Bruno Comercial");
     expect(cells.C9).toBe("DIMANET / DIMATEL");
     expect(cells.E5).toBe("Renovación de red");
-    expect(cells.J11).toBe("Cliente Final S.R.L.");
+    expect(cells.L11).toBe("Cliente Final S.R.L.");
     // REGLA: el contacto de soporte y licencias puede ser otro que el del cliente (decisión 2026-11-16).
-    expect(cells.J13).toBe("Alejandra Vargas");
+    expect(cells.L13).toBe("Alejandra Vargas");
     expect(cells.C12).not.toBe("Alejandra Vargas");
     expect(cells.C18).toBe("2026-10-10");
   });
 
-  it("K1 a K3 son el código, la fecha y la revisión del formulario, no del CV", () => {
-    expect(cells.K1?.trim()).toBe("Código: PA-PR-03-RE-01");
-    expect(cells.K2).toBe("Fecha: 04/04/2021");
-    expect(cells.K3).toBe("Revisión: 0");
+  it("M1 a M3 son el código, la fecha y la revisión del formulario, no del CV", () => {
+    expect(cells.M1?.trim()).toBe("Código: PA-PR-03-RE-01");
+    expect(cells.M2).toBe("Fecha: 04/04/2021");
+    expect(cells.M3).toBe("Revisión: 0");
   });
 
   it("líneas con fórmulas redondeadas; subítem 1.1; lote con subtotal; nota sin importe", () => {
     expect(cells.D23).toBe("BC");
     expect(cells.D24).toBe("BC-ADM");
-    expect(cells.P24).toBe("PO-1");
+    expect(cells.R24).toBe("PO-1");
     expect(cells.I24).toBe("=ROUND(H24*G24,2)");
-    expect(cells.N24).toBe("=ROUND(K24*L24,2)");
+    expect(cells.P24).toBe("=ROUND(M24*N24,2)");
     expect(cells.F27).toBe("Initial Term - 36 Months");
     expect(cells.A27).toBeUndefined();
     expect(cells.F28).toBe("LOTE 1");
@@ -194,10 +198,28 @@ describe("exportación del CV a PA-PR-03-RE-01", async () => {
 
   it("totales solo de ítems, factor global sobre líneas con costo y Bs por línea", () => {
     expect(cells.I31).toBe('=SUMIF(A24:A30,"<>",I24:I30)');
-    expect(cells.P31).toContain('SUMIFS(K24:K30,A24:A30,"<>",I24:I30,">0")');
+    expect(cells.R31).toContain('SUMIFS(M24:M30,A24:A30,"<>",I24:I30,">0")');
     expect(cells.I32).toBe('=SUMPRODUCT((A24:A30<>"")*ROUND(I24:I30*6.97,2))');
     expect(cells.I22).toBe("=I31");
-    expect(cells.K22).toBe("=K31");
+    expect(cells.M22).toBe("=M31");
+  });
+
+  it("GROSS UP y RET DIMA en J y K, con la cabecera en amarillo, montos y totales (decisión 2026-11-16)", () => {
+    const fill = (address: string) => {
+      const value = sheet.getCell(address).fill;
+      return value?.type === "pattern" ? value.fgColor?.argb : undefined;
+    };
+    expect(cells.J23).toBe("GROSS UP");
+    expect(cells.K23).toBe("RET DIMA");
+    expect(fill("J23")).toBe("FFFFFF00");
+    expect(fill("K23")).toBe("FFFFFF00");
+    expect(fill("I23")).not.toBe("FFFFFF00");
+    expect(cells.J24).toBe("74.15");
+    expect(cells.K24).toBe("593.18");
+    expect(cells.J25).toBeUndefined();
+    expect(cells.J28).toBe("=SUM(J29:J30)");
+    expect(cells.J31).toBe('=SUMIF(A24:A30,"<>",J24:J30)');
+    expect(cells.K31).toBe('=SUMIF(A24:A30,"<>",K24:K30)');
   });
 
   it("bloque de leasing desplazado con una fila extra y su total", () => {
@@ -210,14 +232,14 @@ describe("exportación del CV a PA-PR-03-RE-01", async () => {
     expect(cells.I41).toBe("=SUM(I37:I40)");
   });
 
-  it("las filas con color llevan su relleno de A a P; las demás conservan el de la plantilla", () => {
+  it("las filas con color llevan su relleno de A a R; las demás conservan el de la plantilla", () => {
     const fill = (address: string) => {
       const value = sheet.getCell(address).fill;
       return value?.type === "pattern" ? value.fgColor?.argb : undefined;
     };
     expect(fill("A24")).toBe("FFFFC000");
-    expect(fill("P24")).toBe("FFFFC000");
-    expect(fill("Q24")).toBeUndefined();
+    expect(fill("R24")).toBe("FFFFC000");
+    expect(fill("S24")).toBeUndefined();
     // TRAMPA: las filas copiadas de la 24 no deben heredar el color (estilo compartido de duplicateRow).
     expect(fill("A25")).not.toBe("FFFFC000");
     expect(fill("F27")).toBe("FFDDEBF7");

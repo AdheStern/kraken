@@ -23,6 +23,9 @@ export type CvExportItem = {
   description: string;
   quantity: string;
   unitCostUsd: string;
+  /** GROSS UP y RET DIMA de la línea; "" = sin dato (AGENTS.md §2.1). */
+  grossUpUsd: string;
+  retDimaUsd: string;
   unitSaleUsd: string;
   observations: string;
   poNumber: string;

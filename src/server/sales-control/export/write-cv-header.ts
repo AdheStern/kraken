@@ -23,16 +23,16 @@ export function writeCvHeader(ws: Worksheet, data: CvExportData): void {
   };
   put("C5", data.versionLabel);
   put("E5", data.title);
-  put("K5", data.serviceType);
-  put("K6", data.mainTechnology);
-  put("K7", data.isNewTechnology ? "SI" : "NO");
+  put("M5", data.serviceType);
+  put("M6", data.mainTechnology);
+  put("M7", data.isNewTechnology ? "SI" : "NO");
   put("C6", data.issuedOn);
   put("C7", data.sellers.join(" / "));
   put("C8", data.presales);
   put("C9", data.areas.join(" / "));
   PARTY_FIELDS.forEach((field, index) => {
     put(`C${10 + index}`, data.customer[field]);
-    put(`J${11 + index}`, data.endCustomer[field]);
+    put(`L${11 + index}`, data.endCustomer[field]);
   });
   put("C17", data.customerPoNumber);
   put("C18", data.customerPoDate);

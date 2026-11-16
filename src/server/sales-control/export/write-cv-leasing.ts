@@ -34,8 +34,8 @@ export function writeCvLeasing(
       G: toExcelNumber(line.quantity),
       H: toExcelNumber(line.unitCostUsd),
       I: formula(`ROUND(H${r}*G${r},2)`),
-      J: line.notes,
-      P: line.poNumber,
+      L: line.notes,
+      R: line.poNumber,
     });
   });
   writeCells(ws.getRow(last + 1), { I: formula(`SUM(I${first}:I${last})`) });

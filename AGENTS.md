@@ -148,7 +148,7 @@ Los datos de cliente y cliente final se copian en cada versión (snapshot).
 | Rango de activación | Solo si el tipo es `INTANGIBLE` (licencias): inicio y fin en que se activarán, opcional. Es distinto de la vigencia (cuánto dura). Va antes de Observaciones; al cambiar de tipo se borra. En el Excel, renglón «Activación: dd/mm/aaaa – dd/mm/aaaa» de Observaciones (decisión 2026-10-30). |
 | PO#, observaciones | Orden de compra al proveedor, notas técnicas. Las observaciones admiten varias líneas (Alt+Enter, como en Excel). El PO# va al final de la grilla. |
 | BC | Texto corto (hasta 120 caracteres) que completa Administración; dato posventa como el PO# (§2.3). Va junto a la tecnología, en la grilla y en el Excel. BC, GROSS UP, RET DIMA, Seriales y PO# son **columnas opcionales**: ocultas hasta marcarlas en «Columnas opcionales» (se recuerda en el navegador) o mientras alguna línea tenga dato (decisión 2026-11-10). |
-| GROSS UP, RET DIMA | Montos en USD por línea (`NUMERIC(18,2)`, 0 o más, opcionales), escritos a mano; no tocan costo, venta, factor ni margen. Son dato de costo (regla 12). Van tras el costo total en la grilla; la tarjeta de totales muestra su suma mientras su columna se vea (decisión 2026-11-16). |
+| GROSS UP, RET DIMA | Montos en USD por línea (`NUMERIC(18,2)`, 0 o más, opcionales), escritos a mano; no tocan costo, venta, factor ni margen. Son dato de costo (regla 12). Van tras el costo total en la grilla y en el Excel, que los trae siempre con la cabecera en amarillo; la tarjeta de totales muestra su suma mientras su columna se vea (decisión 2026-11-16). |
 | Línea de nota | `kind = NOTA`, sin importe ("Initial Term - 36 Months…"). Se exporta como fila de texto. |
 | Subítem | Opcional: una línea de ítem cuelga de la línea principal anterior de su lote y se numera `1.1`, `1.2` (la principal sigue `1`, `2`). Cada una tiene su precio y todas suman al total; el número se deriva del orden, no se guarda (decisión 2026-10-30). |
 | Color de fila | Opcional, en ítems y notas: un color de la paleta de relleno de Excel (tema con sus variaciones y estándar) o uno libre, como `RRGGBB`. Solo resalta: no cambia montos ni aprobaciones. Viaja a las versiones nuevas y al Excel como relleno de la fila (decisión 2026-10-30). |
@@ -581,19 +581,19 @@ Inicio de sesión (Entra ID) → inicio según rol: GG → tablero ejecutivo; ge
 ### Exportación a Excel (plantilla `PA-PR-03-RE-01`, hoja "CONTROL DE VENTAS V2")
 | Celda(s) | Contenido |
 |---|---|
-| `K1`, `K2`, `K3` | Código `PA-PR-03-RE-01`, fecha y revisión **del formulario** (vienen de la plantilla, no se escriben) |
+| `M1`, `M2`, `M3` | Código `PA-PR-03-RE-01`, fecha y revisión **del formulario** (vienen de la plantilla, no se escriben) |
 | `C5` · `E5` | Número (con versión si es mayor a 1) · título |
 | `C6`–`C9` | Fecha, vendedor(es), preventa, área(s) separadas por " / " |
-| `K5`–`K7` | Para servicios, línea principal, nueva tecnología (`SI`/`NO`); las etiquetas están en `I5`–`I7` |
+| `M5`–`M7` | Para servicios, línea principal, nueva tecnología (`SI`/`NO`); las etiquetas están en `I5`–`I7` |
 | `C10`–`C16` | Cliente, NIT, contacto, correo, teléfono, dirección, ciudad/país |
-| `J11`–`J17` | Cliente final con el contacto de soporte y licencias (el del cliente si está enlazado) |
+| `L11`–`L17` | Cliente final con el contacto de soporte y licencias (el del cliente si está enlazado) |
 | `C17`–`C21` | OC, fecha OC, términos de pago, fecha de entrega, notas |
-| Fila 23 | Encabezados de la plantilla; la columna `D` (BC) se insertó junto a la línea del producto (decisión 2026-11-10) |
-| Fila 24 en adelante | Ítem, proveedor, línea, BC, código, descripción, cantidad, costo unitario y total, venta unitaria y total, TC de venta, venta unitaria y total en Bs, observaciones/rango de activación/seriales, PO#. Primero las líneas sin lote; cada lote con una fila de nombre y subtotal (`SUM`); las notas en `F` sin número de ítem; un subítem lleva `1.1` como texto en `A`. Una fila con color lleva su relleno de `A` a `P`. |
-| Totales | `TOTAL $us` costo, venta y Bs con `SUMIF` sobre las filas con número de ítem (criterio `"<>"`, que incluye los subítems) (los subtotales no suman dos veces); factor global sobre las líneas con costo > 0; costo Bs = suma de `ROUND(costo_total × TC costo, 2)` por línea; `I22`/`K22` apuntan a los totales |
+| Fila 23 | Encabezados de la plantilla; la columna `D` (BC) se insertó junto a la línea del producto (decisión 2026-11-10) y `J` «GROSS UP» y `K` «RET DIMA», con la cabecera en amarillo, tras el costo total (decisión 2026-11-16); por ellas el resto de la hoja se corre dos columnas, como en el CV 077LP-26 |
+| Fila 24 en adelante | Ítem, proveedor, línea, BC, código, descripción, cantidad, costo unitario y total, GROSS UP, RET DIMA, venta unitaria y total, TC de venta, venta unitaria y total en Bs, observaciones/rango de activación/seriales, PO#. Primero las líneas sin lote; cada lote con una fila de nombre y subtotal (`SUM`); las notas en `F` sin número de ítem; un subítem lleva `1.1` como texto en `A`. Una fila con color lleva su relleno de `A` a `R`. |
+| Totales | `TOTAL $us` costo, GROSS UP, RET DIMA, venta y Bs con `SUMIF` sobre las filas con número de ítem (criterio `"<>"`, que incluye los subítems) (los subtotales no suman dos veces); factor global sobre las líneas con costo > 0; costo Bs = suma de `ROUND(costo_total × TC costo, 2)` por línea; `I22`/`M22` apuntan a los totales |
 | Leasing | Bloque desplazado según las filas insertadas; 3 filas mínimas, su propio total de costo; sin BC (`D` vacía) |
 
-Se escriben **fórmulas** redondeadas como el dominio (`=ROUND(H24*G24,2)`, `=ROUND(K24*L24,2)`…), no solo valores, con `fullCalcOnLoad`. La plantilla en blanco `templates/PA-PR-03-RE-01.xlsx` solo tiene la hoja V2, sin datos ni validaciones; las notas de ayuda del formulario se conservan. Hay un test golden (`tests/golden/`) que compara celda por celda.
+Se escriben **fórmulas** redondeadas como el dominio (`=ROUND(H24*G24,2)`, `=ROUND(M24*N24,2)`…), no solo valores, con `fullCalcOnLoad`. La plantilla en blanco `templates/PA-PR-03-RE-01.xlsx` solo tiene la hoja V2, sin datos ni validaciones; las notas de ayuda del formulario se conservan. Hay un test golden (`tests/golden/`) que compara celda por celda.
 
 ---
 

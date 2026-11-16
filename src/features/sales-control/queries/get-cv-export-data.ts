@@ -124,6 +124,8 @@ function toSections(version: VersionRow): CvExportSection[] {
                 description: line.description,
                 quantity: line.quantity?.toString() ?? "",
                 unitCostUsd: line.unitCostUsd?.toFixed(2) ?? "",
+                grossUpUsd: line.grossUpUsd?.toFixed(2) ?? "",
+                retDimaUsd: line.retDimaUsd?.toFixed(2) ?? "",
                 unitSaleUsd: line.unitSaleUsd?.toFixed(2) ?? "",
                 observations: exportObservations({
                   notes: line.notes,

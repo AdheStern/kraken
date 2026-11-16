@@ -76,7 +76,8 @@ export function CvListSortHead({
         scroll={false}
         className={cn(
           "-mx-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-1 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50",
-          alignEnd && "flex-row-reverse",
+          // POR QUÉ: en columnas numéricas la flecha va antes del texto y con aire, para no pegarse a la columna anterior.
+          alignEnd && "ml-3 flex-row-reverse",
           !isActive && "text-muted-foreground hover:text-foreground",
         )}
       >

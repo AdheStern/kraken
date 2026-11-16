@@ -49,7 +49,8 @@ export function DatePicker({
   const [open, setOpen] = useState(false);
   const selected = toDate(value);
   const inRange = (iso: string) => (!min || iso >= min) && (!max || iso <= max);
-  const field = useTypedField({
+  // TRAMPA: `invalid` no es un atributo del <input>; va como aria-invalid.
+  const { invalid, ...field } = useTypedField({
     shown: formatTypedDate(value),
     read: (text) => {
       if (text.trim() === "") return clearable ? "" : null;
@@ -77,7 +78,7 @@ export function DatePicker({
           disabled,
           placeholder,
           "aria-label": aria["aria-label"],
-          "aria-invalid": aria["aria-invalid"] || field.invalid || undefined,
+          "aria-invalid": aria["aria-invalid"] || invalid || undefined,
         }}
       >
         <Calendar

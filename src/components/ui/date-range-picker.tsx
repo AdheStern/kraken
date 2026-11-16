@@ -35,7 +35,8 @@ export function DateRangePicker({
   const [open, setOpen] = useState(false);
   const from = parseLocalDateText(start);
   const to = parseLocalDateText(end);
-  const field = useTypedField({
+  // TRAMPA: `invalid` no es un atributo del <input>; va como aria-invalid.
+  const { invalid, ...field } = useTypedField({
     shown: toRangeText(start, end),
     read: (text) => {
       if (text.trim() === "") return "";
@@ -73,7 +74,7 @@ export function DateRangePicker({
         ...input,
         ...field,
         placeholder,
-        "aria-invalid": input["aria-invalid"] || field.invalid || undefined,
+        "aria-invalid": input["aria-invalid"] || invalid || undefined,
         onKeyDown: (event) => {
           field.onKeyDown(event);
           input.onKeyDown?.(event);

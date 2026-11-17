@@ -75,7 +75,9 @@ export function CustomerGroupField({
         {!disabled && (
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger
-              render={<Button type="button" variant="outline" size="sm" />}
+              render={
+                <Button type="button" variant="outline" className="shrink-0" />
+              }
             >
               <Plus aria-hidden="true" />
               Nuevo grupo

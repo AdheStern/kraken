@@ -1,6 +1,7 @@
 // src/features/admin/actions/transfer-customer-contact.ts
-// «Transferir a otra empresa»: la persona deja su puesto (con el motivo) y empieza uno en otro cliente con sus
-// datos nuevos, sin duplicar su ficha (decisión 2026-11-06).
+// «Transferir a otra empresa»: la persona deja su puesto (con el motivo) y los otros que se marquen si era un
+// contacto compartido, y empieza uno en otro cliente con sus datos nuevos, sin duplicar su ficha (decisiones
+// 2026-11-06 y 2026-11-16).
 "use server";
 
 import { z } from "zod";
@@ -22,6 +23,7 @@ const schema = customerContactSchema
   .omit({ id: true, personId: true, syncContactIds: true })
   .extend({
     fromContactId: z.uuid(),
+    alsoCloseIds: z.array(z.uuid()).max(30).default([]),
     reason: z.string().trim().max(200),
   });
 
@@ -36,15 +38,16 @@ export async function transferCustomerContact(
   const parsed = schema.safeParse(input);
   if (!parsed.success)
     return actionError("VALIDATION", parsed.error.issues[0].message);
-  const { fromContactId, reason, ...to } = parsed.data;
+  const { fromContactId, alsoCloseIds, reason, ...to } = parsed.data;
   try {
     const opened = await runInTransaction(async (tx) => {
       const target = await tx.customer.findUniqueOrThrow({
         where: { id: to.customerId },
         select: { name: true },
       });
-      const { closed, opened } = await transferContactPosition(tx, {
+      const { closed, alsoClosed, opened } = await transferContactPosition(tx, {
         fromContactId,
+        alsoCloseIds,
         to,
         reason: reason || `Pasó a ${target.name}`,
         today: new Date(toBusinessDate(systemClock.now())),
@@ -54,7 +57,7 @@ export async function transferCustomerContact(
         entity: "core.cliente_contacto",
         entityId: opened.id,
         action: "TRANSFERIR",
-        before: closed,
+        before: alsoClosed.length > 0 ? [closed, ...alsoClosed] : closed,
         after: opened,
       });
       return opened;

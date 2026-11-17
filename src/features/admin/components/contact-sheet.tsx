@@ -20,7 +20,7 @@ import {
 import type { ContactFormOptions, CustomerContactView } from "../types";
 import { DuplicateMatches } from "./duplicate-matches";
 import { LabeledInput } from "./labeled-input";
-import { SiblingSyncField } from "./sibling-sync-field";
+import { SiblingPositionsField } from "./sibling-positions-field";
 import { useContactSave } from "./use-contact-save";
 
 type Props = {
@@ -146,7 +146,9 @@ export function ContactSheet({
               placeholder="Comercial, ingeniero…"
             />
           </FormField>
-          <SiblingSyncField
+          <SiblingPositionsField
+            legend="También es contacto de otras empresas"
+            hint="Aplica el correo y el teléfono también en las marcadas. El nombre se actualiza en todas."
             siblings={contact?.otherActive ?? []}
             value={links.syncContactIds}
             onChange={(syncContactIds) =>

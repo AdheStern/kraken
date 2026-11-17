@@ -1,6 +1,7 @@
 // src/features/admin/components/transfer-contact-sheet.tsx
 // «Transferir a otra empresa»: la persona deja este cliente (hoy, con el motivo) y empieza en otro con su nuevo
-// cargo, correo y teléfono; sus áreas, responsables y municipio pasan igual (decisión 2026-11-06).
+// cargo, correo y teléfono; sus áreas, responsables y municipio pasan igual (decisión 2026-11-06). Si era contacto de
+// otras empresas, deja también las marcadas, todas por defecto (decisión 2026-11-16).
 "use client";
 
 import { LoaderCircle } from "lucide-react";
@@ -20,6 +21,7 @@ import {
 import { transferCustomerContact } from "../actions/transfer-customer-contact";
 import type { ContactFormOptions, CustomerContactView } from "../types";
 import { LabeledInput } from "./labeled-input";
+import { SiblingPositionsField } from "./sibling-positions-field";
 import { useAdminAction } from "./use-admin-action";
 
 type Props = {
@@ -45,6 +47,9 @@ export function TransferContactSheet({
   const { isPending, error, run } = useAdminAction();
   const [open, setOpen] = useState(false);
   const [customerId, setCustomerId] = useState<string | null>(null);
+  const [alsoCloseIds, setAlsoCloseIds] = useState(() =>
+    contact.otherActive.map((s) => s.contactId),
+  );
   const [draft, setDraft] = useState({
     position: contact.position ?? "",
     email: contact.email ?? "",
@@ -57,6 +62,7 @@ export function TransferContactSheet({
     const ok = await run(() =>
       transferCustomerContact({
         fromContactId: contact.id,
+        alsoCloseIds,
         customerId,
         name: contact.name,
         municipalityId: contact.municipalityId,
@@ -87,7 +93,11 @@ export function TransferContactSheet({
           >
             <CatalogCombobox
               id="transfer-customer"
-              options={customers.filter((c) => c.id !== currentCustomerId)}
+              options={customers.filter(
+                (c) =>
+                  c.id !== currentCustomerId &&
+                  !contact.otherActive.some((s) => s.customerId === c.id),
+              )}
               value={customerId}
               onChange={setCustomerId}
               placeholder="Nombre o NIT"
@@ -102,6 +112,13 @@ export function TransferContactSheet({
               className={key === "reason" ? "sm:col-span-2" : undefined}
             />
           ))}
+          <SiblingPositionsField
+            legend="También deja"
+            hint="Era contacto de estas empresas: se cierran con la misma fecha y motivo. Desmarca las que sigue atendiendo."
+            siblings={contact.otherActive}
+            value={alsoCloseIds}
+            onChange={setAlsoCloseIds}
+          />
         </div>
         {error && (
           <p role="alert" className="px-4 text-sm text-destructive">

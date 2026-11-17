@@ -78,6 +78,10 @@ export function useContactSave({
         moves
           ? transferCustomerContact({
               fromContactId: match.contactId,
+              // REGLA: si se cambia de empresa deja todas las que atendía (decisión 2026-11-16).
+              alsoCloseIds: (matches ?? [])
+                .filter((m) => m.personId === match.personId && m.isActive)
+                .map((m) => m.contactId),
               customerId,
               reason: "",
               ...form,

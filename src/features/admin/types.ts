@@ -42,6 +42,16 @@ export type CustomerContactView = {
   endedOn: string | null;
   exitReason: string | null;
   isActive: boolean;
+  // Otros puestos activos de la misma persona que el usuario ve (contacto compartido, decisión 2026-11-16).
+  otherActive: ContactSibling[];
+};
+
+export type ContactSibling = {
+  contactId: string;
+  customerId: string;
+  customerName: string;
+  email: string | null;
+  phone: string | null;
 };
 
 type Option = { id: string; label: string; hint?: string };
@@ -51,7 +61,7 @@ export type ContactFormOptions = {
   branches: Option[];
   areas: Option[];
   users: (Option & { image: string | null })[];
-  customers: Option[];
+  customers: (Option & { groupId: string | null })[];
 };
 
 export type CustomerDetail = {

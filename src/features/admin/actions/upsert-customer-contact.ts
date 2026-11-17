@@ -1,6 +1,7 @@
 // src/features/admin/actions/upsert-customer-contact.ts
 // Agrega o edita el puesto de un contacto en un cliente: datos corporativos, municipio, sucursal, áreas de DIMA y
-// quiénes lo atienden. Al agregar crea la persona o usa una ya registrada (decisión 2026-11-06).
+// quiénes lo atienden. Al agregar crea la persona o usa una ya registrada (decisión 2026-11-06); al editar lleva su
+// correo y teléfono a los puestos elegidos de la misma persona en otras empresas (decisión 2026-11-16).
 // REGLA: cualquier persona de DIMA agrega contactos; editarlos es de quien gestiona contactos (§2.9).
 "use server";
 
@@ -12,12 +13,14 @@ import {
   canCreateContacts,
   canManageContacts,
 } from "@/server/authz/contact-permissions";
-import { memberAreaIds, type SessionUser } from "@/server/authz/roles";
+import type { SessionUser } from "@/server/authz/roles";
 import { scopeContactQuery } from "@/server/authz/scope-contact-query";
 import { systemClock } from "@/server/clock";
+import { withOwnAreas } from "@/server/customers/contact-visibility-areas";
 import { createContactPosition } from "@/server/customers/create-contact-position";
+import { syncSiblingPositions } from "@/server/customers/sync-sibling-positions";
 import { updateContactPosition } from "@/server/customers/update-contact-position";
-import { prisma, runInTransaction } from "@/server/db";
+import { prisma, runInTransaction, type Tx } from "@/server/db";
 import { guardCustomers } from "../customer-guard";
 import {
   type CustomerContactInput,
@@ -35,7 +38,7 @@ export async function upsertCustomerContact(
   const parsed = customerContactSchema.safeParse(input);
   if (!parsed.success)
     return actionError("VALIDATION", parsed.error.issues[0].message);
-  const { id, ...fields } = parsed.data;
+  const { id, syncContactIds = [], ...fields } = parsed.data;
   const data = { ...fields, areaIds: withOwnAreas(user, fields.areaIds) };
   try {
     if (data.personId && !(await canUsePerson(user, data.personId)))
@@ -58,6 +61,7 @@ export async function upsertCustomerContact(
         before,
         after: { ...after, areaIds: data.areaIds, userIds: data.userIds },
       });
+      if (id) await syncSiblings(tx, user, after, syncContactIds);
       return after;
     });
     return actionOk({ id: saved.id });
@@ -66,13 +70,22 @@ export async function upsertCustomerContact(
   }
 }
 
-// POR QUÉ: quien no gestiona contactos solo ve los de sus áreas; sin ellas no vería el contacto que acaba de crear.
-function withOwnAreas(
+async function syncSiblings(
+  tx: Tx,
   user: SessionUser,
-  areaIds: readonly string[] = [],
-): string[] {
-  if (canManageContacts(user)) return [...areaIds];
-  return [...new Set([...areaIds, ...memberAreaIds(user)])];
+  source: { id: string; email: string | null; phone: string | null },
+  siblingIds: readonly string[],
+) {
+  const before = await syncSiblingPositions(tx, source.id, siblingIds);
+  for (const sibling of before)
+    await recordAudit(tx, {
+      actorId: user.id,
+      entity: "core.cliente_contacto",
+      entityId: sibling.id,
+      action: "EDITAR",
+      before: sibling,
+      after: { ...sibling, email: source.email, phone: source.phone },
+    });
 }
 
 async function canUsePerson(user: SessionUser, personId: string) {

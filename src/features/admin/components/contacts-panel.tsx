@@ -1,6 +1,7 @@
 // src/features/admin/components/contacts-panel.tsx
 // Contactos de un cliente: los puestos activos y, aparte, los anteriores (quien se fue o se dio de baja), con el
-// alta en un diálogo. Exportar, editar, transferir y dar de baja, solo quien gestiona contactos (decisión 2026-11-06).
+// alta en un diálogo. Exportar, editar, transferir y dar de baja, solo quien gestiona contactos (decisión 2026-11-06);
+// compartir, quien crea contactos (decisión 2026-11-16).
 "use client";
 
 import { FileDown, Plus } from "lucide-react";
@@ -15,6 +16,7 @@ type Props = {
   contacts: CustomerContactView[];
   options: ContactFormOptions;
   canManage: boolean;
+  canShare: boolean;
 };
 
 export function ContactsPanel(props: Props) {
@@ -68,7 +70,7 @@ export function ContactsPanel(props: Props) {
   );
 }
 
-function List({ customerId, contacts, options, canManage }: Props) {
+function List({ customerId, contacts, options, canManage, canShare }: Props) {
   return (
     <ul className="kr-surface divide-y divide-border/60 rounded-xl">
       {contacts.map((c) => (
@@ -78,6 +80,7 @@ function List({ customerId, contacts, options, canManage }: Props) {
           contact={c}
           options={options}
           canManage={canManage}
+          canShare={canShare}
         />
       ))}
     </ul>

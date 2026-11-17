@@ -19,6 +19,7 @@ import { getCustomer } from "@/features/admin/queries/get-customer";
 import { getCustomerFormOptions } from "@/features/admin/queries/get-customer-form-options";
 import {
   canBrowseContacts,
+  canCreateContacts,
   canManageContacts,
   canManageCustomers,
 } from "@/server/authz/contact-permissions";
@@ -119,6 +120,7 @@ async function Customer({
             customerId={customer.id}
             contacts={customer.contacts}
             canManage={can.manageContacts}
+            canShare={can.shareContacts}
             options={{
               ...contactOptions,
               municipalities: options.municipalities,
@@ -137,5 +139,6 @@ function permissions(user: SessionUser) {
   return {
     manageCustomer: canManageCustomers(user),
     manageContacts: canManageContacts(user),
+    shareContacts: canCreateContacts(user),
   };
 }

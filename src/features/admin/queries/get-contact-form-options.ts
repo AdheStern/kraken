@@ -26,7 +26,7 @@ export async function getContactFormOptions(): Promise<
     prisma.customer.findMany({
       where: { isActive: true },
       orderBy: { name: "asc" },
-      select: { id: true, name: true, taxId: true },
+      select: { id: true, name: true, taxId: true, groupId: true },
     }),
   ]);
   return {
@@ -41,6 +41,7 @@ export async function getContactFormOptions(): Promise<
       id: c.id,
       label: c.name,
       hint: c.taxId ?? undefined,
+      groupId: c.groupId,
     })),
   };
 }

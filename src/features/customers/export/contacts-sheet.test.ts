@@ -23,6 +23,7 @@ const contact: DirectoryContact = {
   endedOn: null,
   exitReason: null,
   isActive: true,
+  otherActive: [],
   customerId: "k1",
   customerName: "Banco Andino",
 };

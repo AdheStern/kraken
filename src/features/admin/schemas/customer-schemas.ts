@@ -55,6 +55,8 @@ export const customerContactSchema = z.object({
   branchId: z.uuid().nullable().optional(),
   areaIds: z.array(z.uuid()).max(20).optional(),
   userIds: z.array(z.string().min(1)).max(20).optional(),
+  // Al editar: otros puestos activos de la misma persona que reciben su correo y teléfono (decisión 2026-11-16).
+  syncContactIds: z.array(z.uuid()).max(30).optional(),
 });
 
 export type CustomerContactInput = z.input<typeof customerContactSchema>;

@@ -1,6 +1,7 @@
 // src/features/admin/components/contact-row.tsx
 // Un puesto de contacto: sus datos, municipio y sucursal, áreas, quiénes lo atienden y, si ya no está, desde/hasta
-// y el motivo; quien gestiona contactos lo edita, transfiere, da de baja o reactiva (decisión 2026-11-06).
+// y el motivo; quien gestiona contactos lo edita, transfiere, da de baja o reactiva (decisión 2026-11-06); quien crea
+// contactos lo comparte con otras empresas (decisión 2026-11-16).
 "use client";
 
 import Link from "next/link";
@@ -10,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { setCustomerContactActive } from "../actions/set-customer-contact-active";
 import type { ContactFormOptions, CustomerContactView } from "../types";
 import { ContactSheet } from "./contact-sheet";
+import { ShareContactSheet } from "./share-contact-sheet";
 import { TransferContactSheet } from "./transfer-contact-sheet";
 import { useAdminAction } from "./use-admin-action";
 
@@ -18,6 +20,7 @@ type Props = {
   contact: CustomerContactView;
   options: ContactFormOptions;
   canManage: boolean;
+  canShare: boolean;
 };
 
 export function ContactRow({
@@ -25,6 +28,7 @@ export function ContactRow({
   contact: c,
   options,
   canManage,
+  canShare,
 }: Props) {
   const { isPending, error, run } = useAdminAction();
   const details = [
@@ -71,8 +75,30 @@ export function ContactRow({
               <span>Lo atienden: {c.userNames.join(", ")}</span>
             )}
             {period && <span>{period}</span>}
+            {c.otherActive.length > 0 && (
+              <span>
+                También de:{" "}
+                {c.otherActive.map((s) => s.customerName).join(", ")}
+              </span>
+            )}
           </div>
         </div>
+        {canShare && c.isActive && (
+          <ShareContactSheet
+            contact={c}
+            customers={options.customers}
+            currentCustomerId={customerId}
+            trigger={
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label={`Compartir a ${c.name} con otras empresas`}
+              >
+                Compartir
+              </Button>
+            }
+          />
+        )}
         {canManage && c.isActive && (
           <TransferContactSheet
             contact={c}

@@ -18,10 +18,12 @@ import { runInTransaction } from "@/server/db";
 import { guardCustomers } from "../customer-guard";
 import { customerContactSchema } from "../schemas/customer-schemas";
 
-const schema = customerContactSchema.omit({ id: true, personId: true }).extend({
-  fromContactId: z.uuid(),
-  reason: z.string().trim().max(200),
-});
+const schema = customerContactSchema
+  .omit({ id: true, personId: true, syncContactIds: true })
+  .extend({
+    fromContactId: z.uuid(),
+    reason: z.string().trim().max(200),
+  });
 
 export async function transferCustomerContact(
   input: z.input<typeof schema>,

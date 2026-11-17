@@ -42,6 +42,7 @@ export const SALES_MANUAL: Manual = {
       heading: "Contactos de tus clientes",
       steps: [
         "Clientes (en el menú) abre la ficha de cada cliente con sus sucursales y sus contactos; ahí agregas un contacto nuevo y se le suman tus áreas.",
+        "Si la persona también atiende otra empresa (por ejemplo, del mismo grupo), usa «Compartir» en su fila o, al crearla, «También atiende aquí»: queda una sola ficha con un puesto en cada empresa.",
         "Ves los contactos de tus áreas. Editarlos, darlos de baja, transferirlos o exportarlos a Excel es de los gerentes, Desarrollo de Negocios y Administración: pídeselo a ellos.",
         "El directorio de contactos busca por nombre, correo, teléfono, cliente o municipio; el nombre abre su historial de empresas.",
       ],

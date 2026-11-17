@@ -1,6 +1,7 @@
 // src/features/admin/components/duplicate-matches.tsx
-// «¿Es alguna de estas personas?»: las coincidencias del contacto nuevo, con qué usar de cada una (agregarle el
-// puesto aquí o transferirla desde su empresa) o crear otra persona (decisión 2026-11-06).
+// «¿Es alguna de estas personas?»: las coincidencias del contacto nuevo, con qué usar de cada una o crear otra
+// persona (decisión 2026-11-06). Si trabaja en otra empresa, «También atiende aquí» la comparte sin cerrar su puesto;
+// quien gestiona contactos puede además transferirla (decisión 2026-11-16).
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ type Props = {
   matches: ContactMatch[];
   canTransfer: boolean;
   isPending: boolean;
-  onPick: (match: ContactMatch) => void;
+  onPick: (match: ContactMatch, mode: "add" | "transfer") => void;
   onCreateAnyway: () => void;
 };
 
@@ -65,14 +66,24 @@ export function DuplicateMatches({
                 size="sm"
                 variant="outline"
                 disabled={isPending || isHere}
-                onClick={() => onPick(m)}
+                onClick={() => onPick(m, "add")}
               >
                 {isHere
                   ? "Ya es contacto aquí"
-                  : canTransfer && m.isActive
-                    ? `Transferir desde ${m.customerName}`
+                  : m.isActive
+                    ? "También atiende aquí"
                     : "Es esta persona: agregar aquí"}
               </Button>
+              {canTransfer && m.isActive && !isHere && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={isPending}
+                  onClick={() => onPick(m, "transfer")}
+                >
+                  Se cambió: transferir desde {m.customerName}
+                </Button>
+              )}
             </li>
           );
         })}

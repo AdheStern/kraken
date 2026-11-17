@@ -20,6 +20,7 @@ import {
 import type { ContactFormOptions, CustomerContactView } from "../types";
 import { DuplicateMatches } from "./duplicate-matches";
 import { LabeledInput } from "./labeled-input";
+import { SiblingSyncField } from "./sibling-sync-field";
 import { useContactSave } from "./use-contact-save";
 
 type Props = {
@@ -56,6 +57,9 @@ export function ContactSheet({
     branchId: contact?.branchId ?? null,
     areaIds: contact?.areaIds ?? [],
     userIds: contact?.userIds ?? [],
+    syncContactIds: (contact?.otherActive ?? [])
+      .filter((s) => s.email === contact?.email && s.phone === contact?.phone)
+      .map((s) => s.contactId),
   });
 
   const { isPending, error, matches, save, pickMatch, createAnyway } =
@@ -142,6 +146,13 @@ export function ContactSheet({
               placeholder="Comercial, ingeniero…"
             />
           </FormField>
+          <SiblingSyncField
+            siblings={contact?.otherActive ?? []}
+            value={links.syncContactIds}
+            onChange={(syncContactIds) =>
+              setLinks({ ...links, syncContactIds })
+            }
+          />
         </form>
         {matches && matches.length > 0 && (
           <div className="px-4">
@@ -150,7 +161,7 @@ export function ContactSheet({
               matches={matches}
               canTransfer={canManage}
               isPending={isPending}
-              onPick={(match) => pickMatch(match, form)}
+              onPick={(match, mode) => pickMatch(match, form, mode)}
               onCreateAnyway={() => createAnyway(form)}
             />
           </div>

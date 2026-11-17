@@ -4,7 +4,12 @@ import type { SessionUser } from "@/server/authz/roles";
 import { scopeContactQuery } from "@/server/authz/scope-contact-query";
 import { prisma } from "@/server/db";
 import type { CustomerDetail } from "../types";
-import { CONTACT_SELECT, toContactView } from "./contact-view";
+import {
+  CONTACT_SELECT,
+  siblingSelect,
+  toContactView,
+  toSiblings,
+} from "./contact-view";
 
 export async function getCustomer(
   user: SessionUser,
@@ -47,7 +52,7 @@ export async function getCustomer(
       contacts: {
         where: scopeContactQuery(user),
         orderBy: [{ isActive: "desc" }, { name: "asc" }],
-        select: CONTACT_SELECT,
+        select: { ...CONTACT_SELECT, ...siblingSelect(user) },
       },
     },
   });
@@ -56,7 +61,7 @@ export async function getCustomer(
   return {
     ...rest,
     group: group ? { name: group.name, siblings: group.customers } : null,
-    contacts: contacts.map(toContactView),
+    contacts: contacts.map((c) => toContactView(c, toSiblings(c))),
     branches: branches.map((b) => ({
       id: b.id,
       name: b.name,

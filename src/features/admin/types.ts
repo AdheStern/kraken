@@ -66,6 +66,9 @@ export type CustomerDetail = {
   industryId: string | null;
   companyType: CompanyType | null;
   municipalityId: string | null;
+  groupId: string | null;
+  // Empresas del mismo grupo empresarial, para enlazarlas desde la ficha (decisión 2026-11-16).
+  group: { name: string; siblings: { id: string; name: string }[] } | null;
   isActive: boolean;
   contacts: CustomerContactView[];
   branches: CustomerBranchView[];
@@ -87,6 +90,7 @@ export type CustomerBranchView = {
 // Opciones de la ficha del cliente (decisión 2026-11-06); el municipio lleva su departamento como ayuda.
 export type CustomerFormOptions = {
   industries: { id: string; label: string }[];
+  groups: { id: string; label: string }[];
   municipalities: { id: string; label: string; hint: string }[];
 };
 

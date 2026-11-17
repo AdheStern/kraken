@@ -16,7 +16,9 @@ vi.mock("@/server/db", async () => {
 const db = createTestPrisma();
 afterAll(() => db.$disconnect());
 
-const clock = { now: () => new Date("2031-03-01T12:00:00Z") };
+// POR QUÉ: la base se comparte entre archivos; 2042 (mismo calendario que 2031) no choca con las ventas de 2031
+// de sales-dashboard, que suman todo lo aprobado en febrero y marzo.
+const clock = { now: () => new Date("2042-03-01T12:00:00Z") };
 const noFilters = { areaId: null, cityId: null };
 let seller: SessionUser;
 
@@ -74,30 +76,30 @@ beforeAll(async () => {
   await line(waiting.version.id, area, "300");
   await setStatus(waiting.version.id, {
     status: "EN_APROBACION",
-    submittedAt: new Date("2031-02-28T12:00:00Z"),
+    submittedAt: new Date("2042-02-28T12:00:00Z"),
   });
   await db.cvApprovalRequest.create({
     data: {
       versionId: waiting.version.id,
       kind: "AREA",
       areaId: waiting.area.id,
-      createdAt: new Date("2031-02-28T12:00:00Z"),
+      createdAt: new Date("2042-02-28T12:00:00Z"),
     },
   });
 
   // CV 3: aprobado en un día, con tres vigencias (10, 75 y 122 días).
   const renewing = await own();
   for (const [sale, end] of [
-    ["40", "2031-03-11"],
-    ["60", "2031-05-15"],
-    ["90", "2031-07-01"],
+    ["40", "2042-03-11"],
+    ["60", "2042-05-15"],
+    ["90", "2042-07-01"],
   ]) {
     await line(renewing.version.id, area, sale, end);
   }
   await setStatus(renewing.version.id, {
     status: "APROBADA",
-    submittedAt: new Date("2031-02-27T12:00:00Z"),
-    approvedAt: new Date("2031-02-28T12:00:00Z"),
+    submittedAt: new Date("2042-02-27T12:00:00Z"),
+    approvedAt: new Date("2042-02-28T12:00:00Z"),
   });
 });
 
@@ -126,8 +128,8 @@ describe("seguimiento comercial", () => {
 
   it("mediana de aprobación y la solicitud pendiente más antigua", async () => {
     const febrero = {
-      start: new Date("2031-02-01T04:00:00Z"),
-      end: new Date("2031-03-01T04:00:00Z"),
+      start: new Date("2042-02-01T04:00:00Z"),
+      end: new Date("2042-03-01T04:00:00Z"),
     };
     const times = await getApprovalTimes(seller, febrero, clock);
     expect(times.approvedCount).toBe(1);

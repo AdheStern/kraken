@@ -74,6 +74,8 @@ model Customer {
   country        String?      @map("pais")
   municipalityId String?      @map("municipio_id") @db.Uuid
   industryId     String?      @map("rubro_id") @db.Uuid
+  // Grupo empresarial (empresas hermanas): ayuda a compartir contactos; no da visibilidad (decisión 2026-11-16).
+  groupId        String?      @map("grupo_id") @db.Uuid
   companyType    CompanyType? @map("tipo_empresa")
   isActive       Boolean      @default(true) @map("activo")
   // Qué permite el portal a la cuenta del cliente; siempre ve sus tickets y sus horas descontadas (§2.11).
@@ -85,6 +87,7 @@ model Customer {
 
   municipality        Municipality?     @relation(fields: [municipalityId], references: [id])
   industry            Industry?         @relation(fields: [industryId], references: [id])
+  group               CustomerGroup?    @relation(fields: [groupId], references: [id], onDelete: SetNull)
   contacts            CustomerContact[]
   branches            CustomerBranch[]
   cvs                 Cv[]
@@ -98,7 +101,22 @@ model Customer {
   ticketRequests      TicketRequest[]
 
   @@index([taxId])
+  @@index([groupId])
   @@map("cliente")
+  @@schema("core")
+}
+
+// Grupo empresarial: clientes hermanos (Banco Bisa, Bisa Seguros, La Vitalicia) que comparten contactos
+// (decisión 2026-11-16). POR QUÉ: el nombre normalizado evita repetir el grupo por mayúsculas o tildes.
+model CustomerGroup {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  name           String   @map("nombre")
+  normalizedName String   @unique @map("nombre_normalizado")
+  createdAt      DateTime @default(now()) @map("creado_en") @db.Timestamptz
+
+  customers Customer[]
+
+  @@map("grupo_empresarial")
   @@schema("core")
 }
 

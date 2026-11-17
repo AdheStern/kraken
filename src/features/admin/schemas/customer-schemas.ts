@@ -25,6 +25,8 @@ export const customerSchema = z.object({
   address: text(200),
   country: text(80),
   industryId: z.uuid().nullable(),
+  // Grupo empresarial (decisión 2026-11-16); opcional.
+  groupId: z.uuid().nullable().optional(),
   companyType: z
     .enum([
       "PUBLICA",

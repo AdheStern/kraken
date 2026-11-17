@@ -24,6 +24,17 @@ export async function getCustomer(
       industryId: true,
       companyType: true,
       municipalityId: true,
+      groupId: true,
+      group: {
+        select: {
+          name: true,
+          customers: {
+            where: { id: { not: id } },
+            orderBy: { name: "asc" },
+            select: { id: true, name: true },
+          },
+        },
+      },
       isActive: true,
       branches: {
         orderBy: [{ isActive: "desc" }, { name: "asc" }],
@@ -41,9 +52,10 @@ export async function getCustomer(
     },
   });
   if (!customer) return null;
-  const { branches, contacts, ...rest } = customer;
+  const { branches, contacts, group, ...rest } = customer;
   return {
     ...rest,
+    group: group ? { name: group.name, siblings: group.customers } : null,
     contacts: contacts.map(toContactView),
     branches: branches.map((b) => ({
       id: b.id,

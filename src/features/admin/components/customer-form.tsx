@@ -59,6 +59,7 @@ export function CustomerForm({
     industryId: customer?.industryId ?? null,
     companyType: customer?.companyType ?? null,
     municipalityId: customer?.municipalityId ?? null,
+    groupId: customer?.groupId ?? null,
   });
 
   async function save() {
@@ -101,6 +102,7 @@ export function CustomerForm({
           }
           options={options}
           legacyCity={customer?.city ?? null}
+          readOnly={readOnly}
         />
       </fieldset>
       {!readOnly && (

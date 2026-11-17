@@ -11,6 +11,7 @@ import { AdminBackLink } from "@/features/admin/components/admin-back-link";
 import { BranchesPanel } from "@/features/admin/components/branches-panel";
 import { ContactsPanel } from "@/features/admin/components/contacts-panel";
 import { CustomerForm } from "@/features/admin/components/customer-form";
+import { CustomerGroupLine } from "@/features/admin/components/customer-group-line";
 import { CustomerStatusButton } from "@/features/admin/components/customer-status-button";
 import { CustomerTabs } from "@/features/admin/components/customer-tabs";
 import { getContactFormOptions } from "@/features/admin/queries/get-contact-form-options";
@@ -88,6 +89,7 @@ async function Customer({
           )
         }
       />
+      <CustomerGroupLine group={customer.group} />
       <CustomerForm
         key={customer.id}
         customer={customer}

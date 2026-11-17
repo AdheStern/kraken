@@ -1,6 +1,6 @@
 // src/features/admin/components/customer-classification-fields.tsx
-// Rubro, tipo de empresa y municipio de la ficha del cliente (decisión 2026-11-06); el municipio se busca por
-// nombre o departamento entre los 340 de Bolivia.
+// Rubro, tipo de empresa, municipio y grupo empresarial de la ficha del cliente (decisiones 2026-11-06 y
+// 2026-11-16); el municipio se busca por nombre o departamento entre los 340 de Bolivia.
 "use client";
 
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
@@ -9,11 +9,13 @@ import { OptionSelect } from "@/components/ui/option-select";
 import type { CompanyType } from "@/generated/prisma/enums";
 import { COMPANY_TYPE_LABELS, COMPANY_TYPES } from "../company-types";
 import type { CustomerFormOptions } from "../types";
+import { CustomerGroupField } from "./customer-group-field";
 
 export type Classification = {
   industryId: string | null;
   companyType: CompanyType | null;
   municipalityId: string | null;
+  groupId: string | null;
 };
 
 type Props = {
@@ -22,6 +24,7 @@ type Props = {
   options: CustomerFormOptions;
   // Ciudad escrita a mano antes del catálogo; se muestra mientras no se elija un municipio.
   legacyCity: string | null;
+  readOnly?: boolean;
 };
 
 export function CustomerClassificationFields({
@@ -29,6 +32,7 @@ export function CustomerClassificationFields({
   onChange,
   options,
   legacyCity,
+  readOnly,
 }: Props) {
   return (
     <>
@@ -74,6 +78,12 @@ export function CustomerClassificationFields({
           placeholder="La Paz, Yacuiba, Montero…"
         />
       </FormField>
+      <CustomerGroupField
+        value={value.groupId}
+        onChange={(groupId) => onChange({ groupId })}
+        groups={options.groups}
+        disabled={readOnly}
+      />
     </>
   );
 }

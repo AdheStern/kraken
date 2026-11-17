@@ -29,7 +29,7 @@ export const ADMINISTRATION_MANUAL: Manual = {
       heading: "Clientes y contactos",
       steps: [
         "La ficha del cliente tiene pestañas: Datos (rubro, tipo de empresa y municipio), Sucursales y Contactos.",
-        "Si el cliente es parte de un grupo de empresas hermanas (por ejemplo, el Grupo Bisa), elígelo en «Grupo empresarial» o créalo con «Nuevo grupo»; la ficha enlaza a las demás empresas del grupo.",
+        "Si el cliente es parte de un grupo de empresas hermanas (por ejemplo, el Grupo Bisa), elígelo en «Grupo empresarial» o créalo con «Nuevo grupo»; la ficha enlaza a las demás empresas del grupo. La pestaña «Grupos» de Clientes muestra cada grupo con sus empresas.",
         "Si una persona atiende varias empresas (por ejemplo, Banco Bisa y Bisa Seguros), no la crees dos veces: usa «Compartir» en su fila (las empresas del grupo vienen marcadas) o, al crearla, «También atiende aquí». Al editar su correo o teléfono, marca en qué otras empresas aplicarlo. Si se cambia de empresa, «Transferir» cierra también sus puestos en las demás (desmarca las que siga atendiendo).",
         "Al agregar un contacto, Kraken avisa si esa persona ya existe en este cliente o en otro: transfiérela o agrégale el puesto, así su historial queda en una sola ficha.",
         "Si alguien cambia de empresa, usa «Transferir» en su fila: su puesto aquí queda cerrado con fecha y motivo, y empieza en la nueva empresa con su nuevo cargo, correo y teléfono.",

@@ -1,11 +1,14 @@
 // tests/integration/customer-groups.int.test.ts
 // Grupos empresariales (decisión 2026-11-16): el nombre no se repite por mayúsculas o tildes, solo quien gestiona
-// clientes los crea y la ficha del cliente lista a sus empresas hermanas.
+// clientes los crea, la ficha del cliente lista a sus empresas hermanas y la pestaña «Grupos» los encuentra por su
+// nombre o por el de una de sus empresas.
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { createCustomerGroup } from "@/features/admin/actions/create-customer-group";
 import { upsertCustomer } from "@/features/admin/actions/upsert-customer";
 import { getCustomer } from "@/features/admin/queries/get-customer";
+import { listCustomerGroups } from "@/features/admin/queries/list-customer-groups";
 import type { SessionUser } from "@/server/authz/roles";
+import { createContactPosition } from "@/server/customers/create-contact-position";
 import { createTestPrisma, createUserWithRoles } from "./test-db";
 
 vi.mock("@/server/db", async () => {
@@ -86,5 +89,31 @@ describe("grupo en la ficha del cliente", () => {
       `Seguros ${s}`,
       `Vitalicia ${s}`,
     ]);
+  });
+});
+
+describe("listCustomerGroups", () => {
+  it("encuentra el grupo por una de sus empresas y lo trae completo", async () => {
+    const s = stamp();
+    const group = await db.customerGroup.create({
+      data: { name: `Grupo Lista ${s}`, normalizedName: `grupo lista ${s}` },
+    });
+    const [bank, insurer] = await Promise.all(
+      [`Banco Lista ${s}`, `Seguros Lista ${s}`].map((name) =>
+        db.customer.create({ data: { name, groupId: group.id } }),
+      ),
+    );
+    await db.$transaction((tx) =>
+      createContactPosition(tx, { customerId: bank.id, name: `Ana ${s}` }),
+    );
+
+    const found = await listCustomerGroups(`seguros lista ${s}`);
+    expect(found).toHaveLength(1);
+    expect(found[0]?.members).toEqual([
+      { id: bank.id, name: bank.name, isActive: true, contactCount: 1 },
+      { id: insurer.id, name: insurer.name, isActive: true, contactCount: 0 },
+    ]);
+    expect(await listCustomerGroups(`grupo lista ${s}`)).toHaveLength(1);
+    expect(await listCustomerGroups(`nada ${s}`)).toEqual([]);
   });
 });

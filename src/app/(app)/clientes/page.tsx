@@ -1,6 +1,7 @@
 // src/app/(app)/clientes/page.tsx
 // Clientes con búsqueda por razón social o NIT, para todo el personal (decisión 2026-11-06): quien gestiona
-// clientes los crea; el resto abre la ficha para ver y agregar contactos (§2.9).
+// clientes los crea; el resto abre la ficha para ver y agregar contactos (§2.9). La pestaña «Grupos» (?vista=grupos)
+// muestra los grupos empresariales con sus empresas (decisión 2026-11-17).
 import { BookUser, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -8,9 +9,12 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
 import { buttonVariants } from "@/components/ui/button";
+import { GooeyNav } from "@/components/ui/gooey-nav";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminSearch } from "@/features/admin/components/admin-search";
+import { CustomerGroupList } from "@/features/admin/components/customer-group-list";
 import { CustomerTable } from "@/features/admin/components/customer-table";
+import { listCustomerGroups } from "@/features/admin/queries/list-customer-groups";
 import { listCustomers } from "@/features/admin/queries/list-customers";
 import {
   canBrowseContacts,
@@ -37,9 +41,9 @@ async function Customers({
 }: Pick<PageProps<"/clientes">, "searchParams">) {
   const user = await requireUser();
   if (!canBrowseContacts(user)) notFound();
-  const { q } = await searchParams;
+  const { q, vista } = await searchParams;
   const search = typeof q === "string" ? q : "";
-  const customers = await listCustomers(search);
+  const byGroup = vista === "grupos";
   return (
     <>
       <ModuleHeading
@@ -63,12 +67,39 @@ async function Customers({
           </>
         }
       />
+      <GooeyNav
+        label="Clientes o grupos empresariales"
+        active={byGroup ? "grupos" : "clientes"}
+        items={[
+          { key: "clientes", label: "Clientes", href: "/clientes" },
+          {
+            key: "grupos",
+            label: "Grupos",
+            href: "/clientes?vista=grupos",
+          },
+        ]}
+      />
       <AdminSearch
         action="/clientes"
         defaultValue={search}
-        placeholder="Buscar por razón social o NIT"
+        keep={byGroup ? { vista: "grupos" } : {}}
+        placeholder={
+          byGroup
+            ? "Buscar por grupo o por una de sus empresas"
+            : "Buscar por razón social o NIT"
+        }
       />
-      <CustomerTable customers={customers} search={search} />
+      {byGroup ? (
+        <CustomerGroupList
+          groups={await listCustomerGroups(search)}
+          search={search}
+        />
+      ) : (
+        <CustomerTable
+          customers={await listCustomers(search)}
+          search={search}
+        />
+      )}
     </>
   );
 }

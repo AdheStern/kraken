@@ -1,12 +1,14 @@
 // src/features/admin/components/customer-form.tsx
-// Ficha de un cliente (razón social, NIT, rubro, tipo, contacto general y municipio): alta o edición; de solo
+// Ficha de un cliente (razón social, NIT, rubro, tipo, contacto general, municipio, tenant y notas): alta o edición; de solo
 // lectura para quien no gestiona clientes (decisión 2026-11-06).
 "use client";
 
 import { LoaderCircle } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useMarkCreated } from "@/components/forms/fresh-after-create";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { upsertCustomer } from "../actions/upsert-customer";
 import type { CustomerDetail, CustomerFormOptions } from "../types";
 import {
@@ -17,7 +19,7 @@ import { LabeledInput } from "./labeled-input";
 import { useAdminAction } from "./use-admin-action";
 
 type Draft = Record<
-  "name" | "taxId" | "email" | "phone" | "address" | "country",
+  "name" | "taxId" | "email" | "phone" | "address" | "country" | "tenant",
   string
 >;
 
@@ -33,6 +35,7 @@ const FIELDS: {
   { key: "phone", label: "Teléfono" },
   { key: "address", label: "Dirección" },
   { key: "country", label: "País" },
+  { key: "tenant", label: "Tenant" },
 ];
 
 export function CustomerForm({
@@ -47,6 +50,8 @@ export function CustomerForm({
   const { isPending, error, run } = useAdminAction();
   const markCreated = useMarkCreated();
   const [saved, setSaved] = useState(false);
+  const notesId = useId();
+  const [notes, setNotes] = useState(customer?.notes ?? "");
   const [draft, setDraft] = useState<Draft>({
     name: customer?.name ?? "",
     taxId: customer?.taxId ?? "",
@@ -54,6 +59,7 @@ export function CustomerForm({
     phone: customer?.phone ?? "",
     address: customer?.address ?? "",
     country: customer?.country ?? "Bolivia",
+    tenant: customer?.tenant ?? "",
   });
   const [classification, setClassification] = useState<Classification>({
     industryId: customer?.industryId ?? null,
@@ -64,7 +70,12 @@ export function CustomerForm({
 
   async function save() {
     setSaved(false);
-    const input = { id: customer?.id ?? null, ...draft, ...classification };
+    const input = {
+      id: customer?.id ?? null,
+      ...draft,
+      notes,
+      ...classification,
+    };
     if (!customer)
       return run(
         () => upsertCustomer(input),
@@ -104,6 +115,15 @@ export function CustomerForm({
           legacyCity={customer?.city ?? null}
           readOnly={readOnly}
         />
+        <div className="grid gap-1.5 sm:col-span-2">
+          <Label htmlFor={notesId}>Notas</Label>
+          <Textarea
+            id={notesId}
+            value={notes}
+            maxLength={4000}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </div>
       </fieldset>
       {!readOnly && (
         <div className="flex flex-wrap items-center gap-3 sm:col-span-2">

@@ -77,6 +77,9 @@ model Customer {
   // Grupo empresarial (empresas hermanas): ayuda a compartir contactos; no da visibilidad (decisión 2026-11-16).
   groupId        String?      @map("grupo_id") @db.Uuid
   companyType    CompanyType? @map("tipo_empresa")
+  // Tenant del cliente (p. ej., de Microsoft 365 o Azure) y notas internas: texto libre, opcional.
+  tenant         String?      @map("tenant")
+  notes          String?      @map("notas")
   isActive       Boolean      @default(true) @map("activo")
   // Qué permite el portal a la cuenta del cliente; siempre ve sus tickets y sus horas descontadas (§2.11).
   portalSeesBags Boolean      @default(false) @map("portal_ve_bolsas")

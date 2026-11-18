@@ -26,6 +26,8 @@ export async function getCustomer(
       address: true,
       city: true,
       country: true,
+      tenant: true,
+      notes: true,
       industryId: true,
       companyType: true,
       municipalityId: true,

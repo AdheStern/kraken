@@ -73,6 +73,8 @@ export type CustomerDetail = {
   address: string | null;
   city: string | null;
   country: string | null;
+  tenant: string | null;
+  notes: string | null;
   industryId: string | null;
   companyType: CompanyType | null;
   municipalityId: string | null;

@@ -1,7 +1,7 @@
 // tests/e2e/projects.spec.ts
 // Detalle de un proyecto (AGENTS.md §2.6, §11): el coordinador crea un proyecto del cliente demo, abre su detalle,
-// crea un ticket con el alta prellenada con el cliente y el proyecto, lo ve en el tablero del proyecto y ve en
-// «Bolsas» las del cliente que sus tickets pueden usar.
+// crea un ticket con el alta prellenada con el cliente y el proyecto, lo ve en el resumen y el tablero del
+// proyecto y ve en «Bolsas» las del cliente que sus tickets pueden usar.
 import { expect, test } from "@playwright/test";
 import { storageFor } from "./users";
 
@@ -51,6 +51,8 @@ test("el coordinador crea un ticket desde el detalle del proyecto", async ({
   await page.waitForURL(/\/tickets\/[0-9a-f-]{36}$/);
 
   await page.goto(projectUrl);
+  await expect(page.getByText("0 de 1 tickets terminados")).toBeVisible();
+  await page.goto(`${projectUrl}?pestana=tickets`);
   // POR QUÉ: la tarjeta enlaza con su número; el título es texto de la tarjeta.
   await expect(
     page.getByRole("listitem").filter({ hasText: TITLE }),

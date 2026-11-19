@@ -1,6 +1,6 @@
 // src/app/(app)/tickets/proyectos/[id]/page.tsx
 // Detalle de un proyecto: cabecera, alta de ticket prellenada con su cliente, áreas y bolsa, y pestañas de
-// tickets y bolsas que sus tickets pueden usar (AGENTS.md §2.6, §2.4, §5). Fuera del alcance responde 404.
+// resumen, tickets y bolsas que sus tickets pueden usar (AGENTS.md §2.6, §2.4, §5). Fuera del alcance responde 404.
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -8,16 +8,21 @@ import { notFound } from "next/navigation";
 import { cache, Suspense } from "react";
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EngineerWeekChart } from "@/features/dashboards/components/engineer-week-chart";
 import { BagCard } from "@/features/hours/components/bag-card";
 import { listHourBags } from "@/features/hours/queries/list-hour-bags";
 import { ProjectHeader } from "@/features/tickets/components/project-header";
+import { ProjectSummaryPanel } from "@/features/tickets/components/project-summary-panel";
 import { ProjectTicketAction } from "@/features/tickets/components/project-ticket-action";
 import { TicketBoard } from "@/features/tickets/components/ticket-board";
 import { getProjectDetail } from "@/features/tickets/queries/get-project-detail";
+import { getProjectSummary } from "@/features/tickets/queries/get-project-summary";
 import { getTicketFormOptions } from "@/features/tickets/queries/get-ticket-form-options";
 import { listTickets } from "@/features/tickets/queries/list-tickets";
 import type { ProjectDetailView } from "@/features/tickets/types";
 import { requireUser } from "@/server/session";
+
+const TABS = ["resumen", "tickets", "bolsas"] as const;
 
 // POR QUÉ: cache() comparte la lectura entre el título de la pestaña y la página.
 const loadProject = cache(async (id: string) =>
@@ -58,7 +63,7 @@ async function Project({
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const project = await loadProject(id);
   if (!project) notFound();
-  const tab = query.pestana === "bolsas" ? "bolsas" : "tickets";
+  const tab = TABS.find((t) => t === query.pestana) ?? "resumen";
   return (
     <>
       <ProjectHeader
@@ -70,12 +75,20 @@ async function Project({
           ) : null
         }
       />
-      {tab === "bolsas" ? (
-        <ProjectBags project={project} />
-      ) : (
-        <ProjectTickets project={project} />
-      )}
+      {tab === "resumen" && <ProjectSummary project={project} />}
+      {tab === "tickets" && <ProjectTickets project={project} />}
+      {tab === "bolsas" && <ProjectBags project={project} />}
     </>
+  );
+}
+
+async function ProjectSummary({ project }: { project: ProjectDetailView }) {
+  const summary = await getProjectSummary(await requireUser(), project.id);
+  return (
+    <ProjectSummaryPanel
+      summary={summary}
+      weekChart={<EngineerWeekChart weeks={summary.weeks} />}
+    />
   );
 }
 

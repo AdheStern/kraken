@@ -76,7 +76,7 @@ export function TicketSummaryPanel({ summary: s }: { summary: TicketSummary }) {
   );
 }
 
-function Tile({
+export function Tile({
   label,
   value,
   hint,
@@ -96,7 +96,7 @@ function Tile({
   );
 }
 
-function Breakdown({
+export function Breakdown({
   title,
   empty,
   rows,

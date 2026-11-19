@@ -1,5 +1,6 @@
 // src/features/tickets/components/project-header.tsx
-// Cabecera del proyecto: nombre, estado, cliente, áreas, fechas con su avance, acciones y pestañas
+// Cabecera del proyecto: nombre, estado, cliente, áreas, fechas con su avance, acciones y pestañas (resumen,
+// tickets y bolsas)
 // (AGENTS.md §2.6, §5).
 import type { ReactNode } from "react";
 import { NodeMark } from "@/components/app-shell/node-mark";
@@ -16,7 +17,7 @@ import { ProjectStatusButton } from "./project-status-button";
 
 type Props = {
   project: ProjectDetailView;
-  tab: "tickets" | "bolsas";
+  tab: "resumen" | "tickets" | "bolsas";
   action: ReactNode;
 };
 
@@ -61,7 +62,8 @@ export function ProjectHeader({ project, tab, action }: Props) {
         label="Secciones del proyecto"
         active={tab}
         items={[
-          { key: "tickets", label: "Tickets", href: base },
+          { key: "resumen", label: "Resumen", href: base },
+          { key: "tickets", label: "Tickets", href: `${base}?pestana=tickets` },
           { key: "bolsas", label: "Bolsas", href: `${base}?pestana=bolsas` },
         ]}
       />

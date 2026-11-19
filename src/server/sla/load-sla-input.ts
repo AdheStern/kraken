@@ -36,6 +36,8 @@ export async function loadSlaInput(
       },
     },
   });
+  // POR QUÉ: el trabajo previo a Kraken se cargó después de ocurrir; su SLA no se puede medir (§2.6).
+  if (ticket.isHistorical) return null;
   // REGLA: sin política activa para la modalidad y prioridad del ticket no se mide SLA (§2.7).
   const policy = await tx.slaPolicy.findFirst({
     where: {

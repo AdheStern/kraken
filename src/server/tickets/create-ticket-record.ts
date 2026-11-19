@@ -99,7 +99,7 @@ async function assignInitialOwner(
   await notifyOwnerAssigned(tx, ticket, title, ownerId, user);
 }
 
-async function validateReferences(
+export async function validateReferences(
   tx: Tx,
   input: NewTicket,
 ): Promise<string | null> {
@@ -132,7 +132,7 @@ async function validateReferences(
 type InitialBag = { id: string; modality: Modality } | null;
 
 // POR QUÉ: devuelve el motivo del rechazo en lugar de lanzar, para validar antes de escribir nada.
-async function loadInitialBag(
+export async function loadInitialBag(
   tx: Tx,
   user: SessionUser,
   input: NewTicket,

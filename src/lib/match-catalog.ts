@@ -1,6 +1,6 @@
-// src/features/sales-control/match-catalog.ts
+// src/lib/match-catalog.ts
 // Reconoce un valor pegado desde Excel en un catálogo (proveedores, tecnologías, áreas…) por id, nombre o ayuda,
-// sin distinguir mayúsculas ni tildes. Lo usan el pegado de las líneas y el del leasing.
+// sin distinguir mayúsculas ni tildes. Lo usan los pegados del CV, del leasing y de la carga histórica de tickets.
 
 export type Catalog = readonly { id: string; label: string; hint?: string }[];
 

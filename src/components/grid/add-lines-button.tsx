@@ -1,6 +1,7 @@
-// src/features/sales-control/components/lines/add-lines-button.tsx
-// Botón «Línea» de la barra y de cada lote: agrega una línea o, desde su flecha, varias de golpe (5, 10, 30 o las
-// que se escriban, hasta 100). Las que queden vacías se descartan al guardar (decisión 2026-11-11).
+// src/components/grid/add-lines-button.tsx
+// Botón «Línea» de una grilla tipo planilla (barra y lotes del CV, carga histórica de tickets): agrega una línea
+// o, desde su flecha, varias de golpe (5, 10, 30 o las que se escriban, hasta 100). Las que queden vacías se
+// descartan al guardar (decisión 2026-11-11).
 "use client";
 
 import { ChevronDown, Plus } from "lucide-react";

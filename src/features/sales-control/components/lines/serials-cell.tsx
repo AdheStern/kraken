@@ -4,8 +4,8 @@
 "use client";
 
 import { useState } from "react";
+import { TextAreaCell } from "@/components/grid/grid-cells";
 import { parseSerials } from "../../parse-serials";
-import { TextAreaCell } from "./grid-cells";
 
 type Props = {
   row: number;

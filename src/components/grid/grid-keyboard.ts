@@ -1,5 +1,5 @@
-// src/features/sales-control/components/lines/grid-keyboard.ts
-// Navegación de planilla dentro de la grilla: Enter y Shift+Enter bajan y suben; en celdas de texto
+// src/components/grid/grid-keyboard.ts
+// Navegación de planilla dentro de una grilla: Enter y Shift+Enter bajan y suben; en celdas de texto
 // también las flechas (no en las de texto largo, donde mueven el cursor). Salta las filas que no tienen
 // esa columna (notas).
 import type { KeyboardEvent } from "react";

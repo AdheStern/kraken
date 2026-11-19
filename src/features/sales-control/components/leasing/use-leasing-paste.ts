@@ -4,11 +4,11 @@
 "use client";
 
 import { type ClipboardEvent, useState } from "react";
+import { isBlockPaste } from "@/components/grid/is-block-paste";
 import { parseTsv } from "@/domain/sales-control/parse-tsv";
 import { pasteIntoLeasing } from "../../paste-into-leasing";
 import type { CvLeasingLineDraft } from "../../schemas/cv-leasing-schema";
 import type { CvGridOptions } from "../../types";
-import { isBlockPaste } from "../lines/grid-events";
 
 type Args = {
   lines: CvLeasingLineDraft[];

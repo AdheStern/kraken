@@ -4,6 +4,7 @@
 "use client";
 
 import type { ClipboardEvent, Dispatch } from "react";
+import { handleGridKeyDown } from "@/components/grid/grid-keyboard";
 import { numberItems } from "@/domain/sales-control/number-items";
 import type { PriceLineResult } from "../../line-pricing";
 import type { CvLineDraft } from "../../schemas/cv-lines-schema";
@@ -14,7 +15,6 @@ import { CvNoteRow } from "./cv-note-row";
 import type { ColumnKey } from "./grid-columns";
 import { blockPaste, typeProductCode } from "./grid-events";
 import { type GridFill, GridHeader } from "./grid-header";
-import { handleGridKeyDown } from "./grid-keyboard";
 import { groupSubtotal } from "./group-subtotal";
 import type { LineEditRights } from "./item-cell-context";
 import { isSelectColumn } from "./select-columns";

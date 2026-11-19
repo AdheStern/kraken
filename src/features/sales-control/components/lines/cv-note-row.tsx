@@ -2,8 +2,8 @@
 // Fila de nota (kind = NOTA): texto sin importe que se exporta como fila de texto (AGENTS.md §2.1).
 "use client";
 
+import { TextCell } from "@/components/grid/grid-cells";
 import { rowColorStyle } from "./excel-palette";
-import { TextCell } from "./grid-cells";
 import { COLUMNS, type ColumnKey } from "./grid-columns";
 import { RowColorPicker } from "./row-color-picker";
 import { RowActions, RowNumber, STICKY_INDEX } from "./row-parts";

@@ -4,15 +4,15 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
-import type { CvGridOptions } from "../../types";
 import {
   CELL_INPUT,
   NumberCell,
   SelectCell,
   TextAreaCell,
   TextCell,
-} from "./grid-cells";
+} from "@/components/grid/grid-cells";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import type { CvGridOptions } from "../../types";
 import type { ColumnKey } from "./grid-columns";
 import type { ItemCellContext } from "./item-cell-context";
 import { SELECT_COLUMNS, type SelectColumnKey } from "./select-columns";

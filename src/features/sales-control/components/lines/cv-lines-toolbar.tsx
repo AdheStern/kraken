@@ -4,6 +4,7 @@
 
 import { Layers, LoaderCircle, Save, Send, StickyNote } from "lucide-react";
 import { type ReactNode, useRef, useState } from "react";
+import { AddLinesButton } from "@/components/grid/add-lines-button";
 import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,6 @@ import { OptionSelect } from "@/components/ui/option-select";
 import type { ActionResult } from "@/lib/action-result";
 import type { Option } from "../../types";
 import { ReasonDialog } from "../versions/reason-dialog";
-import { AddLinesButton } from "./add-lines-button";
 
 type Props = {
   technologies: Option[];

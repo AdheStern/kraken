@@ -4,9 +4,9 @@
 "use client";
 
 import { Layers, ListChecks, StickyNote, Trash2 } from "lucide-react";
+import { AddLinesButton } from "@/components/grid/add-lines-button";
 import { Input } from "@/components/ui/input";
 import { formatAmount } from "@/lib/format-amount";
-import { AddLinesButton } from "./add-lines-button";
 import { ColumnFillPopover } from "./column-fill-popover";
 import type { GridFill } from "./grid-header";
 import type { SelectColumnKey } from "./select-columns";

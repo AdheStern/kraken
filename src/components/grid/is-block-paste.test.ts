@@ -1,7 +1,7 @@
-// src/features/sales-control/components/lines/grid-events.test.ts
-// Cuándo un pegado en la grilla del CV se reparte en celdas como en Excel y cuándo se pega como texto.
+// src/components/grid/is-block-paste.test.ts
+// Cuándo un pegado en una grilla tipo planilla se reparte en celdas como en Excel y cuándo se pega como texto.
 import { describe, expect, it } from "vitest";
-import { isBlockPaste } from "./grid-events";
+import { isBlockPaste } from "./is-block-paste";
 
 describe("isBlockPaste", () => {
   it("un bloque con tabuladores siempre se reparte", () => {

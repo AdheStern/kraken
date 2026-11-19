@@ -4,8 +4,8 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { NumberCell } from "@/components/grid/grid-cells";
 import { formatAmount } from "@/lib/format-amount";
-import { NumberCell } from "./grid-cells";
 import type { ColumnKey } from "./grid-columns";
 import type { ItemCellContext } from "./item-cell-context";
 import { PricingBadge } from "./pricing-badge";

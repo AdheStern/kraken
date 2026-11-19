@@ -3,7 +3,7 @@
 // sobrescribe las filas siguientes y crea las que falten. En la versión aprobada solo escribe los datos posventa
 // (notas, seriales y PO#) de las filas que ya existen (AGENTS.md §2.1 y §2.3, decisión 2026-11-11).
 import { parseDecimalText } from "@/domain/sales-control/parse-decimal-text";
-import { matchCatalog } from "./match-catalog";
+import { matchCatalog } from "@/lib/match-catalog";
 import type { CvLeasingLineDraft } from "./schemas/cv-leasing-schema";
 import type { CvGridOptions } from "./types";
 

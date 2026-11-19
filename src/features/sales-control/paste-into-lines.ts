@@ -2,12 +2,12 @@
 // Pega un bloque copiado de Excel en la grilla desde la celda enfocada, como en una planilla: sobrescribe
 // las líneas siguientes del mismo lote y crea las que falten. Reconoce catálogos por código o nombre.
 import { parseDecimalText } from "@/domain/sales-control/parse-decimal-text";
+import { type Catalog, matchCatalog } from "@/lib/match-catalog";
 import {
   type ColumnKey,
   ITEM_TYPE_OPTIONS,
   SUPPLY_MODE_OPTIONS,
 } from "./components/lines/grid-columns";
-import { type Catalog, matchCatalog } from "./match-catalog";
 import { parseSerials } from "./parse-serials";
 import { fillFromProduct } from "./product-fill";
 import type { CvGroupDraft, CvLineDraft } from "./schemas/cv-lines-schema";

@@ -4,11 +4,11 @@
 
 import Decimal from "decimal.js";
 import { Trash2 } from "lucide-react";
+import { NumberCell, SelectCell, TextCell } from "@/components/grid/grid-cells";
 import { roundHalfUp2 } from "@/domain/pricing/money";
 import { formatAmount } from "@/lib/format-amount";
 import type { CvLeasingLineDraft } from "../../schemas/cv-leasing-schema";
 import type { CvGridOptions } from "../../types";
-import { NumberCell, SelectCell, TextCell } from "../lines/grid-cells";
 
 const NUMBER = /^\d+(\.\d+)?$/;
 

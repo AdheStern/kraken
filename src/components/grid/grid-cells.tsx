@@ -1,5 +1,5 @@
-// src/features/sales-control/components/lines/grid-cells.tsx
-// Celdas editables de la grilla del CV: texto, texto largo, número (acepta formato de Excel) y selector (shadcn).
+// src/components/grid/grid-cells.tsx
+// Celdas editables de las grillas tipo planilla (CV, leasing, carga histórica de tickets): texto, texto largo, número (acepta formato de Excel) y selector (shadcn).
 // Cada celda lleva data-cell="fila:columna" para moverse con el teclado como en una planilla.
 "use client";
 

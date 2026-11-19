@@ -7,6 +7,7 @@ import Decimal from "decimal.js";
 import { ChevronDown, LoaderCircle, Plus, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { handleGridKeyDown } from "@/components/grid/grid-keyboard";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -19,7 +20,6 @@ import { upsertCvLeasing } from "../../actions/upsert-cv-leasing";
 import { blankLeasingLine } from "../../paste-into-leasing";
 import type { CvLeasingLineDraft } from "../../schemas/cv-leasing-schema";
 import type { CvGridOptions } from "../../types";
-import { handleGridKeyDown } from "../lines/grid-keyboard";
 import { CvLeasingRow, leasingLineTotal } from "./cv-leasing-row";
 import { useLeasingPaste } from "./use-leasing-paste";
 

@@ -99,6 +99,10 @@ model Ticket {
   firstResponseAt DateTime?      @map("primera_respuesta_en") @db.Timestamptz
   resolvedAt      DateTime?      @map("resuelto_en") @db.Timestamptz
   closedAt        DateTime?      @map("cerrado_en") @db.Timestamptz
+  // POR QUÉ: trabajo previo a Kraken cargado en la migración; no mide SLA ni cuenta como registro tardío (§2.6).
+  isHistorical    Boolean        @default(false) @map("es_historico")
+  // POR QUÉ: la referencia del sistema anterior hace idempotente la carga: repetirla no duplica el ticket.
+  previousRef     String?        @unique @map("ref_anterior")
 
   project         Project?            @relation(fields: [projectId], references: [id])
   customer        Customer            @relation(fields: [customerId], references: [id])

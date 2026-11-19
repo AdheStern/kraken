@@ -1,7 +1,7 @@
 // tests/e2e/projects.spec.ts
 // Detalle de un proyecto (AGENTS.md §2.6, §11): el coordinador crea un proyecto del cliente demo, abre su detalle,
-// crea un ticket con el alta prellenada con el cliente y el proyecto, lo ve en el resumen y el tablero del
-// proyecto y ve en «Bolsas» las del cliente que sus tickets pueden usar.
+// crea un ticket con el alta prellenada con el cliente y el proyecto, lo ve en el resumen, en el tablero y en la
+// lista del proyecto (y en la lista de /tickets), y ve en «Bolsas» las del cliente que sus tickets pueden usar.
 import { expect, test } from "@playwright/test";
 import { storageFor } from "./users";
 
@@ -57,6 +57,12 @@ test("el coordinador crea un ticket desde el detalle del proyecto", async ({
   await expect(
     page.getByRole("listitem").filter({ hasText: TITLE }),
   ).toBeVisible();
+  await page.getByRole("link", { name: "Lista" }).click();
+  await expect(page.getByRole("row").filter({ hasText: TITLE })).toBeVisible();
+  await expect(page.getByText("Mostrando 1–1 de 1 tickets")).toBeVisible();
+
+  await page.goto(`/tickets?modo=lista&q=${encodeURIComponent(TITLE)}`);
+  await expect(page.getByRole("row").filter({ hasText: TITLE })).toBeVisible();
   await page.goto(`${projectUrl}?pestana=bolsas`);
   await expect(page.getByText(/Soporte 8x5/).first()).toBeVisible();
 });

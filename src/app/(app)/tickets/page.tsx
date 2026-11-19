@@ -1,6 +1,6 @@
 // src/app/(app)/tickets/page.tsx
-// Tablero de tickets visibles para el usuario, por estado, con filtros por cliente, área y «solo míos»
-// (AGENTS.md §2.9 "Tickets: ver", §5 navegación "Horas y tickets").
+// Tickets visibles para el usuario en tablero por estado o en lista paginada y ordenable, con filtros por
+// cliente, área, «solo míos» y, en la lista, estado (AGENTS.md §2.9 "Tickets: ver", §5 navegación).
 import { FolderKanban, Inbox } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -12,9 +12,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { NewTicketDialog } from "@/features/tickets/components/new-ticket-dialog";
 import { TicketBoard } from "@/features/tickets/components/ticket-board";
 import { TicketFilters } from "@/features/tickets/components/ticket-filters";
+import { TicketListTable } from "@/features/tickets/components/ticket-list-table";
+import { TicketViewToggle } from "@/features/tickets/components/ticket-view-toggle";
 import { countPendingTicketRequests } from "@/features/tickets/queries/count-pending-ticket-requests";
 import { getTicketFormOptions } from "@/features/tickets/queries/get-ticket-form-options";
 import { listTickets } from "@/features/tickets/queries/list-tickets";
+import { listTicketsPage } from "@/features/tickets/queries/list-tickets-page";
+import { parseTicketListParams } from "@/features/tickets/schemas/ticket-list-params";
+import { toQueryString } from "@/lib/to-query-string";
 import { hasRole } from "@/server/authz/roles";
 import {
   canCreateAnyTicket,
@@ -123,21 +128,41 @@ async function TicketsResults({
   const areas = [...new Set(tickets.flatMap((t) => t.areaCodes))]
     .sort()
     .map((code) => ({ id: code, label: code }));
+  const list = parseTicketListParams(params);
+  const query = toQueryString(params);
   return (
     <>
-      {tickets.length > 0 && (
-        <TicketFilters
-          customers={customers}
-          areas={areas}
-          canFilterMine={hasRole(user, "INGENIERO")}
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+        {tickets.length > 0 || list.mode === "lista" ? (
+          <TicketFilters
+            customers={customers}
+            areas={areas}
+            canFilterMine={hasRole(user, "INGENIERO")}
+            canFilterStatus={list.mode === "lista"}
+          />
+        ) : (
+          <span />
+        )}
+        <TicketViewToggle mode={list.mode} basePath="/tickets" query={query} />
+      </div>
+      {list.mode === "lista" ? (
+        <TicketListTable
+          page={await listTicketsPage(user, list)}
+          sort={list.sort}
+          basePath="/tickets"
+          query={query}
+          isFiltered={Boolean(
+            customerId || areaCode || mine || text || list.status,
+          )}
+        />
+      ) : (
+        <TicketBoard
+          tickets={visible}
+          isFiltered={
+            Boolean(customerId || areaCode || mine) && tickets.length > 0
+          }
         />
       )}
-      <TicketBoard
-        tickets={visible}
-        isFiltered={
-          Boolean(customerId || areaCode || mine) && tickets.length > 0
-        }
-      />
     </>
   );
 }

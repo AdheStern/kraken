@@ -15,11 +15,16 @@ import { ProjectHeader } from "@/features/tickets/components/project-header";
 import { ProjectSummaryPanel } from "@/features/tickets/components/project-summary-panel";
 import { ProjectTicketAction } from "@/features/tickets/components/project-ticket-action";
 import { TicketBoard } from "@/features/tickets/components/ticket-board";
+import { TicketListTable } from "@/features/tickets/components/ticket-list-table";
+import { TicketViewToggle } from "@/features/tickets/components/ticket-view-toggle";
 import { getProjectDetail } from "@/features/tickets/queries/get-project-detail";
 import { getProjectSummary } from "@/features/tickets/queries/get-project-summary";
 import { getTicketFormOptions } from "@/features/tickets/queries/get-ticket-form-options";
 import { listTickets } from "@/features/tickets/queries/list-tickets";
+import { listTicketsPage } from "@/features/tickets/queries/list-tickets-page";
+import { parseTicketListParams } from "@/features/tickets/schemas/ticket-list-params";
 import type { ProjectDetailView } from "@/features/tickets/types";
+import { toQueryString } from "@/lib/to-query-string";
 import { requireUser } from "@/server/session";
 
 const TABS = ["resumen", "tickets", "bolsas"] as const;
@@ -76,7 +81,7 @@ async function Project({
         }
       />
       {tab === "resumen" && <ProjectSummary project={project} />}
-      {tab === "tickets" && <ProjectTickets project={project} />}
+      {tab === "tickets" && <ProjectTickets project={project} query={query} />}
       {tab === "bolsas" && <ProjectBags project={project} />}
     </>
   );
@@ -97,10 +102,40 @@ async function NewTicket({ project }: { project: ProjectDetailView }) {
   return <ProjectTicketAction project={project} options={options} />;
 }
 
-async function ProjectTickets({ project }: { project: ProjectDetailView }) {
+async function ProjectTickets({
+  project,
+  query,
+}: {
+  project: ProjectDetailView;
+  query: Record<string, string | string[] | undefined>;
+}) {
   const user = await requireUser();
-  const tickets = await listTickets(user, { projectId: project.id });
-  return <TicketBoard tickets={tickets} isFiltered={false} />;
+  const list = parseTicketListParams(query);
+  const basePath = `/tickets/proyectos/${project.id}`;
+  const queryString = toQueryString(query);
+  return (
+    <>
+      <TicketViewToggle
+        mode={list.mode}
+        basePath={basePath}
+        query={queryString}
+      />
+      {list.mode === "lista" ? (
+        <TicketListTable
+          page={await listTicketsPage(user, list, project.id)}
+          sort={list.sort}
+          basePath={basePath}
+          query={queryString}
+          isFiltered={false}
+        />
+      ) : (
+        <TicketBoard
+          tickets={await listTickets(user, { projectId: project.id })}
+          isFiltered={false}
+        />
+      )}
+    </>
+  );
 }
 
 async function ProjectBags({ project }: { project: ProjectDetailView }) {

@@ -1,5 +1,6 @@
 // src/features/tickets/components/ticket-filters.tsx
-// Filtros del tablero por número o título («/» lleva al buscador), cliente, área y «solo míos»; viven en la URL.
+// Filtros de los tickets por número o título («/» lleva al buscador), cliente, área, «solo míos» y, en la vista
+// de lista, estado; viven en la URL.
 "use client";
 
 import { Search } from "lucide-react";
@@ -8,17 +9,28 @@ import { useEffect, useRef, useState } from "react";
 import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
 import { Input } from "@/components/ui/input";
 import { OptionSelect, type SelectOption } from "@/components/ui/option-select";
+import { STATUS_LABELS } from "../ticket-labels";
 
 type Props = {
   customers: SelectOption[];
   areas: SelectOption[];
   canFilterMine: boolean;
+  // POR QUÉ: el tablero ya separa por estado en columnas; la lista lo filtra.
+  canFilterStatus?: boolean;
 };
 
 const MINE_OPTIONS: SelectOption[] = [{ id: "mios", label: "Solo los míos" }];
+const STATUS_OPTIONS: SelectOption[] = Object.entries(STATUS_LABELS).map(
+  ([id, label]) => ({ id, label }),
+);
 const SEARCH_DELAY_MS = 300;
 
-export function TicketFilters({ customers, areas, canFilterMine }: Props) {
+export function TicketFilters({
+  customers,
+  areas,
+  canFilterMine,
+  canFilterStatus = false,
+}: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -30,6 +42,7 @@ export function TicketFilters({ customers, areas, canFilterMine }: Props) {
     const next = new URLSearchParams(params);
     if (value) next.set(key, value);
     else next.delete(key);
+    next.delete("pagina");
     router.replace(`${pathname}?${next.toString()}`);
   }
 
@@ -75,6 +88,16 @@ export function TicketFilters({ customers, areas, canFilterMine }: Props) {
         emptyLabel="Todas las áreas"
         onValueChange={(v) => update("area", v)}
       />
+      {canFilterStatus && (
+        <OptionSelect
+          aria-label="Filtrar por estado"
+          className="h-9 sm:w-44"
+          value={params.get("estado")}
+          options={STATUS_OPTIONS}
+          emptyLabel="Todos los estados"
+          onValueChange={(v) => update("estado", v)}
+        />
+      )}
       {canFilterMine && (
         <OptionSelect
           aria-label="Filtrar por encargado"

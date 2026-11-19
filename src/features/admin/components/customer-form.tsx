@@ -1,5 +1,5 @@
 // src/features/admin/components/customer-form.tsx
-// Ficha de un cliente (razón social, NIT, rubro, tipo, contacto general, municipio, tenant y notas): alta o edición; de solo
+// Ficha de un cliente (razón social, sigla, NIT, rubro, tipo, contacto general, municipio, tenant y notas): alta o edición; de solo
 // lectura para quien no gestiona clientes (decisión 2026-11-06).
 "use client";
 
@@ -19,7 +19,14 @@ import { LabeledInput } from "./labeled-input";
 import { useAdminAction } from "./use-admin-action";
 
 type Draft = Record<
-  "name" | "taxId" | "email" | "phone" | "address" | "country" | "tenant",
+  | "name"
+  | "acronym"
+  | "taxId"
+  | "email"
+  | "phone"
+  | "address"
+  | "country"
+  | "tenant",
   string
 >;
 
@@ -30,6 +37,7 @@ const FIELDS: {
   type?: string;
 }[] = [
   { key: "name", label: "Razón social", wide: true },
+  { key: "acronym", label: "Sigla" },
   { key: "taxId", label: "NIT" },
   { key: "email", label: "Correo", type: "email" },
   { key: "phone", label: "Teléfono" },
@@ -54,6 +62,7 @@ export function CustomerForm({
   const [notes, setNotes] = useState(customer?.notes ?? "");
   const [draft, setDraft] = useState<Draft>({
     name: customer?.name ?? "",
+    acronym: customer?.acronym ?? "",
     taxId: customer?.taxId ?? "",
     email: customer?.email ?? "",
     phone: customer?.phone ?? "",

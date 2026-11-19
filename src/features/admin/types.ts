@@ -68,6 +68,7 @@ export type CustomerDetail = {
   id: string;
   name: string;
   taxId: string | null;
+  acronym: string | null;
   email: string | null;
   phone: string | null;
   address: string | null;

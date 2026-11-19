@@ -2,6 +2,8 @@
 // Opciones del puesto de contacto: áreas activas, personas de DIMA que pueden atenderlo y los clientes activos a los
 // que se puede transferir (decisión
 // 2026-11-06). LIMITACIÓN: sin alcance; son catálogos y la ficha exige canManageCommercialCatalogs.
+
+import { customerHint } from "@/lib/customer-hint";
 import { prisma } from "@/server/db";
 import type { ContactFormOptions } from "../types";
 
@@ -26,7 +28,13 @@ export async function getContactFormOptions(): Promise<
     prisma.customer.findMany({
       where: { isActive: true },
       orderBy: { name: "asc" },
-      select: { id: true, name: true, taxId: true, groupId: true },
+      select: {
+        id: true,
+        name: true,
+        acronym: true,
+        taxId: true,
+        groupId: true,
+      },
     }),
   ]);
   return {
@@ -40,7 +48,7 @@ export async function getContactFormOptions(): Promise<
     customers: customers.map((c) => ({
       id: c.id,
       label: c.name,
-      hint: c.taxId ?? undefined,
+      hint: customerHint(c),
       groupId: c.groupId,
     })),
   };

@@ -31,6 +31,7 @@ export async function findCvsForCustomerChange(
           OR: [
             { code: { contains: q, mode: "insensitive" } },
             { customer: { name: { contains: q, mode: "insensitive" } } },
+            { customer: { acronym: { contains: q, mode: "insensitive" } } },
           ],
         },
       ],

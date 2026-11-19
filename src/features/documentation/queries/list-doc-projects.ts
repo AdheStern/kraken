@@ -21,6 +21,9 @@ export async function listDocProjects(
               OR: [
                 { name: { contains: q, mode: "insensitive" } },
                 { customer: { name: { contains: q, mode: "insensitive" } } },
+                {
+                  customer: { acronym: { contains: q, mode: "insensitive" } },
+                },
               ],
             }
           : {},

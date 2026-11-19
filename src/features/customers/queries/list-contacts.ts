@@ -50,6 +50,7 @@ function toWhere(f: ContactFilters): Prisma.CustomerContactWhereInput {
             { email: text },
             { phone: text },
             { customer: { name: text } },
+            { customer: { acronym: text } },
             { municipality: { name: text } },
           ],
         }

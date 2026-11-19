@@ -1,5 +1,7 @@
 // src/features/sales-control/queries/get-cv-form-options.ts
 // Catálogos activos que necesitan los formularios del CV (ciudades, clientes, personas, clasificación).
+
+import { customerHint } from "@/lib/customer-hint";
 import { prisma } from "@/server/db";
 import type { CvFormOptions } from "../types";
 
@@ -26,7 +28,7 @@ export async function getCvFormOptions(): Promise<CvFormOptions> {
     customers: customers.map((c) => ({
       id: c.id,
       label: c.name,
-      hint: c.taxId ?? undefined,
+      hint: customerHint(c),
     })),
     technologies: technologies.map((t) => ({ id: t.id, label: t.name })),
     serviceTypes: serviceTypes.map((s) => ({ id: s.id, label: s.name })),

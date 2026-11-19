@@ -5,6 +5,7 @@
 import { toCvVersionLabel } from "@/domain/sales-control/cv-code";
 import type { EligibleBag } from "@/domain/tickets/bag-eligibility";
 import type { BagModality } from "@/generated/prisma/enums";
+import { customerHint } from "@/lib/customer-hint";
 import { formatMinutes } from "@/lib/format-minutes";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeHourBagQuery } from "@/server/authz/scope-hour-bag-query";
@@ -63,7 +64,7 @@ export async function getTicketFormOptions(
     customers: customers.map((c) => ({
       id: c.id,
       label: c.name,
-      hint: c.taxId ?? undefined,
+      hint: customerHint(c),
     })),
     cities: cities.map((c) => ({ id: c.id, label: c.name, hint: c.code })),
     areas: areas.map((a) => ({ id: a.id, label: a.code, hint: a.name })),

@@ -21,6 +21,7 @@ export async function getCustomer(
       id: true,
       name: true,
       taxId: true,
+      acronym: true,
       email: true,
       phone: true,
       address: true,

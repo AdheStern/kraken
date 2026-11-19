@@ -24,6 +24,7 @@ export async function searchContacts(
             { email: text },
             { phone: text },
             { customer: { name: text } },
+            { customer: { acronym: text } },
           ],
         },
       ],

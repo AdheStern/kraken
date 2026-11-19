@@ -1,5 +1,5 @@
 // src/features/admin/queries/list-customers.ts
-// Clientes del catálogo con búsqueda por razón social o NIT; los dados de baja van al final.
+// Clientes del catálogo con búsqueda por razón social, sigla o NIT; los dados de baja van al final.
 // LIMITACIÓN: sin alcance por usuario; la página solo se abre con canManageCommercialCatalogs.
 import { prisma } from "@/server/db";
 import type { CustomerRow } from "../types";
@@ -14,6 +14,7 @@ export async function listCustomers(search: string): Promise<CustomerRow[]> {
           OR: [
             { name: { contains: q, mode: "insensitive" } },
             { taxId: { contains: q } },
+            { acronym: { contains: q, mode: "insensitive" } },
           ],
         }
       : {},

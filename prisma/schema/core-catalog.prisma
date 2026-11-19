@@ -66,6 +66,8 @@ model Customer {
   id             String       @id @default(uuid(7)) @db.Uuid
   name           String       @map("razon_social")
   taxId          String?      @map("nit")
+  // Sigla o acrónimo («SIN»): nombra el Excel del CV y sirve para buscar (decisión 2026-11-19).
+  acronym        String?      @map("sigla")
   email          String?      @map("correo")
   phone          String?      @map("telefono")
   address        String?      @map("direccion")

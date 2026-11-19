@@ -20,6 +20,7 @@ export const customerSchema = z.object({
   id: z.uuid().nullable(),
   name: z.string().trim().min(2, "Escribe la razón social.").max(160),
   taxId: text(30),
+  acronym: text(20).optional(),
   email,
   phone: text(40),
   address: text(200),

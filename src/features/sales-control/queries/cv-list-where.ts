@@ -43,6 +43,7 @@ function matchesSearch(search: string): Prisma.CvWhereInput {
     OR: [
       { code: contains },
       { customer: { name: contains } },
+      { customer: { acronym: contains } },
       { versions: { some: { title: contains } } },
     ],
   };

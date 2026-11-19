@@ -1,6 +1,7 @@
 // src/app/api/cv/[versionId]/export.xlsx/route.ts
 // Descarga una versión de CV en la plantilla oficial PA-PR-03-RE-01, con authz (AGENTS.md §2.9 y §7).
 import type { NextRequest } from "next/server";
+import { toCvExportFileName } from "@/domain/sales-control/cv-export-file-name";
 import { getCvExportData } from "@/features/sales-control/queries/get-cv-export-data";
 import { recordAccess } from "@/server/audit/record-access";
 import { canExportCvVersion } from "@/server/authz/cv-permissions";
@@ -28,7 +29,11 @@ export async function GET(
   // TRAMPA: una versión fuera del alcance responde 404, igual que una inexistente, para no revelar que existe.
   const version = await prisma.cvVersion.findFirst({
     where: { id: versionId, cv: scopeCvQuery(user) },
-    select: { cvId: true, status: true },
+    select: {
+      cvId: true,
+      status: true,
+      cv: { select: { customer: { select: { name: true, acronym: true } } } },
+    },
   });
   const access = version ? await loadCvAccess(version.cvId, versionId) : null;
   if (!version || !access)
@@ -52,7 +57,12 @@ export async function GET(
     headers: {
       "content-type": XLSX_TYPE,
       "content-disposition": attachmentDisposition(
-        `CV ${data.versionLabel}.xlsx`,
+        toCvExportFileName({
+          versionLabel: data.versionLabel,
+          acronym: version.cv.customer.acronym,
+          customerName: version.cv.customer.name,
+          title: data.title,
+        }),
       ),
       "cache-control": "private, no-store",
     },

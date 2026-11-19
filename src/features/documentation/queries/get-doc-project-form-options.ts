@@ -2,6 +2,8 @@
 // Catálogos activos de la cabecera de un proyecto de documentación: clientes y sus contactos, tecnologías y
 // personas (AGENTS.md §2.10).
 // LIMITACIÓN: sin alcance por usuario; son catálogos que cualquier usuario con rol elige en el formulario.
+
+import { customerHint } from "@/lib/customer-hint";
 import { prisma } from "@/server/db";
 import type { DocProjectFormOptions } from "../types";
 
@@ -27,7 +29,7 @@ export async function getDocProjectFormOptions(): Promise<DocProjectFormOptions>
     customers: customers.map((c) => ({
       id: c.id,
       label: c.name,
-      hint: c.taxId ?? undefined,
+      hint: customerHint(c),
     })),
     contacts: contacts.map((c) => ({
       id: c.id,

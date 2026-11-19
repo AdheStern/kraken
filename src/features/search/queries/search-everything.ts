@@ -1,8 +1,9 @@
 // src/features/search/queries/search-everything.ts
 // Búsqueda global (Ctrl+K, decisión 2026-11-05): CV, tickets, productos, seriales, proyectos de documentación y
 // clientes, hasta 5 por grupo. REGLA: cada grupo pasa por su alcance (regla 7) y solo aparece si el rol lo ve.
-// POR QUÉ: el CV se busca por número y cliente, no por título: el título de un borrador no lo ve Administración.
+// POR QUÉ: el CV se busca por número y cliente (razón social o sigla), no por título: el título de un borrador no lo ve Administración.
 
+import { customerHint } from "@/lib/customer-hint";
 import { canBrowseContacts } from "@/server/authz/contact-permissions";
 import { canListCvs } from "@/server/authz/cv-permissions";
 import { canUseDocumentation } from "@/server/authz/documentation-permissions";
@@ -45,7 +46,13 @@ async function cvs(user: SessionUser, q: Match): Promise<SearchGroup> {
     where: {
       AND: [
         scopeCvQuery(user),
-        { OR: [{ code: q }, { customer: { name: q } }] },
+        {
+          OR: [
+            { code: q },
+            { customer: { name: q } },
+            { customer: { acronym: q } },
+          ],
+        },
       ],
     },
     orderBy: { createdAt: "desc" },
@@ -129,7 +136,13 @@ async function docProjects(user: SessionUser, q: Match): Promise<SearchGroup> {
     where: {
       AND: [
         scopeDocProjectQuery(user),
-        { OR: [{ name: q }, { customer: { name: q } }] },
+        {
+          OR: [
+            { name: q },
+            { customer: { name: q } },
+            { customer: { acronym: q } },
+          ],
+        },
       ],
     },
     orderBy: { name: "asc" },
@@ -146,14 +159,16 @@ async function docProjects(user: SessionUser, q: Match): Promise<SearchGroup> {
 
 async function customers(q: Match): Promise<SearchGroup> {
   const rows = await prisma.customer.findMany({
-    where: { OR: [{ name: q }, { taxId: q }] },
+    where: { OR: [{ name: q }, { acronym: q }, { taxId: q }] },
     orderBy: { name: "asc" },
     take: TAKE,
-    select: { id: true, name: true, taxId: true },
+    select: { id: true, name: true, acronym: true, taxId: true },
   });
   return group(
     "Clientes",
-    rows.map((r) => item(r.id, r.name, r.taxId, `/clientes/${r.id}`)),
+    rows.map((r) =>
+      item(r.id, r.name, customerHint(r) ?? null, `/clientes/${r.id}`),
+    ),
   );
 }
 

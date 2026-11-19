@@ -41,6 +41,8 @@ export async function loadCvListRows(
           status: true,
           totalCostUsd: true,
           totalSaleUsd: true,
+          finalSaleUsd: true,
+          finalSaleBs: true,
           updatedAt: true,
           // REGLA: las áreas del CV son la unión de las áreas de sus líneas (§2.1).
           lines: {
@@ -85,7 +87,9 @@ export async function loadCvListRows(
         totalCostUsd: canSeeCvCosts(user, access)
           ? latest.totalCostUsd.toFixed(2)
           : null,
-        totalSaleUsd: latest.totalSaleUsd.toFixed(2),
+        totalSaleUsd: (latest.finalSaleUsd ?? latest.totalSaleUsd).toFixed(2),
+        hasFinalPrice:
+          latest.finalSaleUsd !== null || latest.finalSaleBs !== null,
         updatedAt: latest.updatedAt.toISOString(),
         areas: latest.lines
           .flatMap((line) => (line.area ? [line.area.code] : []))

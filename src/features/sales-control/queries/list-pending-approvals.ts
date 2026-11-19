@@ -26,6 +26,8 @@ export async function listPendingApprovals(
           number: true,
           title: true,
           totalSaleUsd: true,
+          finalSaleUsd: true,
+          finalSaleBs: true,
           submittedAt: true,
           cv: {
             select: {
@@ -50,7 +52,9 @@ export async function listPendingApprovals(
     versionLabel: toCvVersionLabel(version.cv.code, version.number),
     title: version.title,
     customerName: version.cv.customer.name,
-    totalSaleUsd: version.totalSaleUsd.toFixed(2),
+    totalSaleUsd: (version.finalSaleUsd ?? version.totalSaleUsd).toFixed(2),
+    hasFinalPrice:
+      version.finalSaleUsd !== null || version.finalSaleBs !== null,
     areaCodes: version.approvalRequests
       .flatMap((r) => (r.area ? [r.area.code] : []))
       .sort(),

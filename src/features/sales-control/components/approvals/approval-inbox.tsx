@@ -7,6 +7,7 @@ import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import { Button } from "@/components/ui/button";
 import { formatAmount } from "@/lib/format-amount";
 import type { PendingApprovalItem } from "../../types";
+import { FinalPriceMark } from "../final-price-mark";
 
 // REGLA: approvals.reminder recuerda las solicitudes con más de 24 h (AGENTS.md §7).
 const STALE_AFTER_MS = 24 * 60 * 60 * 1000;
@@ -67,6 +68,7 @@ function InboxRow({ item, now }: { item: PendingApprovalItem; now: number }) {
         <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
           <span className="text-sm font-medium text-foreground tabular-nums">
             USD {formatAmount(item.totalSaleUsd)}
+            {item.hasFinalPrice && <FinalPriceMark />}
           </span>
           <span aria-hidden="true">·</span>
           Áreas: {item.areaCodes.join(", ")}

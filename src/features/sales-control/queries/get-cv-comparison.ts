@@ -58,6 +58,16 @@ export async function getCvComparison(
     ),
     totals: [
       totalRow("Venta total USD", before.totalSaleUsd, after.totalSaleUsd),
+      // POR QUÉ: el precio final reemplaza al total que se presenta; se compara aparte (decisión 2026-11-19).
+      ...(before.finalSaleUsd || after.finalSaleUsd
+        ? [
+            totalRow(
+              "Precio final USD",
+              before.finalSaleUsd ?? before.totalSaleUsd,
+              after.finalSaleUsd ?? after.totalSaleUsd,
+            ),
+          ]
+        : []),
       ...(withCosts
         ? [totalRow("Costo total USD", before.totalCostUsd, after.totalCostUsd)]
         : []),

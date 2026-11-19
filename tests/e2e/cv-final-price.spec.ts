@@ -7,6 +7,7 @@ import { type E2E_USERS, storageFor } from "./users";
 test.describe.configure({ mode: "serial" });
 
 let cvPath = "";
+const title = `CV precio final ${Date.now()}`;
 
 async function as(
   browser: Browser,
@@ -35,7 +36,7 @@ test("el comercial crea un CV y no puede fijar el precio final", async ({
   await page.getByRole("button", { name: "Nuevo CV" }).click();
   await pick(page, "new-cv-city", "La Paz");
   await pick(page, "new-cv-customer", "Banco Andino");
-  await page.locator("#new-cv-title").fill(`CV precio final ${Date.now()}`);
+  await page.locator("#new-cv-title").fill(title);
   await page.getByRole("button", { name: "Crear CV" }).click();
   await expect(page).toHaveURL(/\/cv\/[0-9a-f-]{36}$/);
   cvPath = new URL(page.url()).pathname;
@@ -63,6 +64,11 @@ test("el GG fija el precio final tras confirmar", async ({ browser }) => {
   await expect(totals(page).getByText("Ajustado")).toBeVisible();
   await expect(totals(page).getByText("USD 12,500.00")).toBeVisible();
   await expect(totals(page).getByText(/Calculado por líneas/)).toBeVisible();
+
+  await page.goto(`/cv?q=${encodeURIComponent(title)}`);
+  const row = page.getByRole("row").filter({ hasText: title });
+  await expect(row).toContainText("12,500.00");
+  await expect(row.getByText("Ajustado")).toBeVisible();
 });
 
 test("Administración ve el borrador y cambia el precio final", async ({

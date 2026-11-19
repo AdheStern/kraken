@@ -35,7 +35,9 @@ export type CvListRow = {
   status: CvVersionStatus;
   // null: el usuario no ve costos de este CV (§2.9, regla 12).
   totalCostUsd: string | null;
+  // El precio final en USD si se fijó; si no, el calculado por las líneas (§2.3).
   totalSaleUsd: string;
+  hasFinalPrice: boolean;
   updatedAt: string;
   areas: string[];
   sellers: { id: string; name: string; image: string | null }[];
@@ -223,7 +225,9 @@ export type PendingApprovalItem = {
   versionLabel: string;
   title: string;
   customerName: string;
+  // El precio final en USD si se fijó; si no, el calculado por las líneas (§2.3).
   totalSaleUsd: string;
+  hasFinalPrice: boolean;
   areaCodes: string[];
   requestLabel: string;
   submittedAt: string;

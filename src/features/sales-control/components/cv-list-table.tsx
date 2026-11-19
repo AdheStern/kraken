@@ -19,6 +19,7 @@ import { CvListPagination } from "./cv-list-pagination";
 import { CvListSortHead } from "./cv-list-sort-head";
 import { CvSellersAvatars } from "./cv-sellers-avatars";
 import { CvStatusBadge } from "./cv-status-badge";
+import { FinalPriceMark } from "./final-price-mark";
 import { OpeningBalanceBadge } from "./opening-balance-badge";
 
 const dateFormat = new Intl.DateTimeFormat("es-BO", {
@@ -127,6 +128,7 @@ export function CvListTable({ page, sort, query, isFiltered }: Props) {
                 )}
                 <TableCell className="text-right tabular-nums">
                   {formatAmount(row.totalSaleUsd)}
+                  {row.hasFinalPrice && <FinalPriceMark />}
                 </TableCell>
                 <TableCell className="whitespace-nowrap text-muted-foreground">
                   {dateFormat.format(new Date(row.updatedAt))}

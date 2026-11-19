@@ -56,6 +56,13 @@ export async function startNewVersion(
     approvalThresholdUsd: _t,
     createdAt: _c,
     updatedAt: _u,
+    // REGLA: el precio final no pasa a la versión nueva: sus líneas van a cambiar (decisión 2026-11-19).
+    finalSaleUsd: _fu,
+    finalSaleBs: _fb,
+    finalBaseSaleUsd: _fbase,
+    finalPriceReason: _fr,
+    finalPriceById: _fby,
+    finalPriceAt: _fat,
     sellers,
     cv,
     customerSnapshot,

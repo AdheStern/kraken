@@ -14,6 +14,7 @@ import {
   canExportCvVersion,
   canListCvs,
   canSeeCvCosts,
+  canSetCvFinalPrice,
 } from "@/server/authz/cv-permissions";
 import type { SessionUser } from "@/server/authz/roles";
 
@@ -335,5 +336,23 @@ describe("§2.9 CV: aprobar", () => {
   ])("%s → área %s, GG %s", (_, u, area, gg) => {
     expect(canDecideApproval(u, areaRequest)).toBe(area);
     expect(canDecideApproval(u, ggRequest)).toBe(gg);
+  });
+});
+
+describe("§2.3 CV: precio final en cualquier estado (decisión 2026-11-19)", () => {
+  it.each<[string, SessionUser, boolean]>([
+    ["gerente general", user(["GERENTE_GENERAL"]), true],
+    ["administración", user(["ADMINISTRACION"]), true],
+    [
+      "desarrollo de negocios (ve, no decide)",
+      user(["DESARROLLO_NEGOCIOS"]),
+      false,
+    ],
+    ["gerente de área", user(["GERENTE_AREA", AREA_NET]), false],
+    ["comercial", user(["COMERCIAL"]), false],
+    ["ingeniero", user(["INGENIERO"]), false],
+    ["administrador del sistema", user(["ADMIN_SISTEMA"]), false],
+  ])("%s → %s", (_, u, expected) => {
+    expect(canSetCvFinalPrice(u)).toBe(expected);
   });
 });

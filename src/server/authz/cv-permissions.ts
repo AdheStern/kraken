@@ -71,6 +71,12 @@ export function canEditCvWithholdings(
   return canEditCvHeaderAnyState(user, cv) && canSeeCvCosts(user, cv);
 }
 
+// REGLA: el precio final del total lo fijan Administración y el GG en cualquier versión y estado; Desarrollo de
+// Negocios ve todo pero no decide (decisión 2026-11-19).
+export function canSetCvFinalPrice(user: SessionUser): boolean {
+  return hasRole(user, "GERENTE_GENERAL") || hasRole(user, "ADMINISTRACION");
+}
+
 // REGLA: los datos posventa de la versión aprobada (observaciones, PO#, activación, seriales) los completan
 // quienes editan el borrador y Administración (§2.3, decisión 2026-11-03).
 export function canEditPostSaleDetails(

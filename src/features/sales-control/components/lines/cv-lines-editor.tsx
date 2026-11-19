@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import { approverLabels } from "../../approver-labels";
-import type { CvGridOptions } from "../../types";
+import type { CvFinalPriceState, CvGridOptions } from "../../types";
 import { CvLineGrid } from "./cv-line-grid";
 import { CvLinesTopBar } from "./cv-lines-top-bar";
 import { CvTotalsPanel } from "./cv-totals-panel";
@@ -34,6 +34,7 @@ type Props = {
   canEditWithholdings: boolean;
   canSeeCosts: boolean;
   isOpeningBalance: boolean;
+  finalPrice: CvFinalPriceState;
 };
 
 export function CvLinesEditor({
@@ -47,6 +48,7 @@ export function CvLinesEditor({
   canEditWithholdings,
   canSeeCosts,
   isOpeningBalance,
+  finalPrice,
 }: Props) {
   const rights = { canEditPostSale, canEditWithholdings };
   const [state, dispatch] = useCvLinesState(initial);
@@ -168,6 +170,8 @@ export function CvLinesEditor({
         thresholdUsd={thresholdUsd}
         canSeeCosts={canSeeCosts}
         optionalTotals={optionalTotals(state.lines, optional.shown)}
+        finalPrice={{ ...finalPrice, versionId, isDirty }}
+        saleFxRate={fxRates.saleFxRate}
       />
     </section>
   );

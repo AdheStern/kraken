@@ -10,14 +10,23 @@ import {
   canEditPostSaleDetails,
   canExportCvVersion,
   canSeeCvCosts,
+  canSetCvFinalPrice,
 } from "@/server/authz/cv-permissions";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeCvQuery } from "@/server/authz/scope-cv-query";
 import { prisma } from "@/server/db";
+import { getDecimalParameter } from "@/server/parameters";
 import { loadCvAccess } from "@/server/sales-control/cv-access";
 import { approvalRequestLabel } from "../approval-request-label";
-import type { CvApprovalItem, CvEditorData, CvVersionSummary } from "../types";
+import type {
+  CvApprovalItem,
+  CvEditorData,
+  CvFinalPriceView,
+  CvVersionSummary,
+} from "../types";
 import { toEditorHeader } from "./editor-header";
+
+const FINAL_PRICE_DEVIATION_FALLBACK_PCT = "5";
 
 export async function getCvEditor(
   user: SessionUser,
@@ -53,6 +62,7 @@ export async function getCvEditor(
     where: { id: shown.id },
     include: {
       sellers: { select: { userId: true } },
+      finalPriceBy: { select: { user: { select: { name: true } } } },
       approvalRequests: {
         orderBy: [{ kind: "asc" }, { area: { code: "asc" } }],
         include: {
@@ -93,6 +103,14 @@ export async function getCvEditor(
 
   return {
     header: toEditorHeader(cv, version),
+    finalPrice: {
+      value: toFinalPriceView(version),
+      canSet: version.status !== "ANULADA" && canSetCvFinalPrice(user),
+      maxDeviationPct: await getDecimalParameter(
+        "cv.precio_final_desvio_max_pct",
+        FINAL_PRICE_DEVIATION_FALLBACK_PCT,
+      ),
+    },
     canEdit: isLatest && version.status === "BORRADOR" && canManage,
     canEditHeader:
       (isLatest && version.status === "BORRADOR" && canManage) ||
@@ -110,5 +128,26 @@ export async function getCvEditor(
     canManage,
     versions,
     approvals,
+  };
+}
+
+type FinalPriceRow = {
+  finalSaleUsd: { toFixed(dp: number): string } | null;
+  finalSaleBs: { toFixed(dp: number): string } | null;
+  finalBaseSaleUsd: { toFixed(dp: number): string } | null;
+  finalPriceReason: string | null;
+  finalPriceAt: Date | null;
+  finalPriceBy: { user: { name: string } } | null;
+};
+
+function toFinalPriceView(version: FinalPriceRow): CvFinalPriceView | null {
+  if (!version.finalSaleUsd && !version.finalSaleBs) return null;
+  return {
+    saleUsd: version.finalSaleUsd?.toFixed(2) ?? null,
+    saleBs: version.finalSaleBs?.toFixed(2) ?? null,
+    baseSaleUsd: version.finalBaseSaleUsd?.toFixed(2) ?? "0.00",
+    reason: version.finalPriceReason ?? "",
+    byName: version.finalPriceBy?.user.name ?? "",
+    at: version.finalPriceAt?.toISOString() ?? "",
   };
 }

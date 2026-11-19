@@ -182,6 +182,7 @@ async function CvEditor({
         canEditWithholdings={editor.canEditWithholdings}
         canSeeCosts={editor.canSeeCosts}
         isOpeningBalance={header.isOpeningBalance}
+        finalPrice={editor.finalPrice}
       />
       {editor.canSeeCosts && (
         <CvLeasingEditor

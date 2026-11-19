@@ -127,8 +127,26 @@ export type CvApprovalItem = {
   canDecide: boolean;
 };
 
+// Precio final del total que fijaron Administración o el GG (§2.3, decisión 2026-11-19); montos como texto.
+export type CvFinalPriceView = {
+  saleUsd: string | null;
+  saleBs: string | null;
+  baseSaleUsd: string;
+  reason: string;
+  byName: string;
+  at: string;
+};
+
+export type CvFinalPriceState = {
+  value: CvFinalPriceView | null;
+  canSet: boolean;
+  /** % de diferencia que la confirmación resalta (`cv.precio_final_desvio_max_pct`). */
+  maxDeviationPct: string;
+};
+
 export type CvEditorData = {
   header: CvEditorHeader;
+  finalPrice: CvFinalPriceState;
   canEdit: boolean;
   // Solo observaciones, PO#, activación, seriales y notas/seriales/PO# del leasing de la versión aprobada (§2.3).
   canEditPostSale: boolean;

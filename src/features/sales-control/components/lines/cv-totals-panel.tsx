@@ -1,9 +1,10 @@
 // src/features/sales-control/components/lines/cv-totals-panel.tsx
-// Panel lateral fijo del editor: totales USD y Bs, factor global, margen, servicios propios, GROSS UP y RET DIMA
+// Panel lateral fijo del editor: totales USD y Bs (o el precio final), factor global, margen, servicios propios, GROSS UP y RET DIMA
 // (si sus columnas se ven), áreas y aprobadores que se generarán al enviar (AGENTS.md §2.1, §2.2, §2.3 y §5).
 import { TriangleAlert } from "lucide-react";
 import { formatAmount } from "@/lib/format-amount";
 import type { LinesSummary } from "../../line-pricing";
+import { CvSaleTotal, type SaleTotalFinalPrice } from "./cv-sale-total";
 import type { OptionalTotal } from "./optional-totals";
 
 type Props = {
@@ -13,6 +14,8 @@ type Props = {
   thresholdUsd: string;
   canSeeCosts: boolean;
   optionalTotals: OptionalTotal[];
+  finalPrice: SaleTotalFinalPrice;
+  saleFxRate: string;
 };
 
 export function CvTotalsPanel({
@@ -21,6 +24,8 @@ export function CvTotalsPanel({
   thresholdUsd,
   canSeeCosts,
   optionalTotals,
+  finalPrice,
+  saleFxRate,
 }: Props) {
   const { totals } = summary;
 
@@ -30,15 +35,12 @@ export function CvTotalsPanel({
       className="grid content-start gap-4 kr-surface rounded-xl p-4 lg:grid-cols-[minmax(180px,auto)_minmax(0,1fr)_minmax(220px,280px)] lg:gap-6 2xl:sticky 2xl:top-14 2xl:self-start 2xl:grid-cols-1 2xl:gap-4"
       aria-label="Totales del CV"
     >
-      <div>
-        <p className="text-xs text-muted-foreground">Venta total</p>
-        <p className="text-2xl font-semibold tracking-[-0.02em] tabular-nums">
-          USD {formatAmount(totals.totalSaleUsd.toFixed(2))}
-        </p>
-        <p className="text-sm text-muted-foreground tabular-nums">
-          Bs {formatAmount(totals.totalSaleBs.toFixed(2))}
-        </p>
-      </div>
+      <CvSaleTotal
+        computedSaleUsd={totals.totalSaleUsd}
+        computedSaleBs={totals.totalSaleBs}
+        saleFxRate={saleFxRate}
+        finalPrice={finalPrice}
+      />
       {canSeeCosts && (
         <dl className="grid grid-cols-2 gap-x-3 gap-y-2 border-t pt-3 text-sm sm:grid-cols-3 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6 2xl:grid-cols-2 2xl:border-t 2xl:border-l-0 2xl:pt-3 2xl:pl-0">
           <Metric

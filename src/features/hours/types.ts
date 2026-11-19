@@ -56,4 +56,9 @@ export type BagDetail = {
   canAdjust: boolean;
 };
 
-export type BagFilters = { customerId?: string; status?: BagStatus };
+export type BagFilters = {
+  customerId?: string;
+  status?: BagStatus;
+  // POR QUÉ: las del proyecto más las de su cliente que sus tickets pueden usar por área o generales (§2.4).
+  project?: { id: string; customerId: string; areaIds: string[] };
+};

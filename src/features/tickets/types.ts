@@ -34,6 +34,8 @@ export type TicketFilters = {
   status?: TicketStatus;
   areaId?: string;
   customerId?: string;
+  // POR QUÉ: un proyecto trae todos sus tickets, también los cerrados hace más de dos semanas.
+  projectId?: string;
   mine?: boolean;
 };
 
@@ -160,6 +162,11 @@ export type ProjectView = {
   openTickets: number;
   bags: number;
   canManage: boolean;
+};
+
+export type ProjectDetailView = Omit<ProjectView, "openTickets" | "bags"> & {
+  customerId: string;
+  areaIds: string[];
 };
 
 export type TimerView = {

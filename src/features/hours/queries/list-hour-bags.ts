@@ -1,6 +1,7 @@
 // src/features/hours/queries/list-hour-bags.ts
 // Bolsas visibles para el usuario, con cifras y riesgo, ordenadas para el seguimiento (AGENTS.md §2.4, §5).
 import { toBusinessDate } from "@/domain/calendar/business-date";
+import type { Prisma } from "@/generated/prisma/client";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeHourBagQuery } from "@/server/authz/scope-hour-bag-query";
 import { systemClock } from "@/server/clock";
@@ -22,6 +23,7 @@ export async function listHourBags(
         scopeHourBagQuery(user),
         filters.customerId ? { customerId: filters.customerId } : {},
         filters.status ? { status: filters.status } : {},
+        filters.project ? usableByProject(filters.project) : {},
       ],
     },
     select: BAG_SELECT,
@@ -36,6 +38,19 @@ export async function listHourBags(
   return records
     .map((r) => toBagSummary(r, totals.get(r.id) ?? {}, today, settings))
     .sort(byUrgency);
+}
+
+function usableByProject(
+  project: NonNullable<BagFilters["project"]>,
+): Prisma.HourBagWhereInput {
+  return {
+    customerId: project.customerId,
+    OR: [
+      { scope: "PROYECTO", projectId: project.id },
+      { scope: "GENERAL" },
+      { scope: "AREA", areas: { some: { areaId: { in: project.areaIds } } } },
+    ],
+  };
 }
 
 // POR QUÉ: primero lo que se agota (más % consumido) y, a igual consumo, lo que vence antes.

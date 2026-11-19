@@ -4,7 +4,7 @@
 import { FolderKanban, Inbox } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ModuleHeading } from "@/components/app-shell/module-heading";
 import { buttonVariants } from "@/components/ui/button";
@@ -96,11 +96,13 @@ async function TicketsResults({
   ]);
   const pick = (key: string) =>
     typeof params[key] === "string" ? (params[key] as string) : null;
-  const [customerId, areaCode, mine, projectId] = [
+  const projectId = pick("proyecto");
+  // POR QUÉ: los tickets de un proyecto viven en su detalle; el enlace viejo del tablero filtrado lleva ahí.
+  if (projectId) redirect(`/tickets/proyectos/${projectId}`);
+  const [customerId, areaCode, mine] = [
     pick("cliente"),
     pick("area"),
     pick("vista") === "mios",
-    pick("proyecto"),
   ];
   const text = (pick("q") ?? "").replace(/^#/, "").toLowerCase();
   // POR QUÉ: se filtra en memoria para que las opciones de los filtros no se encojan al elegir una.
@@ -109,7 +111,6 @@ async function TicketsResults({
       (!customerId || t.customerId === customerId) &&
       (!areaCode || t.areaCodes.includes(areaCode)) &&
       (!mine || t.owner?.id === user.id) &&
-      (!projectId || t.projectId === projectId) &&
       (!text ||
         String(t.number).startsWith(text) ||
         t.title.toLowerCase().includes(text)),
@@ -124,17 +125,6 @@ async function TicketsResults({
     .map((code) => ({ id: code, label: code }));
   return (
     <>
-      {projectId && (
-        <p className="text-sm text-muted-foreground">
-          Mostrando los tickets de un proyecto.{" "}
-          <Link
-            href="/tickets"
-            className="text-primary underline-offset-4 hover:underline"
-          >
-            Ver todos
-          </Link>
-        </p>
-      )}
       {tickets.length > 0 && (
         <TicketFilters
           customers={customers}
@@ -145,8 +135,7 @@ async function TicketsResults({
       <TicketBoard
         tickets={visible}
         isFiltered={
-          Boolean(customerId || areaCode || mine || projectId) &&
-          tickets.length > 0
+          Boolean(customerId || areaCode || mine) && tickets.length > 0
         }
       />
     </>

@@ -58,7 +58,10 @@ export async function listTickets(
     where: {
       AND: [
         scopeTicketQuery(user),
-        filters.status ? { status: filters.status } : recentOrOpen(),
+        filters.status || filters.projectId
+          ? { status: filters.status }
+          : recentOrOpen(),
+        filters.projectId ? { projectId: filters.projectId } : {},
         filters.areaId ? { areas: { some: { areaId: filters.areaId } } } : {},
         filters.customerId ? { customerId: filters.customerId } : {},
         filters.mine

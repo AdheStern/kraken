@@ -49,19 +49,22 @@ type Props = {
   // POR QUÉ: la solicitud aporta asunto, descripción, área, ciudad y su id; el resto lo decide quien atiende.
   initialValues?: Partial<CreateTicketInput>;
   triggerLabel?: string;
+  // POR QUÉ: el alta desde un proyecto es el «Nuevo ticket» de su pantalla y toma Alt+N aunque venga prellenada.
+  shortcut?: boolean;
 };
 
 export function NewTicketDialog({
   options,
   initialValues,
   triggerLabel = "Nuevo ticket",
+  shortcut = !initialValues,
 }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   // POR QUÉ: el alta prellenada de una solicitud no es «Nuevo ticket»; solo el botón general toma Alt+N.
-  useShortcuts(initialValues ? {} : { "ticket.new": () => setOpen(true) });
+  useShortcuts(shortcut ? { "ticket.new": () => setOpen(true) } : {});
   const defaults = { ...DEFAULTS, ...initialValues };
   const form = useForm<CreateTicketInput>({
     resolver: zodResolver(createTicketSchema),
@@ -96,7 +99,7 @@ export function NewTicketDialog({
       <DialogTrigger
         render={
           <Button
-            size={initialValues ? "sm" : "default"}
+            size={shortcut ? "default" : "sm"}
             data-tour={initialValues ? undefined : "nuevo-ticket"}
           />
         }

@@ -1,5 +1,5 @@
 // src/features/tickets/components/project-list.tsx
-// Proyectos con su cliente, áreas, fechas, tickets abiertos y bolsas; enlaza al tablero filtrado (AGENTS.md §2.6).
+// Proyectos con su cliente, áreas, fechas, tickets abiertos y bolsas; cada uno abre su detalle (AGENTS.md §2.6).
 import Link from "next/link";
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +23,12 @@ export function ProjectList({ projects }: { projects: ProjectView[] }) {
         >
           <div className="min-w-0 flex-1">
             <p className="flex flex-wrap items-center gap-2">
-              <span className="font-medium">{p.name}</span>
+              <Link
+                href={`/tickets/proyectos/${p.id}`}
+                className="font-medium underline-offset-4 hover:underline"
+              >
+                {p.name}
+              </Link>
               {p.status === "CERRADO" && (
                 <Badge variant="secondary">Cerrado</Badge>
               )}
@@ -40,10 +45,10 @@ export function ProjectList({ projects }: { projects: ProjectView[] }) {
             {p.bags} {p.bags === 1 ? "bolsa" : "bolsas"}
           </span>
           <Link
-            href={`/tickets?proyecto=${p.id}`}
+            href={`/tickets/proyectos/${p.id}?pestana=bolsas`}
             className="text-xs text-primary underline-offset-4 hover:underline"
           >
-            Ver tickets
+            Ver bolsas
           </Link>
           {p.canManage && (
             <ProjectStatusButton projectId={p.id} status={p.status} />

@@ -17,8 +17,14 @@ export function ticketChoices(options: TicketFormOptions, draft: Draft) {
       (e) =>
         e.areaIds === null || e.areaIds.some((a) => draft.areaIds.includes(a)),
     ),
-    // REGLA: la misma elegibilidad que valida el servidor (§2.6).
-    bags: options.bags.filter((b) => !bagIneligibility(b, draft)),
+    // REGLA: la misma elegibilidad que valida el servidor (§2.6). Las del proyecto van primero.
+    bags: options.bags
+      .filter((b) => !bagIneligibility(b, draft))
+      .sort(
+        (a, b) =>
+          Number(b.projectId === draft.projectId && b.projectId !== null) -
+          Number(a.projectId === draft.projectId && a.projectId !== null),
+      ),
   };
 }
 

@@ -1,5 +1,5 @@
 // src/app/(app)/tickets/proyectos/page.tsx
-// Proyectos: contenedores de tickets con su cliente, áreas y fechas; alta, cierre y enlace al tablero filtrado
+// Proyectos: contenedores de tickets con su cliente, áreas y fechas; alta, cierre y enlace a su detalle
 // (AGENTS.md §2.6, §5 navegación "proyectos").
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";

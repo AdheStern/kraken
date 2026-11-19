@@ -81,6 +81,13 @@ export async function getCvExportData(
     notes: version.notes ?? "",
     costFxRate: version.costFxRate.toString(),
     saleFxRate: version.saleFxRate.toString(),
+    finalPrice:
+      version.finalSaleUsd || version.finalSaleBs
+        ? {
+            saleUsd: version.finalSaleUsd?.toFixed(2) ?? null,
+            saleBs: version.finalSaleBs?.toFixed(2) ?? null,
+          }
+        : null,
     sections: toSections(version),
     leasing: version.leasingLines.map((line) => ({
       supplier: line.supplier?.name ?? "",

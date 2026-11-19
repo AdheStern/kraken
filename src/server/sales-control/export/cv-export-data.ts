@@ -71,6 +71,8 @@ export type CvExportData = {
   notes: string;
   costFxRate: string;
   saleFxRate: string;
+  /** Precio final del total en USD y/o Bs; null = sin precio final (AGENTS.md §2.3, decisión 2026-11-19). */
+  finalPrice: { saleUsd: string | null; saleBs: string | null } | null;
   sections: CvExportSection[];
   leasing: CvExportLeasingLine[];
 };

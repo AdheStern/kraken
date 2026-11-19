@@ -61,6 +61,7 @@ const DATA: CvExportData = {
   notes: "Entrega en dos fases",
   costFxRate: "6.97",
   saleFxRate: "6.96",
+  finalPrice: null,
   sections: [
     {
       groupName: null,
@@ -264,5 +265,52 @@ describe("exportación del CV a PA-PR-03-RE-01", async () => {
       });
     });
     expect(emptyRuns).toEqual([]);
+  });
+});
+
+describe("precio final bajo los totales (decisión 2026-11-19)", async () => {
+  const withUsd = cellMap(
+    (
+      await readSheet(
+        await exportCvToXlsx({
+          ...DATA,
+          finalPrice: { saleUsd: "2500.00", saleBs: null },
+        }),
+      )
+    ).sheet,
+  );
+
+  it("valor en USD, Bs del TC de venta, ajuste y M22 al precio final", () => {
+    expect(withUsd.H33).toBe("PRECIO FINAL $us:");
+    expect(withUsd.M33).toBe("2500");
+    expect(withUsd.P33).toBe("=ROUND(M33*6.96,2)");
+    expect(withUsd.H34).toBe("AJUSTE:");
+    expect(withUsd.M34).toBe("=M33-M31");
+    expect(withUsd.P34).toBe("=P33-P31");
+    expect(withUsd.L33).toBeUndefined();
+    expect(withUsd.M22).toBe("=M33");
+    expect(withUsd.I22).toBe("=I31");
+  });
+
+  it("el leasing baja las dos filas del precio final", () => {
+    expect(withUsd.C35).toBe(
+      "SOLO PARA CASOS DE SERVICIOS DE LEASING O ARRENDAMIENTO:",
+    );
+    expect(withUsd.I43).toBe("=SUM(I39:I42)");
+  });
+
+  it("con solo Bs el USD es el calculado", async () => {
+    const onlyBs = cellMap(
+      (
+        await readSheet(
+          await exportCvToXlsx({
+            ...DATA,
+            finalPrice: { saleUsd: null, saleBs: "17000.00" },
+          }),
+        )
+      ).sheet,
+    );
+    expect(onlyBs.M33).toBe("=M31");
+    expect(onlyBs.P33).toBe("17000");
   });
 });

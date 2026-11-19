@@ -19,6 +19,8 @@ import {
 /** Columnas de la tabla de líneas, de Ítem (A) a PO# (R); BC va en D, junto a la línea del producto, y GROSS UP y
  * RET DIMA en J y K, tras el costo total (decisión 2026-11-16). */
 const LAST_LINE_COLUMN = 18;
+/** Filas que agrega el precio final bajo los totales: el precio final y el ajuste frente al calculado. */
+const FINAL_PRICE_ROWS = 2;
 
 /** Escribe líneas y totales; devuelve cuántas filas se insertaron respecto de la plantilla. */
 export function writeCvLines(ws: Worksheet, data: CvExportData): number {
@@ -44,8 +46,11 @@ export function writeCvLines(ws: Worksheet, data: CvExportData): number {
       index += 1;
     }
   }
-  writeTotals(ws, FIRST_LINE_ROW + rowCount - 1, data.costFxRate);
-  return rowCount - 1;
+  const last = FIRST_LINE_ROW + rowCount - 1;
+  writeTotals(ws, last, data.costFxRate);
+  if (!data.finalPrice) return rowCount - 1;
+  writeFinalPrice(ws, last + 1, data.finalPrice, data.saleFxRate);
+  return rowCount - 1 + FINAL_PRICE_ROWS;
 }
 
 function itemLabels(sections: CvExportSection[]): (string | null)[] {
@@ -165,4 +170,37 @@ function writeTotals(ws: Worksheet, last: number, costFxRate: string) {
     I: formula(`I${total}`),
     M: formula(`M${total}`),
   });
+}
+
+// REGLA: el precio final es un dato ingresado (valor, no fórmula); con solo USD los Bs salen del TC de venta y con
+// solo Bs el USD es el calculado. El ajuste es la diferencia con el total de las líneas (decisión 2026-11-19).
+function writeFinalPrice(
+  ws: Worksheet,
+  total: number,
+  price: NonNullable<CvExportData["finalPrice"]>,
+  saleFxRate: string,
+) {
+  const final = total + 2;
+  insertRowCopies(ws, total + 1, FINAL_PRICE_ROWS);
+  const usd = price.saleUsd
+    ? toExcelNumber(price.saleUsd)
+    : formula(`M${total}`);
+  const bs = price.saleBs
+    ? toExcelNumber(price.saleBs)
+    : formula(`ROUND(M${final}*${saleFxRate},2)`);
+  writeCells(ws.getRow(final), {
+    H: "PRECIO FINAL $us:",
+    I: "",
+    L: "",
+    M: usd,
+    P: bs,
+  });
+  writeCells(ws.getRow(final + 1), {
+    H: "AJUSTE:",
+    I: "",
+    L: "",
+    M: formula(`M${final}-M${total}`),
+    P: formula(`P${final}-P${total}`),
+  });
+  writeCells(ws.getRow(22), { M: formula(`M${final}`) });
 }

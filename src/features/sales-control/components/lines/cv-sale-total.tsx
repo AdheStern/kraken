@@ -8,6 +8,7 @@ import { TriangleAlert } from "lucide-react";
 import { resolveFinalPrice } from "@/domain/pricing/resolve-final-price";
 import { formatAmount } from "@/lib/format-amount";
 import type { CvFinalPriceState } from "../../types";
+import { FinalPriceDialog } from "./final-price-dialog";
 
 export type SaleTotalFinalPrice = CvFinalPriceState & {
   versionId: string;
@@ -84,6 +85,20 @@ export function CvSaleTotal({
           />
           Las líneas cambiaron desde que se fijó el precio final; revísalo.
         </p>
+      )}
+      {finalPrice.canSet && (
+        <FinalPriceDialog
+          versionId={finalPrice.versionId}
+          current={value}
+          computed={computed}
+          saleFxRate={saleFxRate}
+          maxDeviationPct={finalPrice.maxDeviationPct}
+          disabledReason={
+            finalPrice.isDirty
+              ? "Guarda las líneas antes de fijar el precio final."
+              : null
+          }
+        />
       )}
     </div>
   );

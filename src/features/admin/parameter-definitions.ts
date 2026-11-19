@@ -8,6 +8,7 @@ import { z } from "zod";
 export const PARAMETER_KEYS = [
   "cv.umbral_gg_usd",
   "cv.aviso_renovacion_dias",
+  "cv.precio_final_desvio_max_pct",
   "fx.desvio_max_pct",
   "horas.alerta_consumo_pct",
   "horas.aviso_vencimiento_dias",
@@ -88,6 +89,16 @@ export const PARAMETER_DEFINITIONS: Record<ParameterKey, ParameterDefinition> =
       unit: "días",
       placeholder: "60, 15",
       parse: dayList,
+    },
+    "cv.precio_final_desvio_max_pct": {
+      label: "Desvío del precio final",
+      help: "Si el precio final de un CV se aleja del total calculado por sus líneas más que este %, la confirmación lo resalta sin bloquear.",
+      unit: "%",
+      placeholder: "5",
+      parse: decimal(
+        100,
+        "Escribe un % mayor a 0 y hasta 100, con hasta 2 decimales.",
+      ),
     },
     "fx.desvio_max_pct": {
       label: "Desvío máximo del tipo de cambio",

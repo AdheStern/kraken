@@ -26,6 +26,17 @@ ALTER TABLE cv.linea
     (gross_up IS NULL OR gross_up >= 0) AND (ret_dima IS NULL OR ret_dima >= 0)
   );
 
+-- POR QUÉ: el precio final es un monto positivo y siempre lleva quién, cuándo y por qué (decisión 2026-11-19).
+ALTER TABLE cv.version
+  ADD CONSTRAINT version_precio_final_ck CHECK (
+    (precio_final_usd IS NULL OR precio_final_usd > 0) AND (precio_final_bs IS NULL OR precio_final_bs > 0)
+    AND (
+      (precio_final_usd IS NULL AND precio_final_bs IS NULL)
+      OR (precio_final_motivo IS NOT NULL AND precio_final_por_id IS NOT NULL AND precio_final_en IS NOT NULL
+        AND precio_final_base_usd IS NOT NULL)
+    )
+  );
+
 -- POR QUÉ: la solicitud del GG tiene area_id nulo; NULLS NOT DISTINCT impide dos solicitudes del GG por versión.
 DROP INDEX cv.solicitud_aprobacion_unica;
 CREATE UNIQUE INDEX solicitud_aprobacion_unica ON cv.solicitud_aprobacion (version_id, tipo, area_id) NULLS NOT DISTINCT;
@@ -120,12 +131,15 @@ CREATE TRIGGER bloquear_version_cerrada BEFORE INSERT OR UPDATE OR DELETE ON cv.
 
 -- REGLA: fuera de BORRADOR solo cambian el estado y sus marcas de tiempo (máquina de estados, AGENTS.md §8) y la
 -- cabecera, que gerentes y Administración corrigen en cualquier estado salvo el TC de costo y el de venta
--- (§2.3, decisión 2026-11-03). Montos, TC, umbral y número siguen inmutables.
+-- (§2.3, decisión 2026-11-03), y el precio final que fijan Administración y el GG (decisión 2026-11-19). Montos de
+-- las líneas, totales, TC, umbral y número siguen inmutables.
 CREATE OR REPLACE FUNCTION cv.proteger_version() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE
   c_mutables CONSTANT text[] := ARRAY['estado', 'aprobada_en', 'observada_en', 'reemplazada_en', 'anulada_en', 'actualizado_en',
     'titulo', 'fecha', 'preventa_id', 'postventa_id', 'linea_principal_id', 'tipo_servicio_id', 'nueva_tecnologia',
-    'cliente_final_id', 'datos_cliente', 'oc_numero', 'oc_fecha', 'terminos_pago', 'fecha_entrega', 'notas'];
+    'cliente_final_id', 'datos_cliente', 'oc_numero', 'oc_fecha', 'terminos_pago', 'fecha_entrega', 'notas',
+    'precio_final_usd', 'precio_final_bs', 'precio_final_base_usd', 'precio_final_motivo', 'precio_final_por_id',
+    'precio_final_en'];
 BEGIN
   IF OLD.estado = 'BORRADOR' THEN
     RETURN COALESCE(NEW, OLD);

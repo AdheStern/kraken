@@ -101,6 +101,13 @@ model CvVersion {
   approvalThresholdUsd Decimal?        @map("umbral_aprobacion_usd") @db.Decimal(18, 2)
   totalCostUsd         Decimal         @default(0) @map("total_costo_usd") @db.Decimal(18, 2)
   totalSaleUsd         Decimal         @default(0) @map("total_venta_usd") @db.Decimal(18, 2)
+  // POR QUÉ: precio final del total que fijan Administración o el GG; no toca las líneas (decisión 2026-11-19).
+  finalSaleUsd         Decimal?        @map("precio_final_usd") @db.Decimal(18, 2)
+  finalSaleBs          Decimal?        @map("precio_final_bs") @db.Decimal(18, 2)
+  finalBaseSaleUsd     Decimal?        @map("precio_final_base_usd") @db.Decimal(18, 2)
+  finalPriceReason     String?         @map("precio_final_motivo")
+  finalPriceById       String?         @map("precio_final_por_id")
+  finalPriceAt         DateTime?       @map("precio_final_en") @db.Timestamptz
   createdById          String          @map("creado_por_id")
   createdAt            DateTime        @default(now()) @map("creado_en") @db.Timestamptz
   updatedAt            DateTime        @updatedAt @map("actualizado_en") @db.Timestamptz
@@ -114,6 +121,7 @@ model CvVersion {
   presales         UserProfile?          @relation("CvVersionPresales", fields: [presalesId], references: [userId])
   postsales        UserProfile?          @relation("CvVersionPostsales", fields: [postsalesId], references: [userId])
   createdBy        UserProfile           @relation("CvVersionCreator", fields: [createdById], references: [userId])
+  finalPriceBy     UserProfile?          @relation("CvVersionFinalPrice", fields: [finalPriceById], references: [userId], onDelete: Restrict)
   mainTechnology   Technology?           @relation(fields: [mainTechnologyId], references: [id])
   serviceType      ServiceType?          @relation(fields: [serviceTypeId], references: [id])
   endCustomer      Customer?             @relation(fields: [endCustomerId], references: [id])

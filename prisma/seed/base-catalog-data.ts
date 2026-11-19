@@ -100,6 +100,12 @@ export const PARAMETERS = [
       "% de desvío del TC ingresado frente al oficial que dispara la advertencia",
   },
   {
+    key: "cv.precio_final_desvio_max_pct",
+    value: "5",
+    description:
+      "% de diferencia del precio final frente al total calculado que resalta la confirmación",
+  },
+  {
     key: "cv.aviso_renovacion_dias",
     value: [60, 15],
     description:

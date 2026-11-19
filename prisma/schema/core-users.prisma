@@ -20,6 +20,7 @@ model UserProfile {
   fxRatesCreated          FxRate[]
   cvsCreated              Cv[]
   cvVersionsCreated       CvVersion[]              @relation("CvVersionCreator")
+  cvFinalPrices           CvVersion[]              @relation("CvVersionFinalPrice")
   cvVersionsPresales      CvVersion[]              @relation("CvVersionPresales")
   cvVersionsPostsales     CvVersion[]              @relation("CvVersionPostsales")
   cvVersionsSold          CvVersionSeller[]

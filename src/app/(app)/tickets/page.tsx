@@ -1,7 +1,7 @@
 // src/app/(app)/tickets/page.tsx
 // Tickets visibles para el usuario en tablero por estado o en lista paginada y ordenable, con filtros por
 // cliente, área, «solo míos» y, en la lista, estado (AGENTS.md §2.9 "Tickets: ver", §5 navegación).
-import { FolderKanban, Inbox } from "lucide-react";
+import { FolderKanban, History, Inbox } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -50,6 +50,9 @@ export default function TicketsPage({ searchParams }: PageProps<"/tickets">) {
               Proyectos
             </Link>
             <Suspense fallback={null}>
+              <HistoricalLoadLink />
+            </Suspense>
+            <Suspense fallback={null}>
               <NewTicketAction />
             </Suspense>
           </div>
@@ -80,6 +83,20 @@ async function RequestsLink() {
           {pending}
         </span>
       )}
+    </Link>
+  );
+}
+
+async function HistoricalLoadLink() {
+  const user = await requireUser();
+  if (!canCreateAnyTicket(user)) return null;
+  return (
+    <Link
+      href="/tickets/carga-historica"
+      className={buttonVariants({ variant: "outline" })}
+    >
+      <History aria-hidden="true" />
+      Carga histórica
     </Link>
   );
 }

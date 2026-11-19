@@ -1,12 +1,13 @@
 // src/app/(app)/tickets/proyectos/[id]/page.tsx
 // Detalle de un proyecto: cabecera, alta de ticket prellenada con su cliente, áreas y bolsa, y pestañas de
 // resumen, tickets y bolsas que sus tickets pueden usar (AGENTS.md §2.6, §2.4, §5). Fuera del alcance responde 404.
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, History } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache, Suspense } from "react";
 import { KrakenEmpty } from "@/components/brand/kraken-empty";
+import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EngineerWeekChart } from "@/features/dashboards/components/engineer-week-chart";
 import { BagCard } from "@/features/hours/components/bag-card";
@@ -99,7 +100,18 @@ async function ProjectSummary({ project }: { project: ProjectDetailView }) {
 
 async function NewTicket({ project }: { project: ProjectDetailView }) {
   const options = await getTicketFormOptions(await requireUser());
-  return <ProjectTicketAction project={project} options={options} />;
+  return (
+    <>
+      <Link
+        href={`/tickets/carga-historica?proyecto=${project.id}`}
+        className={buttonVariants({ variant: "outline" })}
+      >
+        <History aria-hidden="true" />
+        Cargar trabajo previo
+      </Link>
+      <ProjectTicketAction project={project} options={options} />
+    </>
+  );
 }
 
 async function ProjectTickets({

@@ -61,7 +61,8 @@ export function isBlankHistoricalRow(row: HistoricalRow): boolean {
   );
 }
 
-// Una fila sin fecha ni horas no tiene trabajo (por ejemplo, un ticket asignado que nadie empezó).
+// Una fila sin fecha ni horas no tiene trabajo (por ejemplo, un ticket asignado que nadie empezó). Sin ejecutor,
+// el tramo queda vacío y el ticket le pone su encargado.
 export function parseWorkInterval(
   row: HistoricalRow,
   index: number,
@@ -93,9 +94,7 @@ export function parseWorkInterval(
       index,
       "Un tramo dura hasta 16 h; pártelo en varias filas.",
     );
-  return [
-    { row: index, executorId: row.executorId || row.ownerId, start, end },
-  ];
+  return [{ row: index, executorId: row.executorId, start, end }];
 }
 
 function fail(log: IssueLog, row: number, message: string): [] {

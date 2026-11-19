@@ -86,6 +86,23 @@ describe("parseHistoricalRows", () => {
     expect(second.bagId).toBeNull();
   });
 
+  it("un tramo de continuación sin ejecutor es del encargado del ticket", () => {
+    const { tickets } = parseHistoricalRows(
+      [
+        row({ ref: "T-9" }),
+        {
+          ...blank(),
+          ref: "T-9",
+          workDate: "03/11/2026",
+          from: "10:00",
+          to: "11:00",
+        },
+      ],
+      NOW,
+    );
+    expect(tickets[0].intervals.map((i) => i.executorId)).toEqual(["u1", "u1"]);
+  });
+
   it("una fila de continuación con otra cabecera se marca en esa celda", () => {
     const { tickets, issues } = parseHistoricalRows(
       [row({ ref: "T-1" }), { ...blank(), ref: "T-1", customerId: "c2" }],

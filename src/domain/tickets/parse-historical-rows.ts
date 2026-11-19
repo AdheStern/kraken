@@ -118,6 +118,8 @@ function toTicket(
   if (!status) log.add(first, "status", "Elige el estado.");
   const intervals = group
     .flatMap((index) => parseWorkInterval(rows[index], index, now, log))
+    // TRAMPA: una fila de continuación deja el encargado vacío; su tramo es del encargado del ticket.
+    .map((i) => ({ ...i, executorId: i.executorId || head.ownerId }))
     .sort((a, b) => a.start.getTime() - b.start.getTime());
   if (log.issues.length > before || !openedOn || !priority || !status)
     return null;

@@ -70,9 +70,6 @@ export async function loadCvListRows(
       createdById: cv.createdById,
       sellerIds: latest.sellers.map(({ user }) => user.userId),
       lineAreaIds: latest.lines.flatMap((l) => (l.areaId ? [l.areaId] : [])),
-      // REGLA: Administración ve costos solo de lo aprobado, versión por versión (§2.9).
-      isApprovedVersion:
-        latest.status === "APROBADA" || latest.status === "REEMPLAZADA",
     };
     return [
       {

@@ -94,7 +94,7 @@ La Paz `LP`, Santa Cruz `SC`, Cochabamba `CB`. Cada una tiene su correlativo de 
 | Ingeniero (postventa) | Encargado o ejecutor de subtareas; registra tiempos. |
 | Coordinador de soporte | Crea tickets, asigna encargados, define la jerarquía de bolsas, cierra y reabre. |
 | Almacén | Ingresos, salidas, traspasos, POS. |
-| Administración | Consulta CV aprobados, exporta, gestiona clientes y proveedores. |
+| Administración | Consulta los CV en cualquier estado (decisión 2026-11-19), exporta, gestiona clientes y proveedores. |
 | Desarrollo de Negocios | Casi un gerente (decisión 2026-11-06): ve lo mismo que el GG (CV con costos, tickets, bolsas, inventario valorizado, tableros) sin heredar sus decisiones (aprobar CV, crear o editar CV, ajustar bolsas o inventario, metas, gestionar tickets); gestiona clientes y contactos. Sin área (`seesEverything`). |
 | Administrador del sistema | Usuarios, grupos de Entra, excepciones de permisos, parámetros. No ve montos por ese rol. |
 | Cliente (portal) | Cuenta de una empresa cliente, no de una persona: sigue sus tickets y sus horas descontadas (§2.11). Nunca suma roles internos. |
@@ -284,15 +284,15 @@ Roles asignados por grupos de Entra ID, más **excepciones por usuario** gestion
 
 | Recurso | Comercial | Gerente de área | Gerente general | Ingeniero | Administración |
 |---|---|---|---|---|---|
-| CV: ver | Propios (vendedor o creador) | Con al menos una línea de su área | Todos | Solo cabecera y líneas de horas de los CV de sus tickets | Aprobados |
+| CV: ver | Propios (vendedor o creador) | Con al menos una línea de su área | Todos | Solo cabecera y líneas de horas de los CV de sus tickets | Todos, en cualquier estado (decisión 2026-11-19) |
 | CV: crear y editar borrador | Propios | Propios | Todos | No | No |
 | CV: aprobar | No | Parte de su área | Sobre el umbral | No | No |
-| CV: costos y margen | Propios | De todo el CV si tiene una línea de su área (decisión 2026-10-24) | Todos | **Nunca** | Solo versiones aprobadas o reemplazadas (y solo esas versiones ve) |
-| CV: exportar Excel | Propios | Su área | Todos | No | Aprobados |
-| CV: datos posventa de la versión aprobada (§2.3) | Propios | Propios | Todos | No | Aprobados |
-| CV: GROSS UP y RET DIMA en cualquier estado (§2.3) | Solo en su borrador | Con una línea de su área | Todos | No | Aprobados |
+| CV: costos y margen | Propios | De todo el CV si tiene una línea de su área (decisión 2026-10-24) | Todos | **Nunca** | Todas las versiones (decisión 2026-11-19) |
+| CV: exportar Excel | Propios | Su área | Todos | No | Todos |
+| CV: datos posventa de la versión aprobada (§2.3) | Propios | Propios | Todos | No | Todos |
+| CV: GROSS UP y RET DIMA en cualquier estado (§2.3) | Solo en su borrador | Con una línea de su área | Todos | No | Todos |
 | CV: cabecera en cualquier estado, salvo los TC (§2.3) | No | Con una línea de su área | Todos | No | Todos |
-| CV: adjuntos (ver y descargar = quien ve costos; subir = además edita el CV o su cabecera; quitar = quien lo subió o Administración) | Propios | Con una línea de su área | Todos | **Nunca** | Aprobados |
+| CV: adjuntos (ver y descargar = quien ve costos; subir = además edita el CV o su cabecera; quitar = quien lo subió o Administración) | Propios | Con una línea de su área | Todos | **Nunca** | Todos |
 | Tickets: ver | De clientes de sus CV | De su área | Todos | Asignados o con subtarea suya | No |
 | Tickets: registrar tiempo | No | Su área | No | Sus subtareas y tickets a cargo | No |
 | Tickets: crear y asignar encargado | No | Su área | Todos | No | No |

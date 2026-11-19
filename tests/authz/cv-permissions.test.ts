@@ -14,7 +14,6 @@ import {
   canExportCvVersion,
   canListCvs,
   canSeeCvCosts,
-  seesOnlyApprovedVersions,
 } from "@/server/authz/cv-permissions";
 import type { SessionUser } from "@/server/authz/roles";
 
@@ -35,24 +34,20 @@ const ownCv: CvAccessFacts = {
   createdById: "yo",
   sellerIds: [],
   lineAreaIds: [AREA_TEL],
-  isApprovedVersion: false,
 };
 const sellerCv: CvAccessFacts = {
   createdById: "otro",
   sellerIds: ["yo"],
   lineAreaIds: [AREA_TEL],
-  isApprovedVersion: false,
 };
 const foreignNetCv: CvAccessFacts = {
   createdById: "otro",
   sellerIds: ["otro"],
   lineAreaIds: [AREA_NET],
-  isApprovedVersion: false,
 };
 const foreignApprovedCv: CvAccessFacts = {
   ...foreignNetCv,
   lineAreaIds: [AREA_TEL],
-  isApprovedVersion: true,
 };
 
 describe("§2.9 CV: crear y editar borrador", () => {
@@ -196,10 +191,10 @@ describe("§2.3 CV: GROSS UP y RET DIMA en cualquier estado", () => {
       true,
     ],
     [
-      "administración, sin aprobar (no ve costos)",
+      "administración, sin aprobar (ve costos desde 2026-11-19)",
       user(["ADMINISTRACION"]),
       foreignNetCv,
-      false,
+      true,
     ],
     [
       "comercial, propio (solo en su borrador)",
@@ -244,10 +239,10 @@ describe("§2.9 CV: costos y margen", () => {
       true,
     ],
     [
-      "administración, no aprobado",
+      "administración, no aprobado (decisión 2026-11-19)",
       user(["ADMINISTRACION"]),
       foreignNetCv,
-      false,
+      true,
     ],
     ["administrador del sistema, nunca", user(["ADMIN_SISTEMA"]), ownCv, false],
   ])("%s → %s", (_, u, cv, expected) => {
@@ -299,45 +294,20 @@ describe("§2.9 CV: exportar Excel", () => {
       true,
     ],
     [
-      "administración, borrador de un CV aprobado",
+      "administración, borrador (decisión 2026-11-19)",
       user(["ADMINISTRACION"]),
       foreignApprovedCv,
       "BORRADOR",
-      false,
+      true,
     ],
-  ])("%s → %s", (_, u, cv, status, expected) => {
-    const isApprovedVersion = status === "APROBADA" || status === "REEMPLAZADA";
-    expect(canExportCvVersion(u, { ...cv, isApprovedVersion })).toBe(expected);
+  ])("%s (%s) → %s", (_, u, cv, _status, expected) => {
+    expect(canExportCvVersion(u, cv)).toBe(expected);
   });
 });
 
-describe("§2.9 CV: ver (versiones de Administración)", () => {
-  it("quien entra solo por Administración ve solo las versiones aprobadas", () => {
-    expect(
-      seesOnlyApprovedVersions(user(["ADMINISTRACION"]), foreignApprovedCv),
-    ).toBe(true);
-  });
-
-  it.each<[string, SessionUser, CvAccessFacts]>([
-    [
-      "administración y vendedor",
-      user(["ADMINISTRACION"], ["COMERCIAL"]),
-      sellerCv,
-    ],
-    [
-      "administración y gerente del área",
-      user(["ADMINISTRACION"], ["GERENTE_AREA", AREA_NET]),
-      foreignNetCv,
-    ],
-    [
-      "administración y preventa",
-      user(["ADMINISTRACION"], ["PREVENTA"]),
-      foreignNetCv,
-    ],
-    ["comercial", user(["COMERCIAL"]), ownCv],
-    ["gerente general", user(["GERENTE_GENERAL"]), foreignNetCv],
-  ])("%s ve todas las versiones", (_, u, cv) => {
-    expect(seesOnlyApprovedVersions(u, cv)).toBe(false);
+describe("§2.9 CV: ver (Administración ve todas las versiones, decisión 2026-11-19)", () => {
+  it("quien entra solo por Administración ve los costos de un borrador ajeno", () => {
+    expect(canSeeCvCosts(user(["ADMINISTRACION"]), foreignNetCv)).toBe(true);
   });
 
   it("el gerente de área ve los costos de todo el CV si tiene una línea de su área (decisión 2026-10-24)", () => {

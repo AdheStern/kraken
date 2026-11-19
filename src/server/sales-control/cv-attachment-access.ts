@@ -1,8 +1,6 @@
 // src/server/sales-control/cv-attachment-access.ts
-// Hechos de permiso para los adjuntos de un CV visible: los de la versión que el usuario ve en el editor (quien
-// entra solo por Administración ve la última aprobada o reemplazada, §2.9).
+// Hechos de permiso para los adjuntos de un CV visible: los de su última versión, la que abre el editor (§2.9).
 import type { CvAccessFacts } from "@/server/authz/cv-permissions";
-import { seesOnlyApprovedVersions } from "@/server/authz/cv-permissions";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeCvQuery } from "@/server/authz/scope-cv-query";
 import type { Tx } from "@/server/db";
@@ -26,23 +24,13 @@ export async function loadCvAttachmentAccess(
       code: true,
       versions: {
         orderBy: { number: "desc" },
-        select: { id: true, status: true },
+        select: { id: true },
+        take: 1,
       },
     },
   });
   const latest = cv?.versions[0];
   if (!cv || !latest) return null;
-  const latestAccess = await loadCvAccess(cvId, latest.id, db);
-  if (!latestAccess) return null;
-  const shown = seesOnlyApprovedVersions(user, latestAccess)
-    ? cv.versions.find(
-        (v) => v.status === "APROBADA" || v.status === "REEMPLAZADA",
-      )
-    : latest;
-  if (!shown) return null;
-  const access =
-    shown.id === latest.id
-      ? latestAccess
-      : await loadCvAccess(cvId, shown.id, db);
-  return access ? { code: cv.code, versionId: shown.id, access } : null;
+  const access = await loadCvAccess(cvId, latest.id, db);
+  return access ? { code: cv.code, versionId: latest.id, access } : null;
 }

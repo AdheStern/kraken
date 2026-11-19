@@ -83,10 +83,9 @@ describe("§2.9 CV: ver", () => {
     expect(ids).toEqual([mine.cv.id, other.cv.id].sort());
   });
 
-  it("administración: solo los aprobados", async () => {
-    expect(await visibleIds(as(randomUUID(), ["ADMINISTRACION"]))).toEqual([
-      other.cv.id,
-    ]);
+  it("administración: todos, también los borradores (decisión 2026-11-19)", async () => {
+    const ids = await visibleIds(as(randomUUID(), ["ADMINISTRACION"]));
+    expect(ids).toEqual([mine.cv.id, other.cv.id].sort());
   });
 
   it.each<[RoleCode]>([

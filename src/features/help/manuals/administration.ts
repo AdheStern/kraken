@@ -1,18 +1,18 @@
 // src/features/help/manuals/administration.ts
-// Manual de Administración (AGENTS.md §2.9: CV aprobados, catálogo comercial, inventario y tableros).
+// Manual de Administración (AGENTS.md §2.9: CV en cualquier estado, catálogo comercial, inventario y tableros).
 import type { Manual } from "../types";
 
 export const ADMINISTRATION_MANUAL: Manual = {
   title: "Administración",
   summary:
-    "Consultas y exportas los CV aprobados, mantienes clientes, proveedores y productos, y controlas el inventario.",
+    "Consultas y exportas los CV, mantienes clientes, proveedores y productos, y controlas el inventario.",
   sections: [
     {
-      heading: "CV aprobados",
+      heading: "Control de Venta",
       steps: [
-        "Control de Venta lista los CV con una versión aprobada; ves sus costos y su margen.",
-        "Solo ves las versiones aprobadas o reemplazadas, no los borradores que vengan después.",
-        "En la versión aprobada vigente completas observaciones, PO#, rango de activación y seriales de las líneas, y notas, seriales y PO# del leasing; guarda con el botón de la grilla o Ctrl+S. Para cargar muchos seriales, marca la columna «Seriales» en «Columnas opcionales»: uno por renglón (Alt+Enter), o pega la columna desde Excel. GROSS UP y RET DIMA (también en «Columnas opcionales») los corriges en cualquier momento, también en una versión reemplazada; la tarjeta de totales muestra su suma.",
+        "Control de Venta lista todos los CV, en cualquier estado; en cada versión ves sus costos y su margen.",
+        "No editas las líneas de un borrador: eso lo hacen el comercial y las gerencias.",
+        "En la versión aprobada vigente completas observaciones, PO#, rango de activación y seriales de las líneas, y notas, seriales y PO# del leasing; guarda con el botón de la grilla o Ctrl+S. Para cargar muchos seriales, marca la columna «Seriales» en «Columnas opcionales»: uno por renglón (Alt+Enter), o pega la columna desde Excel. GROSS UP y RET DIMA (también en «Columnas opcionales») los corriges en cualquier versión y estado; la tarjeta de totales muestra su suma.",
         "Exporta cada versión al Excel de la plantilla oficial PA-PR-03-RE-01.",
       ],
       link: { href: "/cv", label: "Ir a Control de Venta" },

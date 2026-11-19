@@ -27,12 +27,10 @@ const draft: CvAccessFacts = {
   createdById: "otro",
   sellerIds: ["yo"],
   lineAreaIds: [AREA_NET],
-  isApprovedVersion: false,
 };
 const approved: CvAccessFacts = {
   ...draft,
   sellerIds: ["otro"],
-  isApprovedVersion: true,
 };
 
 describe("§2.9 CV: adjuntos", () => {
@@ -55,11 +53,11 @@ describe("§2.9 CV: adjuntos", () => {
       true,
     ],
     [
-      "Administración en un borrador",
+      "Administración en un borrador (decisión 2026-11-19)",
       user(["ADMINISTRACION"]),
       draft,
-      false,
-      false,
+      true,
+      true,
     ],
     [
       "Desarrollo de Negocios (ve, no edita)",

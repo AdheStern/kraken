@@ -10,7 +10,6 @@ import {
   canEditPostSaleDetails,
   canExportCvVersion,
   canSeeCvCosts,
-  seesOnlyApprovedVersions,
 } from "@/server/authz/cv-permissions";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeCvQuery } from "@/server/authz/scope-cv-query";
@@ -19,8 +18,6 @@ import { loadCvAccess } from "@/server/sales-control/cv-access";
 import { approvalRequestLabel } from "../approval-request-label";
 import type { CvApprovalItem, CvEditorData, CvVersionSummary } from "../types";
 import { toEditorHeader } from "./editor-header";
-
-const APPROVED: string[] = ["APROBADA", "REEMPLAZADA"];
 
 export async function getCvEditor(
   user: SessionUser,
@@ -48,10 +45,8 @@ export async function getCvEditor(
   if (!cv || !latest) return null;
   const latestAccess = await loadCvAccess(cv.id, latest.id);
   if (!latestAccess) return null;
-  const visible = seesOnlyApprovedVersions(user, latestAccess)
-    ? cv.versions.filter((v) => APPROVED.includes(v.status))
-    : cv.versions;
-  const shown = visible.find((v) => v.number === versionNumber) ?? visible[0];
+  const shown =
+    cv.versions.find((v) => v.number === versionNumber) ?? cv.versions[0];
   if (!shown) return null;
 
   const version = await prisma.cvVersion.findUniqueOrThrow({
@@ -72,7 +67,7 @@ export async function getCvEditor(
   const canManage = canEditCvDraft(user, latestAccess);
   const isLatest = shown.id === latest.id;
 
-  const versions: CvVersionSummary[] = visible.map((v) => ({
+  const versions: CvVersionSummary[] = cv.versions.map((v) => ({
     id: v.id,
     number: v.number,
     label: toCvVersionLabel(cv.code, v.number),

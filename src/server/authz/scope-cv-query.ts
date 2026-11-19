@@ -14,7 +14,8 @@ const NOTHING: Prisma.CvWhereInput = { id: { in: [] } };
 // POR QUÉ: el ingeniero no entra por aquí; ve la cabecera y las horas de los CV de sus tickets con
 // scopeCvHoursQuery, sin editor ni montos (§2.9, regla 12).
 export function scopeCvQuery(user: SessionUser): Prisma.CvWhereInput {
-  if (seesEverything(user)) return {};
+  // REGLA: Administración ve todos los CV en cualquier estado (decisión 2026-11-19).
+  if (seesEverything(user) || hasRole(user, "ADMINISTRACION")) return {};
 
   const visible: Prisma.CvWhereInput[] = [];
   if (hasRole(user, "COMERCIAL") || hasRole(user, "GERENTE_AREA")) {
@@ -33,9 +34,6 @@ export function scopeCvQuery(user: SessionUser): Prisma.CvWhereInput {
         some: { lines: { some: { areaId: { in: managedAreaIds } } } },
       },
     });
-  }
-  if (hasRole(user, "ADMINISTRACION")) {
-    visible.push({ versions: { some: { status: "APROBADA" } } });
   }
   return visible.length > 0 ? { OR: visible } : NOTHING;
 }

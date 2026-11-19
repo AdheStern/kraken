@@ -12,7 +12,6 @@ export type CvAccessFacts = {
   createdById: string;
   sellerIds: readonly string[];
   lineAreaIds: readonly string[];
-  isApprovedVersion: boolean;
 };
 
 // REGLA: el listado de CV es de quien tiene un rol que ve CV (§2.9 "CV: ver"); el ingeniero ve los de sus
@@ -81,34 +80,21 @@ export function canEditPostSaleDetails(
   return hasRole(user, "ADMINISTRACION") || canEditCvDraft(user, cv);
 }
 
-// REGLA: un ingeniero nunca recibe costos ni márgenes; ese rol no otorga nada aquí (regla 12).
+// REGLA: un ingeniero nunca recibe costos ni márgenes; ese rol no otorga nada aquí (regla 12). Administración ve
+// todas las versiones con sus costos, también borradores, para fijar el precio final (decisión 2026-11-19).
 export function canSeeCvCosts(user: SessionUser, cv: CvAccessFacts): boolean {
-  if (seesEverything(user)) return true;
+  if (seesEverything(user) || hasRole(user, "ADMINISTRACION")) return true;
   if (hasRole(user, "COMERCIAL") && isOwnCv(user, cv)) return true;
   const managedAreaIds = areaIdsWithRole(user, "GERENTE_AREA");
-  if (cv.lineAreaIds.some((areaId) => managedAreaIds.includes(areaId)))
-    return true;
-  return hasRole(user, "ADMINISTRACION") && cv.isApprovedVersion;
+  return cv.lineAreaIds.some((areaId) => managedAreaIds.includes(areaId));
 }
 
-// REGLA: "CV: exportar Excel" sigue a "costos y margen" de la versión; Administración exporta solo la versión
-// aprobada (o reemplazada), no un borrador posterior (§2.9).
+// REGLA: "CV: exportar Excel" sigue a "costos y margen" de la versión (§2.9).
 export function canExportCvVersion(
   user: SessionUser,
   cv: CvAccessFacts,
 ): boolean {
   return canSeeCvCosts(user, cv);
-}
-
-// REGLA: quien ve el CV solo por Administración ve solo sus versiones aprobadas o reemplazadas (§2.9 "CV: ver").
-// TRAMPA: la preventa ve el CV por otra vía (scopeCvQuery) y conserva todas las versiones.
-export function seesOnlyApprovedVersions(
-  user: SessionUser,
-  cv: CvAccessFacts,
-): boolean {
-  if (!hasRole(user, "ADMINISTRACION") || hasRole(user, "PREVENTA"))
-    return false;
-  return !canSeeCvCosts(user, { ...cv, isApprovedVersion: false });
 }
 
 function isOwnCv(user: SessionUser, cv: CvAccessFacts): boolean {

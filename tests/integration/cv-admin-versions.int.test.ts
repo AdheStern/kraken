@@ -1,6 +1,6 @@
 // tests/integration/cv-admin-versions.int.test.ts
-// Administración y las versiones de un CV (AGENTS.md §2.9 "CV: ver" y "CV: costos y margen"): solo ve las
-// versiones aprobadas o reemplazadas, con costos; nunca el borrador posterior ni su comparación.
+// Administración y las versiones de un CV (AGENTS.md §2.9 "CV: ver" y "CV: costos y margen", decisión 2026-11-19):
+// ve todas las versiones con costos, también el borrador posterior a la aprobada, y su comparación.
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { getCvComparison } from "@/features/sales-control/queries/get-cv-comparison";
 import { getCvEditor } from "@/features/sales-control/queries/get-cv-editor";
@@ -20,7 +20,7 @@ const db = createTestPrisma();
 afterAll(() => db.$disconnect());
 
 describe("Administración y las versiones de un CV", () => {
-  it("ve la versión aprobada con costos y no el borrador posterior", async () => {
+  it("ve la versión aprobada y el borrador posterior, con costos y su comparación", async () => {
     const f = await createCvFixture(db);
     await db.cvVersion.update({
       where: { id: f.version.id },
@@ -31,21 +31,17 @@ describe("Administración y las versiones de un CV", () => {
       { code: "ADMINISTRACION" },
     ]);
 
-    const asked = await getCvEditor(admin, f.cv.id, 2);
-    expect(asked?.versionNumber).toBe(1);
-    expect(asked?.versions.map((v) => v.number)).toEqual([1]);
-    expect(asked?.canSeeCosts).toBe(true);
-    expect(asked?.canEditPostSale).toBe(true);
-    expect(asked).toMatchObject({ canEditHeader: true, fxLocked: true });
+    const draft = await getCvEditor(admin, f.cv.id, 2);
+    expect(draft?.versionNumber).toBe(2);
+    expect(draft?.versions.map((v) => v.number)).toEqual([2, 1]);
+    expect(draft?.canSeeCosts).toBe(true);
+    expect(draft?.canEdit).toBe(false);
+
+    const approved = await getCvEditor(admin, f.cv.id, 1);
+    expect(approved?.canEditPostSale).toBe(true);
+    expect(approved).toMatchObject({ canEditHeader: true, fxLocked: true });
     expect(
       await getCvComparison(admin, f.cv.id, { from: 1, to: 2 }),
-    ).toBeNull();
-
-    const creator = {
-      ...(await createUserWithRoles(db, "Comercial", [{ code: "COMERCIAL" }])),
-      id: f.userId,
-    };
-    const own = await getCvEditor(creator, f.cv.id, 2);
-    expect(own?.versions.map((v) => v.number)).toEqual([2, 1]);
+    ).not.toBeNull();
   });
 });

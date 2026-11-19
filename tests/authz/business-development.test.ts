@@ -43,7 +43,6 @@ const cv = {
   createdById: "otro",
   sellerIds: ["otro"],
   lineAreaIds: ["a1"],
-  isApprovedVersion: false,
 };
 
 describe("Desarrollo de Negocios", () => {

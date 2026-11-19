@@ -51,7 +51,7 @@ test("el coordinador crea un ticket desde el detalle del proyecto", async ({
   await page.waitForURL(/\/tickets\/[0-9a-f-]{36}$/);
 
   await page.goto(projectUrl);
-  await expect(page.getByText("0 de 1 tickets terminados")).toBeVisible();
+  await expect(page.getByText("0 de 1 terminados · 1 abierto")).toBeVisible();
   await page.goto(`${projectUrl}?pestana=tickets`);
   // POR QUÉ: la tarjeta enlaza con su número; el título es texto de la tarjeta.
   await expect(

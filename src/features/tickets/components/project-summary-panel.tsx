@@ -20,7 +20,7 @@ export function ProjectSummaryPanel({ summary: s, weekChart }: Props) {
         <Tile
           label="Avance"
           value={pct(s.progressPct)}
-          hint={`${t.closed + t.resolved} de ${t.total - t.cancelled} tickets terminados · ${t.open} abiertos`}
+          hint={`${t.closed + t.resolved} de ${t.total - t.cancelled} terminados · ${t.open} ${t.open === 1 ? "abierto" : "abiertos"}`}
         />
         <Tile
           label="Horas trabajadas"

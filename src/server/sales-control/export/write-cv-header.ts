@@ -36,7 +36,14 @@ export function writeCvHeader(ws: Worksheet, data: CvExportData): void {
   });
   put("C17", data.customerPoNumber);
   put("C18", data.customerPoDate);
-  put("C19", data.paymentTerms);
+  put("C19", toPaymentTermsCell(data.paymentTerms, data.isForeignPayment));
   put("C20", data.deliveryOn);
   put("C21", data.notes);
+}
+
+// REGLA: la plantilla no tiene celda para el pago local o en el exterior; va junto a los términos de pago
+// (decisión 2026-11-19).
+function toPaymentTermsCell(terms: string, isForeignPayment: boolean): string {
+  const payment = isForeignPayment ? "Pago en el exterior" : "Pago local";
+  return terms ? `${terms} · ${payment}` : payment;
 }

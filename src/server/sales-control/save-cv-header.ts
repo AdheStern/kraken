@@ -19,6 +19,7 @@ export type CvHeaderRecord = {
   customerPoNumber: string | null;
   customerPoDate: Date | null;
   paymentTerms: string | null;
+  isForeignPayment: boolean;
   deliveryOn: Date | null;
   notes: string | null;
 };
@@ -47,6 +48,7 @@ const FIELDS = [
   "customerPoNumber",
   "customerPoDate",
   "paymentTerms",
+  "isForeignPayment",
   "deliveryOn",
   "notes",
 ] as const satisfies readonly (keyof CvHeaderRecord)[];

@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { isFxRateDeviating } from "@/domain/pricing/fx-deviation";
 import type { CvHeaderInput } from "../../schemas/cv-header-schema";
 import { HeaderSection } from "./header-section";
+import { PaymentOriginField } from "./payment-origin-field";
 
 type Props = {
   form: UseFormReturn<CvHeaderInput>;
@@ -88,6 +89,7 @@ export function HeaderCommercial({
             {...register("paymentTerms")}
           />
         </FormField>
+        <PaymentOriginField control={control} disabled={disabled} />
         <FormField
           label="Fecha de entrega"
           htmlFor="cv-delivery-on"

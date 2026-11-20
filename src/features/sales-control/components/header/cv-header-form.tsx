@@ -177,6 +177,7 @@ function toFormValues(header: CvEditorHeader): CvHeaderInput {
     customerPoNumber: header.customerPoNumber,
     customerPoDate: header.customerPoDate,
     paymentTerms: header.paymentTerms,
+    isForeignPayment: header.isForeignPayment,
     deliveryOn: header.deliveryOn,
     notes: header.notes,
     costFxRate: header.costFxRate,

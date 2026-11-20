@@ -55,6 +55,7 @@ export function toEditorHeader(
     customerPoNumber: version.customerPoNumber ?? "",
     customerPoDate: toDateInput(version.customerPoDate),
     paymentTerms: version.paymentTerms ?? "",
+    isForeignPayment: version.isForeignPayment,
     deliveryOn: toDateInput(version.deliveryOn),
     notes: version.notes ?? "",
     costFxRate: toFxText(version.costFxRate),

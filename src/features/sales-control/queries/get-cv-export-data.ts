@@ -77,6 +77,7 @@ export async function getCvExportData(
     customerPoNumber: version.customerPoNumber ?? "",
     customerPoDate: version.customerPoDate,
     paymentTerms: version.paymentTerms ?? "",
+    isForeignPayment: version.isForeignPayment,
     deliveryOn: version.deliveryOn,
     notes: version.notes ?? "",
     costFxRate: version.costFxRate.toString(),

@@ -48,6 +48,7 @@ describe("saveCvHeader fuera de borrador", () => {
           customerPoNumber: "OC-2026-15",
           customerPoDate: null,
           paymentTerms: null,
+          isForeignPayment: true,
           deliveryOn: null,
           notes: null,
         },
@@ -60,6 +61,7 @@ describe("saveCvHeader fuera de borrador", () => {
     expect(saved).toMatchObject({
       title: "Título corregido",
       customerPoNumber: "OC-2026-15",
+      isForeignPayment: true,
       status: "APROBADA",
     });
     expect(saved.costFxRate.toString()).toBe(approved.costFxRate.toString());
@@ -68,6 +70,7 @@ describe("saveCvHeader fuera de borrador", () => {
     });
     expect(Object.keys(audit.after as object).sort()).toEqual([
       "customerPoNumber",
+      "isForeignPayment",
       "sellerIds",
       "title",
     ]);
@@ -78,6 +81,7 @@ describe("saveCvHeader fuera de borrador", () => {
     expect(copied).toMatchObject({
       title: "Título corregido",
       customerPoNumber: "OC-2026-15",
+      isForeignPayment: true,
     });
     expect(copied.sellers.map((s) => s.userId)).toEqual([f.userId]);
   });

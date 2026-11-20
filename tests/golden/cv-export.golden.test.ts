@@ -57,6 +57,7 @@ const DATA: CvExportData = {
   customerPoNumber: "OC-4521",
   customerPoDate: new Date("2026-10-10T00:00:00Z"),
   paymentTerms: "50% a la firma, 50% contra entrega",
+  isForeignPayment: true,
   deliveryOn: null,
   notes: "Entrega en dos fases",
   costFxRate: "6.97",

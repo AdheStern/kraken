@@ -100,6 +100,7 @@ export async function updateCvHeader(
           customerPoNumber: orNull(data.customerPoNumber),
           customerPoDate: dateOrNull(data.customerPoDate),
           paymentTerms: orNull(data.paymentTerms),
+          isForeignPayment: data.isForeignPayment,
           deliveryOn: dateOrNull(data.deliveryOn),
           notes: orNull(data.notes),
         },

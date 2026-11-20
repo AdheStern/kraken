@@ -93,6 +93,8 @@ model CvVersion {
   customerPoNumber     String?         @map("oc_numero")
   customerPoDate       DateTime?       @map("oc_fecha") @db.Date
   paymentTerms         String?         @map("terminos_pago")
+  // Solo informativo: el cliente paga desde el exterior (decisión 2026-11-19).
+  isForeignPayment     Boolean         @default(false) @map("pago_exterior")
   deliveryOn           DateTime?       @map("fecha_entrega") @db.Date
   notes                String?         @map("notas")
   costFxRate           Decimal         @map("tc_costo") @db.Decimal(12, 4)

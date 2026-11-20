@@ -63,6 +63,7 @@ export async function createCvCopy(
           endCustomerId: version.endCustomerId,
           customerSnapshot: version.customerSnapshot ?? {},
           paymentTerms: version.paymentTerms,
+          isForeignPayment: version.isForeignPayment,
           notes: version.notes,
           costFxRate: version.costFxRate,
           saleFxRate: version.saleFxRate,

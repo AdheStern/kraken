@@ -99,6 +99,7 @@ export type CvEditorHeader = {
   customerPoNumber: string;
   customerPoDate: string;
   paymentTerms: string;
+  isForeignPayment: boolean;
   deliveryOn: string;
   notes: string;
   costFxRate: string;

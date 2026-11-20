@@ -67,6 +67,7 @@ export type CvExportData = {
   customerPoNumber: string;
   customerPoDate: Date | null;
   paymentTerms: string;
+  isForeignPayment: boolean;
   deliveryOn: Date | null;
   notes: string;
   costFxRate: string;

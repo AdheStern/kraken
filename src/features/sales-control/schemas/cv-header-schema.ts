@@ -35,6 +35,8 @@ export const cvHeaderSchema = z.object({
   customerPoNumber: optionalText(60),
   customerPoDate: optionalDate,
   paymentTerms: optionalText(160),
+  // POR QUÉ: solo informa; no toca montos, TC ni retenciones (decisión 2026-11-19).
+  isForeignPayment: z.boolean(),
   deliveryOn: optionalDate,
   notes: optionalText(2000),
   costFxRate: fxRateField,

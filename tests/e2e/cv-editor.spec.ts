@@ -2,7 +2,7 @@
 // Editor del CV (AGENTS.md §2.1): el contacto de la cabecera se elige entre los registrados del cliente y
 // prellena sus datos y el de soporte y licencias va enlazado hasta romper la cadena (decisión 2026-11-16); las observaciones de una línea admiten varias líneas (Alt+Enter, como en Excel) y la
 // fila se colorea con la paleta de Excel; la descripción crece con el texto; una línea pasa a subítem de la anterior
-// y se numera 1.1.
+// y se numera 1.1. El pago en el exterior se marca con su interruptor (decisión 2026-11-19).
 import { expect, type Page, test } from "@playwright/test";
 import { storageFor } from "./users";
 
@@ -37,12 +37,16 @@ test("el contacto se elige del cliente y las observaciones son texto largo", asy
   await expect(page.locator("#cv-contact-email")).toHaveValue(
     "lucia.mamani@bancoandino.demo",
   );
+  const payment = page.getByRole("switch", { name: "Pago en el exterior" });
+  await expect(payment).not.toBeChecked();
+  await payment.click();
   await page.getByRole("button", { name: "Guardar cabecera" }).click();
   await expect(page.getByText("Cabecera guardada.")).toBeVisible();
 
   await page.reload();
   await expect(page.locator("#cv-contact")).toHaveValue(/Lucía Mamani/);
   await expect(page.locator("#cv-contact-phone")).toHaveValue("+591 2 2440011");
+  await expect(payment).toBeChecked();
 
   const chain = page.getByTestId("cv-end-contact-chain");
   await expect(chain).toHaveAttribute("aria-pressed", "false");

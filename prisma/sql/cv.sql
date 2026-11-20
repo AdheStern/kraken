@@ -137,7 +137,7 @@ CREATE OR REPLACE FUNCTION cv.proteger_version() RETURNS trigger LANGUAGE plpgsq
 DECLARE
   c_mutables CONSTANT text[] := ARRAY['estado', 'aprobada_en', 'observada_en', 'reemplazada_en', 'anulada_en', 'actualizado_en',
     'titulo', 'fecha', 'preventa_id', 'postventa_id', 'linea_principal_id', 'tipo_servicio_id', 'nueva_tecnologia',
-    'cliente_final_id', 'datos_cliente', 'oc_numero', 'oc_fecha', 'terminos_pago', 'fecha_entrega', 'notas',
+    'cliente_final_id', 'datos_cliente', 'oc_numero', 'oc_fecha', 'terminos_pago', 'pago_exterior', 'fecha_entrega', 'notas',
     'precio_final_usd', 'precio_final_bs', 'precio_final_base_usd', 'precio_final_motivo', 'precio_final_por_id',
     'precio_final_en'];
 BEGIN

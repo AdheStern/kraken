@@ -12,6 +12,7 @@ allowBuilds:
 # Riesgo aceptado, sin forzar la mayor: deepmerge-ts 7 (solo mezcla la configuración de Prisma) y uuid 8 de
 # exceljs (usa v4; el aviso es de v3/v5/v6).
 overrides:
+  effect: ">=3.22.1 <4"
   fast-uri: ">=3.1.9 <4"
   mysql2: ">=3.23.1 <4"
 # REGLA: el CI falla con avisos altos de runtime; estos son los riesgos aceptados de arriba (y minimatch de exceljs,

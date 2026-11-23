@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLayoutEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFormState } from "react-hook-form";
 import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
 import { Button } from "@/components/ui/button";
 import {
@@ -70,7 +70,7 @@ export function NewTicketDialog({
     resolver: zodResolver(createTicketSchema),
     defaultValues: defaults,
   });
-  const { isSubmitting } = form.formState;
+  const { isSubmitting } = useFormState({ control: form.control });
   // TRAMPA: con Cache Components la página no se desmonta al navegar (<Activity>); sin esto, al volver el
   // diálogo sigue abierto. El borrador se conserva hasta que se crea el ticket.
   useLayoutEffect(() => () => setOpen(false), []);

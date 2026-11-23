@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLayoutEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useFormState } from "react-hook-form";
 import {
   CatalogCombobox,
   type CatalogOption,
@@ -45,7 +45,7 @@ export function TicketRequestDialog({ areas }: { areas: CatalogOption[] }) {
     resolver: zodResolver(createTicketRequestSchema),
     defaultValues: DEFAULTS,
   });
-  const { errors, isSubmitting } = form.formState;
+  const { errors, isSubmitting } = useFormState({ control: form.control });
   // TRAMPA: con Cache Components la página no se desmonta al navegar (<Activity>); sin esto, al volver el
   // diálogo sigue abierto.
   useLayoutEffect(() => () => setOpen(false), []);

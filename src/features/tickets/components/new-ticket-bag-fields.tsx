@@ -3,7 +3,12 @@
 // (AGENTS.md §2.6, §2.7).
 "use client";
 
-import { Controller, type UseFormReturn, useWatch } from "react-hook-form";
+import {
+  Controller,
+  type UseFormReturn,
+  useFormState,
+  useWatch,
+} from "react-hook-form";
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { FormField } from "@/components/forms/form-field";
 import { OptionSelect } from "@/components/ui/option-select";
@@ -22,7 +27,7 @@ type Props = {
 };
 
 export function NewTicketBagFields({ form, bags }: Props) {
-  const { errors } = form.formState;
+  const { errors } = useFormState({ control: form.control });
   const [customerId, bagId] = useWatch({
     control: form.control,
     name: ["customerId", "bagId"],

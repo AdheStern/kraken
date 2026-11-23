@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useFormState } from "react-hook-form";
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { CatalogMultiCombobox } from "@/components/forms/catalog-multi-combobox";
 import { FormField } from "@/components/forms/form-field";
@@ -46,7 +46,7 @@ export function NewProjectDialog({ options }: Props) {
     resolver: zodResolver(createProjectSchema),
     defaultValues: DEFAULTS,
   });
-  const { errors, isSubmitting } = form.formState;
+  const { errors, isSubmitting } = useFormState({ control: form.control });
 
   async function onSubmit(values: CreateProjectInput) {
     setServerError(null);

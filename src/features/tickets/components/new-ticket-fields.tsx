@@ -4,7 +4,12 @@
 // valen.
 "use client";
 
-import { Controller, type UseFormReturn, useWatch } from "react-hook-form";
+import {
+  Controller,
+  type UseFormReturn,
+  useFormState,
+  useWatch,
+} from "react-hook-form";
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { CatalogMultiCombobox } from "@/components/forms/catalog-multi-combobox";
 import { FormField } from "@/components/forms/form-field";
@@ -33,7 +38,7 @@ type Props = {
 };
 
 export function NewTicketFields({ form, options }: Props) {
-  const { errors } = form.formState;
+  const { errors } = useFormState({ control: form.control });
   // TRAMPA: con el React Compiler, form.watch() no vuelve a renderizar; useWatch sí.
   const [customerId, areaIds, projectId, ownerId, bagId] = useWatch({
     control: form.control,

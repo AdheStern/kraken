@@ -106,3 +106,30 @@ test("el contacto se elige del cliente y las observaciones son texto largo", asy
     .click();
   await expect(child.locator("td").first()).toHaveText("1.1");
 });
+
+// TRAMPA: con el React Compiler, form.formState quedaba memorizado (el botón no se encendía) y, tras guardar,
+// reset() soltaba los campos de register() (lo escrito se perdía): cambiar el TC exigía recargar la página.
+test("la cabecera se guarda varias veces seguidas sin recargar", async ({
+  page,
+}) => {
+  await page.goto("/cv");
+  await page.getByRole("button", { name: "Nuevo CV" }).click();
+  await pick(page, "new-cv-city", "La Paz");
+  await pick(page, "new-cv-customer", "Banco Andino");
+  await page.locator("#new-cv-title").fill(`CV TC E2E ${STAMP}`);
+  await page.getByRole("button", { name: "Crear CV" }).click();
+  await expect(page).toHaveURL(/\/cv\/[0-9a-f-]{36}$/);
+
+  const save = page.getByRole("button", { name: "Guardar cabecera" });
+  const costFx = page.locator("#cv-cost-fx");
+  await expect(save).toBeDisabled();
+  for (const rate of ["6.9800", "6.9900", "7.0000"]) {
+    await costFx.fill(rate);
+    await expect(save).toBeEnabled();
+    await save.click();
+    await expect(page.getByText("Cabecera guardada.")).toBeVisible();
+    await expect(save).toBeDisabled();
+  }
+  await page.reload();
+  await expect(costFx).toHaveValue(/^7(\.0+)?$/);
+});

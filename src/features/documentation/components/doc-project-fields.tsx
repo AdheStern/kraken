@@ -3,7 +3,12 @@
 // El contacto del catálogo prellena nombre, correo y teléfono, que quedan editables (AGENTS.md §2.10).
 "use client";
 
-import { Controller, type UseFormReturn } from "react-hook-form";
+import {
+  Controller,
+  type UseFormReturn,
+  useFormState,
+  useWatch,
+} from "react-hook-form";
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { CatalogMultiCombobox } from "@/components/forms/catalog-multi-combobox";
 import { FormField } from "@/components/forms/form-field";
@@ -18,9 +23,10 @@ type Props = {
 };
 
 export function DocProjectFields({ form, options, idPrefix }: Props) {
-  const { errors } = form.formState;
+  const { errors } = useFormState({ control: form.control });
   const id = (name: string) => `${idPrefix}-${name}`;
-  const customerId = form.watch("customerId");
+  // TRAMPA: con el React Compiler, form.watch() no vuelve a renderizar; useWatch sí.
+  const customerId = useWatch({ control: form.control, name: "customerId" });
   const contacts = options.contacts.filter((c) => c.customerId === customerId);
 
   function pickContact(contactId: string | null) {

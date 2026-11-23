@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFormState } from "react-hook-form";
 import { useMarkCreated } from "@/components/forms/fresh-after-create";
 import { Button } from "@/components/ui/button";
 import { createDocProject } from "../actions/create-doc-project";
@@ -45,7 +45,7 @@ export function DocProjectForm({ options, project }: Props) {
     resolver: zodResolver(docProjectSchema),
     defaultValues: project?.values ?? EMPTY,
   });
-  const { isSubmitting, isDirty } = form.formState;
+  const { isSubmitting, isDirty } = useFormState({ control: form.control });
 
   async function onSubmit(values: DocProjectInput) {
     setServerError(null);
@@ -61,7 +61,9 @@ export function DocProjectForm({ options, project }: Props) {
       projectId: project.id,
     });
     if (!result.ok) return setServerError(result.error.message);
-    form.reset(values);
+    // TRAMPA: reset() vacía los campos registrados y cuenta con que register() se vuelva a llamar al renderizar;
+    // el React Compiler lo memoriza y lo escrito después del primer guardado se perdía. keepFieldsRef los conserva.
+    form.reset(values, { keepFieldsRef: true });
     setSaved(true);
     router.refresh();
   }

@@ -2,7 +2,7 @@
 // Secciones Identificación, Personas y Clasificación de la cabecera del CV.
 "use client";
 
-import { Controller, type UseFormReturn } from "react-hook-form";
+import { Controller, type UseFormReturn, useFormState } from "react-hook-form";
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { CatalogMultiCombobox } from "@/components/forms/catalog-multi-combobox";
 import { FormField } from "@/components/forms/form-field";
@@ -21,7 +21,7 @@ type Props = {
 };
 
 export function HeaderGeneral({ form, options, disabled }: Props) {
-  const { errors } = form.formState;
+  const { errors } = useFormState({ control: form.control });
   const { control, register } = form;
 
   return (

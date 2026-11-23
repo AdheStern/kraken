@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFormState } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -61,13 +61,15 @@ export function CvHeaderForm({
     resolver: zodResolver(cvHeaderSchema),
     defaultValues: toFormValues(header),
   });
-  const { isSubmitting, isDirty } = form.formState;
+  const { isSubmitting, isDirty } = useFormState({ control: form.control });
 
   async function onSubmit(values: CvHeaderInput) {
     const result = await updateCvHeader(values);
     if (!result.ok)
       return setSaveState({ kind: "error", message: result.error.message });
-    form.reset(values);
+    // TRAMPA: reset() vacía los campos registrados y cuenta con que register() se vuelva a llamar al renderizar;
+    // el React Compiler lo memoriza y lo escrito después del primer guardado se perdía. keepFieldsRef los conserva.
+    form.reset(values, { keepFieldsRef: true });
     setSaveState({ kind: "saved" });
     // POR QUÉ: el TC guardado cambia los montos en Bs de la grilla, que se recalcula con datos del servidor.
     router.refresh();

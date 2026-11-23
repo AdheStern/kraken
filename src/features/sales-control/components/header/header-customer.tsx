@@ -4,7 +4,7 @@
 // §2.1, decisión 2026-11-11). El cliente final va en «Soporte y licencias» (header-end-customer.tsx).
 "use client";
 
-import { type UseFormReturn, useWatch } from "react-hook-form";
+import { type UseFormReturn, useFormState, useWatch } from "react-hook-form";
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { FormField } from "@/components/forms/form-field";
 import { Input } from "@/components/ui/input";
@@ -28,7 +28,7 @@ type Props = {
 };
 
 export function HeaderCustomer({ form, contacts, disabled, customer }: Props) {
-  const { errors } = form.formState;
+  const { errors } = useFormState({ control: form.control });
   const { control, register, setValue } = form;
   const contactName = useWatch({ control, name: "contactName" });
   // POR QUÉ: la versión guarda la copia del contacto, no su id; el elegido se reconoce por el nombre.

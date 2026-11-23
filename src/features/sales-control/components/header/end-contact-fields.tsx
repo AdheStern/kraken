@@ -3,7 +3,7 @@
 // teléfono y dirección, que quedan editables (AGENTS.md §2.1, decisión 2026-11-16).
 "use client";
 
-import { type UseFormReturn, useWatch } from "react-hook-form";
+import { type UseFormReturn, useFormState, useWatch } from "react-hook-form";
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { FormField } from "@/components/forms/form-field";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,7 @@ export function EndContactFields({
   disabled,
 }: Props) {
   const { register, setValue, control } = form;
-  const { errors } = form.formState;
+  const { errors } = useFormState({ control: form.control });
   const name = useWatch({ control, name: "endContactName" });
   // POR QUÉ: la versión guarda la copia del contacto, no su id; el elegido se reconoce por el nombre.
   const chosen = contacts.find((c) => c.name === name.trim()) ?? null;

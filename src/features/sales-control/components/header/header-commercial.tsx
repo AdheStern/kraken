@@ -4,7 +4,12 @@
 
 import Decimal from "decimal.js";
 import { TriangleAlert } from "lucide-react";
-import { Controller, type UseFormReturn } from "react-hook-form";
+import {
+  Controller,
+  type UseFormReturn,
+  useFormState,
+  useWatch,
+} from "react-hook-form";
 import { FormField } from "@/components/forms/form-field";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
@@ -30,8 +35,13 @@ export function HeaderCommercial({
   officialFxRate,
   maxFxDeviationPct,
 }: Props) {
-  const { errors } = form.formState;
-  const { control, register, watch } = form;
+  const { errors } = useFormState({ control: form.control });
+  const { control, register } = form;
+  // TRAMPA: con el React Compiler, form.watch() no vuelve a renderizar; useWatch sí.
+  const [costFxRate, saleFxRate] = useWatch({
+    control,
+    name: ["costFxRate", "saleFxRate"],
+  });
   const deviates = (rate: string) =>
     officialFxRate !== null &&
     /^\d+(\.\d+)?$/.test(rate) &&
@@ -40,8 +50,7 @@ export function HeaderCommercial({
       new Decimal(officialFxRate),
       new Decimal(maxFxDeviationPct),
     );
-  const isDeviating =
-    deviates(watch("costFxRate")) || deviates(watch("saleFxRate"));
+  const isDeviating = deviates(costFxRate) || deviates(saleFxRate);
 
   return (
     <>

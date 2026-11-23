@@ -19,6 +19,7 @@ const schema = z.object({
   estado: z.enum(CvVersionStatus).optional().catch(undefined),
   ciudad: z.uuid().optional().catch(undefined),
   area: z.uuid().optional().catch(undefined),
+  vendedor: text,
   orden: z.enum(CV_SORT_KEYS).catch(DEFAULT_CV_SORT.key),
   dir: z.enum(["asc", "desc"]).catch(DEFAULT_CV_SORT.direction),
   pagina: z.coerce.number().int().min(1).catch(1),
@@ -33,6 +34,7 @@ export type CvListParams = {
   status?: CvVersionStatus;
   cityId?: string;
   areaId?: string;
+  sellerId?: string;
   sort: CvSort;
   page: number;
   pageSize: number;
@@ -50,11 +52,21 @@ export function parseCvListParams(
     status: p.estado,
     cityId: p.ciudad,
     areaId: p.area,
+    sellerId: p.vendedor,
     sort: { key: p.orden, direction: p.dir },
     page: p.pagina,
     pageSize: p.filas,
   };
 }
+
+// Claves de la URL que son filtros (no orden, filas ni página): las que quita «Borrar filtros».
+export const CV_LIST_FILTER_KEYS = [
+  "q",
+  "estado",
+  "ciudad",
+  "area",
+  "vendedor",
+] as const;
 
 // POR QUÉ: cambiar un filtro, el orden o las filas vuelve a la página 1; solo «pagina» la conserva.
 export function toCvListHref(

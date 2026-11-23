@@ -10,7 +10,7 @@ export const SALES_TOURS = {
         element: at("cv-filtros"),
         title: "Encuentra tus CV",
         description:
-          "Busca por número, cliente o título y filtra por estado, ciudad o área. «/» te lleva al buscador.",
+          "Busca por número, cliente o título y filtra por estado, ciudad, área o vendedor; los filtros se mantienen al volver de un CV. «/» te lleva al buscador.",
       },
       {
         element: at("cv-lista"),

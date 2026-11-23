@@ -1,17 +1,22 @@
 // src/features/sales-control/components/cv-list-filters.tsx
-// Búsqueda (código, cliente o título) y filtros por estado, ciudad y área del listado; viven en la URL y
-// cambiarlos vuelve a la página 1.
+// Búsqueda (código, cliente o título) y filtros por estado, ciudad, área y vendedor del listado; viven en la URL,
+// se recuerdan al volver de un CV y cambiarlos vuelve a la página 1.
 "use client";
 
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useShortcuts } from "@/components/shortcuts/use-shortcuts";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { OptionSelect } from "@/components/ui/option-select";
-import { toCvListHref } from "../schemas/cv-list-params";
+import { CV_LIST_FILTER_KEYS, toCvListHref } from "../schemas/cv-list-params";
 import type { CvListFilterOptions } from "../types";
 import { CV_STATUS_LABELS } from "./cv-status-badge";
+import {
+  rememberCvListHref,
+  useRememberedCvList,
+} from "./use-remembered-cv-list";
 
 const SEARCH_DELAY_MS = 300;
 
@@ -23,16 +28,36 @@ const STATUS_OPTIONS = Object.entries(CV_STATUS_LABELS).map(([id, label]) => ({
 export function CvListFilters({ options }: { options: CvListFilterOptions }) {
   const router = useRouter();
   const params = useSearchParams();
-  const [search, setSearch] = useState(params.get("q") ?? "");
+  const urlSearch = params.get("q") ?? "";
+  const [search, setSearch] = useState(urlSearch);
+  const [seenSearch, setSeenSearch] = useState(urlSearch);
+  // POR QUÉ: al reponer los filtros guardados la URL trae otra búsqueda; sin copiarla, la espera la borraría.
+  if (urlSearch !== seenSearch) {
+    setSeenSearch(urlSearch);
+    setSearch(urlSearch);
+  }
   const searchRef = useRef<HTMLInputElement>(null);
   useShortcuts({ "list.filter": () => searchRef.current?.focus() });
+  useRememberedCvList();
+  const hasFilters = CV_LIST_FILTER_KEYS.some((key) => params.has(key));
+
+  function go(changes: Record<string, string | null>) {
+    const href = toCvListHref(params, changes);
+    rememberCvListHref(href);
+    router.replace(href);
+  }
 
   function update(key: string, value: string | null) {
-    router.replace(toCvListHref(params, { [key]: value }));
+    go({ [key]: value });
+  }
+
+  // TRAMPA: no vaciar la búsqueda aquí; la espera la escribiría sobre la URL vieja. La vacía la URL nueva.
+  function clearFilters() {
+    go(Object.fromEntries(CV_LIST_FILTER_KEYS.map((key) => [key, null])));
   }
 
   useEffect(() => {
-    if (search === (params.get("q") ?? "")) return;
+    if (search === urlSearch) return;
     const timeout = setTimeout(
       () => update("q", search.trim()),
       SEARCH_DELAY_MS,
@@ -84,6 +109,20 @@ export function CvListFilters({ options }: { options: CvListFilterOptions }) {
         className="sm:w-44"
         aria-label="Filtrar por área"
       />
+      <OptionSelect
+        value={params.get("vendedor")}
+        options={options.sellers}
+        emptyLabel="Todos los vendedores"
+        onValueChange={(value) => update("vendedor", value)}
+        className="sm:w-52"
+        aria-label="Filtrar por vendedor"
+      />
+      {hasFilters ? (
+        <Button variant="ghost" className="h-9" onClick={clearFilters}>
+          <X aria-hidden="true" />
+          Borrar filtros
+        </Button>
+      ) : null}
     </div>
   );
 }

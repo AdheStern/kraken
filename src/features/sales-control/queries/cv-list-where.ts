@@ -10,6 +10,7 @@ export type CvListFilters = {
   status?: CvVersionStatus;
   cityId?: string;
   areaId?: string;
+  sellerId?: string;
 };
 
 export function cvListWhere(
@@ -22,7 +23,7 @@ export function cvListWhere(
       filters.search ? matchesSearch(filters.search) : {},
       filters.status ? { versions: { some: { status: filters.status } } } : {},
       filters.cityId ? { cityId: filters.cityId } : {},
-      // POR QUÉ: Prisma no filtra por la última versión; estado y área acotan aquí por cualquier versión y
+      // POR QUÉ: Prisma no filtra por la última versión; estado, área y vendedor acotan aquí por cualquier versión y
       // quien llama se queda con los CV cuya última versión cumple (decisión 2026-11-16).
       filters.areaId
         ? {
@@ -30,6 +31,13 @@ export function cvListWhere(
               some: {
                 lines: { some: { kind: "ITEM", areaId: filters.areaId } },
               },
+            },
+          }
+        : {},
+      filters.sellerId
+        ? {
+            versions: {
+              some: { sellers: { some: { userId: filters.sellerId } } },
             },
           }
         : {},

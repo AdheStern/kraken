@@ -40,15 +40,19 @@ export async function listCvPage(
                 select: { id: true },
               }
             : false,
+          sellers: params.sellerId
+            ? { where: { userId: params.sellerId }, select: { userId: true } }
+            : false,
         },
       },
     },
   });
-  // REGLA: estado y área se filtran por la última versión del CV (decisión 2026-11-16, AGENTS.md §5).
+  // REGLA: estado, área y vendedor se filtran por la última versión del CV (decisión 2026-11-16, AGENTS.md §5).
   const facts = keys.flatMap(({ versions: [latest], ...cv }) =>
     latest &&
     (!params.status || latest.status === params.status) &&
-    (!params.areaId || latest.lines.length > 0)
+    (!params.areaId || latest.lines.length > 0) &&
+    (!params.sellerId || latest.sellers.length > 0)
       ? [
           {
             id: cv.id,

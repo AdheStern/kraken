@@ -50,7 +50,7 @@ async function NewCvAction() {
 async function CvListFilterBar() {
   const user = await requireUser();
   if (!canListCvs(user)) return null;
-  return <CvListFilters options={await getCvListFilterOptions()} />;
+  return <CvListFilters options={await getCvListFilterOptions(user)} />;
 }
 
 async function CvListResults({
@@ -67,7 +67,11 @@ async function CvListResults({
     ),
   ).toString();
   const isFiltered = Boolean(
-    params.search || params.status || params.cityId || params.areaId,
+    params.search ||
+      params.status ||
+      params.cityId ||
+      params.areaId ||
+      params.sellerId,
   );
   return (
     <CvListTable

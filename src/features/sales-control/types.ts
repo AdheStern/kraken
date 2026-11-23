@@ -54,7 +54,11 @@ export type CvListPage = {
   lastIndex: number;
 };
 
-export type CvListFilterOptions = { cities: Option[]; areas: Option[] };
+export type CvListFilterOptions = {
+  cities: Option[];
+  areas: Option[];
+  sellers: Option[];
+};
 
 export type CvAttachmentView = {
   id: string;

@@ -56,6 +56,32 @@ test("un contacto con el mismo correo se transfiere sin duplicarse", async ({
   await expect(page.getByText(/Pasó a Empresa Destino/)).toBeVisible();
 });
 
+test("el teléfono lleva su país y se separa en bloques al escribir", async ({
+  page,
+}) => {
+  await page.goto(`${origin}?pestana=contactos`);
+  await page.getByRole("button", { name: "Nuevo contacto" }).click();
+  const dialog = page.getByRole("dialog", { name: "Nuevo contacto" });
+  await dialog
+    .getByRole("textbox", { name: "Nombre" })
+    .fill(`Ana Rojas ${STAMP}`);
+  const phone = dialog.getByRole("textbox", { name: "Teléfono" });
+  const country = dialog.getByRole("combobox", { name: "País de teléfono" });
+  await expect(country).toHaveValue("🇧🇴 +591");
+  await phone.pressSequentially("71234567");
+  await expect(phone).toHaveValue("7123 4567");
+
+  await country.fill("Perú");
+  await page.getByRole("option", { name: /Perú/ }).click();
+  await expect(country).toHaveValue("🇵🇪 +51");
+  await phone.fill("+54 11 1234 5678");
+  await expect(country).toHaveValue("🇦🇷 +54");
+  await expect(phone).toHaveValue("11 1234 5678");
+  await dialog.getByRole("button", { name: "Agregar contacto" }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByText("+54 11 1234 5678")).toBeVisible();
+});
+
 test("el directorio encuentra al contacto, muestra su historial y exporta a Excel", async ({
   page,
 }) => {

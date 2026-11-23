@@ -6,6 +6,7 @@
 import { LoaderCircle } from "lucide-react";
 import { useId, useState } from "react";
 import { useMarkCreated } from "@/components/forms/fresh-after-create";
+import { PhoneField } from "@/components/forms/phone-field";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -105,16 +106,25 @@ export function CustomerForm({
       }}
     >
       <fieldset disabled={readOnly} className="contents">
-        {FIELDS.map((f) => (
-          <LabeledInput
-            key={f.key}
-            label={f.label}
-            type={f.type}
-            value={draft[f.key]}
-            onChange={(value) => setDraft({ ...draft, [f.key]: value })}
-            className={f.wide ? "sm:col-span-2" : undefined}
-          />
-        ))}
+        {FIELDS.map((f) =>
+          f.key === "phone" ? (
+            <PhoneField
+              key={f.key}
+              label={f.label}
+              value={draft.phone}
+              onChange={(phone) => setDraft({ ...draft, phone })}
+            />
+          ) : (
+            <LabeledInput
+              key={f.key}
+              label={f.label}
+              type={f.type}
+              value={draft[f.key]}
+              onChange={(value) => setDraft({ ...draft, [f.key]: value })}
+              className={f.wide ? "sm:col-span-2" : undefined}
+            />
+          ),
+        )}
         <CustomerClassificationFields
           value={classification}
           onChange={(patch) =>

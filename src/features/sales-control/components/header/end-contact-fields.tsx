@@ -3,9 +3,15 @@
 // teléfono y dirección, que quedan editables (AGENTS.md §2.1, decisión 2026-11-16).
 "use client";
 
-import { type UseFormReturn, useFormState, useWatch } from "react-hook-form";
+import {
+  Controller,
+  type UseFormReturn,
+  useFormState,
+  useWatch,
+} from "react-hook-form";
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { FormField } from "@/components/forms/form-field";
+import { PhoneField } from "@/components/forms/phone-field";
 import { Input } from "@/components/ui/input";
 import type { CvHeaderInput } from "../../schemas/cv-header-schema";
 import type { CvContactOption } from "../../types";
@@ -44,7 +50,7 @@ export function EndContactFields({
   }
 
   const text = (
-    field: "endContactName" | "endContactPhone" | "endContactAddress",
+    field: "endContactName" | "endContactAddress",
     label: string,
     className?: string,
   ) => (
@@ -93,7 +99,20 @@ export function EndContactFields({
           {...register("endContactEmail")}
         />
       </FormField>
-      {text("endContactPhone", "Teléfono del contacto")}
+      <Controller
+        control={form.control}
+        name="endContactPhone"
+        render={({ field }) => (
+          <PhoneField
+            id="cv-endContactPhone"
+            label="Teléfono del contacto"
+            value={field.value ?? ""}
+            onChange={field.onChange}
+            disabled={disabled}
+            error={errors.endContactPhone?.message}
+          />
+        )}
+      />
       {text("endContactAddress", "Dirección", "sm:col-span-2 lg:col-span-4")}
     </>
   );

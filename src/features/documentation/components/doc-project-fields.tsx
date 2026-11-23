@@ -12,6 +12,7 @@ import {
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { CatalogMultiCombobox } from "@/components/forms/catalog-multi-combobox";
 import { FormField } from "@/components/forms/form-field";
+import { PhoneField } from "@/components/forms/phone-field";
 import { Input } from "@/components/ui/input";
 import type { DocProjectInput } from "../schemas/doc-project-schema";
 import type { DocProjectFormOptions } from "../types";
@@ -153,13 +154,18 @@ export function DocProjectFields({ form, options, idPrefix }: Props) {
           {...form.register("contactEmail")}
         />
       </FormField>
-      <FormField label="Teléfono" htmlFor={id("contact-phone")}>
-        <Input
-          id={id("contact-phone")}
-          inputMode="tel"
-          {...form.register("contactPhone")}
-        />
-      </FormField>
+      <Controller
+        control={form.control}
+        name="contactPhone"
+        render={({ field }) => (
+          <PhoneField
+            id={id("contact-phone")}
+            label="Teléfono"
+            value={field.value ?? ""}
+            onChange={field.onChange}
+          />
+        )}
+      />
     </div>
   );
 }

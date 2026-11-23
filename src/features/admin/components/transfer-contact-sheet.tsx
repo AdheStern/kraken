@@ -8,6 +8,7 @@ import { LoaderCircle } from "lucide-react";
 import { type ReactElement, useState } from "react";
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { FormField } from "@/components/forms/form-field";
+import { PhoneField } from "@/components/forms/phone-field";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -34,8 +35,6 @@ type Props = {
 const FIELDS = [
   ["position", "Nuevo cargo"],
   ["email", "Nuevo correo"],
-  ["phone", "Nuevo teléfono"],
-  ["reason", "Motivo (opcional: «Pasó a …»)"],
 ] as const;
 
 export function TransferContactSheet({
@@ -109,9 +108,20 @@ export function TransferContactSheet({
               label={label}
               value={draft[key]}
               onChange={(value) => setDraft({ ...draft, [key]: value })}
-              className={key === "reason" ? "sm:col-span-2" : undefined}
             />
           ))}
+          <PhoneField
+            label="Nuevo teléfono"
+            value={draft.phone}
+            onChange={(phone) => setDraft({ ...draft, phone })}
+            className="sm:col-span-2"
+          />
+          <LabeledInput
+            label="Motivo (opcional: «Pasó a …»)"
+            value={draft.reason}
+            onChange={(reason) => setDraft({ ...draft, reason })}
+            className="sm:col-span-2"
+          />
           <SiblingPositionsField
             legend="También deja"
             hint="Era contacto de estas empresas: se cierran con la misma fecha y motivo. Desmarca las que sigue atendiendo."

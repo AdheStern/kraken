@@ -45,7 +45,13 @@ test("el contacto se elige del cliente y las observaciones son texto largo", asy
 
   await page.reload();
   await expect(page.locator("#cv-contact")).toHaveValue(/Lucía Mamani/);
-  await expect(page.locator("#cv-contact-phone")).toHaveValue("+591 2 2440011");
+  // El teléfono guardado como «+591 2 2440011» se ve con su país y en bloques.
+  await expect(page.locator("#cv-contact-phone")).toHaveValue("2 244 0011");
+  await expect(
+    page
+      .getByRole("combobox", { name: "País de teléfono del contacto" })
+      .first(),
+  ).toHaveValue("🇧🇴 +591");
   await expect(payment).toBeChecked();
 
   const chain = page.getByTestId("cv-end-contact-chain");

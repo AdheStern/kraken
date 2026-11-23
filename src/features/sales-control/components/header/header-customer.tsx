@@ -4,9 +4,15 @@
 // §2.1, decisión 2026-11-11). El cliente final va en «Soporte y licencias» (header-end-customer.tsx).
 "use client";
 
-import { type UseFormReturn, useFormState, useWatch } from "react-hook-form";
+import {
+  Controller,
+  type UseFormReturn,
+  useFormState,
+  useWatch,
+} from "react-hook-form";
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { FormField } from "@/components/forms/form-field";
+import { PhoneField } from "@/components/forms/phone-field";
 import { Input } from "@/components/ui/input";
 import type { CvHeaderInput } from "../../schemas/cv-header-schema";
 import type { CvContactOption } from "../../types";
@@ -106,18 +112,20 @@ export function HeaderCustomer({ form, contacts, disabled, customer }: Props) {
           {...register("contactEmail")}
         />
       </FormField>
-      <FormField
-        label="Teléfono del contacto"
-        htmlFor="cv-contact-phone"
-        error={errors.contactPhone?.message}
-      >
-        <Input
-          id="cv-contact-phone"
-          type="tel"
-          disabled={disabled}
-          {...register("contactPhone")}
-        />
-      </FormField>
+      <Controller
+        control={control}
+        name="contactPhone"
+        render={({ field }) => (
+          <PhoneField
+            id="cv-contact-phone"
+            label="Teléfono del contacto"
+            value={field.value ?? ""}
+            onChange={field.onChange}
+            disabled={disabled}
+            error={errors.contactPhone?.message}
+          />
+        )}
+      />
       <FormField
         label="Dirección"
         htmlFor="cv-contact-address"

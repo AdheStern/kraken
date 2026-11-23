@@ -8,6 +8,7 @@ import { type ReactElement, useState } from "react";
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { CatalogMultiCombobox } from "@/components/forms/catalog-multi-combobox";
 import { FormField } from "@/components/forms/form-field";
+import { PhoneField } from "@/components/forms/phone-field";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -35,7 +36,6 @@ const TEXT = [
   ["name", "Nombre"],
   ["position", "Cargo"],
   ["email", "Correo"],
-  ["phone", "Teléfono"],
 ] as const;
 
 export function ContactSheet({
@@ -97,6 +97,11 @@ export function ContactSheet({
               onChange={(value) => setText({ ...text, [key]: value })}
             />
           ))}
+          <PhoneField
+            label="Teléfono"
+            value={text.phone}
+            onChange={(phone) => setText({ ...text, phone })}
+          />
           <FormField label="Municipio" htmlFor="contact-municipality">
             <CatalogCombobox
               id="contact-municipality"

@@ -7,6 +7,7 @@ import { LoaderCircle } from "lucide-react";
 import { type ReactElement, useState } from "react";
 import { CatalogCombobox } from "@/components/forms/catalog-combobox";
 import { FormField } from "@/components/forms/form-field";
+import { PhoneField } from "@/components/forms/phone-field";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -31,7 +32,6 @@ type Props = {
 const TEXT_FIELDS = [
   ["name", "Nombre (Sucursal Santa Cruz, Planta Yacuiba…)"],
   ["address", "Dirección"],
-  ["phone", "Teléfono"],
   ["latitude", "Latitud (opcional)"],
   ["longitude", "Longitud (opcional)"],
 ] as const;
@@ -102,6 +102,11 @@ export function BranchSheet({
               placeholder="Santa Cruz de la Sierra, Yacuiba…"
             />
           </FormField>
+          <PhoneField
+            label="Teléfono"
+            value={draft.phone}
+            onChange={(phone) => setDraft({ ...draft, phone })}
+          />
           {TEXT_FIELDS.slice(2).map(([key, label]) => (
             <LabeledInput
               key={key}

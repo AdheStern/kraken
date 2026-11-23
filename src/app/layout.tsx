@@ -3,6 +3,7 @@
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Nunito } from "next/font/google";
+import localFont from "next/font/local";
 import { Suspense } from "react";
 import { StagingBanner } from "@/components/app-shell/staging-banner";
 import { ThemeProvider } from "@/components/theme/theme-provider";
@@ -23,6 +24,22 @@ const nunito = Nunito({
   variable: "--font-nunito",
   subsets: ["latin"],
   weight: ["900"],
+});
+
+// POR QUÉ: Windows no dibuja los emoji de bandera (muestra «BO»); esta fuente (Twemoji, CC-BY 4.0, vía
+// country-flag-emoji-polyfill) cubre solo esos caracteres y se descarga cuando aparece una bandera.
+const flags = localFont({
+  src: "../../node_modules/country-flag-emoji-polyfill/dist/TwemojiCountryFlags.woff2",
+  variable: "--font-flags",
+  preload: false,
+  adjustFontFallback: false,
+  declarations: [
+    {
+      prop: "unicode-range",
+      value:
+        "U+1F1E6-1F1FF, U+1F3F4, U+E0062-E0063, U+E0065, U+E0067, U+E006C, U+E006E, U+E0073-E0074, U+E0077, U+E007F",
+    },
+  ],
 });
 
 const DESCRIPTION =
@@ -49,7 +66,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="es"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${nunito.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${nunito.variable} ${flags.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider

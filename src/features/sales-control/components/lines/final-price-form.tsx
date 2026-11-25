@@ -1,6 +1,6 @@
 // src/features/sales-control/components/lines/final-price-form.tsx
-// Primer paso del precio final: USD y/o Bs, con los Bs que saldrían del TC de venta como sugerencia, y el motivo
-// obligatorio (§2.3, decisión 2026-11-19).
+// Primer paso del precio final: USD y/o Bs, abiertos con el total vigente; los Bs siguen al USD × TC de venta hasta
+// que se editen, y el motivo es obligatorio (§2.3, decisión 2026-11-19).
 "use client";
 
 import Decimal from "decimal.js";
@@ -15,6 +15,7 @@ export type FinalPriceDraft = { usd: string; bs: string; reason: string };
 
 type Props = {
   draft: FinalPriceDraft;
+  bsFollowsUsd: boolean;
   saleFxRate: string;
   canClear: boolean;
   error: string | null;
@@ -26,6 +27,7 @@ const AMOUNT = /^\d{1,16}(\.\d{1,2})?$/;
 
 export function FinalPriceForm({
   draft,
+  bsFollowsUsd,
   saleFxRate,
   canClear,
   error,
@@ -60,6 +62,12 @@ export function FinalPriceForm({
           />
         </Label>
       </div>
+      {bsFollowsUsd && draft.bs.trim() && (
+        <p className="text-xs text-muted-foreground">
+          Los Bs siguen al USD con el TC de venta ({saleFxRate}) hasta que los
+          cambies.
+        </p>
+      )}
       {derivedBs && !draft.bs.trim() && (
         <p className="text-xs text-muted-foreground tabular-nums">
           {`Sin Bs se usa USD × TC de venta (${saleFxRate}) = Bs ${formatAmount(derivedBs.toFixed(2))}.`}

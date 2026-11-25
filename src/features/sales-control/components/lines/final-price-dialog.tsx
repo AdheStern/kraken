@@ -19,7 +19,8 @@ import { setCvFinalPrice } from "../../actions/set-cv-final-price";
 import { setCvFinalPriceSchema } from "../../schemas/final-price-schema";
 import type { CvFinalPriceView } from "../../types";
 import { FinalPriceConfirm } from "./final-price-confirm";
-import { type FinalPriceDraft, FinalPriceForm } from "./final-price-form";
+import { FinalPriceForm } from "./final-price-form";
+import { useFinalPriceDraft } from "./use-final-price-draft";
 
 type Props = {
   versionId: string;
@@ -30,20 +31,19 @@ type Props = {
   disabledReason: string | null;
 };
 
-const EMPTY: FinalPriceDraft = { usd: "", bs: "", reason: "" };
-
 export function FinalPriceDialog(props: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"form" | "confirm">("form");
-  const [draft, setDraft] = useState<FinalPriceDraft>(EMPTY);
+  const { draft, submitted, bsFollowsUsd, reset, change, setDraft } =
+    useFinalPriceDraft(props);
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const input = {
     versionId: props.versionId,
-    finalSaleUsd: draft.usd,
-    finalSaleBs: draft.bs,
-    reason: draft.reason,
+    finalSaleUsd: submitted.usd,
+    finalSaleBs: submitted.bs,
+    reason: submitted.reason,
   };
 
   function openWith(next: boolean) {
@@ -51,15 +51,11 @@ export function FinalPriceDialog(props: Props) {
     if (!next) return;
     setStep("form");
     setError(null);
-    setDraft({
-      usd: props.current?.saleUsd ?? "",
-      bs: props.current?.saleBs ?? "",
-      reason: "",
-    });
+    reset();
   }
 
   function review(clear: boolean) {
-    const next = clear ? { ...draft, usd: "", bs: "" } : draft;
+    const next = clear ? { ...submitted, usd: "", bs: "" } : submitted;
     const parsed = setCvFinalPriceSchema.safeParse({
       ...input,
       finalSaleUsd: next.usd,
@@ -68,7 +64,7 @@ export function FinalPriceDialog(props: Props) {
     if (!parsed.success) return setError(parsed.error.issues[0].message);
     if (!clear && !next.usd.trim() && !next.bs.trim())
       return setError("Escribe el precio final en USD, en Bs o en ambos.");
-    setDraft(next);
+    if (clear) setDraft(next);
     setError(null);
     setStep("confirm");
   }
@@ -112,15 +108,16 @@ export function FinalPriceDialog(props: Props) {
         {step === "form" ? (
           <FinalPriceForm
             draft={draft}
+            bsFollowsUsd={bsFollowsUsd}
             saleFxRate={props.saleFxRate}
             canClear={props.current !== null}
             error={error}
-            onChange={setDraft}
+            onChange={change}
             onReview={review}
           />
         ) : (
           <FinalPriceConfirm
-            draft={draft}
+            draft={submitted}
             computed={props.computed}
             saleFxRate={props.saleFxRate}
             maxDeviationPct={props.maxDeviationPct}

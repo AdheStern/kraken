@@ -1,8 +1,9 @@
 // src/server/sales-control/export/write-cv-leasing.ts
 // Bloque de leasing o arrendamiento, desplazado según las filas de líneas insertadas. Tiene su propio
-// total de costo y no afecta la venta (AGENTS.md §2.1). No lleva BC: su columna D queda vacía.
+// total de costo y no afecta la venta (AGENTS.md §2.1). No lleva BC: su columna queda vacía.
 import type { Worksheet } from "exceljs";
 import type { CvExportLeasingLine } from "./cv-export-data";
+import type { CvSheetLayout } from "./cv-sheet-layout";
 import {
   formula,
   insertRowCopies,
@@ -13,11 +14,13 @@ import {
 
 const TEMPLATE_FIRST_LEASING_ROW = 31;
 
+/** Escribe el leasing; devuelve el número de su fila de total, la última de la hoja. */
 export function writeCvLeasing(
   ws: Worksheet,
   lines: CvExportLeasingLine[],
   shift: number,
-): void {
+  c: CvSheetLayout,
+): number {
   const first = TEMPLATE_FIRST_LEASING_ROW + shift;
   if (lines.length > TEMPLATE_LEASING_ROWS) {
     insertRowCopies(ws, first, lines.length - TEMPLATE_LEASING_ROWS);
@@ -26,17 +29,21 @@ export function writeCvLeasing(
   lines.forEach((line, index) => {
     const r = first + index;
     writeCells(ws.getRow(r), {
-      A: index + 1,
-      B: line.supplier,
-      C: line.technology,
-      E: line.code,
-      F: line.description,
-      G: toExcelNumber(line.quantity),
-      H: toExcelNumber(line.unitCostUsd),
-      I: formula(`ROUND(H${r}*G${r},2)`),
-      L: line.notes,
-      R: line.poNumber,
+      [c.item]: index + 1,
+      [c.supplier]: line.supplier,
+      [c.technology]: line.technology,
+      [c.code]: line.code,
+      [c.description]: line.description,
+      [c.quantity]: toExcelNumber(line.quantity),
+      [c.unitCost]: toExcelNumber(line.unitCostUsd),
+      [c.totalCost]: formula(`ROUND(${c.unitCost}${r}*${c.quantity}${r},2)`),
+      // POR QUÉ: el formulario titula «NOTAS» las columnas de la venta, que el leasing no tiene.
+      [c.unitSale]: line.notes,
+      [c.poNumber]: line.poNumber,
     });
   });
-  writeCells(ws.getRow(last + 1), { I: formula(`SUM(I${first}:I${last})`) });
+  writeCells(ws.getRow(last + 1), {
+    [c.totalCost]: formula(`SUM(${c.totalCost}${first}:${c.totalCost}${last})`),
+  });
+  return last + 1;
 }

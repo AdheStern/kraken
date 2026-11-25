@@ -35,7 +35,7 @@ export const SALES_MANUAL: Manual = {
         "Si alguien rechaza, la versión queda observada: crea una Nueva versión con motivo, corrige y vuelve a enviar.",
         "Para cambiar un CV aprobado también se crea una versión nueva; la aprobada sigue vigente hasta que se apruebe la nueva.",
         "En la versión aprobada sí puedes completar, sin versión nueva, observaciones, PO#, rango de activación y seriales de las líneas, y notas, seriales y PO# del leasing: no cambian montos. Si hay una versión nueva en borrador, en aprobación u observada, el cambio también llega a ella.",
-        "Comparar versiones muestra líneas agregadas, quitadas y modificadas. El Excel se exporta con la plantilla oficial.",
+        "Comparar versiones muestra líneas agregadas, quitadas y modificadas. El Excel se exporta con la plantilla oficial; «Excel con GROSS UP y RET DIMA» suma esas dos columnas.",
       ],
     },
     {

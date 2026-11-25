@@ -1,6 +1,6 @@
 // src/server/sales-control/export/write-cv-header.ts
-// Cabecera de la hoja "CONTROL DE VENTAS V2": identificación, personas, cliente, cliente final y orden
-// del cliente en las celdas fijas de la plantilla (AGENTS.md §5, Exportación a Excel).
+// Cabecera de la hoja "CONTROL DE VENTAS": identificación, personas, cliente, cliente final y orden del cliente
+// en las celdas fijas del formulario de DIMA (AGENTS.md §5, Exportación a Excel).
 import type { Worksheet } from "exceljs";
 import type { CvExportData, CvExportParty } from "./cv-export-data";
 
@@ -22,17 +22,17 @@ export function writeCvHeader(ws: Worksheet, data: CvExportData): void {
     if (value instanceof Date) cell.numFmt = DATE_FORMAT;
   };
   put("C5", data.versionLabel);
-  put("E5", data.title);
-  put("M5", data.serviceType);
-  put("M6", data.mainTechnology);
-  put("M7", data.isNewTechnology ? "SI" : "NO");
+  put("D5", data.title);
+  put("J5", data.serviceType);
+  put("J6", data.mainTechnology);
+  put("J7", data.isNewTechnology ? "SI" : "NO");
   put("C6", data.issuedOn);
   put("C7", data.sellers.join(" / "));
   put("C8", data.presales);
   put("C9", data.areas.join(" / "));
   PARTY_FIELDS.forEach((field, index) => {
     put(`C${10 + index}`, data.customer[field]);
-    put(`L${11 + index}`, data.endCustomer[field]);
+    put(`I${11 + index}`, data.endCustomer[field]);
   });
   put("C17", data.customerPoNumber);
   put("C18", data.customerPoDate);

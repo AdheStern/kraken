@@ -13,7 +13,7 @@ export const ADMINISTRATION_MANUAL: Manual = {
         "Control de Venta lista todos los CV, en cualquier estado; en cada versión ves sus costos y su margen.",
         "No editas las líneas de un borrador: eso lo hacen el comercial y las gerencias.",
         "En la versión aprobada vigente completas observaciones, PO#, rango de activación y seriales de las líneas, y notas, seriales y PO# del leasing; guarda con el botón de la grilla o Ctrl+S. Para cargar muchos seriales, marca la columna «Seriales» en «Columnas opcionales»: uno por renglón (Alt+Enter), o pega la columna desde Excel. GROSS UP y RET DIMA (también en «Columnas opcionales») los corriges en cualquier versión y estado; la tarjeta de totales muestra su suma.",
-        "Exporta cada versión al Excel de la plantilla oficial PA-PR-03-RE-01.",
+        "Exporta cada versión al Excel de la plantilla oficial PA-PR-03-RE-01. GROSS UP y RET DIMA no salen por defecto: en el botón «Excel» elige «Excel con GROSS UP y RET DIMA».",
       ],
       link: { href: "/cv", label: "Ir a Control de Venta" },
     },

@@ -1,5 +1,6 @@
 // src/app/api/cv/[versionId]/export.xlsx/route.ts
 // Descarga una versión de CV en la plantilla oficial PA-PR-03-RE-01, con authz (AGENTS.md §2.9 y §7).
+// Con ?retenciones=1 suma GROSS UP y RET DIMA, que por defecto no salen (decisión 2026-11-25).
 import type { NextRequest } from "next/server";
 import { toCvExportFileName } from "@/domain/sales-control/cv-export-file-name";
 import { getCvExportData } from "@/features/sales-control/queries/get-cv-export-data";
@@ -16,7 +17,7 @@ const XLSX_TYPE =
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   ctx: RouteContext<"/api/cv/[versionId]/export.xlsx">,
 ) {
   const { versionId } = await ctx.params;
@@ -52,7 +53,9 @@ export async function GET(
     entityId: versionId,
     action: "EXPORTAR",
   });
-  const file = await exportCvToXlsx(data);
+  const file = await exportCvToXlsx(data, {
+    withWithholdings: request.nextUrl.searchParams.get("retenciones") === "1",
+  });
   return new Response(new Uint8Array(file), {
     headers: {
       "content-type": XLSX_TYPE,

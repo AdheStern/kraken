@@ -4,10 +4,10 @@
 // Solo aparecen las acciones que la máquina de estados permite (AGENTS.md §8).
 "use client";
 
-import { Ban, FileDown, GitBranchPlus, GitCompareArrows } from "lucide-react";
+import { Ban, GitBranchPlus, GitCompareArrows } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { OptionSelect } from "@/components/ui/option-select";
 import {
   canStartNewVersion,
@@ -17,6 +17,7 @@ import { createCvVersion } from "../../actions/create-cv-version";
 import { voidCv } from "../../actions/void-cv";
 import type { CvEditorData } from "../../types";
 import { DuplicateCvButton } from "../duplicate-cv-button";
+import { CvExportMenu } from "./cv-export-menu";
 import { ReasonDialog } from "./reason-dialog";
 import { type RenewableLine, RenewCvDialog } from "./renew-cv-dialog";
 
@@ -73,15 +74,7 @@ export function CvVersionBar({
           Comparar con v{versionNumber - 1}
         </Button>
       )}
-      {editor.canExport && (
-        <a
-          href={`/api/cv/${header.versionId}/export.xlsx`}
-          className={buttonVariants({ variant: "outline", size: "sm" })}
-        >
-          <FileDown aria-hidden="true" />
-          Excel
-        </a>
-      )}
+      {editor.canExport && <CvExportMenu versionId={header.versionId} />}
       {canOpenVersion && isLatest && (
         <ReasonDialog
           trigger={

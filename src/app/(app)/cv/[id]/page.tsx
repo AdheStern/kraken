@@ -66,7 +66,7 @@ export default function CvEditorPage({
   searchParams,
 }: PageProps<"/cv/[id]">) {
   return (
-    <main className="mx-auto flex w-full max-w-[1720px] flex-col gap-5 px-4 py-6 sm:px-6">
+    <main className="kr-readable mx-auto flex w-full max-w-[1720px] flex-col gap-5 px-4 py-6 sm:px-6">
       <Link
         href="/cv"
         className="flex w-fit items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"

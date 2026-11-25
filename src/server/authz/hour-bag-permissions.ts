@@ -1,5 +1,5 @@
 // src/server/authz/hour-bag-permissions.ts
-// Permisos sobre bolsas de horas (AGENTS.md §2.9): entrar al módulo y ajustar o cerrar una bolsa.
+// Permisos sobre bolsas de horas (AGENTS.md §2.9): entrar al módulo, ajustar o cerrar una bolsa y renombrarla.
 import {
   areaIdsWithRole,
   hasRole,
@@ -33,4 +33,15 @@ export function canAdjustHourBag(
   if (hasRole(user, "GERENTE_GENERAL")) return true;
   const managed = areaIdsWithRole(user, "GERENTE_AREA");
   return bag.areaIds.some((areaId) => managed.includes(areaId));
+}
+
+// REGLA: renombrar la bolsa: quienes la ajustan y el coordinador de soporte de un área de la bolsa, que arma
+// la jerarquía de los tickets (§2.9, decisión 2026-11-25). Solo cambia lo que se muestra, no el saldo.
+export function canRenameHourBag(
+  user: SessionUser,
+  bag: { areaIds: readonly string[] },
+): boolean {
+  if (canAdjustHourBag(user, bag)) return true;
+  const coordinated = areaIdsWithRole(user, "COORDINADOR_SOPORTE");
+  return bag.areaIds.some((areaId) => coordinated.includes(areaId));
 }

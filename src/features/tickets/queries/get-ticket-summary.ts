@@ -1,6 +1,7 @@
 // src/features/tickets/queries/get-ticket-summary.ts
 // Resumen de un ticket cerrado: horas trabajadas y descontadas, desglose por persona, subtarea y bolsa, y su
 // actividad; null si no es visible o no está cerrado (AGENTS.md §2.6, §2.9 "Tickets: ver").
+import { toBagName } from "@/domain/hours/bag-name";
 import { toCvVersionLabel } from "@/domain/sales-control/cv-code";
 import { summarizeTicketWork } from "@/domain/tickets/summarize-ticket-work";
 import type { SessionUser } from "@/server/authz/roles";
@@ -113,6 +114,7 @@ export async function getTicketSummary(
 }
 
 const BAG_LABEL = {
+  name: true,
   cvLine: {
     select: {
       description: true,
@@ -122,13 +124,14 @@ const BAG_LABEL = {
 } as const;
 
 function bagLabel(bag: {
+  name: string | null;
   cvLine: {
     description: string;
     version: { number: number; cv: { code: string } };
   };
 }): string {
   const { version, description } = bag.cvLine;
-  return `${toCvVersionLabel(version.cv.code, version.number)} · ${description}`;
+  return `${toCvVersionLabel(version.cv.code, version.number)} · ${toBagName(bag.name, description)}`;
 }
 
 function toRows<K>(map: Map<K, number>, label: (key: K) => string): Row[] {

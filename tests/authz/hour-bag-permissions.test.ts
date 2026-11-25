@@ -1,9 +1,11 @@
 // tests/authz/hour-bag-permissions.test.ts
-// Bolsas de horas (AGENTS.md §2.9): una prueba por celda de "Bolsas: ver saldo" y "Bolsas: ajuste manual".
+// Bolsas de horas (AGENTS.md §2.9): una prueba por celda de "Bolsas: ver saldo", "Bolsas: ajuste manual" y
+// "Bolsas: renombrar".
 import { describe, expect, it } from "vitest";
 import type { RoleCode } from "@/generated/prisma/enums";
 import {
   canAdjustHourBag,
+  canRenameHourBag,
   canSeeHourBags,
 } from "@/server/authz/hour-bag-permissions";
 import type { SessionUser } from "@/server/authz/roles";
@@ -112,5 +114,30 @@ describe("§2.9 Bolsas: ajuste manual", () => {
     "COORDINADOR_SOPORTE",
   ])("%s no ajusta", (role) => {
     expect(canAdjustHourBag(user([role, "net"]), bag)).toBe(false);
+  });
+});
+
+describe("§2.9 Bolsas: renombrar", () => {
+  const bag = { areaIds: ["net", "tel"] };
+
+  it("el GG renombra todas", () => {
+    expect(canRenameHourBag(user(["GERENTE_GENERAL"]), bag)).toBe(true);
+  });
+
+  it.each<RoleCode>([
+    "GERENTE_AREA",
+    "COORDINADOR_SOPORTE",
+  ])("%s renombra las de su área y no las de otra", (role) => {
+    expect(canRenameHourBag(user([role, "tel"]), bag)).toBe(true);
+    expect(canRenameHourBag(user([role, "doc"]), bag)).toBe(false);
+  });
+
+  it.each<RoleCode>([
+    "COMERCIAL",
+    "INGENIERO",
+    "ADMINISTRACION",
+    "DESARROLLO_NEGOCIOS",
+  ])("%s no renombra", (role) => {
+    expect(canRenameHourBag(user([role, "net"]), bag)).toBe(false);
   });
 });

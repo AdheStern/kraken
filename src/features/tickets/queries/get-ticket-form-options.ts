@@ -2,6 +2,7 @@
 // Catálogos del alta de ticket: clientes, ciudades, las áreas que el usuario gestiona, proyectos activos,
 // ingenieros con sus áreas, bolsas activas y si hay dónde guardar adjuntos (AGENTS.md §2.6, §2.9, ADR-16).
 
+import { toBagName } from "@/domain/hours/bag-name";
 import { toCvVersionLabel } from "@/domain/sales-control/cv-code";
 import type { EligibleBag } from "@/domain/tickets/bag-eligibility";
 import type { BagModality } from "@/generated/prisma/enums";
@@ -94,6 +95,7 @@ async function listActiveBags(user: SessionUser) {
       isUncapped: true,
       expiresOn: true,
       balanceMinutes: true,
+      name: true,
       areas: { select: { areaId: true } },
       cvLine: {
         select: {
@@ -111,11 +113,12 @@ async function listActiveBags(user: SessionUser) {
       kind,
       isUncapped,
       expiresOn,
+      name,
       ...bag
     }) => ({
       ...bag,
       areaIds: areas.map((a) => a.areaId),
-      label: `${toCvVersionLabel(cvLine.version.cv.code, cvLine.version.number)} · ${cvLine.description}`,
+      label: `${toCvVersionLabel(cvLine.version.cv.code, cvLine.version.number)} · ${toBagName(name, cvLine.description)}`,
       hint: [
         MODALITY_LABELS[bag.modality],
         ...(kind === "VIGENCIA" ? ["Vigencia"] : []),

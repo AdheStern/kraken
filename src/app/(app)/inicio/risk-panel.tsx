@@ -51,7 +51,7 @@ export function RiskPanel({ bags }: { bags: BagSummary[] }) {
                     {bag.cvLabel}
                     <span className="font-normal text-muted-foreground">
                       {" "}
-                      · {bag.lineDescription}
+                      · {bag.name}
                     </span>
                   </span>
                   <span className="block truncate text-xs text-muted-foreground">

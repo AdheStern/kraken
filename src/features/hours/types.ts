@@ -16,6 +16,9 @@ export type BagSummary = {
   id: string;
   cvId: string;
   cvLabel: string;
+  // POR QUÉ: name es el que se muestra (el que le pusieron o, sin él, la línea); customName null = sin nombre.
+  name: string;
+  customName: string | null;
   lineDescription: string;
   customerId: string;
   customerName: string;
@@ -54,6 +57,7 @@ export type BagDetail = {
   bag: BagSummary;
   ledger: BagLedgerEntry[];
   canAdjust: boolean;
+  canRename: boolean;
 };
 
 export type BagFilters = {

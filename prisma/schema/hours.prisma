@@ -61,6 +61,9 @@ model HourBag {
   modality          BagModality @map("modalidad")
   scope             BagScope    @map("alcance")
   status            BagStatus   @default(ACTIVA) @map("estado")
+  // POR QUÉ: nombre para los técnicos; sin él se muestra la descripción de la línea del CV («Servicios
+  // conexos» confunde). Sobrevive a las versiones porque la bolsa sigue al linaje (§2.4).
+  name              String?     @map("nombre") @db.VarChar(120)
   // POR QUÉ: solo en un contrato por vigencia: no recibe trabajo anterior a esta fecha (§2.4).
   startsOn          DateTime?   @map("vigente_desde") @db.Date
   expiresOn         DateTime?   @map("vence_el") @db.Date

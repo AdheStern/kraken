@@ -1,5 +1,5 @@
 // src/app/(app)/horas/[bagId]/page.tsx
-// Libro de una bolsa: anillo y cifras, atributos, acciones del gerente y cada movimiento con su saldo
+// Libro de una bolsa: anillo y cifras, nombre, atributos, acciones del gerente y cada movimiento con su saldo
 // (AGENTS.md §2.4 libro mayor, §5 "el libro enlaza al ticket que originó cada movimiento").
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
@@ -21,6 +21,7 @@ import {
   bagTone,
   HourBagRing,
 } from "@/features/hours/components/hour-bag-ring";
+import { RenameBagDialog } from "@/features/hours/components/rename-bag-dialog";
 import { getHourBag } from "@/features/hours/queries/get-hour-bag";
 import { requireUser } from "@/server/session";
 
@@ -94,8 +95,13 @@ async function HourBag({
             </h1>
             <BagStatusBadge status={bag.status} />
           </div>
+          <p className="font-medium">{bag.name}</p>
+          {bag.customName && (
+            <p className="text-xs text-muted-foreground">
+              En el CV: {bag.lineDescription}
+            </p>
+          )}
           <p className="text-sm text-muted-foreground">
-            {bag.lineDescription} ·{" "}
             {bag.kind === "VIGENCIA" && "Contrato por vigencia · "}
             {MODALITY_LABELS[bag.modality]} · {scopeText(bag)}
           </p>
@@ -115,19 +121,28 @@ async function HourBag({
             </Link>
           </p>
         </div>
-        {canChange && (
-          <div className="flex w-full items-center gap-1 sm:w-auto">
+        {(canChange || detail.canRename) && (
+          <div className="flex w-full flex-wrap items-center gap-1 sm:w-auto">
+            {detail.canRename && (
+              <RenameBagDialog
+                bagId={bag.id}
+                customName={bag.customName}
+                lineDescription={bag.lineDescription}
+              />
+            )}
             {/* REGLA: un contrato sin tope no tiene saldo que ajustar; solo se cierra (§2.4). */}
-            {!bag.isUncapped && (
+            {canChange && !bag.isUncapped && (
               <AdjustBagDialog
                 bagId={bag.id}
                 balanceMinutes={bag.balanceMinutes}
               />
             )}
-            <CloseBagDialog
-              bagId={bag.id}
-              balanceMinutes={bag.isUncapped ? 0 : bag.balanceMinutes}
-            />
+            {canChange && (
+              <CloseBagDialog
+                bagId={bag.id}
+                balanceMinutes={bag.isUncapped ? 0 : bag.balanceMinutes}
+              />
+            )}
           </div>
         )}
       </header>

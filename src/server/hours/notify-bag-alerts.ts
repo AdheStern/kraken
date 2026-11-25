@@ -1,6 +1,8 @@
 // src/server/hours/notify-bag-alerts.ts
 // Avisa en la bandeja y por correo (outbox) cuando un movimiento cruza un umbral de consumo de la bolsa,
 // en la misma transacción del movimiento (AGENTS.md §2.4 alertas, ADR-08).
+
+import { toBagName } from "@/domain/hours/bag-name";
 import { crossedThresholds } from "@/domain/hours/crossed-thresholds";
 import { toCvVersionLabel } from "@/domain/sales-control/cv-code";
 import { formatMinutes } from "@/lib/format-minutes";
@@ -52,6 +54,7 @@ export async function loadBagAudience(tx: Tx, bagId: string) {
   const bag = await tx.hourBag.findUniqueOrThrow({
     where: { id: bagId },
     select: {
+      name: true,
       customer: { select: { name: true } },
       areas: { select: { areaId: true } },
       cvLine: {
@@ -84,7 +87,7 @@ export async function loadBagAudience(tx: Tx, bagId: string) {
   return {
     cvCode: version.cv.code,
     versionNumber: version.number,
-    description: bag.cvLine.description,
+    description: toBagName(bag.name, bag.cvLine.description),
     customerName: bag.customer.name,
     userIds: [
       version.cv.createdById,

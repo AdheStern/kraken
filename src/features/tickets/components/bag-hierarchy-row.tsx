@@ -42,7 +42,7 @@ export function BagHierarchyRow({
           {bag.cvLabel}
         </Link>
         <p className="truncate text-xs text-muted-foreground">
-          {MODALITY_LABELS[bag.modality]} · {bag.lineDescription}
+          {MODALITY_LABELS[bag.modality]} · {bag.name}
         </p>
       </div>
       <dl className="hidden shrink-0 text-right text-xs sm:block">

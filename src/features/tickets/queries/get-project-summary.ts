@@ -1,6 +1,7 @@
 // src/features/tickets/queries/get-project-summary.ts
 // Resumen operativo de un proyecto sobre los tickets que el usuario ve (todos, también los cerrados hace
 // tiempo): avance, horas, SLA, desglose por persona y bolsa y horas por semana (AGENTS.md §2.6, §6, regla 7).
+import { toBagName } from "@/domain/hours/bag-name";
 import { toCvVersionLabel } from "@/domain/sales-control/cv-code";
 import {
   type ProjectSummary,
@@ -84,12 +85,13 @@ export async function getProjectSummary(
       .sort((a, b) => b.minutes - a.minutes),
     byBag: [...byBag]
       .map(([id, minutes]) => {
-        const line = bags.get(id)?.cvLine;
+        const bag = bags.get(id);
+        const line = bag?.cvLine;
         return {
           id,
           minutes,
           label: line
-            ? `${toCvVersionLabel(line.version.cv.code, line.version.number)} · ${line.description}`
+            ? `${toCvVersionLabel(line.version.cv.code, line.version.number)} · ${toBagName(bag?.name ?? null, line.description)}`
             : "Bolsa",
         };
       })
@@ -98,6 +100,7 @@ export async function getProjectSummary(
 }
 
 const BAG_LABEL = {
+  name: true,
   cvLine: {
     select: {
       description: true,

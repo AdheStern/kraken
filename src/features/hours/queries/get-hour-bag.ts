@@ -2,7 +2,10 @@
 // Una bolsa con su libro mayor completo y el saldo después de cada movimiento; null si no existe o no es
 // visible para el usuario (AGENTS.md §2.4, §5 "Bolsas de un cliente").
 import { toBusinessDate } from "@/domain/calendar/business-date";
-import { canAdjustHourBag } from "@/server/authz/hour-bag-permissions";
+import {
+  canAdjustHourBag,
+  canRenameHourBag,
+} from "@/server/authz/hour-bag-permissions";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeHourBagQuery } from "@/server/authz/scope-hour-bag-query";
 import { systemClock } from "@/server/clock";
@@ -55,12 +58,12 @@ export async function getHourBag(
     };
   });
   const today = toBusinessDate(systemClock.now());
+  const areaIds = record.areas.map((a) => a.areaId);
   return {
     bag: toBagSummary(record, totals.get(record.id) ?? {}, today, settings),
     // POR QUÉ: el libro se lee del más reciente al más antiguo; el saldo acumulado ya va calculado.
     ledger: ledger.reverse(),
-    canAdjust: canAdjustHourBag(user, {
-      areaIds: record.areas.map((a) => a.areaId),
-    }),
+    canAdjust: canAdjustHourBag(user, { areaIds }),
+    canRename: canRenameHourBag(user, { areaIds }),
   };
 }

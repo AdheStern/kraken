@@ -1,6 +1,7 @@
 // src/features/admin/queries/resolve-audit-subjects.ts
 // Nombre legible de lo que tocó cada evento de auditoría (el cliente, el usuario, el CV…), una consulta por
 // entidad de la página. Lo que ya no existe o no se reconoce queda sin nombre.
+import { toBagName } from "@/domain/hours/bag-name";
 import { prisma } from "@/server/db";
 import {
   isParameterKey,
@@ -64,9 +65,16 @@ const LOOKUPS: Record<string, Lookup> = {
     (
       await prisma.hourBag.findMany({
         ...byId(ids),
-        select: { id: true, cvLine: { select: { description: true } } },
+        select: {
+          id: true,
+          name: true,
+          cvLine: { select: { description: true } },
+        },
       })
-    ).map((b) => ({ id: b.id, label: b.cvLine.description })),
+    ).map((b) => ({
+      id: b.id,
+      label: toBagName(b.name, b.cvLine.description),
+    })),
 };
 
 // POR QUÉ: el parámetro, el grupo de Entra, el intento y el tablero ya se guardan con un id legible (la clave,

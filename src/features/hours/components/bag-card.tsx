@@ -65,9 +65,7 @@ export function BagCard({
             >
               {bag.cvLabel}
             </Link>
-            <p className="truncate text-sm text-muted-foreground">
-              {bag.lineDescription}
-            </p>
+            <p className="truncate text-sm text-muted-foreground">{bag.name}</p>
           </>
         )}
         {kindText(bag) && (

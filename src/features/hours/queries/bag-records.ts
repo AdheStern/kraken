@@ -1,5 +1,7 @@
 // src/features/hours/queries/bag-records.ts
 // Lectura común de bolsas: selección mínima y paso a BagSummary con las cifras y el riesgo del dominio.
+
+import { toBagName } from "@/domain/hours/bag-name";
 import { classifyBagRisk } from "@/domain/hours/classify-bag-risk";
 import { daysUntilExpiry } from "@/domain/hours/expiry";
 import {
@@ -14,6 +16,7 @@ import type { BagSummary } from "../types";
 
 export const BAG_SELECT = {
   id: true,
+  name: true,
   status: true,
   kind: true,
   isUncapped: true,
@@ -73,6 +76,8 @@ export function toBagSummary(
     id: record.id,
     cvId: version.cv.id,
     cvLabel: toCvVersionLabel(version.cv.code, version.number),
+    name: toBagName(record.name, record.cvLine.description),
+    customName: record.name,
     lineDescription: record.cvLine.description,
     customerId: record.customer.id,
     customerName: record.customer.name,

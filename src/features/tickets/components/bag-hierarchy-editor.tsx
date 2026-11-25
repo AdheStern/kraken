@@ -129,7 +129,7 @@ export function BagHierarchyEditor({
               placeholder="Sumar una bolsa del cliente…"
               options={addable.map((b) => ({
                 id: b.id,
-                label: `${b.cvLabel} · ${b.lineDescription}`,
+                label: `${b.cvLabel} · ${b.name}`,
               }))}
               onValueChange={(id) => id && setOrder([...order, id])}
             />

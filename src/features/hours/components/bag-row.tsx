@@ -27,17 +27,14 @@ export function BagRow({ bag }: { bag: BagSummary }) {
       />
       <div className="min-w-0">
         {/* POR QUÉ: una descripción larga no debe empujar la fila; el texto completo queda en el title. */}
-        <p className="line-clamp-2 md:line-clamp-1" title={bag.lineDescription}>
+        <p className="line-clamp-2 md:line-clamp-1" title={bag.name}>
           <Link
             href={`/horas/${bag.id}`}
             className="font-medium tabular-nums after:absolute after:inset-0 hover:underline"
           >
             {bag.cvLabel}
           </Link>
-          <span className="text-muted-foreground">
-            {" "}
-            · {bag.lineDescription}
-          </span>
+          <span className="text-muted-foreground"> · {bag.name}</span>
         </p>
         <p className="truncate text-sm text-muted-foreground">
           <Link

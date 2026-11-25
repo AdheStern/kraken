@@ -51,6 +51,7 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   ANULAR: "anuló",
   AJUSTAR: "ajustó",
   CERRAR: "cerró",
+  RENOMBRAR: "cambió el nombre de",
   ASIGNAR_ROL: "asignó un rol en",
   QUITAR_ROL: "quitó un rol en",
   SINCRONIZAR_ENTRA: "sincronizó desde Entra",

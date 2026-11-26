@@ -1,5 +1,5 @@
 // src/features/dashboards/components/sales-kpis.tsx
-// Fila de cifras del tablero de ventas: ventas, margen, factor y horas vendidas del periodo, contra el anterior
+// Fila de cifras del tablero de ventas: ventas, margen, factor, horas y contratos por vigencia del periodo, contra el anterior
 // y la meta (AGENTS.md §6). Montos exactos: nunca se compactan (PRODUCT.md).
 import { formatAmount } from "@/lib/format-amount";
 import { formatMinutes } from "@/lib/format-minutes";
@@ -13,7 +13,7 @@ export function SalesKpis({ board }: { board: SalesDashboard }) {
   return (
     <section
       aria-label="Cifras del periodo"
-      className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+      className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5"
     >
       <KpiTile
         label="Ventas aprobadas"
@@ -50,6 +50,16 @@ export function SalesKpis({ board }: { board: SalesDashboard }) {
                 text: `${board.hoursSold.progressPct ?? 0}% de ${formatMinutes(board.hoursSold.goalMinutes)}`,
               }
         }
+      />
+      <KpiTile
+        label="Contratos por vigencia"
+        value={String(board.termContracts.count)}
+        hint={
+          board.termContracts.count === 0
+            ? "Sin contratos de soporte por vigencia en el periodo"
+            : `${board.termContracts.months} meses de soporte · ${usd(board.termContracts.saleUsd)}`
+        }
+        variation={{ pct: board.termContracts.variationPct, versus }}
       />
     </section>
   );

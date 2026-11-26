@@ -50,6 +50,11 @@ export function salesSheets(board: SalesDashboard): SheetSpec[] {
           value: hours(board.hoursSold.minutes),
           detail: "En horas",
         },
+        {
+          label: "Contratos por vigencia",
+          value: board.termContracts.count,
+          detail: `${board.termContracts.months} meses · US$ ${board.termContracts.saleUsd}`,
+        },
         { label: "CV cerrados", value: board.cvCount, detail: "" },
       ],
     },
@@ -75,6 +80,7 @@ export function salesSheets(board: SalesDashboard): SheetSpec[] {
         { header: "Margen %", key: "marginPct", format: "pct" },
         { header: "Participación %", key: "share", format: "pct" },
         { header: "CV", key: "cvs", format: "int" },
+        { header: "Contratos por vigencia", key: "terms", format: "int" },
       ],
       rows: board.breakdown.rows.map((r) => ({
         label: r.label,
@@ -83,6 +89,7 @@ export function salesSheets(board: SalesDashboard): SheetSpec[] {
         marginPct: n(r.marginPct),
         share: r.sharePct,
         cvs: r.cvCount,
+        terms: r.termContracts,
       })),
     },
   ];

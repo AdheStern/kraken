@@ -26,6 +26,7 @@ import type { MoneyKpi, SalesBreakdownRow, SalesDashboard } from "../types";
 import { loadDimensionLabels } from "./load-dimension-labels";
 import { loadGoals } from "./load-goals";
 import { loadSaleFacts } from "./load-sale-facts";
+import { termContractsKpi } from "./term-contracts-kpi";
 
 export type SalesDashboardInput = {
   period: PeriodRef;
@@ -86,6 +87,7 @@ export async function getSalesDashboard(
       goalMinutes: hoursGoal?.toNumber() ?? null,
       progressPct: progressPct(new Decimal(now.hoursMinutes), hoursGoal),
     },
+    termContracts: termContractsKpi(facts, previousFacts),
     cvCount: totalSales(facts).cvCount,
     monthly: monthlySales(facts, period.months).map(({ month, amounts }) => ({
       month,
@@ -130,6 +132,7 @@ async function breakdownRows(
       marginUsd: summary.marginUsd.toFixed(2),
       marginPct: summary.marginPct?.toFixed(2) ?? null,
       cvCount: group.cvCount,
+      termContracts: group.termContracts,
       sharePct: sharePctOf(summary.saleUsd, totalSaleUsd),
     };
   });

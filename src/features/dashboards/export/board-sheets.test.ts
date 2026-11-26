@@ -28,6 +28,17 @@ const board: SalesDashboard = {
     goalMinutes: null,
     progressPct: null,
   },
+  termContracts: {
+    count: 2,
+    previousCount: 0,
+    variationPct: null,
+    months: 36,
+    saleUsd: "4000.00",
+    byDuration: [
+      { months: 12, count: 1, saleUsd: "1000.00" },
+      { months: 24, count: 1, saleUsd: "3000.00" },
+    ],
+  },
   cvCount: 1,
   monthly: [{ month: "2026-10", saleUsd: "1385.68", goalUsd: null }],
   breakdown: {
@@ -40,6 +51,7 @@ const board: SalesDashboard = {
         marginUsd: "733.75",
         marginPct: "65.72",
         cvCount: 1,
+        termContracts: 2,
         sharePct: 90.6,
       },
     ],
@@ -60,9 +72,12 @@ describe("exportación del tablero de ventas", () => {
     const summary = book.getWorksheet("Resumen T4 2026");
     expect(summary?.getCell("B2").value).toBe(1385.68);
     expect(summary?.getCell("B6").value).toBe(7.5);
+    expect(summary?.getCell("B7").value).toBe(2);
+    expect(summary?.getCell("C7").value).toBe("36 meses · US$ 4000.00");
     const breakdown = book.getWorksheet("Desglose area");
     expect(breakdown?.getRow(1).getCell(1).value).toBe("Grupo");
     expect(breakdown?.getCell("B2").value).toBe(1254.88);
     expect(breakdown?.getCell("B2").numFmt).toBe("#,##0.00");
+    expect(breakdown?.getCell("G2").value).toBe(2);
   });
 });

@@ -30,7 +30,18 @@ export type SalesBreakdownRow = {
   marginUsd: string;
   marginPct: string | null;
   cvCount: number;
+  termContracts: number;
   sharePct: number | null;
+};
+
+// Contratos por vigencia vendidos en el periodo (§2.4): cuántos, meses de soporte y venta, por duración.
+export type TermContractsKpi = {
+  count: number;
+  previousCount: number;
+  variationPct: number | null;
+  months: number;
+  saleUsd: string;
+  byDuration: { months: number; count: number; saleUsd: string }[];
 };
 
 export type SalesMonth = {
@@ -47,6 +58,7 @@ export type SalesDashboard = {
   factor: string | null;
   ownServicesUsd: string;
   hoursSold: MinutesKpi;
+  termContracts: TermContractsKpi;
   cvCount: number;
   monthly: SalesMonth[];
   breakdown: { dimension: SalesDimension; rows: SalesBreakdownRow[] };

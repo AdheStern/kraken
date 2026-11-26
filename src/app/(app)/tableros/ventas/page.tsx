@@ -1,5 +1,5 @@
 // src/app/(app)/tableros/ventas/page.tsx
-// Tablero económico: ventas, margen, factor y horas vendidas del periodo, serie mensual contra la meta,
+// Tablero económico: ventas, margen, factor, horas y contratos por vigencia del periodo, serie mensual contra la meta,
 // desglose por dimensión y seguimiento comercial (AGENTS.md §6). Alcance por línea (§2.9 "Tableros").
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -11,6 +11,7 @@ import { SalesBreakdownTable } from "@/features/dashboards/components/sales-brea
 import { SalesFollowup } from "@/features/dashboards/components/sales-followup";
 import { SalesKpis } from "@/features/dashboards/components/sales-kpis";
 import { SalesMonthChart } from "@/features/dashboards/components/sales-month-chart";
+import { TermContractsPanel } from "@/features/dashboards/components/term-contracts-panel";
 import { getApprovalTimes } from "@/features/dashboards/queries/get-approval-times";
 import { getPipeline } from "@/features/dashboards/queries/get-pipeline";
 import { getRenewals } from "@/features/dashboards/queries/get-renewals";
@@ -70,6 +71,10 @@ async function SalesBoard({
         </p>
       )}
       <SalesBreakdownTable breakdown={board.breakdown} query={context.query} />
+      <TermContractsPanel
+        contracts={board.termContracts}
+        periodLabel={board.periodLabel}
+      />
       <SalesFollowup
         pipeline={pipeline}
         approvals={approvals}

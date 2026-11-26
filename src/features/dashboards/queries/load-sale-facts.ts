@@ -5,6 +5,7 @@ import { toBusinessDate } from "@/domain/calendar/business-date";
 import { toSaleAmounts } from "@/domain/dashboards/sale-amounts";
 import type { SaleFact } from "@/domain/dashboards/sales-breakdown";
 import { toSoldHoursMinutes } from "@/domain/dashboards/sold-hours";
+import { toTermMonths } from "@/domain/dashboards/term-contracts";
 import type { Prisma } from "@/generated/prisma/client";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeSalesLineQuery } from "@/server/authz/scope-sales-line-query";
@@ -83,6 +84,8 @@ const LINE_SELECT = {
   technologyId: true,
   ...LINE_AMOUNTS_SELECT,
   hourBagSpec: true,
+  coverageStart: true,
+  coverageEnd: true,
   version: {
     select: {
       cvId: true,
@@ -111,5 +114,27 @@ function toFact(line: Line, closedOn: Map<string, string>): SaleFact {
     customerId: version.cv.customerId,
     sellerIds: version.sellers.map((s) => s.userId),
     amounts: toSaleAmounts(totals, hoursMinutes),
+    ...(isTermContract(line.hourBagSpec)
+      ? {
+          term: {
+            months: toTermMonths(
+              dateText(line.coverageStart),
+              dateText(line.coverageEnd),
+            ),
+          },
+        }
+      : {}),
   };
 }
+
+function isTermContract(spec: Prisma.JsonValue): boolean {
+  return (
+    typeof spec === "object" &&
+    spec !== null &&
+    !Array.isArray(spec) &&
+    spec.kind === "VIGENCIA"
+  );
+}
+
+const dateText = (date: Date | null) =>
+  date ? date.toISOString().slice(0, 10) : null;

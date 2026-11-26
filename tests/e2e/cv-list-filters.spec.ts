@@ -1,6 +1,7 @@
 // tests/e2e/cv-list-filters.spec.ts
 // Filtros del listado de CV (AGENTS.md §5, decisión 2026-11-23): el vendedor filtra, los filtros siguen al volver
-// de un CV y «Borrar filtros» los quita sin que vuelvan.
+// de un CV, «Borrar filtros» los quita sin que vuelvan y volver a la página 1 o a las filas por defecto no repone
+// lo recordado.
 import { expect, test } from "@playwright/test";
 import { storageFor } from "./users";
 
@@ -34,4 +35,22 @@ test("los filtros se mantienen al volver de un CV y se borran con un botón", as
     page.getByRole("button", { name: "Borrar filtros" }),
   ).toHaveCount(0);
   await expect(page).not.toHaveURL(/vendedor=/);
+});
+
+// TRAMPA reproducida: volver a la página 1 o a las filas por defecto deja «/cv» a secas, que reponía lo recordado.
+test("volver a las filas por defecto no repone las recordadas", async ({
+  page,
+}) => {
+  await page.goto("/cv");
+  const pageSize = page.getByRole("combobox", { name: "Filas por página" });
+  await pageSize.click();
+  await page.getByRole("option", { name: "10 por página" }).click();
+  await expect(page).toHaveURL(/filas=10/);
+
+  await pageSize.click();
+  await page.getByRole("option", { name: "25 por página" }).click();
+  await expect(pageSize).toHaveValue("25 por página");
+  await page.waitForTimeout(500);
+  await expect(page).not.toHaveURL(/filas=/);
+  await expect(pageSize).toHaveValue("25 por página");
 });

@@ -9,6 +9,7 @@ import {
   DEFAULT_CV_PAGE_SIZE,
   toCvListHref,
 } from "../schemas/cv-list-params";
+import { rememberCvListHref } from "./use-remembered-cv-list";
 
 const OPTIONS = CV_PAGE_SIZES.map((n) => ({
   id: String(n),
@@ -24,14 +25,14 @@ export function CvListPageSize({ value }: { value: number }) {
       value={String(value)}
       options={OPTIONS}
       size="sm"
-      onValueChange={(next) =>
-        router.replace(
-          toCvListHref(params, {
-            filas: !next || Number(next) === DEFAULT_CV_PAGE_SIZE ? null : next,
-          }),
-          { scroll: false },
-        )
-      }
+      onValueChange={(next) => {
+        const href = toCvListHref(params, {
+          filas: !next || Number(next) === DEFAULT_CV_PAGE_SIZE ? null : next,
+        });
+        // TRAMPA: volver a las filas por defecto puede dejar «/cv» a secas, que repone lo recordado.
+        rememberCvListHref(href);
+        router.replace(href, { scroll: false });
+      }}
       className="w-36"
       aria-label="Filas por página"
     />

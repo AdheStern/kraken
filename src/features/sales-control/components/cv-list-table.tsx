@@ -138,7 +138,18 @@ export function CvListTable({ page, sort, query, isFiltered }: Props) {
           </TableBody>
         </Table>
       </div>
-      <CvListPagination page={page} query={query} />
+      {/* POR QUÉ: la paginación corre en el navegador; las filas no viajan con ella. */}
+      <CvListPagination
+        page={{
+          total: page.total,
+          page: page.page,
+          pageCount: page.pageCount,
+          pageSize: page.pageSize,
+          firstIndex: page.firstIndex,
+          lastIndex: page.lastIndex,
+        }}
+        query={query}
+      />
     </div>
   );
 }

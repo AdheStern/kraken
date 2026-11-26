@@ -1,5 +1,7 @@
 // src/features/sales-control/components/cv-list-pagination.tsx
 // Pie del listado de CV: cuántos se muestran, filas por página y la paginación de shadcn con enlaces.
+"use client";
+
 import {
   Pagination,
   PaginationContent,
@@ -12,6 +14,7 @@ import {
 import { toCvListHref } from "../schemas/cv-list-params";
 import type { CvListPage } from "../types";
 import { CvListPageSize } from "./cv-list-page-size";
+import { rememberCvListHref } from "./use-remembered-cv-list";
 
 const DISABLED = { "aria-disabled": true, tabIndex: -1 } as const;
 
@@ -19,12 +22,17 @@ export function CvListPagination({
   page,
   query,
 }: {
-  page: CvListPage;
+  page: Omit<CvListPage, "rows">;
   query: string;
 }) {
   const params = new URLSearchParams(query);
   const hrefFor = (n: number) =>
     toCvListHref(params, { pagina: n === 1 ? null : String(n) });
+  // TRAMPA: la página 1 sin filtros es «/cv» a secas; sin guardarla antes, el listado repone la página recordada.
+  const linkTo = (n: number) => {
+    const href = hrefFor(n);
+    return { href, onClick: () => rememberCvListHref(href) };
+  };
   const isFirst = page.page === 1;
   const isLast = page.page === page.pageCount;
 
@@ -36,7 +44,7 @@ export function CvListPagination({
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
-                href={hrefFor(Math.max(1, page.page - 1))}
+                {...linkTo(Math.max(1, page.page - 1))}
                 className={isFirst ? "pointer-events-none opacity-50" : ""}
                 {...(isFirst ? DISABLED : {})}
               />
@@ -47,7 +55,7 @@ export function CvListPagination({
                   <PaginationEllipsis />
                 ) : (
                   <PaginationLink
-                    href={hrefFor(item)}
+                    {...linkTo(item)}
                     isActive={item === page.page}
                     aria-label={`Página ${item}`}
                   >
@@ -58,7 +66,7 @@ export function CvListPagination({
             ))}
             <PaginationItem>
               <PaginationNext
-                href={hrefFor(Math.min(page.pageCount, page.page + 1))}
+                {...linkTo(Math.min(page.pageCount, page.page + 1))}
                 className={isLast ? "pointer-events-none opacity-50" : ""}
                 {...(isLast ? DISABLED : {})}
               />

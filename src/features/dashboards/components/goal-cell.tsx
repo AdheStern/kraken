@@ -1,9 +1,11 @@
 // src/features/dashboards/components/goal-cell.tsx
 // Celda editable de una meta mensual: guarda al salir o con Enter, Escape descarta; vacía quita la meta
-// (AGENTS.md §6). El error se anuncia y la celda queda marcada hasta corregirla.
+// (AGENTS.md §6). Las metas en USD se escriben con separador de miles. El error se anuncia y la celda queda
+// marcada hasta corregirla.
 "use client";
 
-import { useState, useTransition } from "react";
+import { type ChangeEvent, useState, useTransition } from "react";
+import { useGroupedAmount } from "@/components/forms/use-grouped-amount";
 import type { GoalIndicator } from "@/generated/prisma/enums";
 import { cn } from "@/lib/utils";
 import { upsertGoal } from "../actions/upsert-goal";
@@ -29,6 +31,15 @@ export function GoalCell({
   const [saved, setSaved] = useState(initial);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const grouped = useGroupedAmount(value, setValue);
+  const typing =
+    indicator === "HORAS_VENDIDAS"
+      ? {
+          value,
+          onChange: (e: ChangeEvent<HTMLInputElement>) =>
+            setValue(e.target.value),
+        }
+      : grouped;
 
   function save() {
     if (value.trim() === saved.trim()) return;
@@ -50,12 +61,11 @@ export function GoalCell({
   return (
     <>
       <input
-        value={value}
+        {...typing}
         inputMode="decimal"
         aria-label={label}
         aria-invalid={error ? true : undefined}
         title={error ?? undefined}
-        onChange={(e) => setValue(e.target.value)}
         onBlur={save}
         onKeyDown={(e) => {
           if (e.key === "Enter") e.currentTarget.blur();

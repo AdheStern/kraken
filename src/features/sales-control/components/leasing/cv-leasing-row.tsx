@@ -106,6 +106,7 @@ export function CvLeasingRow({
           row={row}
           col={5}
           label="Costo unitario USD"
+          isAmount
           value={line.unitCostUsd}
           disabled={disabled}
           onValueChange={(unitCostUsd) => onChange({ unitCostUsd })}

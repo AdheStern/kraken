@@ -41,6 +41,7 @@ export function pricingCells({
         row={row}
         col={col("unitCost")}
         label="Costo unitario USD"
+        isAmount
         value={line.unitCostUsd}
         error={issue("unitCostUsd")}
         disabled={disabled}
@@ -75,6 +76,7 @@ export function pricingCells({
         row={row}
         col={col("unitSale")}
         label="Venta unitaria USD"
+        isAmount
         value={saleValue}
         muted={isFactorSource}
         error={issue("unitSaleUsd")}
@@ -90,6 +92,7 @@ export function pricingCells({
         row={row}
         col={col("grossUp")}
         label="GROSS UP USD"
+        isAmount
         value={line.grossUpUsd}
         error={issue("grossUpUsd")}
         disabled={withholdingsDisabled}
@@ -101,6 +104,7 @@ export function pricingCells({
         row={row}
         col={col("retDima")}
         label="RET DIMA USD"
+        isAmount
         value={line.retDimaUsd}
         error={issue("retDimaUsd")}
         disabled={withholdingsDisabled}

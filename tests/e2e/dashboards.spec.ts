@@ -50,7 +50,7 @@ test("el gerente de DIMANET solo ve las líneas de su área y define sus metas",
   await expect(page.getByRole("rowheader", { name: "DIMANET" })).toBeVisible();
   await expect(page.getByRole("rowheader", { name: "Empresa" })).toHaveCount(0);
   await expect(page.getByLabel(`Meta de DIMANET en Ene ${YEAR}`)).toHaveValue(
-    "18000.00",
+    "18,000.00",
   );
 });
 

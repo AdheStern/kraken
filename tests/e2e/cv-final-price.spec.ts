@@ -1,7 +1,7 @@
 // tests/e2e/cv-final-price.spec.ts
 // Precio final del CV (AGENTS.md §2.3, decisión 2026-11-19): el GG lo fija con confirmación sin tocar el calculado,
 // Administración lo ve y lo cambia en el borrador, y el comercial no tiene el botón. El diálogo abre con el total
-// vigente y los Bs siguen al USD hasta que se editen.
+// vigente, los Bs siguen al USD hasta que se editen y los montos se escriben con separador de miles.
 import { type Browser, expect, type Page, test } from "@playwright/test";
 import { type E2E_USERS, storageFor } from "./users";
 
@@ -54,7 +54,14 @@ test("el GG fija el precio final tras confirmar", async ({ browser }) => {
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByLabel("Precio final USD")).toHaveValue("0.00");
   await expect(dialog.getByLabel("Precio final Bs")).toHaveValue("0.00");
-  await dialog.getByLabel("Precio final USD").fill("12500");
+  const usd = dialog.getByLabel("Precio final USD");
+  await usd.fill("");
+  await usd.pressSequentially("1234567.89");
+  await expect(usd).toHaveValue("1,234,567.89");
+  await usd.fill("");
+  await usd.pressSequentially("12,5");
+  await expect(usd).toHaveValue("12.5");
+  await usd.fill("12500");
   await expect(dialog.getByLabel("Precio final Bs")).not.toHaveValue("0.00");
   await expect(dialog.getByText(/Los Bs siguen al USD/)).toBeVisible();
   await dialog.getByLabel("Motivo").fill("Redondeo acordado con el cliente");
@@ -86,7 +93,7 @@ test("Administración ve el borrador y cambia el precio final", async ({
     .getByRole("button", { name: "Cambiar precio final" })
     .click();
   const dialog = page.getByRole("dialog");
-  await expect(dialog.getByLabel("Precio final USD")).toHaveValue("12500.00");
+  await expect(dialog.getByLabel("Precio final USD")).toHaveValue("12,500.00");
   await dialog.getByLabel("Precio final USD").fill("");
   await dialog.getByLabel("Precio final Bs").fill("87000");
   await dialog.getByLabel("Motivo").fill("Redondeo de la factura en Bs");

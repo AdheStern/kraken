@@ -4,6 +4,7 @@
 "use client";
 
 import { useState } from "react";
+import { MoneyInput } from "@/components/forms/money-input";
 import { CameraScanDialog } from "@/components/scan/camera-scan-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -131,10 +132,9 @@ function ItemFields({
           />
         </Field>
         <Field label="Costo unit. USD">
-          <Input
-            inputMode="decimal"
+          <MoneyInput
             value={row.unitCostUsd}
-            onChange={(e) => set({ unitCostUsd: e.target.value })}
+            onValueChange={(unitCostUsd) => set({ unitCostUsd })}
             className="h-12 text-right text-lg tabular-nums"
           />
         </Field>

@@ -1,9 +1,11 @@
 // src/components/grid/grid-cells.tsx
-// Celdas editables de las grillas tipo planilla (CV, leasing, carga histórica de tickets): texto, texto largo, número (acepta formato de Excel) y selector (shadcn).
+// Celdas editables de las grillas tipo planilla (CV, leasing, carga histórica de tickets): texto, texto largo, número
+// (acepta formato de Excel; los montos con separador de miles al escribir) y selector (shadcn).
 // Cada celda lleva data-cell="fila:columna" para moverse con el teclado como en una planilla.
 "use client";
 
-import type { ComponentProps } from "react";
+import type { ChangeEvent, ComponentProps } from "react";
+import { useGroupedAmount } from "@/components/forms/use-grouped-amount";
 import { Input } from "@/components/ui/input";
 import { OptionSelect } from "@/components/ui/option-select";
 import { Textarea } from "@/components/ui/textarea";
@@ -115,6 +117,8 @@ type NumberCellProps = CellBase & {
   onValueChange: (value: string) => void;
   muted?: boolean;
   allowThousands?: boolean;
+  // Monto: muestra y escribe con separador de miles.
+  isAmount?: boolean;
 };
 
 // POR QUÉ: al salir de la celda se normaliza "1.234,56" → "1234.56"; si no es número se deja para que la validación lo marque.
@@ -128,7 +132,16 @@ export function NumberCell({
   onValueChange,
   muted,
   allowThousands = true,
+  isAmount = false,
 }: NumberCellProps) {
+  const grouped = useGroupedAmount(value, onValueChange);
+  const typing = isAmount
+    ? grouped
+    : {
+        value,
+        onChange: (event: ChangeEvent<HTMLInputElement>) =>
+          onValueChange(event.target.value),
+      };
   return (
     <TextCell
       row={row}
@@ -137,12 +150,10 @@ export function NumberCell({
       error={error}
       disabled={disabled}
       inputMode="decimal"
-      value={value}
-      onChange={(event) => onValueChange(event.target.value)}
+      {...typing}
       onBlur={(event) => {
         const parsed = parseDecimalText(event.target.value, { allowThousands });
-        if (parsed !== null && parsed !== event.target.value)
-          onValueChange(parsed);
+        if (parsed !== null && parsed !== value) onValueChange(parsed);
       }}
       className={`text-right tabular-nums ${muted ? "text-muted-foreground" : ""}`}
     />

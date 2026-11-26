@@ -4,8 +4,8 @@
 "use client";
 
 import Decimal from "decimal.js";
+import { MoneyInput } from "@/components/forms/money-input";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { roundHalfUp2 } from "@/domain/pricing/money";
@@ -43,22 +43,22 @@ export function FinalPriceForm({
       <div className="grid grid-cols-2 gap-3">
         <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">
           Precio final USD
-          <Input
-            inputMode="decimal"
+          <MoneyInput
             value={draft.usd}
-            placeholder="12500.00"
-            onChange={(e) => onChange({ ...draft, usd: e.target.value })}
+            placeholder="12,500.00"
+            onValueChange={(usd) => onChange({ ...draft, usd })}
           />
         </Label>
         <Label className="grid gap-1.5 text-[13px] font-normal text-muted-foreground">
           Precio final Bs
-          <Input
-            inputMode="decimal"
+          <MoneyInput
             value={draft.bs}
             placeholder={
-              derivedBs ? derivedBs.toFixed(2) : "Del TC de venta si lo dejas"
+              derivedBs
+                ? formatAmount(derivedBs.toFixed(2))
+                : "Del TC de venta si lo dejas"
             }
-            onChange={(e) => onChange({ ...draft, bs: e.target.value })}
+            onValueChange={(bs) => onChange({ ...draft, bs })}
           />
         </Label>
       </div>

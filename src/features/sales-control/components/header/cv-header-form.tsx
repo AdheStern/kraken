@@ -111,7 +111,6 @@ export function CvHeaderForm({
           />
           <HeaderEndCustomer
             form={form}
-            customers={options.customers}
             contacts={contacts}
             disabled={!canEdit}
             customerId={header.customerId}

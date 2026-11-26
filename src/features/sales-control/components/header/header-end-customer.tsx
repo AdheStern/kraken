@@ -1,22 +1,19 @@
 // src/features/sales-control/components/header/header-end-customer.tsx
-// Sección «Soporte y licencias» de la cabecera del CV: el cliente final y quién administra el soporte y las
-// licencias. La cadena lo enlaza al contacto del cliente; rota, se elige otro (AGENTS.md §2.1, decisión 2026-11-16).
+// Sección «Soporte y licencias» de la cabecera del CV: quién administra el soporte y las licencias. La cadena lo
+// enlaza al contacto del cliente; rota, se elige otro (AGENTS.md §2.1, decisiones 2026-11-16 y 2026-11-26).
 "use client";
 
 import { Link2, Unlink2 } from "lucide-react";
-import { Controller, type UseFormReturn, useWatch } from "react-hook-form";
-import { CatalogCombobox } from "@/components/forms/catalog-combobox";
-import { FormField } from "@/components/forms/form-field";
+import { type UseFormReturn, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import type { CvHeaderInput } from "../../schemas/cv-header-schema";
-import type { CvContactOption, Option } from "../../types";
+import type { CvContactOption } from "../../types";
 import { EndContactFields } from "./end-contact-fields";
 import { HeaderSection } from "./header-section";
 import { useEndCustomerContacts } from "./use-end-customer-contacts";
 
 type Props = {
   form: UseFormReturn<CvHeaderInput>;
-  customers: Option[];
   contacts: CvContactOption[];
   disabled: boolean;
   customerId: string;
@@ -24,12 +21,13 @@ type Props = {
 
 export function HeaderEndCustomer({
   form,
-  customers,
   contacts,
   disabled,
   customerId,
 }: Props) {
   const { control, setValue, getValues } = form;
+  // POR QUÉ: el selector de cliente final está oculto por ahora (decisión 2026-11-26); un CV que ya tenía otro
+  // conserva sus contactos para elegir.
   const [endCustomerId, isLinked, contactName] = useWatch({
     control,
     name: ["endCustomerId", "endContactLinked", "contactName"],
@@ -55,35 +53,8 @@ export function HeaderEndCustomer({
       setValue(field, "", dirty);
   }
 
-  function pickEndCustomer(id: string | null) {
-    setValue("endCustomerId", id, { shouldDirty: true });
-    // POR QUÉ: el contacto del cliente no es de otra empresa; con otro cliente final la cadena se rompe sola.
-    if (id && id !== customerId) setLinked(false);
-  }
-
   return (
     <HeaderSection title="Soporte y licencias">
-      <FormField
-        label="Cliente final"
-        htmlFor="cv-end-customer"
-        hint="Solo si DIMA vende a través de un tercero."
-        className="sm:col-span-2 lg:col-span-3"
-      >
-        <Controller
-          control={control}
-          name="endCustomerId"
-          render={({ field }) => (
-            <CatalogCombobox
-              id="cv-end-customer"
-              options={customers}
-              value={field.value}
-              onChange={pickEndCustomer}
-              disabled={disabled}
-              placeholder="Igual al cliente"
-            />
-          )}
-        />
-      </FormField>
       <div className="flex items-start gap-3 sm:col-span-2 lg:col-span-4">
         <Button
           type="button"

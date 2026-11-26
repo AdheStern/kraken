@@ -63,9 +63,6 @@ export function SalesBreakdownTable({ breakdown, query }: Props) {
                 <th className="hidden py-2 text-right font-medium sm:table-cell">
                   CV
                 </th>
-                <th className="hidden py-2 text-right font-medium sm:table-cell">
-                  Contratos
-                </th>
               </tr>
             </thead>
             <tbody className="tabular-nums">
@@ -106,9 +103,6 @@ export function SalesBreakdownTable({ breakdown, query }: Props) {
                   </td>
                   <td className="hidden py-2 text-right sm:table-cell">
                     {row.cvCount}
-                  </td>
-                  <td className="hidden py-2 text-right sm:table-cell">
-                    {row.termContracts}
                   </td>
                 </tr>
               ))}

@@ -78,6 +78,6 @@ describe("exportación del tablero de ventas", () => {
     expect(breakdown?.getRow(1).getCell(1).value).toBe("Grupo");
     expect(breakdown?.getCell("B2").value).toBe(1254.88);
     expect(breakdown?.getCell("B2").numFmt).toBe("#,##0.00");
-    expect(breakdown?.getCell("G2").value).toBe(2);
+    expect(breakdown?.columnCount).toBe(6);
   });
 });

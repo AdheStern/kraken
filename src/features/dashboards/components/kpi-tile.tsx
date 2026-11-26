@@ -10,14 +10,27 @@ export type KpiTileProps = {
   hint?: string;
   variation?: { pct: number | null; versus: string; upIsGood?: boolean };
   goal?: { progressPct: number | null; text: string };
+  className?: string;
 };
 
 const pctText = (pct: number) =>
   `${pct > 0 ? "+" : pct < 0 ? "−" : ""}${Math.abs(pct).toLocaleString("es-BO")}%`;
 
-export function KpiTile({ label, value, hint, variation, goal }: KpiTileProps) {
+export function KpiTile({
+  label,
+  value,
+  hint,
+  variation,
+  goal,
+  className,
+}: KpiTileProps) {
   return (
-    <div className="kr-solid flex min-w-0 flex-col gap-2 rounded-xl p-4">
+    <div
+      className={cn(
+        "kr-solid flex min-w-0 flex-col gap-2 rounded-xl p-4",
+        className,
+      )}
+    >
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className="truncate text-2xl font-semibold tracking-[-0.02em]">
         {value}

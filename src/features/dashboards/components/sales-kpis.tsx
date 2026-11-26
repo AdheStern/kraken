@@ -7,16 +7,20 @@ import type { MoneyKpi, SalesDashboard } from "../types";
 import { KpiTile } from "./kpi-tile";
 
 const usd = (value: string) => `US$ ${formatAmount(value)}`;
+// POR QUÉ: ventas y margen son el resultado (fila de arriba, más anchas); factor, horas y contratos lo explican.
+const LEAD = "lg:col-span-3";
+const DETAIL = "lg:col-span-2";
 
 export function SalesKpis({ board }: { board: SalesDashboard }) {
   const versus = board.previousLabel;
   return (
     <section
       aria-label="Cifras del periodo"
-      className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5"
+      className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6"
     >
       <KpiTile
         label="Ventas aprobadas"
+        className={LEAD}
         value={usd(board.sales.valueUsd)}
         hint={`${board.cvCount} CV cerrados en ${board.periodLabel}`}
         variation={{ pct: board.sales.variationPct, versus }}
@@ -24,6 +28,7 @@ export function SalesKpis({ board }: { board: SalesDashboard }) {
       />
       <KpiTile
         label="Margen bruto"
+        className={LEAD}
         value={usd(board.margin.valueUsd)}
         hint={
           board.margin.marginPct
@@ -35,11 +40,13 @@ export function SalesKpis({ board }: { board: SalesDashboard }) {
       />
       <KpiTile
         label="Factor ponderado"
+        className={DETAIL}
         value={board.factor ?? "—"}
         hint={`Servicios propios aparte: ${usd(board.ownServicesUsd)}`}
       />
       <KpiTile
         label="Horas vendidas"
+        className={DETAIL}
         value={formatMinutes(board.hoursSold.minutes)}
         variation={{ pct: board.hoursSold.variationPct, versus }}
         goal={
@@ -53,6 +60,7 @@ export function SalesKpis({ board }: { board: SalesDashboard }) {
       />
       <KpiTile
         label="Contratos por vigencia"
+        className={DETAIL}
         value={String(board.termContracts.count)}
         hint={
           board.termContracts.count === 0

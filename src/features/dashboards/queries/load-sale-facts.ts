@@ -4,7 +4,7 @@
 import { toBusinessDate } from "@/domain/calendar/business-date";
 import { toSaleAmounts } from "@/domain/dashboards/sale-amounts";
 import type { SaleFact } from "@/domain/dashboards/sales-breakdown";
-import { toBagMinutes } from "@/domain/hours/to-bag-minutes";
+import { toSoldHoursMinutes } from "@/domain/dashboards/sold-hours";
 import type { Prisma } from "@/generated/prisma/client";
 import type { SessionUser } from "@/server/authz/roles";
 import { scopeSalesLineQuery } from "@/server/authz/scope-sales-line-query";
@@ -100,8 +100,8 @@ function toFact(line: Line, closedOn: Map<string, string>): SaleFact {
   const { version } = line;
   const quantity = dec(line.quantity);
   const totals = lineTotalsOf(line, version);
-  // REGLA: las horas vendidas son las de las líneas con bolsa, en minutos enteros (regla 4).
-  const hoursMinutes = line.hourBagSpec ? (toBagMinutes(quantity) ?? 0) : 0;
+  // REGLA: las horas vendidas son las de las bolsas de horas, no las de los contratos por vigencia (§2.4).
+  const hoursMinutes = toSoldHoursMinutes(line.hourBagSpec, quantity);
   return {
     cvId: version.cvId,
     closedOn: closedOn.get(version.cvId) ?? "",

@@ -5,6 +5,7 @@
 import type { EngineerPerformance as EngineerPerformanceView } from "@/domain/dashboards/engineer-performance";
 import type { UsageRow } from "@/domain/dashboards/hours-usage";
 import type { SalesDimension } from "@/domain/dashboards/sales-breakdown";
+import type { TermBagsSummary } from "@/domain/dashboards/term-bags";
 import type { BagSummary } from "@/features/hours/types";
 
 export type MoneyKpi = {
@@ -129,6 +130,8 @@ export type OperationsDashboard = {
   periodLabel: string;
   hours: HoursFlowView;
   bagsAtRisk: { count: number; top: BagSummary[] };
+  // Contratos por vigencia activos hoy, con los de más uso primero (§2.4).
+  termContracts: { summary: TermBagsSummary; top: BagSummary[] };
   sla: { firstResponse: SlaView; resolution: SlaView };
   openTickets: { status: string; count: number }[];
   medianResolutionMinutes: number | null;

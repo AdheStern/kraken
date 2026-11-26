@@ -1,6 +1,6 @@
 // src/app/(app)/tableros/operacion/page.tsx
-// Tablero operativo: horas vendidas y consumidas, SLA, tickets, registros, bolsas en riesgo y utilización por
-// ingeniero (AGENTS.md §6). Sin montos; cada rol ve su alcance (§2.9 "Tableros").
+// Tablero operativo: horas vendidas y consumidas, SLA, tickets, registros, bolsas en riesgo, contratos por vigencia
+// y utilización por ingeniero (AGENTS.md §6). Sin montos; cada rol ve su alcance (§2.9 "Tableros").
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -9,6 +9,7 @@ import { DashboardHeader } from "@/features/dashboards/components/dashboard-head
 import { HoursUsagePanel } from "@/features/dashboards/components/hours-usage-panel";
 import { OperationsKpis } from "@/features/dashboards/components/operations-kpis";
 import { OperationsPanels } from "@/features/dashboards/components/operations-panels";
+import { TermContractsOpsPanel } from "@/features/dashboards/components/term-contracts-ops-panel";
 import { UtilizationTable } from "@/features/dashboards/components/utilization-table";
 import { getOperationsDashboard } from "@/features/dashboards/queries/get-operations-dashboard";
 import { loadDashboardContext } from "@/features/dashboards/queries/load-dashboard-context";
@@ -46,6 +47,7 @@ async function OperationsBoard({
       />
       <OperationsKpis board={board} />
       <OperationsPanels board={board} />
+      <TermContractsOpsPanel board={board} />
       <HoursUsagePanel usage={board.hoursUsage} />
       <UtilizationTable rows={board.utilization} />
     </>

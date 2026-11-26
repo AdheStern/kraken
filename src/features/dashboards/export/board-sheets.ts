@@ -122,6 +122,14 @@ export function operationsSheets(board: OperationsDashboard): SheetSpec[] {
         { label: "Registros tardíos %", value: board.lateEntriesPct },
         { label: "Bolsas en riesgo hoy", value: board.bagsAtRisk.count },
         {
+          label: "Contratos por vigencia activos hoy",
+          value: board.termContracts.summary.active,
+        },
+        {
+          label: "Horas usadas en contratos por vigencia",
+          value: hours(h.termUsedMinutes),
+        },
+        {
           label: "Clientes conformes %",
           value: board.satisfaction.satisfiedPct,
         },

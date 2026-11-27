@@ -44,6 +44,7 @@ export async function loadCvListRows(
           finalSaleUsd: true,
           finalSaleBs: true,
           updatedAt: true,
+          presalesId: true,
           // REGLA: las áreas del CV son la unión de las áreas de sus líneas (§2.1).
           lines: {
             where: { kind: "ITEM", areaId: { not: null } },
@@ -71,6 +72,7 @@ export async function loadCvListRows(
     const access: CvAccessFacts = {
       createdById: cv.createdById,
       sellerIds: latest.sellers.map(({ user }) => user.userId),
+      presalesId: latest.presalesId,
       lineAreaIds: latest.lines.flatMap((l) => (l.areaId ? [l.areaId] : [])),
     };
     return [

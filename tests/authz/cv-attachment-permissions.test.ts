@@ -26,6 +26,7 @@ function user(...roles: [RoleCode, string?][]): SessionUser {
 const draft: CvAccessFacts = {
   createdById: "otro",
   sellerIds: ["yo"],
+  presalesId: null,
   lineAreaIds: [AREA_NET],
 };
 const approved: CvAccessFacts = {

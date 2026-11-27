@@ -42,6 +42,7 @@ const dn: SessionUser = {
 const cv = {
   createdById: "otro",
   sellerIds: ["otro"],
+  presalesId: null,
   lineAreaIds: ["a1"],
 };
 

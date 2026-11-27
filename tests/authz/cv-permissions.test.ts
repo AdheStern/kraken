@@ -34,16 +34,19 @@ function user(...roles: [RoleCode, string?][]): SessionUser {
 const ownCv: CvAccessFacts = {
   createdById: "yo",
   sellerIds: [],
+  presalesId: null,
   lineAreaIds: [AREA_TEL],
 };
 const sellerCv: CvAccessFacts = {
   createdById: "otro",
   sellerIds: ["yo"],
+  presalesId: null,
   lineAreaIds: [AREA_TEL],
 };
 const foreignNetCv: CvAccessFacts = {
   createdById: "otro",
   sellerIds: ["otro"],
+  presalesId: null,
   lineAreaIds: [AREA_NET],
 };
 const foreignApprovedCv: CvAccessFacts = {
@@ -246,6 +249,19 @@ describe("§2.9 CV: costos y margen", () => {
       true,
     ],
     ["administrador del sistema, nunca", user(["ADMIN_SISTEMA"]), ownCv, false],
+    [
+      "preventa del CV (decisión 2026-11-27)",
+      user(["PREVENTA"]),
+      { ...foreignNetCv, presalesId: "yo" },
+      true,
+    ],
+    ["preventa ajena", user(["PREVENTA"]), foreignNetCv, false],
+    [
+      "ingeniero nombrado preventa, nunca",
+      user(["INGENIERO"]),
+      { ...foreignNetCv, presalesId: "yo" },
+      false,
+    ],
   ])("%s → %s", (_, u, cv, expected) => {
     expect(canSeeCvCosts(u, cv)).toBe(expected);
   });

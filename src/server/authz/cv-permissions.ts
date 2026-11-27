@@ -11,6 +11,7 @@ import {
 export type CvAccessFacts = {
   createdById: string;
   sellerIds: readonly string[];
+  presalesId: string | null;
   lineAreaIds: readonly string[];
 };
 
@@ -87,10 +88,12 @@ export function canEditPostSaleDetails(
 }
 
 // REGLA: un ingeniero nunca recibe costos ni márgenes; ese rol no otorga nada aquí (regla 12). Administración ve
-// todas las versiones con sus costos, también borradores, para fijar el precio final (decisión 2026-11-19).
+// todas las versiones con sus costos, también borradores, para fijar el precio final (decisión 2026-11-19). Los
+// involucrados en la venta (vendedores y la preventa de la versión) ven costo y venta (decisión 2026-11-27).
 export function canSeeCvCosts(user: SessionUser, cv: CvAccessFacts): boolean {
   if (seesEverything(user) || hasRole(user, "ADMINISTRACION")) return true;
   if (hasRole(user, "COMERCIAL") && isOwnCv(user, cv)) return true;
+  if (hasRole(user, "PREVENTA") && cv.presalesId === user.id) return true;
   const managedAreaIds = areaIdsWithRole(user, "GERENTE_AREA");
   return cv.lineAreaIds.some((areaId) => managedAreaIds.includes(areaId));
 }

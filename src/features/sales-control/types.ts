@@ -159,6 +159,8 @@ export type CvEditorData = {
   canEditPostSale: boolean;
   // GROSS UP y RET DIMA de las líneas, en cualquier estado (§2.3).
   canEditWithholdings: boolean;
+  // Rango de activación de las licencias, en cualquier estado salvo ANULADA (§2.3, decisión 2026-11-27).
+  canEditActivation: boolean;
   // Cabecera editable; fuera del borrador del comercial, sin los TC (§2.3).
   canEditHeader: boolean;
   fxLocked: boolean;

@@ -1,6 +1,7 @@
 // src/features/sales-control/components/lines/post-sale-toolbar.tsx
 // Barra de las líneas fuera del borrador: guarda los datos posventa de la versión aprobada (observaciones, PO#, BC,
-// activación y seriales) y GROSS UP y RET DIMA, que se corrigen en cualquier estado (AGENTS.md §2.3).
+// activación y seriales), y GROSS UP, RET DIMA y el rango de activación, que se corrigen en cualquier estado
+// (AGENTS.md §2.3).
 "use client";
 
 import { LoaderCircle, Save } from "lucide-react";
@@ -40,10 +41,22 @@ export function PostSaleToolbar({
   );
 }
 
-function message({ canEditPostSale, canEditWithholdings }: LineEditRights) {
+function message({
+  canEditPostSale,
+  canEditWithholdings,
+  canEditActivation,
+}: LineEditRights) {
   if (!canEditPostSale)
-    return "Puedes corregir GROSS UP y RET DIMA. Los demás datos no cambian.";
+    return `Puedes corregir ${afterDraftFields(canEditWithholdings, canEditActivation)}. Los demás datos no cambian.`;
   return canEditWithholdings
     ? "Versión aprobada: puedes completar observaciones, PO#, BC, GROSS UP, RET DIMA, rango de activación y seriales. Los precios no cambian."
     : "Versión aprobada: puedes completar observaciones, PO#, BC, rango de activación y seriales. Los montos no cambian.";
+}
+
+function afterDraftFields(withholdings: boolean, activation: boolean) {
+  if (withholdings && activation)
+    return "GROSS UP, RET DIMA y el rango de activación de las licencias";
+  return withholdings
+    ? "GROSS UP y RET DIMA"
+    : "el rango de activación de las licencias";
 }

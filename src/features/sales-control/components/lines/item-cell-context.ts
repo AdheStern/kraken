@@ -4,11 +4,20 @@ import type { PricedLine } from "../../line-pricing";
 import type { CvLineDraft } from "../../schemas/cv-lines-schema";
 import type { ColumnKey } from "./grid-columns";
 
-/** Qué se edita fuera del borrador: datos posventa de la versión aprobada y GROSS UP / RET DIMA (§2.3). */
+/** Qué se edita fuera del borrador: datos posventa de la versión aprobada, GROSS UP / RET DIMA y activación (§2.3). */
 export type LineEditRights = {
   canEditPostSale: boolean;
   canEditWithholdings: boolean;
+  canEditActivation: boolean;
 };
+
+export function hasAfterDraftRights(rights: LineEditRights): boolean {
+  return (
+    rights.canEditPostSale ||
+    rights.canEditWithholdings ||
+    rights.canEditActivation
+  );
+}
 
 export type ItemCellContext = {
   line: CvLineDraft;
@@ -17,9 +26,11 @@ export type ItemCellContext = {
   issue: (field: keyof CvLineDraft) => string | undefined;
   priced: PricedLine | null;
   disabled: boolean;
-  // Observaciones, PO#, BC y activación: siguen editables en la versión aprobada (AGENTS.md §2.3).
+  // Observaciones, PO#, BC y seriales: siguen editables en la versión aprobada (AGENTS.md §2.3).
   postSaleDisabled: boolean;
   // GROSS UP y RET DIMA: los corrigen Administración y las gerencias en cualquier estado (AGENTS.md §2.3).
   withholdingsDisabled: boolean;
+  // Rango de activación: se completa en cualquier estado del CV salvo anulado (AGENTS.md §2.3).
+  activationDisabled: boolean;
   onChange: (patch: Partial<CvLineDraft>) => void;
 };

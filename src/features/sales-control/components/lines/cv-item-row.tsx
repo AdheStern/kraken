@@ -74,6 +74,8 @@ export function CvItemRow({
     disabled: !canEdit,
     postSaleDisabled: !canEdit && !rights.canEditPostSale,
     withholdingsDisabled: !canEdit && !rights.canEditWithholdings,
+    activationDisabled:
+      !canEdit && !rights.canEditPostSale && !rights.canEditActivation,
     onChange,
   };
   const cells = {

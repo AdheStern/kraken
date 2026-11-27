@@ -87,6 +87,15 @@ export function canEditPostSaleDetails(
   return hasRole(user, "ADMINISTRACION") || canEditCvDraft(user, cv);
 }
 
+// REGLA: el rango de activación de las licencias lo completan en cualquier estado (salvo ANULADA, que valida la
+// action) quienes editan algo del CV: el borrador, los datos posventa o la cabecera (§2.3, decisión 2026-11-27).
+export function canEditCvActivation(
+  user: SessionUser,
+  cv: CvAccessFacts,
+): boolean {
+  return canEditPostSaleDetails(user, cv) || canEditCvHeaderAnyState(user, cv);
+}
+
 // REGLA: un ingeniero nunca recibe costos ni márgenes; ese rol no otorga nada aquí (regla 12). Administración ve
 // todas las versiones con sus costos, también borradores, para fijar el precio final (decisión 2026-11-19). Los
 // involucrados en la venta (vendedores y la preventa de la versión) ven costo y venta (decisión 2026-11-27).

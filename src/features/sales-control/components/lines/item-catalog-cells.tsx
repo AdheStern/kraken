@@ -26,6 +26,7 @@ export function catalogCells(
     issue,
     disabled,
     postSaleDisabled,
+    activationDisabled,
     onChange,
   }: ItemCellContext,
   options: CvGridOptions,
@@ -114,7 +115,7 @@ export function catalogCells(
         aria-label="Rango de activación"
         start={line.activationStart}
         end={line.activationEnd}
-        disabled={postSaleDisabled || line.itemType !== "INTANGIBLE"}
+        disabled={activationDisabled || line.itemType !== "INTANGIBLE"}
         placeholder={
           line.itemType === "INTANGIBLE" ? "Elige el rango" : "Solo intangibles"
         }

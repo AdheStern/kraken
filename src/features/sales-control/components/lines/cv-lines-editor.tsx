@@ -10,6 +10,7 @@ import { CvLineGrid } from "./cv-line-grid";
 import { CvLinesTopBar } from "./cv-lines-top-bar";
 import { CvTotalsPanel } from "./cv-totals-panel";
 import { visibleColumns } from "./grid-columns";
+import { hasAfterDraftRights } from "./item-cell-context";
 import { LineDetailSheet } from "./line-detail-sheet";
 import { LinesNotice } from "./lines-notice";
 import { OptionalColumnsMenu } from "./optional-columns-menu";
@@ -32,6 +33,7 @@ type Props = {
   canEdit: boolean;
   canEditPostSale: boolean;
   canEditWithholdings: boolean;
+  canEditActivation: boolean;
   canSeeCosts: boolean;
   isOpeningBalance: boolean;
   finalPrice: CvFinalPriceState;
@@ -46,11 +48,12 @@ export function CvLinesEditor({
   canEdit,
   canEditPostSale,
   canEditWithholdings,
+  canEditActivation,
   canSeeCosts,
   isOpeningBalance,
   finalPrice,
 }: Props) {
-  const rights = { canEditPostSale, canEditWithholdings };
+  const rights = { canEditPostSale, canEditWithholdings, canEditActivation };
   const [state, dispatch] = useCvLinesState(initial);
   const [baseline] = useState(() => JSON.stringify(state));
   const [detailKey, setDetailKey] = useState<string | null>(null);
@@ -118,7 +121,7 @@ export function CvLinesEditor({
             venta en 0. Cada línea abre su bolsa al aprobarse.
           </p>
         )}
-        {(canEdit || canEditPostSale || canEditWithholdings) && (
+        {(canEdit || hasAfterDraftRights(rights)) && (
           <LinesNotice notice={notice} isDirty={isDirty} canPaste={canEdit} />
         )}
         {state.lines.length === 0 && state.groups.length === 0 ? (

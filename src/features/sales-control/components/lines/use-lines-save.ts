@@ -1,15 +1,16 @@
 // src/features/sales-control/components/lines/use-lines-save.ts
 // Guardado del editor de líneas: el borrador completo (sin las líneas nuevas que quedaron vacías) o, fuera del
-// borrador, los datos posventa de la versión aprobada y GROSS UP y RET DIMA (AGENTS.md §2.3).
+// borrador, los datos posventa de la versión aprobada, GROSS UP y RET DIMA y el rango de activación (AGENTS.md §2.3).
 "use client";
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { type ActionResult, actionOk } from "@/lib/action-result";
+import { updateCvActivation } from "../../actions/update-cv-activation";
 import { updateCvWithholdings } from "../../actions/update-cv-withholdings";
 import { updatePostSaleDetails } from "../../actions/update-post-sale-details";
 import { upsertCvLines } from "../../actions/upsert-cv-lines";
-import type { LineEditRights } from "./item-cell-context";
+import { hasAfterDraftRights, type LineEditRights } from "./item-cell-context";
 import type { LinesNoticeValue } from "./lines-notice";
 import {
   isBlankLine,
@@ -27,8 +28,7 @@ export function useLinesSave(
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [notice, setNotice] = useState<LinesNoticeValue>(null);
-  const canSave =
-    canEdit || rights.canEditPostSale || rights.canEditWithholdings;
+  const canSave = canEdit || hasAfterDraftRights(rights);
 
   async function save() {
     if (!canSave || isSaving || !isDirty) return;
@@ -69,6 +69,17 @@ async function saveAfterDraft(
         serials: line.serials,
         activationStart: line.activationStart,
         activationEnd: line.activationEnd,
+      })),
+    });
+    if (!result.ok) return result;
+  } else if (rights.canEditActivation) {
+    // POR QUÉ: los datos posventa ya llevan la activación; sin ellos, va sola (decisión 2026-11-27).
+    const result = await updateCvActivation({
+      versionId,
+      lines: items.map(({ id, activationStart, activationEnd }) => ({
+        id,
+        activationStart,
+        activationEnd,
       })),
     });
     if (!result.ok) return result;

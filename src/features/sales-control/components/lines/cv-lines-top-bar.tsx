@@ -8,7 +8,7 @@ import type { Dispatch, ReactNode } from "react";
 import { submitCvVersion } from "../../actions/submit-cv-version";
 import type { Option } from "../../types";
 import { CvLinesToolbar } from "./cv-lines-toolbar";
-import type { LineEditRights } from "./item-cell-context";
+import { hasAfterDraftRights, type LineEditRights } from "./item-cell-context";
 import { PostSaleToolbar } from "./post-sale-toolbar";
 import type { LinesAction } from "./use-cv-lines-state";
 
@@ -29,8 +29,7 @@ type Props = {
 export function CvLinesTopBar(props: Props) {
   const { canEdit, rights, columnsMenu, dispatch } = props;
   const router = useRouter();
-  const canEditAfterDraft =
-    rights.canEditPostSale || rights.canEditWithholdings;
+  const canEditAfterDraft = hasAfterDraftRights(rights);
 
   return (
     // REGLA de la planilla: la barra de líneas queda fija bajo la cabecera de la app al bajar (decisión 2026-11-12);

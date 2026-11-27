@@ -7,6 +7,7 @@ import {
   type CvAccessFacts,
   canCreateCv,
   canDecideApproval,
+  canEditCvActivation,
   canEditCvDraft,
   canEditCvHeaderAnyState,
   canEditCvWithholdings,
@@ -126,6 +127,37 @@ describe("§2.3 CV aprobado: datos posventa (observaciones, PO#, activación, se
     ["administrador del sistema", user(["ADMIN_SISTEMA"]), ownCv, false],
   ])("%s → %s", (_, u, cv, expected) => {
     expect(canEditPostSaleDetails(u, cv)).toBe(expected);
+  });
+});
+
+describe("§2.3 CV: rango de activación en cualquier estado (decisión 2026-11-27)", () => {
+  it.each<[string, SessionUser, CvAccessFacts, boolean]>([
+    ["comercial, vendedor del CV", user(["COMERCIAL"]), sellerCv, true],
+    ["comercial, CV ajeno", user(["COMERCIAL"]), foreignNetCv, false],
+    [
+      "gerente de área, CV con una línea de su área",
+      user(["GERENTE_AREA", AREA_NET]),
+      foreignNetCv,
+      true,
+    ],
+    [
+      "gerente de área, CV sin líneas de su área",
+      user(["GERENTE_AREA", AREA_TEL]),
+      foreignNetCv,
+      false,
+    ],
+    ["gerente general", user(["GERENTE_GENERAL"]), foreignNetCv, true],
+    ["administración", user(["ADMINISTRACION"]), foreignNetCv, true],
+    [
+      "preventa del CV, no edita",
+      user(["PREVENTA"]),
+      { ...foreignNetCv, presalesId: "yo" },
+      false,
+    ],
+    ["ingeniero, CV propio", user(["INGENIERO"]), ownCv, false],
+    ["administrador del sistema", user(["ADMIN_SISTEMA"]), ownCv, false],
+  ])("%s → %s", (_, u, cv, expected) => {
+    expect(canEditCvActivation(u, cv)).toBe(expected);
   });
 });
 

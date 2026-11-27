@@ -2,14 +2,13 @@
 // Datos posventa de una versión APROBADA (AGENTS.md §2.3, decisión 2026-11-03): observaciones, PO#, BC, rango de
 // activación y seriales de las líneas; notas, seriales y PO# del leasing. Mismos límites que el borrador.
 import { z } from "zod";
+import { activationRangeIssue, toActivationDate } from "./activation-schema";
 import {
   cvLeasingLineDraftSchema,
   parseLeasingSerials,
   serialsIssue,
 } from "./cv-leasing-schema";
 import { cvLineDraftSchema } from "./cv-lines-schema";
-
-const toDate = (text: string) => (text ? new Date(text) : null);
 
 const postSaleLineSchema = cvLineDraftSchema
   .pick({
@@ -22,25 +21,16 @@ const postSaleLineSchema = cvLineDraftSchema
   })
   .extend({ id: z.uuid() })
   .superRefine((line, ctx) => {
-    const hasStart = line.activationStart !== "";
-    if (hasStart !== (line.activationEnd !== ""))
-      ctx.addIssue({
-        code: "custom",
-        message: "El rango de activación lleva inicio y fin.",
-      });
-    else if (hasStart && line.activationEnd < line.activationStart)
-      ctx.addIssue({
-        code: "custom",
-        message: "El fin de la activación no puede ser anterior al inicio.",
-      });
+    const issue = activationRangeIssue(line);
+    if (issue) ctx.addIssue({ code: "custom", message: issue });
   })
   .transform((line) => ({
     id: line.id,
     notes: line.notes || null,
     poNumber: line.poNumber || null,
     bc: line.bc || null,
-    activationStart: toDate(line.activationStart),
-    activationEnd: toDate(line.activationEnd),
+    activationStart: toActivationDate(line.activationStart),
+    activationEnd: toActivationDate(line.activationEnd),
     serials: line.serials,
   }));
 

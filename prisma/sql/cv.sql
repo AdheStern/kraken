@@ -75,10 +75,12 @@ DECLARE
     WHEN 'leasing_linea' THEN ARRAY['notas', 'seriales', 'po_numero']
     ELSE ARRAY[]::text[]
   END;
+  v_cualquier_estado text[] := ARRAY['gross_up', 'ret_dima', 'activacion_inicio', 'activacion_fin'];
 BEGIN
-  -- REGLA: GROSS UP y RET DIMA se corrigen en cualquier estado de la versión (§2.3, decisión 2026-11-16).
+  -- REGLA: GROSS UP y RET DIMA (§2.3, decisión 2026-11-16) y el rango de activación (decisión 2026-11-27) se
+  -- corrigen en cualquier estado de la versión.
   IF TG_OP = 'UPDATE' AND TG_TABLE_NAME = 'linea'
-    AND (to_jsonb(NEW) - ARRAY['gross_up', 'ret_dima']) = (to_jsonb(OLD) - ARRAY['gross_up', 'ret_dima']) THEN
+    AND (to_jsonb(NEW) - v_cualquier_estado) = (to_jsonb(OLD) - v_cualquier_estado) THEN
     RETURN NEW;
   END IF;
   -- REGLA: los vendedores son parte de la cabecera y se corrigen en cualquier estado (§2.3, decisión 2026-11-03).

@@ -180,6 +180,7 @@ async function CvEditor({
         canEdit={editor.canEdit}
         canEditPostSale={editor.canEditPostSale}
         canEditWithholdings={editor.canEditWithholdings}
+        canEditActivation={editor.canEditActivation}
         canSeeCosts={editor.canSeeCosts}
         isOpeningBalance={header.isOpeningBalance}
         finalPrice={editor.finalPrice}

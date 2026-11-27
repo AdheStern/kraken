@@ -151,7 +151,13 @@ test("Administración ve el costo del ingreso y el comercial solo cantidades", a
 }) => {
   const admin = await as(browser, "administracion");
   await admin.goto(`/inventario?almacen=LP&q=${CODE}`);
-  await expect(admin.getByText("Valor USD", { exact: true })).toBeVisible();
+  // TRAMPA: el producto puede salir en más de una tarjeta y alguna oculta según el ancho; basta una visible.
+  await expect(
+    admin
+      .getByText("Valor USD", { exact: true })
+      .filter({ visible: true })
+      .first(),
+  ).toBeVisible();
   const commercial = await as(browser, "comercial");
   await commercial.goto(`/inventario?almacen=LP&q=${CODE}`);
   await expect(commercial.getByText(CODE)).toBeVisible();

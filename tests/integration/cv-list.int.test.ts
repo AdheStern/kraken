@@ -91,7 +91,8 @@ describe("listCvs", () => {
 
     expect(await costFor(general)).toBe("382.81");
     expect(await costFor(seller)).toBe("382.81");
-    expect(await costFor(presales)).toBeNull();
+    // REGLA: la preventa del CV ve costo y venta (decisión 2026-11-27).
+    expect(await costFor(presales)).toBe("382.81");
   });
 });
 

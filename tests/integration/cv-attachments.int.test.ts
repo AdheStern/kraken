@@ -94,9 +94,11 @@ describe("adjuntos del CV", () => {
     expect(await db.cvAttachment.count({ where: { cvId: f.cv.id } })).toBe(0);
   });
 
-  it("la preventa no ve ni sube adjuntos (regla 12)", async () => {
+  it("la preventa ve los adjuntos pero no los sube (decisión 2026-11-27)", async () => {
     const f = await fixture();
-    expect(await getCvAttachments(f.presales, f.cv.id)).toBeNull();
+    expect(await getCvAttachments(f.presales, f.cv.id)).toMatchObject({
+      canUpload: false,
+    });
     const result = await uploadCvAttachment(
       f.presales,
       { cvId: f.cv.id, kind: "OTRO", file: file("x") },

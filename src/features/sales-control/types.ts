@@ -189,6 +189,8 @@ export type CvGridOptions = {
   technologies: Option[];
   units: (Option & { isHours: boolean; isTerm: boolean })[];
   products: ProductOption[];
+  /** Costo promedio por producto en el almacén de la ciudad del CV; solo para quien edita y ve costos (§2.8). */
+  stockCosts?: ReadonlyMap<string, string>;
   // POR QUÉ: proyectos activos del cliente del CV, para el alcance PROYECTO de una bolsa (§2.4).
   projects: Option[];
 };

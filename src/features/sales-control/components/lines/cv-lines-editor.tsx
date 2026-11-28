@@ -138,7 +138,7 @@ export function CvLinesEditor({
             state={state}
             results={results}
             columns={columns}
-            options={options}
+            options={{ ...options, stockCosts: costs }}
             canEdit={canEdit}
             rights={rights}
             dispatch={dispatch}

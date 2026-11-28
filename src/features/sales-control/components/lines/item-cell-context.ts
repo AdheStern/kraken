@@ -32,5 +32,7 @@ export type ItemCellContext = {
   withholdingsDisabled: boolean;
   // Rango de activación: se completa en cualquier estado del CV salvo anulado (AGENTS.md §2.3).
   activationDisabled: boolean;
+  // Costo promedio del inventario para una línea «Stock DIMA» con producto; null si no aplica (§2.1).
+  stockCostUsd: string | null;
   onChange: (patch: Partial<CvLineDraft>) => void;
 };

@@ -76,6 +76,10 @@ export function CvItemRow({
     withholdingsDisabled: !canEdit && !rights.canEditWithholdings,
     activationDisabled:
       !canEdit && !rights.canEditPostSale && !rights.canEditActivation,
+    stockCostUsd:
+      line.supplyMode === "STOCK_DIMA" && line.productId
+        ? (options.stockCosts?.get(line.productId) ?? null)
+        : null,
     onChange,
   };
   const cells = {

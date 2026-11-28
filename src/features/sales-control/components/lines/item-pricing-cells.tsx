@@ -9,6 +9,7 @@ import { formatAmount } from "@/lib/format-amount";
 import type { ColumnKey } from "./grid-columns";
 import type { ItemCellContext } from "./item-cell-context";
 import { PricingBadge } from "./pricing-badge";
+import { StockCostBadge } from "./stock-cost-badge";
 
 const ZERO = /^0*(\.0*)?$/;
 
@@ -20,6 +21,7 @@ export function pricingCells({
   priced,
   disabled,
   withholdingsDisabled,
+  stockCostUsd,
   onChange,
 }: ItemCellContext): Partial<Record<ColumnKey, ReactNode>> {
   const cost = line.unitCostUsd.trim();
@@ -37,16 +39,22 @@ export function pricingCells({
 
   return {
     unitCost: (
-      <NumberCell
-        row={row}
-        col={col("unitCost")}
-        label="Costo unitario USD"
-        isAmount
-        value={line.unitCostUsd}
-        error={issue("unitCostUsd")}
-        disabled={disabled}
-        onValueChange={(unitCostUsd) => onChange({ unitCostUsd })}
-      />
+      // TRAMPA: mismo ajuste de ancho que la celda del factor, para que la marca no saque la celda de la columna.
+      <div className="flex items-center gap-1 [&>input]:min-w-0 [&>input]:flex-1">
+        {stockCostUsd && !disabled && (
+          <StockCostBadge cost={cost} stockCostUsd={stockCostUsd} />
+        )}
+        <NumberCell
+          row={row}
+          col={col("unitCost")}
+          label="Costo unitario USD"
+          isAmount
+          value={line.unitCostUsd}
+          error={issue("unitCostUsd")}
+          disabled={disabled}
+          onValueChange={(unitCostUsd) => onChange({ unitCostUsd })}
+        />
+      </div>
     ),
     factor: (
       // TRAMPA: la celda mide su texto con «min-w-full» (grid-cells.tsx); junto al indicador ese 100 % la sacaba

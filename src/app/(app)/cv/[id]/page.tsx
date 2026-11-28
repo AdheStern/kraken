@@ -36,6 +36,7 @@ import {
   type CvLinesDraft,
   getCvLines,
 } from "@/features/sales-control/queries/get-cv-lines";
+import { getCvStockCosts } from "@/features/sales-control/queries/get-cv-stock-costs";
 import type { CvEditorData } from "@/features/sales-control/types";
 import { canCreateCv } from "@/server/authz/cv-permissions";
 import { getDecimalParameter } from "@/server/parameters";
@@ -106,6 +107,7 @@ async function CvEditor({
     bagEffects,
     stockEffects,
     attachments,
+    stockCosts,
   ] = await Promise.all([
     getCvFormOptions(),
     editor.canEditHeader ? getCvContactOptions(header.customerId) : [],
@@ -122,6 +124,10 @@ async function CvEditor({
       ? getVersionStockEffects(header.versionId)
       : null,
     getCvAttachments(user, header.cvId),
+    // REGLA: el costo de inventario se propone solo a quien edita el borrador y ve sus costos (regla 12).
+    editor.canEdit && editor.canSeeCosts && !header.isOpeningBalance
+      ? getCvStockCosts(user, header.cvId)
+      : {},
   ]);
 
   return (
@@ -172,6 +178,7 @@ async function CvEditor({
         versionId={header.versionId}
         initial={lines}
         options={gridOptions}
+        stockCosts={stockCosts}
         fxRates={{
           costFxRate: header.costFxRate,
           saleFxRate: header.saleFxRate,

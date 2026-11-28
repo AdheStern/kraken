@@ -6,6 +6,11 @@
 import { useReducer } from "react";
 import { fillFromProduct } from "../../product-fill";
 import type { CvGroupDraft, CvLineDraft } from "../../schemas/cv-lines-schema";
+import {
+  fillStockCosts,
+  NO_STOCK_COSTS,
+  type StockCosts,
+} from "../../stock-cost-fill";
 import type { ProductOption } from "../../types";
 
 export type LinesState = { groups: CvGroupDraft[]; lines: CvLineDraft[] };
@@ -92,7 +97,15 @@ export function isBlankLine(line: CvLineDraft): boolean {
 export function reduceLines(
   state: LinesState,
   action: LinesAction,
+  costs: StockCosts = NO_STOCK_COSTS,
 ): LinesState {
+  const next = applyAction(state, action);
+  // POR QUÉ: «replace» repone lo guardado; solo una edición propone el costo.
+  if (action.type === "replace" || next.lines === state.lines) return next;
+  return { ...next, lines: fillStockCosts(state.lines, next.lines, costs) };
+}
+
+function applyAction(state: LinesState, action: LinesAction): LinesState {
   switch (action.type) {
     case "addLine":
       return withLines(state, [
@@ -179,9 +192,17 @@ function move(
   return next;
 }
 
-export function useCvLinesState(initial: LinesState) {
-  return useReducer(reduceLines, initial, (state) => ({
-    ...state,
-    lines: orderBySection(state),
-  }));
+export function useCvLinesState(
+  initial: LinesState,
+  costs: StockCosts = NO_STOCK_COSTS,
+) {
+  return useReducer(
+    (state: LinesState, action: LinesAction) =>
+      reduceLines(state, action, costs),
+    initial,
+    (state) => ({
+      ...state,
+      lines: orderBySection(state),
+    }),
+  );
 }

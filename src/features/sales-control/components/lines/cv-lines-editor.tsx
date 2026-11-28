@@ -28,6 +28,8 @@ type Props = {
   versionId: string;
   initial: LinesState;
   options: CvGridOptions;
+  /** Costo promedio por producto en el almacén de la ciudad del CV (líneas «Stock DIMA»). */
+  stockCosts: Record<string, string>;
   fxRates: { costFxRate: string; saleFxRate: string };
   thresholdUsd: string;
   canEdit: boolean;
@@ -43,6 +45,7 @@ export function CvLinesEditor({
   versionId,
   initial,
   options,
+  stockCosts,
   fxRates,
   thresholdUsd,
   canEdit,
@@ -54,7 +57,8 @@ export function CvLinesEditor({
   finalPrice,
 }: Props) {
   const rights = { canEditPostSale, canEditWithholdings, canEditActivation };
-  const [state, dispatch] = useCvLinesState(initial);
+  const [costs] = useState(() => new Map(Object.entries(stockCosts)));
+  const [state, dispatch] = useCvLinesState(initial, costs);
   const [baseline] = useState(() => JSON.stringify(state));
   const [detailKey, setDetailKey] = useState<string | null>(null);
   const detailContext = useDetailContext(options.units, isOpeningBalance);
